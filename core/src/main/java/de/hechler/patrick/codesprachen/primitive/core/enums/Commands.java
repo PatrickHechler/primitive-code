@@ -1,4 +1,4 @@
-package de.hechler.patrick.codesprachen.primitive.enums;
+package de.hechler.patrick.codesprachen.primitive.core.enums;
 
 
 public enum Commands {

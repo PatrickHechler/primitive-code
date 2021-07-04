@@ -1,11 +1,11 @@
-package de.hechler.patrick.codesprachen.primitive.objects.commands;
+package de.hechler.patrick.codesprachen.primitive.compile.objects.commands;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import de.hechler.patrick.codesprachen.primitive.enums.Commands;
-import de.hechler.patrick.codesprachen.primitive.objects.Wert;
+import de.hechler.patrick.codesprachen.primitive.compile.enums.Commands;
+import de.hechler.patrick.codesprachen.primitive.compile.objects.Wert;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 public abstract class Command {

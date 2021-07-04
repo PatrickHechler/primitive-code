@@ -1,4 +1,4 @@
-package de.hechler.patrick.codesprachen.primitive.objects;
+package de.hechler.patrick.codesprachen.primitive.compile.objects;
 
 public class Area {
 

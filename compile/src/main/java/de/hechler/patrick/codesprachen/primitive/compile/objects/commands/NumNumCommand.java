@@ -1,8 +1,8 @@
-package de.hechler.patrick.codesprachen.primitive.objects.commands;
+package de.hechler.patrick.codesprachen.primitive.compile.objects.commands;
 
-import de.hechler.patrick.codesprachen.primitive.enums.Commands;
-import de.hechler.patrick.codesprachen.primitive.objects.Num;
-import de.hechler.patrick.codesprachen.primitive.objects.Wert;
+import de.hechler.patrick.codesprachen.primitive.compile.enums.Commands;
+import de.hechler.patrick.codesprachen.primitive.compile.objects.Num;
+import de.hechler.patrick.codesprachen.primitive.compile.objects.Wert;
 
 public class NumNumCommand extends Command {
 	

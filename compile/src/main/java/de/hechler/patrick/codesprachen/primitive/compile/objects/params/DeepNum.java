@@ -1,6 +1,6 @@
-package de.hechler.patrick.codesprachen.primitive.objects.params;
+package de.hechler.patrick.codesprachen.primitive.compile.objects.params;
 
-import de.hechler.patrick.codesprachen.primitive.objects.Num;
+import de.hechler.patrick.codesprachen.primitive.compile.objects.Num;
 
 public class DeepNum extends Num {
 	
