@@ -18,132 +18,170 @@ command returns
 	(
 		add
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.add, $add.num1, $add.num2);}
+
 	)
 	|
 	(
 		sub
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.sub, $sub.num1, $sub.num2);}
+
 	)
 	|
 	(
 		mul
-		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegRegCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.mul, $div.num1, $div.num2);}
+		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.mul, $mul.num1, $mul.num2);}
+
 	)
 	|
 	(
 		div
-		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.div, $mul.num1, $mul.num2);}
+		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegRegCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.div, $div.num1, $div.num2);}
+
 	)
 	|
 	(
 		neg
-		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.neg, $neg.num;}
+		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.neg, $neg.num);}
+
 	)
 	|
 	(
 		and
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.and, $and.num1, $and.num2);}
+
 	)
 	|
 	(
 		or
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.or, $or.num1, $or.num2);}
+
 	)
 	|
 	(
 		xor
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.xor, $xor.num1, $xor.num2);}
+
 	)
 	|
 	(
 		not
-		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.not, $not.num;}
+		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.not, $not.num);}
+
 	)
 	|
 	(
 		push
-		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.NumCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.push, $push.num;}
+		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.NumCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.push, $push.num);}
+
 	)
 	|
 	(
 		pop
-		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.pop, $pop.num;}
+		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.pop, $pop.num);}
+
 	)
 	|
 	(
 		cmp
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.NumNumCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.cmp, $cmp.num1, $cmp.num2);}
+
 	)
 	|
 	(
 		jmp
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.jmp, $jmp.target);}
+
 	)
 	|
 	(
 		jmpeq
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.jmpeq, $jmpeq.target);}
+
 	)
 	|
 	(
 		jmpne
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.jmpne, $jmpne.target);}
+
 	)
 	|
 	(
 		jmpgt
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.jmpgt, $jmpgt.target);}
+
 	)
 	|
 	(
 		jmpge
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.jmpge, $jmpge.target);}
+
 	)
 	|
 	(
 		jmplo
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.jmplo, $jmplo.target);}
+
 	)
 	|
 	(
 		jmple
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.jmple, $jmple.target);}
+
 	)
 	|
 	(
 		call
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.call, $call.target);}
+
 	)
 	|
 	(
 		calleq
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.calleq, $calleq.target);}
+
 	)
 	|
 	(
 		callne
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.callne, $callne.target);}
+
 	)
 	|
 	(
 		callgt
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.callgt, $callgt.target);}
+
 	)
 	|
 	(
 		callge
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.callge, $callge.target);}
+
 	)
 	|
 	(
 		calllo
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.calllo, $calllo.target);}
+
 	)
 	|
 	(
 		callle
 		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.callle, $callle.target);}
+
 	)
+	|
+	(
+		label
+		{$cmd = de.hechler.patrick.codesprachen.primitive.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.enums.Commands.label, $label.name);}
+	)
+;
+
+label returns [java.lang.String name]
+:
+	LABEL_START NAME
+	{$name = $NAME.getText();}
+
 ;
 
 callle returns [java.lang.String target]
@@ -430,6 +468,19 @@ number [int minDeep] returns
 	)
 ;
 
+COMMENT
+:
+	(
+		':'
+		(
+			(
+				'#' .
+			)
+			| ~( '>' )
+		)
+	) -> skip
+;
+
 CALLLE
 :
 	'CALLLE'
@@ -590,12 +641,18 @@ COMMA
 	','
 ;
 
+LABEL_START
+:
+	'#'
+;
+
 NAME
 :
-	[a-zA-Z_\-öäüßÖÄÜẞ] [a-zA-Z_\-öäüßÖÄÜẞ0-9]*
+	[a-zA-Z_\-öäüßÖÄÜẞ0-9]+
 ;
 
 WS
 :
 	[ \t\r\n] -> skip
 ;
+

@@ -11,7 +11,7 @@ public class RegNumCommand extends Command {
 		super(art, Wert.createNumber(n1.num, n1.numDeep), Wert.createNumber(n2.num, n2.numDeep));
 	}
 
-	public RegNumCommand create(Commands art, Num n1, Num n2) {
+	public static RegNumCommand create(Commands art, Num n1, Num n2) {
 		return new RegNumCommand(art, DeepNum.create(n1.num, n1.numDeep), DeepNum.create(n2.num, n2.numDeep));
 	}
 	

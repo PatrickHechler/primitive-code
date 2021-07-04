@@ -9,7 +9,7 @@ public class StrCommand extends Command{
 		super(art, Wert.createConstantString(val));
 	}
 	
-	public StrCommand create(Commands art, String val) {
+	public static StrCommand create(Commands art, String val) {
 		return new StrCommand(art, val);
 	}
 	

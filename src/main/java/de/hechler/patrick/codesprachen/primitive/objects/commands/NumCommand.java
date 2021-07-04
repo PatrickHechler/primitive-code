@@ -10,7 +10,7 @@ public class NumCommand extends Command {
 		super(art, Wert.createNumber(num.num, num.numDeep));
 	}
 	
-	public NumCommand create(Commands art, Num num) {
+	public static NumCommand create(Commands art, Num num) {
 		return new NumCommand(art, num);
 	}
 	
