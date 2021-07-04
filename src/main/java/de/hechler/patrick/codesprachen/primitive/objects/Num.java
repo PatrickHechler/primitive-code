@@ -11,4 +11,18 @@ public class Num {
 		this.numDeep = numDeep;
 	}
 	
+	
+	
+	public void checkMDB0() {
+		if (numDeep > 255 || numDeep < 0) {
+			throw new IllegalStateException("numDeep out of supported range: numDeep=" + numDeep + " min=0 max=255");
+		}
+	}
+	
+	public void checkMDB1() {
+		if (numDeep > 256 || numDeep < 1) {
+			throw new IllegalStateException("numDeep out of supported range: numDeep=" + numDeep + " min=1 max=256");
+		}
+	}
+	
 }

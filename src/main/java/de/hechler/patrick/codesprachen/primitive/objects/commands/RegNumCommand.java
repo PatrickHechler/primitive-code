@@ -7,8 +7,12 @@ import de.hechler.patrick.codesprachen.primitive.objects.params.DeepNum;
 
 public class RegNumCommand extends Command {
 
-	public RegNumCommand(Commands art, DeepNum n1, Num n2) {
+	private RegNumCommand(Commands art, DeepNum n1, Num n2) {
 		super(art, Wert.createNumber(n1.num, n1.numDeep), Wert.createNumber(n2.num, n2.numDeep));
 	}
 
+	public RegNumCommand create(Commands art, Num n1, Num n2) {
+		return new RegNumCommand(art, DeepNum.create(n1.num, n1.numDeep), DeepNum.create(n2.num, n2.numDeep));
+	}
+	
 }

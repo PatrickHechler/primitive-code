@@ -5,7 +5,6 @@ public class Wert {
 	private static final int CONST_STR = 1;
 	private static final int NUM = 2;
 	private static final int NUM_AREA = 3;
-	private static final int INDIRECT_STR = 4;
 	
 	
 	
@@ -19,11 +18,13 @@ public class Wert {
 	
 	
 	public static Wert createNumArea(long val, int deep, long len, int lenDeep) {
+		if (deep > 256 || deep < 1) {
+			throw new IllegalArgumentException("argument deep is out of ange: deep=" + deep + " min=1 max=256");
+		}
+		if (lenDeep > 255 || lenDeep < 0) {
+			throw new IllegalArgumentException("argument lenDeep is out of ange: lenDeep=" + lenDeep + " min=0 max=255");
+		}
 		return new Wert(null, val, deep, len, lenDeep, NUM_AREA);
-	}
-	
-	public static Wert createIndirectString(long val, int deep, long len, int lenDeep) {
-		return new Wert(null, val, deep, len, lenDeep, INDIRECT_STR);
 	}
 	
 	public static Wert createNumber(long val, int deep) {
@@ -31,6 +32,9 @@ public class Wert {
 	}
 	
 	public static Wert createConstantString(String val) {
+		if (val == null) {
+			throw new NullPointerException("can't create a null string Wert");
+		}
 		return new Wert(val, 0, 0, 0, 0, CONST_STR);
 	}
 	
@@ -49,10 +53,6 @@ public class Wert {
 		return (art != CONST_STR);
 	}
 	
-	public boolean isIndirectStrArea() {
-		return (art != INDIRECT_STR);
-	}
-	
 	public boolean isNum() {
 		return (art != NUM);
 	}
@@ -66,13 +66,6 @@ public class Wert {
 			throw new IllegalStateException("this is no CONST_STR, this is a " + artstr(art));
 		}
 		return str;
-	}
-	
-	public Area getIndirectStrArea() {
-		if (art != INDIRECT_STR) {
-			throw new IllegalStateException("this is no INDIRECT_STR, this is a " + artstr(art));
-		}
-		return new Area(num, deep, num0, deep0);
 	}
 	
 	public Num getNum() {
@@ -97,8 +90,6 @@ public class Wert {
 			return "NUM";
 		case NUM_AREA:
 			return "NUM_AREA";
-		case INDIRECT_STR:
-			return "INDIRECT_STR";
 		default:
 			throw new IllegalStateException("unknown art: " + art);
 		}

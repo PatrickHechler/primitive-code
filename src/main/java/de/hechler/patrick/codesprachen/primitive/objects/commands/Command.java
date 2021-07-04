@@ -16,12 +16,12 @@ public abstract class Command {
 	
 	
 	@SuppressWarnings("unchecked")
-	public Command(Commands art, Wert... params) {
+	protected Command(Commands art, Wert... params) {
 		this.art = art;
 		this.params = Collections.unmodifiableList(Arrays.asList(params.clone()));
 	}
 	
-	public Command(Commands art, List <Wert> params) {
+	protected Command(Commands art, List <Wert> params) {
 		this.art = art;
 		this.params = Collections.unmodifiableList(new ArrayList <>(params));
 	}
