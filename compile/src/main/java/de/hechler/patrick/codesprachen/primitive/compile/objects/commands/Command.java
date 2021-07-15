@@ -8,7 +8,7 @@ import de.hechler.patrick.codesprachen.primitive.compile.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.compile.objects.Wert;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
-public abstract class Command {
+public class Command {
 	
 	public final Commands art;
 	public final List <Wert> params;
@@ -28,8 +28,14 @@ public abstract class Command {
 	
 	
 	
-	public Wert param(int index) {
-		return params.get(index);
+	
+	
+	public static Command create(Commands art, Wert... params) {
+		return new Command(art, params);
+	}
+	
+	public static Command create(Commands art, List<Wert> params) {
+		return new Command(art, params);
 	}
 	
 }

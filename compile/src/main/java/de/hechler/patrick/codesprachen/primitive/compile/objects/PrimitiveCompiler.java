@@ -8,6 +8,7 @@ import java.util.Map;
 import de.hechler.patrick.antlr.v4.codespr.primitive.PrimGrammarParser.DateiContext;
 import de.hechler.patrick.codesprachen.primitive.compile.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.compile.objects.commands.Command;
+import de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num;
 
 public class PrimitiveCompiler {
 	
@@ -32,6 +33,7 @@ public class PrimitiveCompiler {
 		}
 		for (int i = 0; i < cmds.length; i ++ ) {
 			switch (cmds[i].art) {
+			case mov:
 			case add:
 			case sub:
 			case mul:
@@ -42,11 +44,11 @@ public class PrimitiveCompiler {
 				out.write(cmds[i].art.nummer);
 				Num num = cmds[i].params.get(0).getNum();
 				num.checkMDB1();
-				out.write(num.numDeep - 1);
+				out.write(num.deep - 1);
 				writeLong(num.num);
 				num = cmds[i].params.get(1).getNum();
 				num.checkMDB0();
-				out.write(num.numDeep);
+				out.write(num.deep);
 				writeLong(num.num);
 				break;
 			}
@@ -73,11 +75,11 @@ public class PrimitiveCompiler {
 				out.write(cmds[i].art.nummer);
 				Num num = cmds[i].params.get(0).getNum();
 				num.checkMDB0();
-				out.write(num.numDeep);
+				out.write(num.deep);
 				writeLong(num.num);
 				num = cmds[i].params.get(1).getNum();
 				num.checkMDB0();
-				out.write(num.numDeep);
+				out.write(num.deep);
 				writeLong(num.num);
 				break;
 			}
@@ -87,7 +89,7 @@ public class PrimitiveCompiler {
 				out.write(cmds[i].art.nummer);
 				Num num = cmds[i].params.get(0).getNum();
 				num.checkMDB1();
-				out.write(num.numDeep - 1);
+				out.write(num.deep - 1);
 				writeLong(num.num);
 				break;
 			}
@@ -95,11 +97,15 @@ public class PrimitiveCompiler {
 				out.write(cmds[i].art.nummer);
 				Num num = cmds[i].params.get(0).getNum();
 				num.checkMDB0();
-				out.write(num.numDeep);
+				out.write(num.deep);
 				writeLong(num.num);
 				break;
 			}
+			case ret:
+				out.write(cmds[i].art.nummer);
+				break;
 			case label:// nothing to do
+				break;
 			}
 		}
 		out.flush();

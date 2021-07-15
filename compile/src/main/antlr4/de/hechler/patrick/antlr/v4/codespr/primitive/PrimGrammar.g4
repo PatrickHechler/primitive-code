@@ -6,7 +6,7 @@ datei returns
 	{$cmds = new java.util.ArrayList<>();}
 
 	(
-		command
+		command NEW_LINE+
 		{$cmds.add($command.cmd);}
 
 	)+
@@ -16,471 +16,499 @@ command returns
 [de.hechler.patrick.codesprachen.primitive.compile.objects.commands.Command cmd]
 :
 	(
+		mov
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.mov, $mov.p1, $mov.p2);}
+	)
+	|
+	(
 		add
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.add, $add.num1, $add.num2);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.add, $add.p1, $add.p2);}
 	)
 	|
 	(
 		sub
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.sub, $sub.num1, $sub.num2);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.sub, $sub.p1, $sub.p2);}
 	)
 	|
 	(
 		mul
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.mul, $mul.num1, $mul.num2);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.mul, $mul.p1, $mul.p2);}
 	)
 	|
 	(
 		div
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegRegCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.div, $div.num1, $div.num2);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.mul, $div.p1, $div.p2);}
 	)
 	|
 	(
 		neg
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.neg, $neg.num);}
-
 	)
 	|
 	(
 		and
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.and, $and.num1, $and.num2);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.and, $and.p1, $and.p2);}
 	)
 	|
 	(
 		or
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.or, $or.num1, $or.num2);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.or, $or.p1, $or.p2);}
 	)
 	|
 	(
 		xor
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.xor, $xor.num1, $xor.num2);}
-
 	)
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.xor, $xor.p1, $xor.p2);}
 	|
 	(
 		not
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.not, $not.num);}
-
+	)
+	|
+	(
+		cmp
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.cmp, $cmp.p1, $cmp.p2);}
+	)
+	|
+	(
+		jmp
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmp, $jmp.lname);}
+	)
+	|
+	(
+		jmpeq
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpeq, $jmpeq.lname);}
+	)
+	|
+	(
+		jmpne
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpne, $jmpne.lname);}
+	)
+	|
+	(
+		jmpgt
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpgt, $jmpgt.lname);}
+	)
+	|
+	(
+		jmpge
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpge, $jmpge.lname);}
+	)
+	|
+	(
+		jmplo
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmplo, $jmplo.lname);}
+	)
+	|
+	(
+		jmple
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmple, $jmple.lname);}
 	)
 	|
 	(
 		push
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.NumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.push, $push.num);}
-
 	)
 	|
 	(
 		pop
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.pop, $pop.num);}
-
-	)
-	|
-	(
-		cmp
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.NumNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.cmp, $cmp.num1, $cmp.num2);}
-
-	)
-	|
-	(
-		jmp
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmp, $jmp.target);}
-
-	)
-	|
-	(
-		jmpeq
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpeq, $jmpeq.target);}
-
-	)
-	|
-	(
-		jmpne
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpne, $jmpne.target);}
-
-	)
-	|
-	(
-		jmpgt
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpgt, $jmpgt.target);}
-
-	)
-	|
-	(
-		jmpge
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpge, $jmpge.target);}
-
-	)
-	|
-	(
-		jmplo
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmplo, $jmplo.target);}
-
-	)
-	|
-	(
-		jmple
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmple, $jmple.target);}
-
 	)
 	|
 	(
 		call
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.call, $call.target);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.call, $call.lname);}
 	)
 	|
 	(
 		calleq
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.calleq, $calleq.target);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.calleq, $calleq.lname);}
 	)
 	|
 	(
 		callne
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callne, $callne.target);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callne, $callne.lname);}
 	)
 	|
 	(
 		callgt
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callgt, $callgt.target);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callgt, $callgt.lname);}
 	)
 	|
 	(
 		callge
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callge, $callge.target);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callge, $callge.lname);}
 	)
 	|
 	(
 		calllo
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.calllo, $calllo.target);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.calllo, $calllo.lname);}
 	)
 	|
 	(
 		callle
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callle, $callle.target);}
-
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callle, $callle.lname);}
+	)
+	|
+	(
+		ret
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.Command.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.ret);}
 	)
 	|
 	(
 		label
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.label, $label.name);}
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.label, $label.labelName);}
 
 	)
 ;
 
-label returns [java.lang.String name]
+mov returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 :
-	LABEL_START NAME
-	{$name = $NAME.getText();}
+	MOV
+	(
+		nummer [1]
+		{$p1 = $nummer.num;}
+
+	) PARAM_SEPARATOR
+	(
+		nummer [0]
+		{$p2 = $nummer.num;}
+
+	)
+;
+
+add returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+:
+	ADD
+	(
+		nummer [1]
+		{$p1 = $nummer.num;}
+
+	) PARAM_SEPARATOR
+	(
+		nummer [0]
+		{$p2 = $nummer.num;}
+
+	)
+;
+
+sub returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+:
+	SUB
+	(
+		nummer [1]
+		{$p1 = $nummer.num;}
+
+	) PARAM_SEPARATOR
+	(
+		nummer [0]
+		{$p2 = $nummer.num;}
+
+	)
+;
+
+mul returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+:
+	MUL
+	(
+		nummer [1]
+		{$p1 = $nummer.num;}
+
+	) PARAM_SEPARATOR
+	(
+		nummer [0]
+		{$p2 = $nummer.num;}
+
+	)
+;
+
+div returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+:
+	DIV
+	(
+		nummer [1]
+		{$p1 = $nummer.num;}
+
+	) PARAM_SEPARATOR
+	(
+		nummer [0]
+		{$p2 = $nummer.num;}
+
+	)
+;
+
+neg returns
+[de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num num]
+:
+	NEG nummer [1]
+	{$num = $nummer.num;}
 
 ;
 
-callle returns [java.lang.String target]
+and returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 :
-	CALLLE NAME
-	{$target = $NAME.getText();}
+	AND
+	(
+		nummer [1]
+		{$p1 = $nummer.num;}
+
+	) PARAM_SEPARATOR
+	(
+		nummer [0]
+		{$p2 = $nummer.num;}
+
+	)
+;
+
+or returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+:
+	OR
+	(
+		nummer [1]
+		{$p1 = $nummer.num;}
+
+	) PARAM_SEPARATOR
+	(
+		nummer [0]
+		{$p2 = $nummer.num;}
+
+	)
+;
+
+xor returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+:
+	XOR
+	(
+		nummer [1]
+		{$p1 = $nummer.num;}
+
+	) PARAM_SEPARATOR
+	(
+		nummer [0]
+		{$p2 = $nummer.num;}
+
+	)
+;
+
+not returns
+[de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num num]
+:
+	NOT nummer [1]
+	{$num = $nummer.num;}
 
 ;
 
-calllo returns [java.lang.String target]
-:
-	CALLLO NAME
-	{$target = $NAME.getText();}
-
-;
-
-callge returns [java.lang.String target]
-:
-	CALLGE NAME
-	{$target = $NAME.getText();}
-
-;
-
-callgt returns [java.lang.String target]
-:
-	CALLGT NAME
-	{$target = $NAME.getText();}
-
-;
-
-callne returns [java.lang.String target]
-:
-	CALLNE NAME
-	{$target = $NAME.getText();}
-
-;
-
-calleq returns [java.lang.String target]
-:
-	CALLEQ NAME
-	{$target = $NAME.getText();}
-
-;
-
-call returns [java.lang.String target]
-:
-	CALL NAME
-	{$target = $NAME.getText();}
-
-;
-
-jmple returns [java.lang.String target]
-:
-	JMPLE NAME
-	{$target = $NAME.getText();}
-
-;
-
-jmplo returns [java.lang.String target]
-:
-	JMPLO NAME
-	{$target = $NAME.getText();}
-
-;
-
-jmpge returns [java.lang.String target]
-:
-	JMPGE NAME
-	{$target = $NAME.getText();}
-
-;
-
-jmpgt returns [java.lang.String target]
-:
-	JMPGT NAME
-	{$target = $NAME.getText();}
-
-;
-
-jmpne returns [java.lang.String target]
-:
-	JMPNE NAME
-	{$target = $NAME.getText();}
-
-;
-
-jmpeq returns [java.lang.String target]
-:
-	JMPEQ NAME
-	{$target = $NAME.getText();}
-
-;
-
-jmp returns [java.lang.String target]
-:
-	JMP NAME
-	{$target = $NAME.getText();}
-
-;
-
-cmp returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num1, de.hechler.patrick.codesprachen.primitive.compile.objects.Num num2]
+cmp returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 :
 	CMP
 	(
-		number [0]
-		{$num1 = $number.num;}
+		nummer [1]
+		{$p1 = $nummer.num;}
 
-	) COMMA
+	) PARAM_SEPARATOR
 	(
-		number [0]
-		{$num2 = $number.num;}
+		nummer [0]
+		{$p2 = $nummer.num;}
 
 	)
 ;
 
-pop returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
+jmp returns [String lname]
 :
-	POP number [1]
-	{$num = $number.num;}
+	JMP NAME
+	{$lname = $NAME.getText();}
+
+;
+
+jmpeq returns [String lname]
+:
+	JMPEQ NAME
+	{$lname = $NAME.getText();}
+
+;
+
+jmpne returns [String lname]
+:
+	JMPNE NAME
+	{$lname = $NAME.getText();}
+
+;
+
+jmpgt returns [String lname]
+:
+	JMPGT NAME
+	{$lname = $NAME.getText();}
+
+;
+
+jmpge returns [String lname]
+:
+	JMPGE NAME
+	{$lname = $NAME.getText();}
+
+;
+
+jmplo returns [String lname]
+:
+	JMPLO NAME
+	{$lname = $NAME.getText();}
+
+;
+
+jmple returns [String lname]
+:
+	JMPLE NAME
+	{$lname = $NAME.getText();}
 
 ;
 
 push returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
+[de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num num]
 :
-	PUSH number [0]
-	{$num = $number.num;}
+	PUSH nummer [0]
+	{$num = $nummer.num;}
 
 ;
 
-not returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
+pop returns
+[de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num num]
 :
-	NOT number [1]
-	{$num = $number.num;}
+	POP nummer [0]
+	{$num = $nummer.num;}
 
 ;
 
-xor returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num1, de.hechler.patrick.codesprachen.primitive.compile.objects.Num num2]
+call returns [String lname]
 :
-	XOR
-	(
-		number [1]
-		{$num1 = $number.num;}
-
-	) COMMA
-	(
-		number [0]
-		{$num2 = $number.num;}
-
-	)
-;
-
-or returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num1, de.hechler.patrick.codesprachen.primitive.compile.objects.Num num2]
-:
-	OR
-	(
-		number [1]
-		{$num1 = $number.num;}
-
-	) COMMA
-	(
-		number [0]
-		{$num2 = $number.num;}
-
-	)
-;
-
-and returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num1, de.hechler.patrick.codesprachen.primitive.compile.objects.Num num2]
-:
-	AND
-	(
-		number [1]
-		{$num1 = $number.num;}
-
-	) COMMA
-	(
-		number [0]
-		{$num2 = $number.num;}
-
-	)
-;
-
-neg returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
-:
-	NEG number [1]
-	{$num = $number.num;}
+	CALL NAME
+	{$lname = $NAME.getText();}
 
 ;
 
-div returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num1, de.hechler.patrick.codesprachen.primitive.compile.objects.Num num2]
+calleq returns [String lname]
 :
-	DIV
-	(
-		number [1]
-		{$num1 = $number.num;}
+	CALLEQ NAME
+	{$lname = $NAME.getText();}
 
-	) COMMA
-	(
-		number [1]
-		{$num2 = $number.num;}
-
-	)
 ;
 
-mul returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num1, de.hechler.patrick.codesprachen.primitive.compile.objects.Num num2]
+callne returns [String lname]
 :
-	MUL
-	(
-		number [1]
-		{$num1 = $number.num;}
+	CALLNE NAME
+	{$lname = $NAME.getText();}
 
-	) COMMA
-	(
-		number [0]
-		{$num2 = $number.num;}
-
-	)
 ;
 
-sub returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num1, de.hechler.patrick.codesprachen.primitive.compile.objects.Num num2]
+callgt returns [String lname]
 :
-	SUB
-	(
-		number [1]
-		{$num1 = $number.num;}
+	CALLGT NAME
+	{$lname = $NAME.getText();}
 
-	) COMMA
-	(
-		number [0]
-		{$num2 = $number.num;}
-
-	)
 ;
 
-add returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num1, de.hechler.patrick.codesprachen.primitive.compile.objects.Num num2]
+callge returns [String lname]
 :
-	ADD
-	(
-		number [1]
-		{$num1 = $number.num;}
+	CALLGE NAME
+	{$lname = $NAME.getText();}
 
-	) COMMA
-	(
-		number [0]
-		{$num2 = $number.num;}
-
-	)
 ;
 
-number [int minDeep] returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
+calllo returns [String lname]
+:
+	CALLLO NAME
+	{$lname = $NAME.getText();}
+
+;
+
+callle returns [String lname]
+:
+	CALLLE NAME
+	{$lname = $NAME.getText();}
+
+;
+
+ret
+:
+	RET
+;
+
+label returns [String labelName]
+:
+	LABEL_START NAME
+	{$labelName = $NAME.getText();}
+
+;
+
+nummer [int minDeep] returns
+[de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num num]
 :
 	(
+		HEX_SYMBOL
 		(
 			HEX_NUM
-			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.params.DirectNumber(Long.parseLong($DEC_NUM.getText().substring(3), 16));}
+			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($HEX_NUM.getText(), 10));}
 
 		)
 		|
 		(
 			DEC_NUM
-			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.params.DirectNumber(Long.parseLong($DEC_NUM.getText().substring(3), 10));}
+			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($DEC_NUM.getText(), 10));}
 
 		)
 		|
 		(
 			BIN_NUM
-			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.params.DirectNumber(Long.parseLong($DEC_NUM.getText().substring(3), 2));}
+			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($BIN_NUM.getText(), 10));}
 
 		)
 	)
 	|
 	(
-		REG_START number [$minDeep - 1] REG_END
-		{$num = de.hechler.patrick.codesprachen.primitive.compile.objects.params.DeepNum.create($number.num.num, $number.num.numDeep);}
+		DEC_SYMBOL
+		(
+			DEC_NUM
+			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($DEC_NUM.getText(), 10));}
+
+		)
+		|
+		(
+			BIN_NUM
+			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($BIN_NUM.getText(), 10));}
+
+		)
+	)
+	|
+	(
+		BIN_SYMBOL BIN_NUM
+		{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($BIN_NUM.getText(), 2));}
 
 	)
+	|
+	(
+		REG_START nummer [minDeep - 1] REG_END
+		{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DeepNum($nummer.num);}
+
+	)
+	{
+		if ($num.deep < minDeep || $num.deep - 0xFF > minDeep) {
+			throw new RuntimeException("deep out of range: min= " + minDeep + " max=" + (minDeep + 0xFF) + " deep=" + $num.deep);
+		}
+	}
+
 ;
 
-COMMENT
+RET
 :
-	(
-		':'
-		(
-			(
-				'#' .
-			)
-			| ~( '>' )
-		)
-	) -> skip
+	'RET'
 ;
 
 CALLLE
@@ -516,6 +544,16 @@ CALLEQ
 CALL
 :
 	'CALL'
+;
+
+POP
+:
+	'POP'
+;
+
+PUSH
+:
+	'PUSH'
 ;
 
 JMPLE
@@ -556,16 +594,6 @@ JMP
 CMP
 :
 	'CMP'
-;
-
-POP
-:
-	'POP'
-;
-
-PUSH
-:
-	'PUSH'
 ;
 
 NOT
@@ -613,19 +641,49 @@ ADD
 	'ADD'
 ;
 
-HEX_NUM
+MOV
 :
-	'HEX' [0-9a-fA-F]+
+	'MOV'
 ;
 
-DEC_NUM
+PARAM_SEPARATOR
 :
-	'DEC' [0-9]+
+	','
+;
+
+LABEL_START
+:
+	'#'
+;
+
+HEX_SYMBOL
+:
+	'HEX'
+;
+
+DEC_SYMBOL
+:
+	'DEC'
+;
+
+BIN_SYMBOL
+:
+	'BIN'
 ;
 
 BIN_NUM
 :
-	'BIN' [01]+
+	[01]+
+;
+
+DEC_NUM
+:
+	[0-9]+
+;
+
+HEX_NUM
+:
+	[0-9a-fA-F]+
 ;
 
 REG_START
@@ -638,23 +696,39 @@ REG_END
 	']'
 ;
 
-COMMA
-:
-	','
-;
-
-LABEL_START
-:
-	'#'
-;
-
 NAME
 :
 	[a-zA-Z_\-öäüßÖÄÜẞ0-9]+
 ;
 
+NEW_LINE
+:
+	[\r\n]+
+;
+
+BLOCK_COMMENT
+:
+	(
+		'|:'
+		(
+			~( '>' )
+		)* '>'
+	) -> skip
+;
+
+LINE_COMMENT
+:
+	(
+		'|>>'
+		(
+			~( [\r\n] )
+		)
+	) -> skip
+;
+
 WS
 :
-	[ \t\r\n] -> skip
+	[ \t] -> skip
 ;
+
 

@@ -1,5 +1,7 @@
 package de.hechler.patrick.codesprachen.primitive.compile.objects;
 
+import de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num;
+
 public class Wert {
 	
 	private static final int CONST_STR = 1;
