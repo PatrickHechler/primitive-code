@@ -1,6 +1,5 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
-import javax.security.auth.DestroyFailedException;
 import javax.security.auth.Destroyable;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.DebugPVM;
@@ -108,8 +107,9 @@ public class DebugPVMImpl implements DebugPVM, Destroyable {
 	@Override
 	public native boolean isDestroyed();
 	
-	public native void completeDestroy();
-	
+	/**
+	 * if overwritten it this method should be called and not {@link #destroy()}, because the {@link #finalize()} method frees all memory and not only the stack and the registers
+	 */
 	@Override
 	protected native void finalize();
 	

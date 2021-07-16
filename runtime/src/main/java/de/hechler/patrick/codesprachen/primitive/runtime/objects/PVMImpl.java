@@ -59,6 +59,9 @@ public class PVMImpl implements PVM, Destroyable {
 	@Override
 	public native boolean isDestroyed();
 	
+	/**
+	 * if overwritten it this method should be called and not {@link #destroy()}, because the {@link #finalize()} method frees all memory and not only the stack and the registers
+	 */
 	@Override
 	protected native void finalize();
 	
