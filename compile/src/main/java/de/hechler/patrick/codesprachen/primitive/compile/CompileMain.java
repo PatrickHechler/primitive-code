@@ -16,8 +16,13 @@ public class CompileMain {
 	}
 
 	private static void help(PrintStream out) {
-		// TODO Auto-generated method stub
-		
+		out.println("primitive compiler help:");
+		out.println("\t<-src> [SOURCE_FILE]");
+		out.println("\t\tto set the source-code file");
+		out.println("\t<-target> [TARGET_FILE]");
+		out.println("\t\tto set the target file");
+		out.println("\t<-force>");
+		out.println("\t\tto set overwrite the target file if it exist already");
 	}
 	
 	private static void exit(String[] args, int index, String msg) {

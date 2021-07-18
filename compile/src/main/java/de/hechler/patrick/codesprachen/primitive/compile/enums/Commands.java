@@ -27,6 +27,7 @@ public enum Commands {
 	
 	ret(0x29, 1),
 	
+	exit(0x30, 1 + 1 + 1 * 8),
 	
 	label( -1, 0),;
 	

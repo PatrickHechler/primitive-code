@@ -1,0 +1,7 @@
+			MOV [HEX 0], HEX 100
+			ADD [BIN 0], HEX FF
+			CALL subrutine
+#end		EXIT [HEX 0]
+#subrutine	CMP HEX ff, [DEC 0]
+			JMPGT end
+			EXIT DEC 5

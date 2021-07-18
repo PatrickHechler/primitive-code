@@ -1,7 +1,7 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.interfaces;
 
 
-public interface PVM extends Runnable {
+public interface PVM {
 	
 	/**
 	 * returns the value of the register at the given index
@@ -41,6 +41,8 @@ public interface PVM extends Runnable {
 	 */
 	long pop() throws IndexOutOfBoundsException;
 	
+	void jump(long dest) throws IndexOutOfBoundsException;
+	
 	/**
 	 * returns the number of registers
 	 * 
@@ -55,11 +57,12 @@ public interface PVM extends Runnable {
 	 */
 	long getStackSize();
 	
-	/**
-	 * returns the maximum size of the stack
-	 * 
-	 * @return the maximum size of the stack
-	 */
-	long getStackMaxSize();
+	long getInstructionPointer();
+	
+	long getStackPointer();
+	
+	void read(String fielpath);
+	
+	long execute();
 	
 }

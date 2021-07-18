@@ -8,7 +8,6 @@ import java.util.Map;
 import de.hechler.patrick.antlr.v4.codespr.primitive.PrimGrammarParser.DateiContext;
 import de.hechler.patrick.codesprachen.primitive.compile.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.compile.objects.commands.Command;
-import de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num;
 
 public class PrimitiveCompiler {
 	
@@ -33,23 +32,26 @@ public class PrimitiveCompiler {
 		}
 		for (int i = 0; i < cmds.length; i ++ ) {
 			switch (cmds[i].art) {
+			case div: {
+				out.write(cmds[i].art.nummer);
+				Num num = cmds[i].params.get(0).getNum();
+				writeNumB1(num);
+				num = cmds[i].params.get(1).getNum();
+				writeNumB1(num);
+				break;
+			}
 			case mov:
 			case add:
 			case sub:
 			case mul:
-			case div:
 			case and:
 			case or:
 			case xor: {
 				out.write(cmds[i].art.nummer);
 				Num num = cmds[i].params.get(0).getNum();
-				num.checkMDB1();
-				out.write(num.deep - 1);
-				writeLong(num.num);
+				writeNumB1(num);
 				num = cmds[i].params.get(1).getNum();
-				num.checkMDB0();
-				out.write(num.deep);
-				writeLong(num.num);
+				writeNumB0(num);
 				break;
 			}
 			case call:
@@ -74,13 +76,9 @@ public class PrimitiveCompiler {
 			case cmp: {
 				out.write(cmds[i].art.nummer);
 				Num num = cmds[i].params.get(0).getNum();
-				num.checkMDB0();
-				out.write(num.deep);
-				writeLong(num.num);
+				writeNumB0(num);
 				num = cmds[i].params.get(1).getNum();
-				num.checkMDB0();
-				out.write(num.deep);
-				writeLong(num.num);
+				writeNumB0(num);
 				break;
 			}
 			case neg:
@@ -88,17 +86,14 @@ public class PrimitiveCompiler {
 			case pop: {
 				out.write(cmds[i].art.nummer);
 				Num num = cmds[i].params.get(0).getNum();
-				num.checkMDB1();
-				out.write(num.deep - 1);
-				writeLong(num.num);
+				writeNumB1(num);
 				break;
 			}
-			case push: {
+			case push:
+			case exit: {
 				out.write(cmds[i].art.nummer);
 				Num num = cmds[i].params.get(0).getNum();
-				num.checkMDB0();
-				out.write(num.deep);
-				writeLong(num.num);
+				writeNumB0(num);
 				break;
 			}
 			case ret:
@@ -109,6 +104,28 @@ public class PrimitiveCompiler {
 			}
 		}
 		out.flush();
+	}
+	
+	
+	private void writeNumB0(Num num) throws IOException {
+		num.checkMDB0();
+		if (num.isNum()) {
+			out.write(num.deep);
+			writeLong(num.num());
+		} else {
+			out.write(num.deep | (num.sr() << 6) | 0x20);
+		}
+	}
+	
+	
+	private void writeNumB1(Num num) throws IOException {
+		num.checkMDB1();
+		if (num.isNum()) {
+			out.write(num.deep - 1);
+			writeLong(num.num());
+		} else {
+			out.write( (num.deep - 1) | (num.sr() << 6) | 0x20);
+		}
 	}
 	
 	private void writeLong(long val) throws IOException {

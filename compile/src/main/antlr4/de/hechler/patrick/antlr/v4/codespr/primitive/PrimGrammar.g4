@@ -6,10 +6,10 @@ datei returns
 	{$cmds = new java.util.ArrayList<>();}
 
 	(
-		command NEW_LINE+
+		command
 		{$cmds.add($command.cmd);}
 
-	)+
+	)+ EOF
 ;
 
 command returns
@@ -18,141 +18,175 @@ command returns
 	(
 		mov
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.mov, $mov.p1, $mov.p2);}
+
 	)
 	|
 	(
 		add
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.add, $add.p1, $add.p2);}
+
 	)
 	|
 	(
 		sub
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.sub, $sub.p1, $sub.p2);}
+
 	)
 	|
 	(
 		mul
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.mul, $mul.p1, $mul.p2);}
+
 	)
 	|
 	(
 		div
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.mul, $div.p1, $div.p2);}
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegRegCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.div, $div.p1, $div.p2);}
+
 	)
 	|
 	(
 		neg
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.neg, $neg.num);}
+
 	)
 	|
 	(
 		and
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.and, $and.p1, $and.p2);}
+
 	)
 	|
 	(
 		or
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.or, $or.p1, $or.p2);}
+
 	)
 	|
 	(
 		xor
 	)
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.xor, $xor.p1, $xor.p2);}
+	{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.xor, $xor.p1, $xor.p2);}
+
 	|
 	(
 		not
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.not, $not.num);}
+
 	)
 	|
 	(
 		cmp
-		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.cmp, $cmp.p1, $cmp.p2);}
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.NumNumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.cmp, $cmp.p1, $cmp.p2);}
+
 	)
 	|
 	(
 		jmp
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmp, $jmp.lname);}
+
 	)
 	|
 	(
 		jmpeq
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpeq, $jmpeq.lname);}
+
 	)
 	|
 	(
 		jmpne
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpne, $jmpne.lname);}
+
 	)
 	|
 	(
 		jmpgt
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpgt, $jmpgt.lname);}
+
 	)
 	|
 	(
 		jmpge
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmpge, $jmpge.lname);}
+
 	)
 	|
 	(
 		jmplo
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmplo, $jmplo.lname);}
+
 	)
 	|
 	(
 		jmple
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.jmple, $jmple.lname);}
+
 	)
 	|
 	(
 		push
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.NumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.push, $push.num);}
+
 	)
 	|
 	(
 		pop
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.RegCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.pop, $pop.num);}
+
 	)
 	|
 	(
 		call
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.call, $call.lname);}
+
 	)
 	|
 	(
 		calleq
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.calleq, $calleq.lname);}
+
 	)
 	|
 	(
 		callne
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callne, $callne.lname);}
+
 	)
 	|
 	(
 		callgt
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callgt, $callgt.lname);}
+
 	)
 	|
 	(
 		callge
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callge, $callge.lname);}
+
 	)
 	|
 	(
 		calllo
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.calllo, $calllo.lname);}
+
 	)
 	|
 	(
 		callle
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.StrCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.callle, $callle.lname);}
+
 	)
 	|
 	(
 		ret
 		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.Command.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.ret);}
+
+	)
+	|
+	(
+		exit
+		{$cmd = de.hechler.patrick.codesprachen.primitive.compile.objects.commands.NumCommand.create(de.hechler.patrick.codesprachen.primitive.compile.enums.Commands.exit, $exit.num);}
+
 	)
 	|
 	(
@@ -162,8 +196,8 @@ command returns
 	)
 ;
 
-mov returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
-de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+mov returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.Num p2]
 :
 	MOV
 	(
@@ -178,8 +212,8 @@ de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 	)
 ;
 
-add returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
-de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+add returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.Num p2]
 :
 	ADD
 	(
@@ -194,8 +228,8 @@ de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 	)
 ;
 
-sub returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
-de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+sub returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.Num p2]
 :
 	SUB
 	(
@@ -210,8 +244,8 @@ de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 	)
 ;
 
-mul returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
-de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+mul returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.Num p2]
 :
 	MUL
 	(
@@ -226,8 +260,8 @@ de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 	)
 ;
 
-div returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
-de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+div returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.Num p2]
 :
 	DIV
 	(
@@ -243,15 +277,15 @@ de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 ;
 
 neg returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num num]
+[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
 :
 	NEG nummer [1]
 	{$num = $nummer.num;}
 
 ;
 
-and returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
-de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+and returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.Num p2]
 :
 	AND
 	(
@@ -266,8 +300,8 @@ de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 	)
 ;
 
-or returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
-de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+or returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.Num p2]
 :
 	OR
 	(
@@ -282,8 +316,8 @@ de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 	)
 ;
 
-xor returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
-de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+xor returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.Num p2]
 :
 	XOR
 	(
@@ -299,15 +333,15 @@ de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
 ;
 
 not returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num num]
+[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
 :
 	NOT nummer [1]
 	{$num = $nummer.num;}
 
 ;
 
-cmp returns [de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p1,
-de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num p2]
+cmp returns [de.hechler.patrick.codesprachen.primitive.compile.objects.Num p1,
+de.hechler.patrick.codesprachen.primitive.compile.objects.Num p2]
 :
 	CMP
 	(
@@ -372,7 +406,7 @@ jmple returns [String lname]
 ;
 
 push returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num num]
+[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
 :
 	PUSH nummer [0]
 	{$num = $nummer.num;}
@@ -380,7 +414,7 @@ push returns
 ;
 
 pop returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num num]
+[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
 :
 	POP nummer [0]
 	{$num = $nummer.num;}
@@ -441,6 +475,14 @@ ret
 	RET
 ;
 
+exit returns
+[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
+:
+	EXIT nummer [0]
+	{$num = $nummer.num;}
+
+;
+
 label returns [String labelName]
 :
 	LABEL_START NAME
@@ -449,61 +491,114 @@ label returns [String labelName]
 ;
 
 nummer [int minDeep] returns
-[de.hechler.patrick.codesprachen.primitive.compile.objects.num.Num num]
+[de.hechler.patrick.codesprachen.primitive.compile.objects.Num num]
 :
 	(
-		HEX_SYMBOL
-		(
-			HEX_NUM
-			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($HEX_NUM.getText(), 10));}
-
-		)
-		|
-		(
-			DEC_NUM
-			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($DEC_NUM.getText(), 10));}
-
-		)
-		|
-		(
-			BIN_NUM
-			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($BIN_NUM.getText(), 10));}
-
-		)
-	)
-	|
-	(
-		DEC_SYMBOL
-		(
-			DEC_NUM
-			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($DEC_NUM.getText(), 10));}
-
-		)
-		|
-		(
-			BIN_NUM
-			{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($BIN_NUM.getText(), 10));}
-
-		)
-	)
-	|
-	(
-		BIN_SYMBOL BIN_NUM
-		{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DirectNum(Long.parseLong($BIN_NUM.getText(), 2));}
+		HEX_SYMBOL hexnum
+		{$num = de.hechler.patrick.codesprachen.primitive.compile.objects.Num.create($hexnum.val);}
 
 	)
 	|
 	(
-		REG_START nummer [minDeep - 1] REG_END
-		{$num = new de.hechler.patrick.codesprachen.primitive.compile.objects.num.DeepNum($nummer.num);}
+		DEC_SYMBOL decnum
+		{$num = de.hechler.patrick.codesprachen.primitive.compile.objects.Num.create($decnum.val);}
+
+	)
+	|
+	(
+		BIN_SYMBOL binnum
+		{$num = de.hechler.patrick.codesprachen.primitive.compile.objects.Num.create($binnum.val);}
+
+	)
+	|
+	(
+		AX_NUM
+		{$num = de.hechler.patrick.codesprachen.primitive.compile.objects.Num.createAX(0);}
+
+	)
+	|
+	(
+		BX_NUM
+		{$num = de.hechler.patrick.codesprachen.primitive.compile.objects.Num.createBX(0);}
+
+	)
+	|
+	(
+		CX_NUM
+		{$num = de.hechler.patrick.codesprachen.primitive.compile.objects.Num.createCX(0);}
+
+	)
+	|
+	(
+		DX_NUM
+		{$num = de.hechler.patrick.codesprachen.primitive.compile.objects.Num.createDX(0);}
+
+	)
+	|
+	(
+		REG_START
+		(
+			subnum = nummer [-1]
+			{$num = de.hechler.patrick.codesprachen.primitive.compile.objects.Num.create($subnum.num);}
+		) REG_END
 
 	)
 	{
-		if ($num.deep < minDeep || $num.deep - 0xFF > minDeep) {
-			throw new RuntimeException("deep out of range: min= " + minDeep + " max=" + (minDeep + 0xFF) + " deep=" + $num.deep);
+		if (minDeep == 1) {
+			$num.checkMDB1();
+		} else if (minDeep == 0){
+			$num.checkMDB0();
 		}
 	}
 
+;
+
+hexnum returns [long val]
+:
+	(
+		HEX_NUM
+		{$val = Long.parseLong($HEX_NUM.getText(), 16);}
+
+	)
+	|
+	(
+		DEC_NUM
+		{$val = Long.parseLong($DEC_NUM.getText(), 16);}
+
+	)
+	|
+	(
+		BIN_NUM
+		{$val = Long.parseLong($BIN_NUM.getText(), 16);}
+
+	)
+;
+
+decnum returns [long val]
+:
+	(
+		DEC_NUM
+		{$val = Long.parseLong($DEC_NUM.getText(), 10);}
+
+	)
+	|
+	(
+		BIN_NUM
+		{$val = Long.parseLong($BIN_NUM.getText(), 10);}
+
+	)
+;
+
+binnum returns [long val]
+:
+	BIN_NUM
+	{$val = Long.parseLong($BIN_NUM.getText(), 2);}
+
+;
+
+EXIT
+:
+	'EXIT'
 ;
 
 RET
@@ -686,6 +781,26 @@ HEX_NUM
 	[0-9a-fA-F]+
 ;
 
+AX_NUM
+:
+	'AX'
+;
+
+BX_NUM
+:
+	'BX'
+;
+
+CX_NUM
+:
+	'CX'
+;
+
+DX_NUM
+:
+	'DX'
+;
+
 REG_START
 :
 	'['
@@ -698,18 +813,13 @@ REG_END
 
 NAME
 :
-	[a-zA-Z_\-öäüßÖÄÜẞ0-9]+
-;
-
-NEW_LINE
-:
-	[\r\n]+
+	[a-zA-Z\-_�������]+
 ;
 
 BLOCK_COMMENT
 :
 	(
-		'|:'
+		'|COM:'
 		(
 			~( '>' )
 		)* '>'
@@ -719,7 +829,7 @@ BLOCK_COMMENT
 LINE_COMMENT
 :
 	(
-		'|>>'
+		'|COM>'
 		(
 			~( [\r\n] )
 		)
@@ -728,7 +838,5 @@ LINE_COMMENT
 
 WS
 :
-	[ \t] -> skip
+	[ \t\r\n] -> skip
 ;
-
-
