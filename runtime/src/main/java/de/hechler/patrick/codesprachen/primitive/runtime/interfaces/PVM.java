@@ -61,8 +61,12 @@ public interface PVM {
 	
 	long getStackPointer();
 	
-	void read(String fielpath);
+	void load(String file);
 	
 	long execute();
+
+	long getInstructionCount();
+	
+	void setInstructionCount(long instcount);
 	
 }

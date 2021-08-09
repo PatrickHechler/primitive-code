@@ -1,0 +1,11 @@
+#name HEX-AA
+:
+#name
+>
+:
+#HELLO-WORLD --POS--
+CHARS 'ASCII' "hello world"
+@HELLO-WORLD_END
+HEX: AA BB CC DD  00 11 22 33
+0123456789abcdef
+>
