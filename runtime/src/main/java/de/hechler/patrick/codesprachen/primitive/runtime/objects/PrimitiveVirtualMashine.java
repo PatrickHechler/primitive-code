@@ -299,6 +299,9 @@ public class PrimitiveVirtualMashine {
 	 */
 	public native void setDX(long val);
 	
+	/**
+	 * this method frees the place allocated by the {@link #values}, and the place for the SRs ([A-D]X), but NOT the place for the instructions and the stack!
+	 */
 	protected native void finalize();
 	
 }
