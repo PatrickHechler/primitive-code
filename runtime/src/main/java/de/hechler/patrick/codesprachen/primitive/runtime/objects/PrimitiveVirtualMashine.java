@@ -20,15 +20,48 @@ public class PrimitiveVirtualMashine {
 			e.printStackTrace();
 			System.out.println("[J-LOG]: " + e.getClass().getName() + " throwed by openfile(\"dummy\") <<");
 		}
+		
+		System.out.println("[J-LOG]: >> malloc(10L)");
+		long mem = pvm.malloc(10L);
+		System.out.println("[J-LOG]: " + mem + " <- malloc(10L) <<");
+		
+		System.out.println("[J-LOG]: >> realloc(" + mem + "L, 11L)");
+		mem = pvm.realloc(mem, 11L);
+		System.out.println("[J-LOG]: " + mem + " <- malloc(11L) <<");
+		
+		System.out.println("[J-LOG]: >> realloc(" + mem + "L, 2L)");
+		pvm.realloc(mem, 2L);
+		System.out.println("[J-LOG]: " + mem + " <- realloc(2L) <<");
+		
+		System.out.println("[J-LOG]: >> malloc(2L)");
+		long mem0 = pvm.malloc(2L);
+		System.out.println("[J-LOG]: " + mem0 + " <- malloc(2L) <<");
+		
+		System.out.println("[J-LOG]: >> free(" + mem + ")");
+		pvm.free(mem);
+		System.out.println("[J-LOG]: free(" + mem + ") <<");
+		
+		System.out.println("[J-LOG]: >> free(" + mem0 + ")");
+		pvm.free(mem0);
+		System.out.println("[J-LOG]: free(" + mem0 + ") <<");
 	}
 	
+	/**
+	 * allocates the memory needed for the C {@code struct pvm} and the four SRs ([A-D]X)<br>
+	 * C: <code>struct pvm { int64_t sr[4]; int64_t *sp; int64_t *ip; }</code><br>
+	 * the stack- and instruction Pointer and the SRs [A-D]X have undefined values.
+	 * 
+	 * @return a Pointer to a new {@code struct pvm}
+	 * @throws OutOfMemoryError
+	 *             if there is not enugh memory for the {@code struct pvm}
+	 */
 	public static native long create() throws OutOfMemoryError;
 	
 	/**
 	 * this is for the native code.<br>
 	 * <br>
 	 * It is a Pointer to a C struct:<br>
-	 * <code>typedef struct { int64_t *sr; int64_t *sp; int64_t *ip; } pvm;</code><br>
+	 * <code>struct pvm { int64_t sr[4]; int64_t *sp; int64_t *ip; }</code><br>
 	 */
 	private final long values;
 	
@@ -300,7 +333,7 @@ public class PrimitiveVirtualMashine {
 	public native void setDX(long val);
 	
 	/**
-	 * this method frees the place allocated by the {@link #values}, and the place for the SRs ([A-D]X), but NOT the place for the instructions and the stack!
+	 * this method frees the place allocated by the {@link #values} (including the SRs ([A-D]X)), but NOT the place for the instructions and the stack!
 	 */
 	protected native void finalize();
 	
