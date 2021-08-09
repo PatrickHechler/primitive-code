@@ -1,9 +1,35 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
+import java.io.IOException;
+import java.nio.file.Paths;
+
 public class PrimitiveVirtualMashine {
 	
-	public native long create() throws OutOfMemoryError;
+	static {
+		System.load(Paths.get("./primitive-runtime.dll").toAbsolutePath().toString());
+	}
 	
+	public static void main(String[] args) {
+		PrimitiveVirtualMashine pvm = new PrimitiveVirtualMashine();
+		System.out.println("[J-LOG]: values=" + pvm.values);
+		System.out.println("[J-LOG]: >> openfile(\"dummy\")");
+		try {
+			System.out.println("[J-LOG]: " + pvm.openfile("dummy") + " <- openfile(\"dummy\") <<");
+		} catch (IOException e) {
+			System.err.println("[J-ERR]: catched native error in openfile(\"dummy\"):");
+			e.printStackTrace();
+			System.out.println("[J-LOG]: " + e.getClass().getName() + " throwed by openfile(\"dummy\") <<");
+		}
+	}
+	
+	public static native long create() throws OutOfMemoryError;
+	
+	/**
+	 * this is for the native code.<br>
+	 * <br>
+	 * It is a Pointer to a C struct:<br>
+	 * <code>typedef struct { int64_t *sr; int64_t *sp; int64_t *ip; } pvm;</code><br>
+	 */
 	private final long values;
 	
 	public PrimitiveVirtualMashine() throws OutOfMemoryError {
@@ -20,12 +46,18 @@ public class PrimitiveVirtualMashine {
 	 * @return the exit code of the runed progress
 	 * @throws OutOfMemoryError
 	 *             if there is not enugh memory for the file to be loaded before execution
+	 * @throws IOException
+	 *             if an IO error occures during the load prosess
 	 */
-	public long execute(String file) throws OutOfMemoryError {
+	public long execute(String file) throws OutOfMemoryError, IOException {
 		long f = openfile(file);
 		long len = filelen(f);
 		long pntr = malloc(len);
-		readfile(f, len, pntr);
+		setfilepos(pntr, 0);
+		long read = readfile(f, len, pntr);
+		if (read != len) {
+			throw new IOException("did not read the entire file: len=" + len + " read=" + read);
+		}
 		closefile(f);
 		setInstructionPointer(pntr);
 		long ret = execute();
@@ -39,19 +71,21 @@ public class PrimitiveVirtualMashine {
 	 * @param filePNTR
 	 *            thr full name of the file
 	 * @return the FILE-Pointer
+	 * @throws IOException
+	 *             if an error occures during the opening of the file
 	 */
-	public native long openfile(String file);
+	public native long openfile(String file) throws IOException;
 	
 	/**
-	 * returns the length of the file.
-	 * 
-	 * the filelen will be a 64-bit based len, so the file contains filen 64-bit Bits.
+	 * sets the {@link #filepos(long) filepos} to the end of the file so {@link #filepos(long)} will return the length of the file and returns the length
 	 * 
 	 * @param filePNTR
 	 *            the FILE-Pointer
-	 * @return the length of the file
+	 * @return the pos of the file, which is it's length
+	 * @throws IOException
+	 *             if an error occures during the operation
 	 */
-	public native long filelen(long filePNTR);
+	public native long filelen(long filePNTR) throws IOException;
 	
 	/**
 	 * returns the position of the file.
@@ -61,8 +95,10 @@ public class PrimitiveVirtualMashine {
 	 * @param filePNTR
 	 *            the FILE-Pointer
 	 * @return the position of the file
+	 * @throws IOException
+	 *             if an error occures during the operation
 	 */
-	public native long filepos(long filePNTR);
+	public native long filepos(long filePNTR) throws IOException;
 	
 	/**
 	 * sets the position of the file.
@@ -73,13 +109,17 @@ public class PrimitiveVirtualMashine {
 	 *            the FILE-Pointer
 	 * @param pos
 	 *            the new position of the file
+	 * @throws IOException
+	 *             if an error occures during the operation
 	 */
-	public native void setfilepos(long filePNTR, long pos);
+	public native void setfilepos(long filePNTR, long pos) throws IOException;
 	
 	/**
 	 * reads {@code len} 64-bit units from the current {@link #filepos(long) filepos} to the {@code destenyPNTR}.
 	 * 
 	 * the {@code len} will be added to the {@link #filepos(long) filepos}.
+	 * 
+	 * it returns the number of 64-bit units read
 	 * 
 	 * @param filePNTR
 	 *            the FILE-Pointer
@@ -87,8 +127,11 @@ public class PrimitiveVirtualMashine {
 	 *            the number of 64-bit units to read
 	 * @param destBufferPNTR
 	 *            the Pointer to the desteny buffer
+	 * @return the number of 64-bit units read
+	 * @throws IOException
+	 *             if an error occures during the operation
 	 */
-	public native void readfile(long filePNTR, long len, long destBufferPNTR);
+	public native long readfile(long filePNTR, long len, long destBufferPNTR) throws IOException;
 	
 	/**
 	 * closes the file.
@@ -97,8 +140,10 @@ public class PrimitiveVirtualMashine {
 	 * 
 	 * @param filePNTR
 	 *            the FILE-Pointer
+	 * @throws IOException
+	 *             if an error occures during the operation
 	 */
-	public native void closefile(long filePNTR);
+	public native void closefile(long filePNTR) throws IOException;
 	
 	/**
 	 * allocates {@code len} 64-bit units of memory and returns a Pointer to the allocated memory block
@@ -193,5 +238,67 @@ public class PrimitiveVirtualMashine {
 	 *            the value to be set to the Pointer {@code PNTR}
 	 */
 	public native void set(long PNTR, long value);
+	
+	/**
+	 * returns the value of the AX register
+	 * 
+	 * @return the value of the AX register
+	 */
+	public native long getAX();
+	
+	/**
+	 * returns the value of the BX register
+	 * 
+	 * @return the value of the BX register
+	 */
+	public native long getBX();
+	
+	/**
+	 * returns the value of the CX register
+	 * 
+	 * @return the value of the CX register
+	 */
+	public native long getCX();
+	
+	/**
+	 * returns the value of the DX register
+	 * 
+	 * @return the value of the DX register
+	 */
+	public native long getDX();
+	
+	/**
+	 * sets the value of the AX register
+	 * 
+	 * @param val
+	 *            the new value of the AX register
+	 */
+	public native void setAX(long val);
+	
+	/**
+	 * sets the value of the BX register
+	 * 
+	 * @param val
+	 *            the new value of the BX register
+	 */
+	public native void setBX(long val);
+	
+	/**
+	 * sets the value of the CX register
+	 * 
+	 * @param val
+	 *            the new value of the CX register
+	 */
+	public native void setCX(long val);
+	
+	/**
+	 * sets the value of the DX register
+	 * 
+	 * @param val
+	 *            the new value of the DX register
+	 */
+	public native void setDX(long val);
+	
+	protected native void finalize();
 	
 }
