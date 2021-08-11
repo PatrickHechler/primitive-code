@@ -110,7 +110,6 @@ public class Command {
 		case CMD_INT:
 		case CMD_IRET:
 			return 1;
-		case CMD_BMOV:
 		case CMD_CALL:
 		case CMD_CALLEQ:
 		case CMD_CALLGE:

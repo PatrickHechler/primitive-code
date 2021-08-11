@@ -29,8 +29,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			{
  				if ($command.c != null) {
  					$commands.add($command.c);
+	 				pos += $command.c.length();
  				}
- 				pos += $command.len;
  			}
 
  		)
@@ -170,103 +170,15 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  						(
  							nummer [pos,constants]
  							{
-									build.art |= ParamBuilder.B_NUM;
-									build.v1 = $nummer.num;
-								}
+								build.art |= ParamBuilder.B_NUM;
+								build.v1 = $nummer.num;
+							}
 
  						)
  					)
  				)?
  			)
  		) ECK_KL_ZU
- 		{$p = build.build();}
-
- 	)
- 	|
- 	(
- 		ECK_KL_AUF ECK_KL_AUF
- 		{
- 			ParamBuilder build = new ParamBuilder();
- 			build.art = ParamBuilder.B_REG | ParamBuilder.C_REG;
- 		}
-
- 		(
- 			(
- 				(
- 					AX
- 					{build.art |= ParamBuilder.A_AX;}
-
- 				)
- 				|
- 				(
- 					BX
- 					{build.art |= ParamBuilder.A_BX;}
-
- 				)
- 				|
- 				(
- 					CX
- 					{build.art |= ParamBuilder.A_CX;}
-
- 				)
- 				|
- 				(
- 					DX
- 					{build.art |= ParamBuilder.A_DX;}
-
- 				)
- 				|
- 				(
- 					nummer [pos,constants]
- 					{
-							build.art |= ParamBuilder.A_NUM;
-							build.v1 = $nummer.num;
-						}
-
- 				)
- 			)
- 			(
- 				(
- 					PLUS
- 					{build.art &= ~ParamBuilder.B_REG;}
-
- 					(
- 						(
- 							AX
- 							{build.art |= ParamBuilder.B_AX;}
-
- 						)
- 						|
- 						(
- 							BX
- 							{build.art |= ParamBuilder.B_BX;}
-
- 						)
- 						|
- 						(
- 							CX
- 							{build.art |= ParamBuilder.B_CX;}
-
- 						)
- 						|
- 						(
- 							DX
- 							{build.art |= ParamBuilder.B_DX;}
-
- 						)
- 						|
- 						(
- 							nummer [pos,constants]
- 							{
-									build.art |= ParamBuilder.B_NUM;
-									build.v1 = $nummer.num;
-								}
-
- 						)
- 					)
- 				)?
- 			)
- 		) ECK_KL_ZU ECK_KL_ZU
  		{$p = build.build();}
 
  	)
@@ -324,7 +236,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  ;
 
  command [long pos, Map<String,Long> constants, Map<String,Long> labels]
- returns [Command c, long len] @init {Commands cmd = null;}
+ returns [Command c] @init {Commands cmd = null;}
  :
  	(
  		(
@@ -345,7 +257,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				{cmd = Commands.CMD_RET;}
 
  			)
- 			{$len = 1;}
 
  		)
  		|
@@ -403,8 +314,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				{cmd = Commands.CMD_CMP;}
 
  			) p1 = param [pos, constants] COMMA p2 = param [pos, constants]
- 			{$len = 1;}
-
  		)
  		|
  		(
@@ -432,7 +341,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  					{cmd = Commands.CMD_POP;}
 
  				)
- 				{$len = 1;}
 
  			)
  			|
@@ -520,7 +428,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  					{cmd = Commands.CMD_CALLLE;}
 
  				)
- 				{$len = 2;}
 
  			)
  			|
@@ -614,7 +521,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  					{cmd = Commands.CMD_SET_IP;}
 
  				)
- 				{$len = 1;}
 
  			) p1 = param [pos,constants]
  		)
@@ -623,40 +529,19 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	)
  	|
  	(
- 		BMOV p1 = param [pos,constants] COMMA nummer [pos,constants]
- 		{
- 			$len = 2;
-			ParamBuilder p2b = new ParamBuilder();
-			p2b.art = ParamBuilder.A_NUM;
-			p2b.v1 = $nummer.num;
-			$c = new Command(Commands.CMD_BMOV, $p1.p, p2b.build());
-		}
-
- 	)
- 	|
- 	(
  		LABEL_DECLARATION
  		{
  			labels.put($LABEL_DECLARATION.getText().substring(1), (Long) pos);
 	 		$c = null;
-	 		$len = 0;
 	 	}
 
  	)
  	|
  	(
  		CONSTANT_POOL
- 		{
- 			$c = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos);
- 			$len = ((ConstantPoolCommand) $c).length();
- 		}
+ 		{$c = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos);}
 
  	)
- ;
-
- BMOV
- :
- 	'BMOV'
  ;
 
  SET_IP
