@@ -48,7 +48,7 @@ public class PrimitiveVirtualMashine {
 	
 	/**
 	 * allocates the memory needed for the C {@code struct pvm} and the four SRs ([A-D]X)<br>
-	 * C: <code>struct pvm { int64_t sr[4]; int64_t *sp; int64_t *ip; uint64_t status; }</code><br>
+	 * C: <code>struct pvm { int64_t sr[4]; int64_t *sp; int64_t *ip; int64_t status; int64_t* ints[5]; }</code><br>
 	 * the stack- and instruction Pointer and the SRs [A-D]X have undefined values.
 	 * 
 	 * @return a Pointer to a new {@code struct pvm}
@@ -61,7 +61,7 @@ public class PrimitiveVirtualMashine {
 	 * this is for the native code.<br>
 	 * <br>
 	 * It is a Pointer to a C struct:<br>
-	 * <code>struct pvm { int64_t sr[4]; int64_t *sp; int64_t *ip; uint64_t status; }</code><br>
+	 * <code>struct pvm { int64_t sr[4]; int64_t *sp; int64_t *ip; int64_t status; int64_t* ints[5]; }</code><br>
 	 */
 	private final long values;
 	

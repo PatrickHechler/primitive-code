@@ -623,6 +623,18 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	)
  	|
  	(
+ 		BMOV p1 = param [pos,constants] COMMA nummer [pos,constants]
+ 		{
+ 			$len = 2;
+			ParamBuilder p2b = new ParamBuilder();
+			p2b.art = ParamBuilder.A_NUM;
+			p2b.v1 = $nummer.num;
+			$c = new Command(Commands.CMD_BMOV, $p1.p, p2b.build());
+		}
+
+ 	)
+ 	|
+ 	(
  		LABEL_DECLARATION
  		{
  			labels.put($LABEL_DECLARATION.getText().substring(1), (Long) pos);
@@ -640,6 +652,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  		}
 
  	)
+ ;
+
+ BMOV
+ :
+ 	'BMOV'
  ;
 
  SET_IP

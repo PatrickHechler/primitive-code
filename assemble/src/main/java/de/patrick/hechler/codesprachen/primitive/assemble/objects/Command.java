@@ -27,87 +27,6 @@ public class Command {
 		this.p2 = p2;
 	}
 	
-	public void check(Map <String, Long> labels) {
-		switch (cmd) {
-		case CMD_CMP:
-			// p2.checkTwoParam(constants, true);
-			// p2.checkTwoParam(constants, true);
-			break;
-		case CMD_ADD:
-		case CMD_AND:
-		case CMD_MOV:
-		case CMD_MUL:
-		case CMD_OR:
-		case CMD_SUB:
-		case CMD_XOR:
-			// p2.checkTwoParam(constants, false);
-			// p2.checkTwoParam(constants, true);
-			break;
-		case CMD_DIV:
-			// p2.checkTwoParam(constants, false);
-			// p2.checkTwoParam(constants, false);
-			break;
-		case CMD_NEG:
-		case CMD_NOT:
-		case CMD_POP:
-			// p1.checkOneParam(constants, false);
-			if (p2 != null) {
-				throw new IllegalStateException("I can't have a second param on this command cmd: '" + cmd.name() + "' p1: '" + p1 + "' + p2: '" + p2 + "'");
-			}
-			break;
-		case CMD_INT:
-		case CMD_PUSH:
-		case CMD_SET_IP:
-			// p1.checkOneParam(constants, true);
-			if (p2 != null) {
-				throw new IllegalStateException("I can't have a second param on this command cmd: '" + cmd.name() + "' p1: '" + p1 + "' + p2: '" + p2 + "'");
-			}
-			break;
-		case CMD_IRET:
-		case CMD_RET:
-			if (p1 != null || p2 != null) {
-				throw new IllegalStateException("I can't have params on command <IRET> or <RET> cmd: '" + cmd.name() + "' p1: '" + p1 + "' + p2: '" + p2 + "'");
-			}
-			break;
-		case CMD_CALL:
-		case CMD_CALLEQ:
-		case CMD_CALLNE:
-		case CMD_CALLGE:
-		case CMD_CALLGT:
-		case CMD_CALLLE:
-		case CMD_CALLLO:
-		case CMD_JMP:
-		case CMD_JMPEQ:
-		case CMD_JMPGE:
-		case CMD_JMPGT:
-		case CMD_JMPLE:
-		case CMD_JMPLO:
-		case CMD_JMPNE:
-			if (p2 != null) {
-				throw new IllegalStateException("I can't have a second param on this command cmd: '" + cmd.name() + "' p1: '" + p1 + "' + p2: '" + p2 + "'");
-			}
-			break;
-		case CMD_SCALL:
-		case CMD_SCALLEQ:
-		case CMD_SCALLNE:
-		case CMD_SCALLGE:
-		case CMD_SCALLGT:
-		case CMD_SCALLLE:
-		case CMD_SCALLLO:
-		case CMD_SJMP:
-		case CMD_SJMPEQ:
-		case CMD_SJMPGE:
-		case CMD_SJMPGT:
-		case CMD_SJMPLE:
-		case CMD_SJMPLO:
-		case CMD_SJMPNE:
-			if (p2 != null) {
-				throw new IllegalStateException("I can't have a second param on this command cmd: '" + cmd.name() + "' p1: '" + p1 + "' + p2: '" + p2 + "'");
-			}
-			break;
-		}
-	}
-	
 	public static class ConstantPoolCommand extends Command {
 		
 		private List <byte[]> values;
@@ -117,10 +36,6 @@ public class Command {
 			super(null, null, null);
 			values = new ArrayList <>();
 			len = 0;
-		}
-		
-		@Override
-		public void check(Map <String, Long> labels) {
 		}
 		
 		public void addBytes(byte[] bytes) {
@@ -195,6 +110,7 @@ public class Command {
 		case CMD_INT:
 		case CMD_IRET:
 			return 1;
+		case CMD_BMOV:
 		case CMD_CALL:
 		case CMD_CALLEQ:
 		case CMD_CALLGE:
