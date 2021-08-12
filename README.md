@@ -213,7 +213,7 @@ a register based coding language with primitive operations
 			1. exit
 				* use `BX` to specify the exit number of the progress
 			2. unknown command
-				* usually exits the progress with the exit number -2
+				* exits the progress with the exit number -2
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack

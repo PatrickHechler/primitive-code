@@ -47,21 +47,16 @@ public class PrimitiveVirtualMashine {
 	}
 	
 	/**
-	 * allocates the memory needed for the C {@code struct pvm} and the four SRs ([A-D]X)<br>
-	 * C: <code>struct pvm { int64_t sr[4]; int64_t *sp; int64_t *ip; int64_t status; int64_t* ints[5]; }</code><br>
-	 * the stack- and instruction Pointer and the SRs [A-D]X have undefined values.
+	 * allocates the memory needed for the primitive virtual machine
 	 * 
-	 * @return a Pointer to a new {@code struct pvm}
+	 * @return a Pointer
 	 * @throws OutOfMemoryError
-	 *             if there is not enugh memory for the {@code struct pvm}
+	 *             if there is not enough memory
 	 */
 	public static native long create() throws OutOfMemoryError;
 	
 	/**
-	 * this is for the native code.<br>
-	 * <br>
-	 * It is a Pointer to a C struct:<br>
-	 * <code>struct pvm { int64_t sr[4]; int64_t *sp; int64_t *ip; int64_t status; int64_t* ints[5]; }</code><br>
+	 * this is for the native code.
 	 */
 	private final long values;
 	
@@ -78,9 +73,9 @@ public class PrimitiveVirtualMashine {
 	 *            the full name of the file to be executed
 	 * @return the exit code of the runed progress
 	 * @throws OutOfMemoryError
-	 *             if there is not enugh memory for the file to be loaded before execution
+	 *             if there is not enough memory for the file to be loaded before execution
 	 * @throws IOException
-	 *             if an IO error occures during the load prosess
+	 *             if an IO error occurs during the load process
 	 */
 	public long execute(String file) throws OutOfMemoryError, IOException {
 		long f = openfile(file);
@@ -99,13 +94,34 @@ public class PrimitiveVirtualMashine {
 	}
 	
 	/**
+	 * this method loads the array to a memory block and execute then the progress
+	 * 
+	 * 
+	 * 
+	 * @param commands the commands to execute
+	 * @return the return value of the progress
+	 * @throws OutOfMemoryError if there is not enough memory to copy the array
+	 */
+	public long execute(long[] commands) throws OutOfMemoryError {
+		long pntr = malloc(commands.length);
+		for(int i = 0; i < commands.length; i ++) {
+			set(pntr + commands[i], commands[i]);
+		}
+		setInstructionPointer(pntr);
+		long ret = execute();
+		free(pntr);
+		return ret;
+	}
+	
+	
+	/**
 	 * opens a stream to the file {@code file} and returns the FILE-Pointer.
 	 * 
 	 * @param filePNTR
-	 *            thr full name of the file
+	 *            the full name of the file
 	 * @return the FILE-Pointer
 	 * @throws IOException
-	 *             if an error occures during the opening of the file
+	 *             if an error occurs during the opening of the file
 	 */
 	public native long openfile(String file) throws IOException;
 	
@@ -116,7 +132,7 @@ public class PrimitiveVirtualMashine {
 	 *            the FILE-Pointer
 	 * @return the pos of the file, which is it's length
 	 * @throws IOException
-	 *             if an error occures during the operation
+	 *             if an error occurs during the operation
 	 */
 	public native long filelen(long filePNTR) throws IOException;
 	
@@ -129,7 +145,7 @@ public class PrimitiveVirtualMashine {
 	 *            the FILE-Pointer
 	 * @return the position of the file
 	 * @throws IOException
-	 *             if an error occures during the operation
+	 *             if an error occurs during the operation
 	 */
 	public native long filepos(long filePNTR) throws IOException;
 	
@@ -143,7 +159,7 @@ public class PrimitiveVirtualMashine {
 	 * @param pos
 	 *            the new position of the file
 	 * @throws IOException
-	 *             if an error occures during the operation
+	 *             if an error occurs during the operation
 	 */
 	public native void setfilepos(long filePNTR, long pos) throws IOException;
 	
@@ -159,10 +175,10 @@ public class PrimitiveVirtualMashine {
 	 * @param len
 	 *            the number of 64-bit units to read
 	 * @param destBufferPNTR
-	 *            the Pointer to the desteny buffer
+	 *            the Pointer to the destiny buffer
 	 * @return the number of 64-bit units read
 	 * @throws IOException
-	 *             if an error occures during the operation
+	 *             if an error occurs during the operation
 	 */
 	public native long readfile(long filePNTR, long len, long destBufferPNTR) throws IOException;
 	
@@ -185,17 +201,17 @@ public class PrimitiveVirtualMashine {
 	 *            the number of 64-bit units which will be in the allocated block
 	 * @return a Pointer to the allocated memory
 	 * @throws OutOfMemoryError
-	 *             if there is not enugh memory left to allocate a block of {@code len} 64-bit units
+	 *             if there is not enough memory left to allocate a block of {@code len} 64-bit units
 	 */
 	public native long malloc(long len) throws OutOfMemoryError;
 	
 	/**
-	 * changes the length of a previusly allocated block of memory
+	 * changes the length of a previously allocated block of memory
 	 * 
-	 * if there is not enugh place the pointer may change its Position, but the values of the block will be copied to the new position if that happanes.
+	 * if there is not enough place the pointer may change its Position, but the values of the block will be copied to the new position if that happens.
 	 * 
 	 * @param pntr
-	 *            the Pointer to te block of previusly allocated memory
+	 *            the Pointer to the block of previously allocated memory
 	 * @param len
 	 *            the new length of the block
 	 * @return a Pointer to the new block of allocated memory
@@ -222,7 +238,7 @@ public class PrimitiveVirtualMashine {
 	 * sets the instruction-Pointer of this {@link PrimitiveVirtualMashine}
 	 * 
 	 * @param ip
-	 *            the new instruction-Poitner
+	 *            the new instruction-Pointer
 	 */
 	public native void setInstructionPointer(long ip);
 	
@@ -230,7 +246,7 @@ public class PrimitiveVirtualMashine {
 	 * sets the stack-Pointer of this {@link PrimitiveVirtualMashine}
 	 * 
 	 * @param sp
-	 *            the new stacl pointer
+	 *            the new stack pointer
 	 */
 	public native void setStackPointer(long sp);
 	
