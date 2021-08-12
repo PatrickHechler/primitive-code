@@ -4,18 +4,16 @@ public class Param {
 	
 	public static final int ART_LABEL = -1;
 	
-	public static final int BASE = 0x01;
-	public static final int A_BIT = 0x02;
-	public static final int A_NUM = 0x00;
-	public static final int A_SR = 0x02;
-	public static final int B_BITS = 0x0C;
-	public static final int NO_B = 0x00;
-	public static final int B_REG = 0x04;
-	public static final int B_NUM = 0x08;
-	public static final int B_SR = 0x0C;
+	private static final int BASE = 0x01;
+	private static final int A_NUM = 0x00;
+	private static final int A_SR = 0x02;
+	private static final int NO_B = 0x00;
+	private static final int B_REG = 0x04;
+	private static final int B_NUM = 0x08;
+	private static final int B_SR = 0x0C;
 	
-	public static final int ART_ANUM = BASE | A_NUM;
-	public static final int ART_ASR = BASE | A_SR;
+	public static final int ART_ANUM = BASE | A_NUM | NO_B;
+	public static final int ART_ASR = BASE | A_SR | NO_B;
 	public static final int ART_ANUM_BREG = BASE | A_NUM | B_REG;
 	public static final int ART_ASR_BREG = BASE | A_SR | B_REG;
 	public static final int ART_ANUM_BNUM = BASE | A_NUM | B_NUM;

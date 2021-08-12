@@ -247,17 +247,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			)
  			|
  			(
- 				IRET
- 				{cmd = Commands.CMD_IRET;}
-
- 			)
- 			|
- 			(
  				RET
  				{cmd = Commands.CMD_RET;}
 
  			)
-
  		)
  		|
  		(
@@ -341,10 +334,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  					{cmd = Commands.CMD_POP;}
 
  				)
-
- 			)
- 			|
- 			(
+ 				|
  				(
  					JMP
  					{cmd = Commands.CMD_JMP;}
@@ -428,100 +418,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  					{cmd = Commands.CMD_CALLLE;}
 
  				)
-
- 			)
- 			|
- 			(
- 				(
- 					SCALLLE
- 					{cmd = Commands.CMD_SCALLLE;}
-
- 				)
- 				|
- 				(
- 					SCALLLO
- 					{cmd = Commands.CMD_SCALLLO;}
-
- 				)
- 				|
- 				(
- 					SCALLGE
- 					{cmd = Commands.CMD_SCALLGE;}
-
- 				)
- 				|
- 				(
- 					SCALLGT
- 					{cmd = Commands.CMD_SCALLGT;}
-
- 				)
- 				|
- 				(
- 					SCALLNE
- 					{cmd = Commands.CMD_SCALLNE;}
-
- 				)
- 				|
- 				(
- 					SCALLEQ
- 					{cmd = Commands.CMD_SCALLEQ;}
-
- 				)
- 				|
- 				(
- 					SCALL
- 					{cmd = Commands.CMD_SCALL;}
-
- 				)
- 				|
- 				(
- 					SJMPLE
- 					{cmd = Commands.CMD_SJMPLE;}
-
- 				)
- 				|
- 				(
- 					SJMPLO
- 					{cmd = Commands.CMD_SJMPLO;}
-
- 				)
- 				|
- 				(
- 					SJMPGE
- 					{cmd = Commands.CMD_SJMPGE;}
-
- 				)
- 				|
- 				(
- 					SJMPGT
- 					{cmd = Commands.CMD_SJMPGT;}
-
- 				)
- 				|
- 				(
- 					SJMPNE
- 					{cmd = Commands.CMD_SJMPNE;}
-
- 				)
- 				|
- 				(
- 					SJMPEQ
- 					{cmd = Commands.CMD_SJMPEQ;}
-
- 				)
- 				|
- 				(
- 					SJMP
- 					{cmd = Commands.CMD_SJMP;}
-
- 				)
  				|
  				(
  					SET_IP
  					{cmd = Commands.CMD_SET_IP;}
 
  				)
-
  			) p1 = param [pos,constants]
  		)
  		{$c = new Command(cmd, $p1.p, $p2.p);}
@@ -534,6 +436,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			labels.put($LABEL_DECLARATION.getText().substring(1), (Long) pos);
 	 		$c = null;
 	 	}
+
  	)
  	|
  	(
@@ -553,19 +456,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'CALLLE'
  ;
 
- SCALLLE
- :
- 	'SCALLLE'
- ;
-
  CALLLO
  :
  	'CALLLO'
- ;
-
- SCALLLO
- :
- 	'SCALLLO'
  ;
 
  CALLGE
@@ -573,19 +466,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'CALLGE'
  ;
 
- SCALLGE
- :
- 	'SCALLGE'
- ;
-
  CALLGT
  :
  	'CALLGT'
- ;
-
- SCALLGT
- :
- 	'SCALLGT'
  ;
 
  CALLNE
@@ -593,19 +476,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'CALLNE'
  ;
 
- SCALLNE
- :
- 	'SCALLNE'
- ;
-
  CALLEQ
  :
  	'CALLEQ'
- ;
-
- SCALLEQ
- :
- 	'SCALLEQ'
  ;
 
  CALL
@@ -613,19 +486,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'CALL'
  ;
 
- SCALL
- :
- 	'SCALL'
- ;
-
  JMPLE
  :
  	'JMPLE'
- ;
-
- SJMPLE
- :
- 	'SJMPLE'
  ;
 
  JMPLO
@@ -633,19 +496,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'JMPLO'
  ;
 
- SJMPLO
- :
- 	'SJMPLO'
- ;
-
  JMPGE
  :
  	'JMPGE'
- ;
-
- SJMPGE
- :
- 	'SJMPGE'
  ;
 
  JMPGT
@@ -653,19 +506,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'JMPGT'
  ;
 
- SJMPGT
- :
- 	'SJMPGT'
- ;
-
  JMPNE
  :
  	'JMPNE'
- ;
-
- SJMPNE
- :
- 	'SJMPNE'
  ;
 
  JMPEQ
@@ -673,19 +516,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'JMPEQ'
  ;
 
- SJMPEQ
- :
- 	'SJMPEQ'
- ;
-
  JMP
  :
  	'JMP'
- ;
-
- SJMP
- :
- 	'SJMP'
  ;
 
  POP
@@ -756,11 +589,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  RET
  :
  	'RET'
- ;
-
- IRET
- :
- 	'IRET'
  ;
 
  INT

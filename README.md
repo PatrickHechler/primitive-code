@@ -1,5 +1,5 @@
 # primitive-code
-a coding language with primitive operations
+a register based coding language with primitive operations
 
 ### COMMANDS:
 
@@ -197,6 +197,7 @@ a coding language with primitive operations
     * 0: use to allocate a block of memory
 	    * use `AX` to specify the size of the block
 		* `AX` will point to the allocated block of memory or it will contain the value `-1` if the block could not be allocated
+	* 1:
 
 `PUSH`
 

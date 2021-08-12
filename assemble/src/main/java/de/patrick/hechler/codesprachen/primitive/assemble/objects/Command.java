@@ -58,7 +58,7 @@ public class Command {
 		public long length() {
 			return len;
 		}
-
+		
 		public void write(OutputStream out) throws IOException {
 			for (int i = 0; i < values.size(); i ++ ) {
 				out.write(values.get(i));
@@ -75,25 +75,76 @@ public class Command {
 		ConstsContext parsed = parser.consts(constants, labels, pos);
 		return parsed.pool;
 	}
-
-	public long length() {//TODO do
-		switch(cmd) {
+	
+	public long length() {
+		switch (cmd) {
 		case CMD_ADD:
 		case CMD_AND:
 		case CMD_MOV:
 		case CMD_MUL:
-		case CMD_NEG:
-		case CMD_NOT:
 		case CMD_OR:
 		case CMD_POP:
 		case CMD_PUSH:
-		case CMD_RET:
 		case CMD_SET_IP:
 		case CMD_SUB:
 		case CMD_XOR:
 		case CMD_CMP:
 		case CMD_DIV:
+			int len;
+			switch (p1.art) {
+			case Param.ART_ANUM_BNUM:
+				len = 3;
+				break;
+			case Param.ART_ANUM:
+			case Param.ART_ASR_BNUM:
+			case Param.ART_ANUM_BREG:
+			case Param.ART_ANUM_BSR:
+				len = 2;
+				break;
+			case Param.ART_ASR:
+			case Param.ART_ASR_BREG:
+			case Param.ART_ASR_BSR:
+				len = 1;
+				break;
+			default:
+				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
+			}
+			switch (p2.art) {
+			case Param.ART_ANUM_BNUM:
+				len += 2;
+			case Param.ART_ANUM:
+			case Param.ART_ASR_BNUM:
+			case Param.ART_ANUM_BREG:
+			case Param.ART_ANUM_BSR:
+				len += 1;
+				break;
+			case Param.ART_ASR:
+			case Param.ART_ASR_BREG:
+			case Param.ART_ASR_BSR:
+				break;
+			default:
+				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
+			}
+			return len;
 		case CMD_INT:
+		case CMD_NEG:
+		case CMD_NOT:
+			switch (p1.art) {
+			case Param.ART_ANUM_BNUM:
+				return 3;
+			case Param.ART_ANUM:
+			case Param.ART_ASR_BNUM:
+			case Param.ART_ANUM_BREG:
+			case Param.ART_ANUM_BSR:
+				return 2;
+			case Param.ART_ASR:
+			case Param.ART_ASR_BREG:
+			case Param.ART_ASR_BSR:
+				return 1;
+			default:
+				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
+			}
+		case CMD_RET:
 			return 1;
 		case CMD_CALL:
 		case CMD_CALLEQ:
