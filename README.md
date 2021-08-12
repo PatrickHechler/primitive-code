@@ -5,7 +5,7 @@ a register based coding language with primitive operations
 
 `MOV <NO_CONST_PARAM> , <PARAM>`
 * copies the value of the second parameter to the first parameter
-    * `p1 <- p2
+    * `p1 <- p2`
     * `IP <- IP + CMD_LEN`
 
 `ADD <NO_CONST_PARAM> , <PARAM>`
@@ -46,12 +46,12 @@ a register based coding language with primitive operations
 
 `NOT <NO_CONST_PARAM>`
 * uses the logical NOT operator with the parameter and stores the result in the parameter
-    * `p1 <- ! p1`
+    * `p1 <- ! p`
     * `IP <- IP + CMD_LEN`
 
 `NEG <NO_CONST_PARAM>`
 * uses the arithmetic negation operation with the parameter and stores the result in the parameter 
-    * `p1 <- 0 - p1`
+    * `p1 <- 0 - p`
     * `IP <- IP + CMD_LEN`
 
 `JMP <LABEL>`
@@ -62,7 +62,7 @@ a register based coding language with primitive operations
 `JMPEQ <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare operation compared two equal values
     * `if ( ! GREATHER) & ( ! LOWER)`
-	    * `IP <- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
@@ -70,7 +70,7 @@ a register based coding language with primitive operations
 `JMPNE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare operation compared two different values
     * `if GREATHER | LOWER`
-	    * `IP <- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
@@ -78,7 +78,7 @@ a register based coding language with primitive operations
 `JMPGT <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was greater
     * `if GREATHER`
-	    * `IP <- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
@@ -86,7 +86,7 @@ a register based coding language with primitive operations
 `JMPGE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not lower
     * `if ! LOWER`
-	    * `IP <- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
@@ -94,7 +94,7 @@ a register based coding language with primitive operations
 `JMPLO <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was lower
     * `if LOWER`
-	    * `IP <- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
@@ -102,7 +102,7 @@ a register based coding language with primitive operations
 `JMPLE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
     * `if ! GREATHER`
-	    * `IP <- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
@@ -116,94 +116,125 @@ a register based coding language with primitive operations
 
 `CALLEQ <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
-	* `if ( ! GREATHER) & ( ! LOWER)`
+    * `if ( ! GREATHER) & ( ! LOWER)`
         * `[SP] <- IP`
         * `SP <- SP + 1`
         * `IP <- IP - --POS-- + LABEL`
     * `else`
-	    * `IP <- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `CALLNE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
-	* `if GREATHER | LOWER`
+    * `if GREATHER | LOWER`
         * `[SP] <- IP`
         * `SP <- SP + 1`
         * `IP <- IP - --POS-- + LABEL`
     * `else`
-	    * `IP <- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `CALLGT <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
-	* `if GREATHER`
+    * `if GREATHER`
         * `[SP] <- IP`
         * `SP <- SP + 1`
         * `IP <- IP - --POS-- + LABEL`
     * `else`
-	    * `IP <- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `CALLGE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
-	* `if ! LOWER`
+    * `if ! LOWER`
         * `[SP] <- IP`
         * `SP <- SP + 1`
         * `IP <- IP - --POS-- + LABEL`
     * `else`
-	    * `IP <- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `CALLLO <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
-	* `if ! LOWER`
+    * `if ! LOWER`
         * `[SP] <- IP`
         * `SP <- SP + 1`
         * `IP <- IP - --POS-- + LABEL`
     * `else`
-	    * `IP <- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `CALLLE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
-	* `if ! GREATHER`
+    * `if ! GREATHER`
         * `[SP] <- IP`
         * `SP <- SP + 1`
         * `IP <- IP - --POS-- + LABEL`
     * `else`
-	    * `IP <- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `CMP <PARAM> , <PARAM>`
 * compares the two values and stores the result in the status register
     * `if p1 < p2`
-	    * LOWER <- 1
-	    * GREATHER <- 0
+        * LOWER <- 1
+        * GREATHER <- 0
     * `if p1 > p2`
-	    * LOWER <- 0
-	    * GREATHER <- 1
+        * LOWER <- 0
+        * GREATHER <- 1
     * `if p1 = p2`
-	    * LOWER <- 0
-	    * GREATHER <- 0
-	* `IP <- IP + CMD_LEN`
+        * LOWER <- 0
+        * GREATHER <- 0
+    * `IP <- IP + CMD_LEN`
 
 `RET`
 * sets the instruction pointer to the position which was secured in the stack
     * `IP <- [SP]`
-	* `SP <- SP - 1`
+    * `SP <- SP - 1`
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-    * 0: use to allocate a block of memory
-	    * use `AX` to specify the size of the block
-		* `AX` will point to the allocated block of memory or it will contain the value `-1` if the block could not be allocated
-	* 1:
+	* 0: memory management
+		* use `AX` to specify the method of memory management
+				1. allocate a memory-block
+					* `BX` saves the size of the block
+					* if the value of `BX` is `-1` after the call the memory-block could not be allocated
+					* if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block
+				2. reallocate a memory-block
+					* `BX` points to the memory-block
+					* `CX` saves the new size of the memory-block
+					* if the value of `BX` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
+					* if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
+				3. free a memory-block
+					* `BX` points to the old memory-block
+					* after this the memory-block should not be used
+	* 1: errors
+		* use `AX` to specify the error
+			1. exit
+				* use `BX` to specify the exit number of the progress
+			2. unknown command
+				* usually exits the progress with the exit number -2
 
-`PUSH`
+`PUSH <PARAM>`
+* pushes the parameter to the stack
+    * `SP <- SP + 1`
+    * `[SP] <- p`
+    * `IP <- IP + CMD_LEN`
 
-`POP`
+`POP <NO_CONST_PARAM>`
+* pops the highest value from the stack to the parameter
+    * `p <- [SP]`
+    * `SP <- SP - 1`
+    * `IP <- IP + CMD_LEN`
 
-`SET_IP`
+`SET_IP <PARAM>`
+* sets the instruction pointer to the parameter
+    * `IP <- p`
+
+`SET_SP <PARAM>`
+* sets the stack pointer to the parameter
+    * `SP <- p`
+    * `IP <- IP + CMD_LEN`
 
 ### TODO:
 SHIFT operations

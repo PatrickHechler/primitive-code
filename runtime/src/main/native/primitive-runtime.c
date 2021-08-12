@@ -77,6 +77,7 @@ enum commands {
 	CMD_PUSH = 0x23,
 	CMD_POP = 0x24,
 	CMD_SET_IP = 0x25,
+	CMD_SET_SP = 0x26,
 };
 
 typedef union {

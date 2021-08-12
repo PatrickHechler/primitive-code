@@ -14,7 +14,8 @@ public enum Commands {
 	CMD_CMP(0x20),
 	CMD_RET(0x21), CMD_INT(0x22),
 	CMD_PUSH(0x23), CMD_POP(0x24),
-	CMD_SET_IP(0x25);
+	CMD_SET_IP(0x25), CMD_SET_SP(0x26),
+	;
 	//@formatter:on
 	
 	public final int num;
