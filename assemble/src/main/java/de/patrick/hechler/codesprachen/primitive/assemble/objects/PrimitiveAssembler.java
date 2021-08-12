@@ -57,7 +57,6 @@ public class PrimitiveAssembler {
 				byte[] bytes = new byte[8];
 				bytes[0] = (byte) cmd.cmd.num;
 				switch (cmd.cmd) {
-				case CMD_IRET:
 				case CMD_RET:
 					break;// nothing more to write
 				case CMD_NEG:
@@ -126,56 +125,6 @@ public class PrimitiveAssembler {
 						dest = cmd.p1.num;
 					} else {
 						throw new IllegalStateException("illegal param art: " + Param.artToString(cmd.p1.art));
-					}
-					convertLong(bytes, dest);
-					break;
-				}
-				case CMD_SCALL:
-				case CMD_SCALLEQ:
-				case CMD_SCALLGE:
-				case CMD_SCALLGT:
-				case CMD_SCALLLE:
-				case CMD_SCALLLO:
-				case CMD_SCALLNE:
-				case CMD_SJMP:
-				case CMD_SJMPEQ:
-				case CMD_SJMPGE:
-				case CMD_SJMPGT:
-				case CMD_SJMPLE:
-				case CMD_SJMPLO:
-				case CMD_SJMPNE: {
-					assert cmd.p1.label != null : "I need a desteny label!";
-					assert cmd.p2 == null : "my command can not have a second param";
-					long dest;
-					if (cmd.p1.art == Param.ART_LABEL) {
-						assert cmd.p1.num == 0;
-						assert cmd.p1.off == 0;
-						Long zw = labels.get(cmd.p1.label);
-						if (zw == null) {
-							throw new NullPointerException("can't find the used label '" + cmd.p1.label + "', I know the labels '" + labels + "'");
-						}
-						dest = (long) zw;
-						assert dest >= 0;
-						dest = pos - dest;
-					} else if (cmd.p1.art == Param.ART_ANUM) {
-						assert cmd.p1.label == null;
-						assert cmd.p1.off == 0;
-						if ( !supressWarn) {
-							System.err.println("[WARN]: jump/call operation with a number instead of a label as param!");
-						}
-						dest = cmd.p1.num;
-					} else {
-						throw new IllegalStateException("illegal param art: " + Param.artToString(cmd.p1.art));
-					}
-					assert dest >= 0;
-					dest = pos - dest;
-					if (dest < 0) {
-						dest ^= 0xFF00000000000000L;
-					} else if ( (dest & 0x0080000000000000L) != 0) {
-						throw new IndexOutOfBoundsException("this goes to faar for a positive small jump/call (max=0x007FFFFFFFFFFFFF off=0x" + Long.toHexString(dest) + ")");
-					}
-					if ( (dest & 0x00FFFFFFFFFFFFFFL) != 0) {
-						throw new IndexOutOfBoundsException("this goes to faar for a small jump/call (max=0x00FFFFFFFFFFFFFF off=0x" + Long.toHexString(dest) + ")");
 					}
 					convertLong(bytes, dest);
 					break;

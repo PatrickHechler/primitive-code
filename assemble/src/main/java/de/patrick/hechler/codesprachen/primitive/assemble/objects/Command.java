@@ -76,7 +76,7 @@ public class Command {
 		return parsed.pool;
 	}
 
-	public long length() {
+	public long length() {//TODO do
 		switch(cmd) {
 		case CMD_ADD:
 		case CMD_AND:
@@ -88,27 +88,12 @@ public class Command {
 		case CMD_POP:
 		case CMD_PUSH:
 		case CMD_RET:
-		case CMD_SCALL:
-		case CMD_SCALLEQ:
-		case CMD_SCALLGE:
-		case CMD_SCALLGT:
-		case CMD_SCALLLE:
-		case CMD_SCALLLO:
-		case CMD_SCALLNE:
 		case CMD_SET_IP:
-		case CMD_SJMP:
-		case CMD_SJMPEQ:
-		case CMD_SJMPGE:
-		case CMD_SJMPGT:
-		case CMD_SJMPLE:
-		case CMD_SJMPLO:
-		case CMD_SJMPNE:
 		case CMD_SUB:
 		case CMD_XOR:
 		case CMD_CMP:
 		case CMD_DIV:
 		case CMD_INT:
-		case CMD_IRET:
 			return 1;
 		case CMD_CALL:
 		case CMD_CALLEQ:
