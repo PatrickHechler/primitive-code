@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
+import de.hechler.patrick.codesprachen.primitive.runtime.objects.PrimitiveVirtualMashine;
 import de.hechler.patrick.zeugs.check.CheckResult;
 import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.anotations.Check;
@@ -28,7 +29,16 @@ public class PrimitiveAssemblerTest extends Checker {
 			System.out.println(hexCodeBytes);
 			String hexCodeLongs = TestUtils.toHexCode(TestUtils.toLong(code));
 			System.out.println(hexCodeLongs);
-
+			
+			PrimitiveVirtualMashine pvm = new PrimitiveVirtualMashine();
+			long[] commands = TestUtils.toLong(code);
+			long ax = 5L;
+			long bx = 30L;
+			pvm.setAX(ax);
+			pvm.setBX(bx);
+			pvm.execute(commands);
+			long cx = pvm.getCX();
+			assertEquals(ax+bx, cx);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
