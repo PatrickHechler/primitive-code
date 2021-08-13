@@ -1,6 +1,19 @@
 # primitive-code
 a register based coding language with primitive operations
 
+### CONSTANTS:
+
+these pre defined constants can be deleted and overwritten like the other user specified constants
+
+* `--POS--` = the position from the begin of the next command
+* `INT-MEMORY` = 0
+* `INT-MEMORY-ALLOC` = 1
+* `INT-MEMORY-REALLOC` = 2
+* `INT-MEMORY-FREE` = 3
+* `INT-ERRORS` = 1
+* `INT-ERRORS-EXIT` = 1
+* `INT-ERRORS-UNKNOWN_COMMAND` = 2
+
 ### COMMANDS:
 
 `MOV <NO_CONST_PARAM> , <PARAM>`
@@ -237,4 +250,10 @@ a register based coding language with primitive operations
     * `IP <- IP + CMD_LEN`
 
 ### TODO:
-SHIFT operations
+* shift operations
+    * logical left shift
+    * logical right shift
+    * arithmetic right shift
+* user specified interrupts
+    * IRET
+	* overwrite INT N

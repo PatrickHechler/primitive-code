@@ -20,7 +20,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	Map<String,Long> constants = new HashMap<>();
  	$labels = new HashMap<>();
  	$commands = new ArrayList<>();
- 	Map<String,Long> myls = $labels;
+ 	constants.put("INT-MEMORY", 0L);
+ 	constants.put("INT-MEMORY-ALLOC", 1L);
+ 	constants.put("INT-MEMORY-REALLOC", 2L);
+ 	constants.put("INT-MEMORY-FREE", 3L);
+ 	constants.put("INT-ERRORS", 1L);
+ 	constants.put("INT-ERRORS-EXIT", 1L);
+ 	constants.put("INT-ERRORS-UNKNOWN_COMMAND", 2L);
  }
  :
  	(
