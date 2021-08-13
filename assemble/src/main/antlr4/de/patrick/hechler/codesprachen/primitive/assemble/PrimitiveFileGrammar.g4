@@ -231,7 +231,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	(
  		CONSTANT
  		{
- 			Long zw = constants.get($CONSTANT.getText());
+ 			Long zw = constants.get($CONSTANT.getText().substring(1));
  			if (zw == null) {
  				throw new RuntimeException("unknown constant: '" + $CONSTANT.getText() + "', known constants: '" + constants + "'");
  			}
@@ -247,76 +247,81 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	(
  		(
  			(
- 				INT
- 				{cmd = Commands.CMD_INT;}
-
+	 			(
+	 				MOV
+	 				{cmd = Commands.CMD_MOV;}
+	
+	 			)
+	 			|
+	 			(
+	 				ADD
+	 				{cmd = Commands.CMD_ADD;}
+	
+	 			)
+	 			|
+	 			(
+	 				SUB
+	 				{cmd = Commands.CMD_SUB;}
+	
+	 			)
+	 			|
+	 			(
+	 				MUL
+	 				{cmd = Commands.CMD_MUL;}
+	
+	 			)
+	 			|
+	 			(
+	 				DIV
+	 				{cmd = Commands.CMD_DIV;}
+	
+	 			)
+	 			|
+	 			(
+	 				AND
+	 				{cmd = Commands.CMD_AND;}
+	
+	 			)
+	 			|
+	 			(
+	 				OR
+	 				{cmd = Commands.CMD_OR;}
+	
+	 			)
+	 			|
+	 			(
+	 				XOR
+	 				{cmd = Commands.CMD_XOR;}
+	
+	 			)
+	 			|
+	 			(
+	 				CMP
+	 				{cmd = Commands.CMD_CMP;}
+	
+	 			)
  			)
- 			|
+ 			p1 = param [pos, constants] COMMA p2 = param [pos, constants]
+	 		{$c = new Command(cmd, $p1.p, $p2.p);}
+ 		)
+ 		|
+ 		(
  			(
  				RET
  				{cmd = Commands.CMD_RET;}
 
  			)
- 		)
+	 		{$c = new Command(cmd, null, null);}
+		)
  		|
  		(
  			(
- 				MOV
- 				{cmd = Commands.CMD_MOV;}
-
- 			)
- 			|
- 			(
- 				ADD
- 				{cmd = Commands.CMD_ADD;}
-
- 			)
- 			|
- 			(
- 				SUB
- 				{cmd = Commands.CMD_SUB;}
-
- 			)
- 			|
- 			(
- 				MUL
- 				{cmd = Commands.CMD_MUL;}
-
- 			)
- 			|
- 			(
- 				DIV
- 				{cmd = Commands.CMD_DIV;}
-
- 			)
- 			|
- 			(
- 				AND
- 				{cmd = Commands.CMD_AND;}
-
- 			)
- 			|
- 			(
- 				OR
- 				{cmd = Commands.CMD_OR;}
-
- 			)
- 			|
- 			(
- 				XOR
- 				{cmd = Commands.CMD_XOR;}
-
- 			)
- 			|
- 			(
- 				CMP
- 				{cmd = Commands.CMD_CMP;}
-
- 			) p1 = param [pos, constants] COMMA p2 = param [pos, constants]
- 		)
- 		|
- 		(
- 			(
+	 			(
+	 				INT
+	 				{cmd = Commands.CMD_INT;}
+	
+	 			)
+	 			|
  				(
  					NOT
  					{cmd = Commands.CMD_NOT;}
@@ -430,9 +435,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  					{cmd = Commands.CMD_SET_IP;}
 
  				)
- 			) p1 = param [pos,constants]
+ 			)
+ 			 p1 = param [pos,constants]
+	 		{$c = new Command(cmd, $p1.p, null);}
  		)
- 		{$c = new Command(cmd, $p1.p, $p2.p);}
 
  	)
  	|

@@ -3,9 +3,11 @@ a register based coding language with primitive operations
 
 ### CONSTANTS:
 
-these pre defined constants can be deleted and overwritten like the other user specified constants
-
 * `--POS--` = the position from the begin of the next command
+    * this constant can not be deleted or overwritten
+
+the other pre defined constants can be deleted and overwritten like the other user specified constants
+
 * `INT-MEMORY` = 0
 * `INT-MEMORY-ALLOC` = 1
 * `INT-MEMORY-REALLOC` = 2

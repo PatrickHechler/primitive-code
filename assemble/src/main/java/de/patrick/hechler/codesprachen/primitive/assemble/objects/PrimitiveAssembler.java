@@ -3,6 +3,7 @@ package de.patrick.hechler.codesprachen.primitive.assemble.objects;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.Reader;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +32,14 @@ public class PrimitiveAssembler {
 	
 	
 	public void assemble(InputStream in) throws IOException {
-		ANTLRInputStream antlrin = new ANTLRInputStream(in);
+		assemble(new ANTLRInputStream(in));
+	}
+	
+	public void assemble(Reader in) throws IOException {
+		assemble(new ANTLRInputStream(in));
+	}
+	
+	public void assemble(ANTLRInputStream antlrin) throws IOException {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
@@ -226,8 +234,6 @@ public class PrimitiveAssembler {
 		{
 			switch (p1art) {
 			case Param.ART_ANUM:
-				out.write(bytes, 0, bytes.length);
-				convertLong(bytes, p1num);
 				break;
 			case Param.ART_ANUM_BNUM:
 				if ( !supressWarn) {
@@ -258,14 +264,12 @@ public class PrimitiveAssembler {
 			case Param.ART_ASR_BSR:
 				Param.checkSR(p1num);
 				Param.checkSR(p1off);
-				bytes[index -- ] = (byte) p1off;
 				bytes[index -- ] = (byte) p1num;
+				bytes[index -- ] = (byte) p1off;
 				break;
 			}
 			switch (p2art) {
 			case Param.ART_ANUM:
-				out.write(bytes, 0, bytes.length);
-				convertLong(bytes, p2num);
 				break;
 			case Param.ART_ANUM_BNUM:
 				if ( !supressWarn) {
@@ -296,8 +300,8 @@ public class PrimitiveAssembler {
 			case Param.ART_ASR_BSR:
 				Param.checkSR(p2num);
 				Param.checkSR(p2off);
-				bytes[index -- ] = (byte) p2off;
 				bytes[index -- ] = (byte) p2num;
+				bytes[index -- ] = (byte) p2off;
 				break;
 			}
 		}
@@ -327,30 +331,18 @@ public class PrimitiveAssembler {
 				if ( !supressWarn) {
 					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
 				}
-				Param.checkSR(p1off);
-				bytes[7] = (byte) p1off;
 				out.write(bytes, 0, bytes.length);
 				convertLong(bytes, p1num);
 				break;
 			case Param.ART_ASR:
-				Param.checkSR(p1num);
-				bytes[7] = (byte) p1num;
 				break;
 			case Param.ART_ASR_BNUM:
-				Param.checkSR(p1num);
-				bytes[7] = (byte) p1num;
 				out.write(bytes, 0, bytes.length);
 				convertLong(bytes, p1num);
 				break;
 			case Param.ART_ASR_BREG:
-				Param.checkSR(p1num);
-				bytes[7] = (byte) p1num;
 				break;
 			case Param.ART_ASR_BSR:
-				Param.checkSR(p1num);
-				Param.checkSR(p1off);
-				bytes[6] = (byte) p1off;
-				bytes[7] = (byte) p1num;
 				out.write(bytes, 0, bytes.length);
 				convertLong(bytes, p1num);
 				break;
@@ -380,30 +372,18 @@ public class PrimitiveAssembler {
 				if ( !supressWarn) {
 					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
 				}
-				Param.checkSR(p2off);
-				bytes[7] = (byte) p2off;
 				out.write(bytes, 0, bytes.length);
 				convertLong(bytes, p2num);
 				break;
 			case Param.ART_ASR:
-				Param.checkSR(p2num);
-				bytes[7] = (byte) p2num;
 				break;
 			case Param.ART_ASR_BNUM:
-				Param.checkSR(p2num);
-				bytes[7] = (byte) p2num;
 				out.write(bytes, 0, bytes.length);
 				convertLong(bytes, p2num);
 				break;
 			case Param.ART_ASR_BREG:
-				Param.checkSR(p2num);
-				bytes[7] = (byte) p2num;
 				break;
 			case Param.ART_ASR_BSR:
-				Param.checkSR(p2num);
-				Param.checkSR(p2off);
-				bytes[6] = (byte) p2off;
-				bytes[7] = (byte) p2num;
 				out.write(bytes, 0, bytes.length);
 				convertLong(bytes, p2num);
 				break;

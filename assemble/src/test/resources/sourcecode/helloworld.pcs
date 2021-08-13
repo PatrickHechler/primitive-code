@@ -1,0 +1,6 @@
+|> Hello World code which adds the values of AX and BX and returns the result in CX
+ADD AX, BX
+MOV CX, AX
+MOV BX, HEX-0
+MOV AX, #INT-ERRORS-EXIT
+INT #INT-ERRORS
