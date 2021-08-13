@@ -423,10 +423,12 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_execute(JNIEnv *env, jobject caller) {
+	puts("[N-LOG]: enter execute");
 	pvm p = *((pvm*) (*env)->GetLongField(env, caller, values));
 	while (1) {
 		command cmd;
 		cmd.cmd = *p.ip;
+		printf("my command=%d", cmd.cmd);
 		switch (cmd.bytes[0]) {
 		case CMD_MOV: {
 			getTwoParamP1NoConstP2Const
@@ -722,7 +724,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_get(JNIEnv *env, jobject caller, jlong pntr) {
-	return *(int64_t*) pntr;
+	return *(int64_t*) (pntr * LLIS);
 }
 
 /*
@@ -731,8 +733,88 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_set(JNIEnv *env, jobject caller, jlong pntr, jlong value) {
-	int64_t *p = (int64_t*) pntr;
+	printf("enter set(pntr=0x%16x, value=0x%16x)\n", pntr, value);
+	int64_t *p = (int64_t*) (pntr * LLIS);
 	p[0] = value;
+}
+
+/*
+ * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
+ * Method:    setAX
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setAX(JNIEnv *env, jobject caller, jlong value) {
+	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
+	p.sr[0] = value;
+}
+
+/*
+ * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
+ * Method:    setBX
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setBX(JNIEnv *env, jobject caller, jlong value) {
+	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
+	p.sr[1] = value;
+}
+
+/*
+ * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
+ * Method:    setCX
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setCX(JNIEnv *env, jobject caller, jlong value) {
+	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
+	p.sr[2] = value;
+}
+
+/*
+ * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
+ * Method:    setDX
+ * Signature: (J)V
+ */
+JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setDX(JNIEnv *env, jobject caller, jlong value) {
+	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
+	p.sr[3] = value;
+}
+
+/*
+ * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
+ * Method:    getAX
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getAX(JNIEnv *env, jobject caller) {
+	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
+	return p.sr[0];
+}
+
+/*
+ * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
+ * Method:    getBX
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getBX(JNIEnv *env, jobject caller) {
+	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
+	return p.sr[1];
+}
+/*
+ * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
+ * Method:    getCX
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getCX(JNIEnv *env, jobject caller) {
+	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
+	return p.sr[2];
+}
+
+/*
+ * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
+ * Method:    getDX
+ * Signature: ()J
+ */
+JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getDX(JNIEnv *env, jobject caller) {
+	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
+	return p.sr[3];
 }
 
 /*
