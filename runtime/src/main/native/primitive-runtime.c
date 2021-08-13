@@ -23,7 +23,7 @@ typedef struct {
 	int64_t *sp;
 	int64_t *ip;
 	int64_t status;
-	int64_t *ints[5];
+	int64_t ints[5];
 } pvm;
 
 enum {
@@ -61,23 +61,23 @@ enum {
 };
 
 enum {
-	__BASE = 0x01, __A_NUM = 0x00, __A_SR = 0x02, __NO_B = 0x00, __B_REG = 0x04, __B_NUM = 0x08, __B_SR = 0x0C,
+	ART___BASE = 0x01, ART___A_NUM = 0x00, ART___A_SR = 0x02, ART___NO_B = 0x00, ART___B_REG = 0x04, ART___B_NUM = 0x08, ART___B_SR = 0x0C,
 
-	ART_ANUM = __BASE | __A_NUM | __NO_B,
+	ART_ANUM = ART___BASE | ART___A_NUM | ART___NO_B,
 
-	ART_ASR = __BASE | __A_SR | __NO_B,
+	ART_ASR = ART___BASE | ART___A_SR | ART___NO_B,
 
-	ART_ANUM_BREG = __BASE | __A_NUM | __B_REG,
+	ART_ANUM_BREG = ART___BASE | ART___A_NUM | ART___B_REG,
 
-	ART_ASR_BREG = __BASE | __A_SR | __B_REG,
+	ART_ASR_BREG = ART___BASE | ART___A_SR | ART___B_REG,
 
-	ART_ANUM_BNUM = __BASE | __A_NUM | __B_NUM,
+	ART_ANUM_BNUM = ART___BASE | ART___A_NUM | ART___B_NUM,
 
-	ART_ASR_BNUM = __BASE | __A_SR | __B_NUM,
+	ART_ASR_BNUM = ART___BASE | ART___A_SR | ART___B_NUM,
 
-	ART_ANUM_BSR = __BASE | __A_NUM | __B_SR,
+	ART_ANUM_BSR = ART___BASE | ART___A_NUM | ART___B_SR,
 
-	ART_ASR_BSR = __BASE | __A_SR | __B_SR,
+	ART_ASR_BSR = ART___BASE | ART___A_SR | ART___B_SR,
 
 };
 
@@ -100,13 +100,11 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
 		return c;
 	}
-	if (p->sr == NULL) {
-		free(p);
-		jclass ecls = (*env)->FindClass(env, "java/lang/OutOfMemoryError");
-		jint c = (*env)->ThrowNew(env, ecls, "not enugh memory to allocate the struct pvm (three pointers) and the four registers [A-D]X (int_64)");
-		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
-		return c;
-	}
+	p->ints[0] = -1;
+	p->ints[1] = -1;
+	p->ints[2] = -1;
+	p->ints[3] = -1;
+	p->ints[4] = -1;
 	if (!values) {
 		values = (*env)->GetFieldID(env, cls, "values", "J");
 	}
@@ -305,8 +303,8 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
 	free((void*) (((long long) pntr) * LLIS));
 }
 
-#define unknownCommand exit(-2);/*TODO: link to unknown command interupt so that later the interupt can be overwritten*/
-#define twoParamsP1NoConst(pointeraction, sractiont) switch(cmd.bytes[1]){/*TODO*/}
+#define unknownCommandExit exit(-2);/*TODO: link to unknown command interupt so that later the interupt can be overwritten*/
+#define unknownCommandReturn return -2;/*TODO: link to unknown command interupt so that later the interupt can be overwritten*/
 /*
  * @formatter:off
  * 	switch (cmd.bytes[1]) {
@@ -353,11 +351,11 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * 		break;
  * 	}
  * 	default:
- * 		unknownCommand
+ * 		unknownCommandReturn
  * 	}
  * @formatter:on
  */
-#define oneParamAllowNoConst(pntraction, sraction) switch (cmd.bytes[1]) { case ART_ASR: { int64_t param = cmd.bytes[7]; int64_t len = 1; sraction break; } case ART_ANUM_BREG: { int64_t* param = (int64_t*) (p.ip[1] * LLIS); int64_t len = 2; pntraction break; } case ART_ASR_BREG: { int64_t* param = (int64_t*) (p.sr[cmd.bytes[7]] * LLIS); int64_t len = 1; pntraction break; } case ART_ANUM_BNUM: { int64_t* param = (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS); int64_t len = 3; pntraction break; } case ART_ASR_BNUM: { int64_t* param = (int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS); int64_t len = 2; pntraction break; } case ART_ANUM_BSR: { int64_t* param = (int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS); int64_t len = 2; pntraction break; } case ART_ASR_BSR: { int64_t* param = (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS); int64_t len = 2; pntraction break; } default: unknownCommand }
+#define oneParamAllowNoConst(pntraction, sraction) switch (cmd.bytes[1]) { case ART_ASR: { int64_t param = cmd.bytes[7]; int64_t len = 1; sraction break; } case ART_ANUM_BREG: { int64_t* param = (int64_t*) (p.ip[1] * LLIS); int64_t len = 2; pntraction break; } case ART_ASR_BREG: { int64_t* param = (int64_t*) (p.sr[cmd.bytes[7]] * LLIS); int64_t len = 1; pntraction break; } case ART_ANUM_BNUM: { int64_t* param = (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS); int64_t len = 3; pntraction break; } case ART_ASR_BNUM: { int64_t* param = (int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS); int64_t len = 2; pntraction break; } case ART_ANUM_BSR: { int64_t* param = (int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS); int64_t len = 2; pntraction break; } case ART_ASR_BSR: { int64_t* param = (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS); int64_t len = 2; pntraction break; } default: unknownCommandReturn }
 /*
  * @formatter:off
  * 	switch (cmd.bytes[1]) {
@@ -410,11 +408,14 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * 		break;
  * 	}
  * 	default:
- * 		unknownCommand
+ * 		unknownCommandReturn
  * 	}
  * @formatter:on
  */
-#define oneParamAllowConst(action) switch (cmd.bytes[1]) { case ART_ANUM: { int64_t param = p.ip[1]; int64_t len = 2; action break; } case ART_ASR: { int64_t param = p.sr[cmd.bytes[7]]; int64_t len = 1; action break; } case ART_ANUM_BREG: { int64_t param = *( (int64_t*) (p.ip[1] * LLIS)); int64_t len = 2; action break; } case ART_ASR_BREG: { int64_t param = *( (int64_t*) (p.sr[cmd.bytes[7]] * LLIS) ); int64_t len = 1; action break; } case ART_ANUM_BNUM: { int64_t param = *( (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS)); int64_t len = 3; action break; } case ART_ASR_BNUM: { int64_t param = *( (int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS)); int64_t len = 2; action break; } case ART_ANUM_BSR: { int64_t param = *( (int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS)); int64_t len = 2; action break; } case ART_ASR_BSR: { int64_t param = *( (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS)); int64_t len = 2; action break; } default: unknownCommand }
+#define oneParamAllowConst(action) switch (cmd.bytes[1]) { case ART_ANUM: { int64_t param = p.ip[1]; int64_t len = 2; action break; } case ART_ASR: { int64_t param = p.sr[cmd.bytes[7]]; int64_t len = 1; action break; } case ART_ANUM_BREG: { int64_t param = *( (int64_t*) (p.ip[1] * LLIS)); int64_t len = 2; action break; } case ART_ASR_BREG: { int64_t param = *( (int64_t*) (p.sr[cmd.bytes[7]] * LLIS) ); int64_t len = 1; action break; } case ART_ANUM_BNUM: { int64_t param = *( (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS)); int64_t len = 3; action break; } case ART_ASR_BNUM: { int64_t param = *( (int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS)); int64_t len = 2; action break; } case ART_ANUM_BSR: { int64_t param = *( (int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS)); int64_t len = 2; action break; } case ART_ASR_BSR: { int64_t param = *( (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS)); int64_t len = 2; action break; } default: unknownCommandReturn }
+#define getTwoParamsConsts int64_t param1; int64_t _ipi; int64_t _bytesi; switch (cmd.bytes[1]) { case ART_ANUM: param1 = p.ip[1]; _ipi = 2; _bytesi = 7; break; case ART_ANUM_BNUM: param1 = *((int64_t*) ((p.ip[1] + p.ip[2]) * LLIS)); _ipi = 3; _bytesi = 7; break; case ART_ANUM_BREG: param1 = *((int64_t*) (p.ip[1] * LLIS)); _ipi = 2; _bytesi = 7; break; case ART_ANUM_BSR: param1 = *((int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS)); _ipi = 2; _bytesi = 6; break; case ART_ASR: param1 = p.sr[cmd.bytes[7]]; _ipi = 1; _bytesi = 6; break; case ART_ASR_BNUM: param1 = *((int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS)); _ipi = 2; _bytesi = 6; break; case ART_ASR_BREG: param1 = *((int64_t*) (p.sr[cmd.bytes[7]] * LLIS)); _ipi = 1; _bytesi = 6; break; case ART_ASR_BSR: param1 = *((int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS)); _ipi = 1; _bytesi = 5; break; default: unknownCommandReturn } int64_t param2; switch (cmd.bytes[2]) { case ART_ANUM: param2 = p.ip[_ipi]; break; case ART_ANUM_BNUM: param2 = *((int64_t*) ((p.ip[_ipi] + p.ip[_ipi + 1]) * LLIS)); break; case ART_ANUM_BREG: param2 = *((int64_t*) (p.ip[_ipi] * LLIS)); break; case ART_ANUM_BSR: param2 = *((int64_t*) ((p.ip[_ipi] + p.sr[cmd.bytes[_bytesi]]) * LLIS)); break; case ART_ASR: param2 = p.sr[cmd.bytes[_bytesi]]; break; case ART_ASR_BNUM: param2 = *((int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.ip[_ipi]) * LLIS)); break; case ART_ASR_BREG: param2 = *((int64_t*) (p.sr[cmd.bytes[_bytesi]] * LLIS)); break; case ART_ASR_BSR: param2 = *((int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.sr[cmd.bytes[_bytesi - 1]]) * LLIS)); break; default: unknownCommandReturn }
+#define getTwoParamP1NoConstP2Const int64_t *param1; int64_t _ipi; int64_t _bytesi; switch (cmd.bytes[1]) { case ART_ANUM_BNUM: param1 = (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS); _ipi = 3; _bytesi = 7; break; case ART_ANUM_BREG: param1 = (int64_t*) (p.ip[1] * LLIS); _ipi = 2; _bytesi = 7; break; case ART_ANUM_BSR: param1 = (int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS); _ipi = 2; _bytesi = 6; break; case ART_ASR: param1 = &p.sr[cmd.bytes[7]]; _ipi = 1; _bytesi = 6; break; case ART_ASR_BNUM: param1 = (int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS); _ipi = 2; _bytesi = 6; break; case ART_ASR_BREG: param1 = (int64_t*) (p.sr[cmd.bytes[7]] * LLIS); _ipi = 1; _bytesi = 6; break; case ART_ASR_BSR: param1 = (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS); _ipi = 1; _bytesi = 5; break; default: unknownCommandReturn } int64_t param2; switch (cmd.bytes[2]) { case ART_ANUM: param2 = p.ip[_ipi]; break; case ART_ANUM_BNUM: param2 = *((int64_t*) ((p.ip[_ipi] + p.ip[_ipi + 1]) * LLIS)); break; case ART_ANUM_BREG: param2 = *((int64_t*) (p.ip[_ipi] * LLIS)); break; case ART_ANUM_BSR: param2 = *((int64_t*) ((p.ip[_ipi] + p.sr[cmd.bytes[_bytesi]]) * LLIS)); break; case ART_ASR: param2 = p.sr[cmd.bytes[_bytesi]]; break; case ART_ASR_BNUM: param2 = *((int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.ip[_ipi]) * LLIS)); break; case ART_ASR_BREG: param2 = *((int64_t*) (p.sr[cmd.bytes[_bytesi]] * LLIS)); break; case ART_ASR_BSR: param2 = *((int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.sr[cmd.bytes[_bytesi - 1]]) * LLIS)); break; default: unknownCommandReturn }
+#define getTwoParamNoConsts int64_t *param1; int64_t _ipi; int64_t _bytesi; switch (cmd.bytes[1]) { case ART_ANUM_BNUM: param1 = (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS); _ipi = 3; _bytesi = 7; break; case ART_ANUM_BREG: param1 = (int64_t*) (p.ip[1] * LLIS); _ipi = 2; _bytesi = 7; break; case ART_ANUM_BSR: param1 = (int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS); _ipi = 2; _bytesi = 6; break; case ART_ASR: param1 = &p.sr[cmd.bytes[7]]; _ipi = 1; _bytesi = 6; break; case ART_ASR_BNUM: param1 = (int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS); _ipi = 2; _bytesi = 6; break; case ART_ASR_BREG: param1 = (int64_t*) (p.sr[cmd.bytes[7]] * LLIS); _ipi = 1; _bytesi = 6; break; case ART_ASR_BSR: param1 = (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS); _ipi = 1; _bytesi = 5; break; default: unknownCommandReturn } int64_t *param2; switch (cmd.bytes[2]) { case ART_ANUM_BNUM: param2 = (int64_t*) ((p.ip[_ipi] + p.ip[_ipi + 1]) * LLIS); break; case ART_ANUM_BREG: param2 = (int64_t*) (p.ip[_ipi] * LLIS); break; case ART_ANUM_BSR: param2 = (int64_t*) ((p.ip[_ipi] + p.sr[cmd.bytes[_bytesi]]) * LLIS); break; case ART_ASR: param2 = &p.sr[cmd.bytes[_bytesi]]; break; case ART_ASR_BNUM: param2 = (int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.ip[_ipi]) * LLIS); break; case ART_ASR_BREG: param2 = (int64_t*) (p.sr[cmd.bytes[_bytesi]] * LLIS); break; case ART_ASR_BSR: param2 = (int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.sr[cmd.bytes[_bytesi - 1]]) * LLIS); break; default: unknownCommandReturn }
 
 /*
  * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
@@ -427,22 +428,49 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		command cmd;
 		cmd.cmd = *p.ip;
 		switch (cmd.bytes[0]) {
-		case CMD_MOV: /*TODO*/
+		case CMD_MOV: {
+			getTwoParamP1NoConstP2Const
+			*param1 = param2;
 			break;
-		case CMD_ADD: /*TODO*/
+		}
+		case CMD_ADD: {
+			getTwoParamP1NoConstP2Const
+			*param1 &= param2;
 			break;
-		case CMD_SUB: /*TODO*/
+		}
+		case CMD_SUB: {
+			getTwoParamP1NoConstP2Const
+			*param1 -= param2;
 			break;
-		case CMD_MUL: /*TODO*/
+		}
+		case CMD_MUL: {
+			getTwoParamP1NoConstP2Const
+			*param1 *= param2;
 			break;
-		case CMD_DIV: /*TODO*/
+		}
+		case CMD_DIV: {
+			getTwoParamNoConsts
+			int64_t div = (*param1) / (*param2);
+			int64_t mod = (*param1) % (*param2);
+			*param1 = div;
+			*param2 = mod;
 			break;
-		case CMD_AND: /*TODO*/
+		}
+		case CMD_AND: {
+			getTwoParamP1NoConstP2Const
+			*param1 ^= param2;
 			break;
-		case CMD_OR: /*TODO*/
+		}
+		case CMD_OR: {
+			getTwoParamP1NoConstP2Const
+			*param1 |= param2;
 			break;
-		case CMD_XOR: /*TODO*/
+		}
+		case CMD_XOR: {
+			getTwoParamP1NoConstP2Const
+			*param1 ^= param2;
 			break;
+		}
 		case CMD_NOT:
 			oneParamAllowNoConst(*param = ~(*param);p.ip += len;, p.sr[param] = ~p.sr[param]; p.ip += len;)
 			break;
@@ -553,17 +581,78 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 				p.ip += 2;
 			}
 			break;
-		case CMD_CMP:
-			/*TODO*/
+		case CMD_CMP: {
+			getTwoParamsConsts
+			p.status &= STATUS_GREATHER | STATUS_LOWER;
+			if (param1 > param2) {
+				p.status |= STATUS_GREATHER;
+			} else if (param1 < param2) {
+				p.status |= STATUS_LOWER;
+			}
 			break;
+		}
 		case CMD_RET:
 			p.ip = (int64_t*) *p.sp;
 			p.sp--;
 			break;
 		case CMD_INT:
+			//@formatter:off
 			oneParamAllowConst(
-					switch(param) { case 0: switch(p.sr[0]) { case 1: { int64_t* pntr = malloc((p.sr[1] * LLIS) + LLIS - 1); if (pntr) { int64_t mem = (int64_t) pntr; int64_t mod = mem / LLIS; mem = mem % LLIS; if (mod) { mem += mod - LLIS; } p.sr[1] = mem; } else { p.sr[1] = -1; } break; } case 2: { int64_t* pntr = realloc((int64_t*) (p.sr[1] * LLIS), (p.sr[2] * LLIS) + LLIS - 1); if (pntr){ int64_t mem = (int64_t) pntr; int64_t mod = mem / LLIS; mem = mem % LLIS; if (mod) { mem += mod - LLIS; } p.sr[1] = mem; } else { p.sr[1] = -1; } break; } case 3: free((int64_t*) (p.sr[1] * LLIS)); break; default: unknownCommand } case 1: switch(p.sr[0]){ case 1: exit(p.sr[1]); case 2: //unknown command
-					exit(-2); default: unknownCommand } default: unknownCommand } p.ip += len;)
+					switch(param) {
+					case 0:
+						switch(p.sr[0]) {
+						case 1: {
+							int64_t* pntr = malloc((p.sr[1] * LLIS) + LLIS - 1);
+							if (pntr) {
+								int64_t mem = (int64_t) pntr;
+								int64_t mod = mem / LLIS;
+								mem = mem % LLIS;
+								if (mod) {
+									mem += mod - LLIS;
+								}
+								p.sr[1] = mem;
+							} else {
+								p.sr[1] = -1;
+							}
+							break;
+						}
+						case 2: {
+							int64_t* pntr = realloc((int64_t*) (p.sr[1] * LLIS), (p.sr[2] * LLIS) + LLIS - 1);
+							if (pntr){
+								int64_t mem = (int64_t) pntr;
+								int64_t mod = mem / LLIS;
+								mem = mem % LLIS;
+								if (mod) {
+									mem += mod - LLIS;
+								}
+								p.sr[1] = mem;
+							} else {
+								p.sr[1] = -1;
+							}
+							break;
+						}
+						case 3:
+							free((int64_t*) (p.sr[1] * LLIS));
+							break;
+						default:
+							unknownCommandReturn
+						}
+						break;
+					case 1:
+						switch(p.sr[0]){
+						case 1: return p.sr[1];
+						case 2: /*unknown command*/
+							return -2;
+						default:
+							unknownCommandReturn
+						}
+						/*break;*/
+					default:
+						unknownCommandReturn
+					}
+				p.ip += len;
+			)
+//@formatter:on
 			break;
 		case CMD_PUSH:
 			oneParamAllowConst(p.sp ++; *p.sp = param; p.ip += len;)
@@ -578,7 +667,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			oneParamAllowConst(p.sp = (int64_t*) (param * LLIS); p.ip += len;)
 			break;
 		default:
-			unknownCommand
+			unknownCommandReturn
 			break;
 		}
 	}

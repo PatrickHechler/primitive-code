@@ -219,8 +219,8 @@ public class PrimitiveAssembler {
 		assert cmd.p2 != null : "I need a second Param!";
 		assert cmd.p1.label == null : "I dom't need a label in my params!";
 		assert cmd.p2.label == null : "I dom't need a label in my params!";
-		bytes[1] = (byte) (cmd.p1.art << 4);
-		bytes[1] |= (byte) cmd.p2.art;
+		bytes[1] = (byte) cmd.p1.art;
+		bytes[2] = (byte) cmd.p2.art;
 		long p1num = cmd.p1.num, p1off = cmd.p1.off, p2num = cmd.p2.num, p2off = cmd.p2.off;
 		int p1art = cmd.p1.art, p2art = cmd.p2.art, index = 7;
 		{
