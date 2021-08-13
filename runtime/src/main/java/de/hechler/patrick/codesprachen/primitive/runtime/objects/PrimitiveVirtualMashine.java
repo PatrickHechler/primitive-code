@@ -62,6 +62,7 @@ public class PrimitiveVirtualMashine {
 	
 	public PrimitiveVirtualMashine() throws OutOfMemoryError {
 		values = create();
+		System.out.println("[J-LOG]: values=" + values);
 	}
 	
 	/**
@@ -105,7 +106,8 @@ public class PrimitiveVirtualMashine {
 	public long execute(long[] commands) throws OutOfMemoryError {
 		long pntr = malloc(commands.length);
 		for(int i = 0; i < commands.length; i ++) {
-			set(pntr + commands[i], commands[i]);
+			System.out.println("[J-LOG]: set((pntr{"+pntr+"} + i{"+i+"}){"+(pntr + i)+"}, commands[i{"+i+"}]{"+commands[i]+"}");
+			set(pntr + i, commands[i]);
 		}
 		setInstructionPointer(pntr);
 		long ret = execute();

@@ -18,13 +18,11 @@
 
 jfieldID values = NULL;
 
-typedef struct {
-	int64_t sr[4];
-	int64_t *sp;
-	int64_t *ip;
-	int64_t status;
-	int64_t ints[5];
-} pvm;
+#define OFFSET_STACK_POINTER 4
+#define OFFSET_INSTRUCTION_POINTER 5
+#define OFFSET_STATUS_REG 6
+#define OFFSET_INTERUPT_POINTER 7
+#define PVM_SIZE (LLIS * 8)
 
 enum {
 	CMD_MOV = 0x01,
@@ -93,21 +91,18 @@ typedef union {
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_create(JNIEnv *env, jclass cls) {
 	puts("[N-LOG]: enter create");
-	pvm *p = malloc(sizeof(pvm));
+	int64_t *p = malloc(PVM_SIZE);
 	if (p == NULL) {
 		jclass ecls = (*env)->FindClass(env, "java/lang/OutOfMemoryError");
 		jint c = (*env)->ThrowNew(env, ecls, "not enugh memory to allocate the struct pvm (three pointers)");
 		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
 		return c;
 	}
-	p->ints[0] = -1;
-	p->ints[1] = -1;
-	p->ints[2] = -1;
-	p->ints[3] = -1;
-	p->ints[4] = -1;
+	p[OFFSET_INTERUPT_POINTER] = -1;
 	if (!values) {
 		values = (*env)->GetFieldID(env, cls, "values", "J");
 	}
+	printf("[N-LOG]: pvm: %d\n", p);
 	puts("[N-LOG]: exit create");
 	return (jlong) p;
 }
@@ -143,6 +138,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_filelen(JNIEnv *env, jobject caller, jlong pntr) {
+	puts("[N-LOG]: enter filelen");
 	FILE *file = (FILE*) pntr;
 	if (!fseek(file, 0, SEEK_END)) {
 		jclass ecls = (*env)->FindClass(env, "java/io/IOException");
@@ -172,6 +168,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_filepos(JNIEnv *env, jobject caller, jlong pntr) {
+	puts("[N-LOG]: enter filepos");
 	FILE *file = (FILE*) pntr;
 	int64_t fpos;
 	if (!fgetpos64(file, &fpos)) {
@@ -192,6 +189,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setfilepos(JNIEnv *env, jobject caller, jlong pntr, jlong pos) {
+	puts("[N-LOG]: enter setfilepos");
 	FILE *file = (FILE*) pntr;
 	int64_t *fpos;
 	if (!fgetpos64(file, fpos)) {
@@ -221,6 +219,7 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: (JJJ)V
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_readfile(JNIEnv *env, jobject caller, jlong pntr, jlong len, jlong jdest) {
+	puts("[N-LOG]: enter readfile");
 	FILE *file = (FILE*) pntr;
 	int64_t *dest = (int64_t*) jdest;
 	return fread(dest, LLIS, len, file);
@@ -232,6 +231,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_closefile(JNIEnv *env, jobject caller, jlong pntr) {
+	puts("[N-LOG]: enter closefile");
 	if (!fclose((FILE*) pntr)) {
 		jclass ecls = (*env)->FindClass(env, "java/io/IOException");
 		char *msg = malloc(16 + 45);
@@ -249,7 +249,7 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_malloc(JNIEnv *env, jobject caller, jlong len) {
-	puts("[N-LOG]: enter method malloc");
+	puts("[N-LOG]: enter malloc");
 	void *ret = malloc(len * LLIS + LLIS - 1);
 	int64_t r = (int64_t) ret;
 	int64_t mod = r % LLIS;
@@ -270,7 +270,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (JJ)J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_realloc(JNIEnv *env, jobject caller, jlong pntr, jlong len) {
-	puts("[N-LOG]: enter method realloc");
+	puts("[N-LOG]: enter realloc");
 	void *ret = realloc((void*) (pntr * LLIS), len * LLIS + LLIS - 1);
 	int64_t r = (int64_t) ret;
 	int64_t mod = r % LLIS;
@@ -300,6 +300,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_free(JNIEnv *env, jobject caller, jlong pntr) {
+	puts("[N-LOG]: enter free");
 	free((void*) (((long long) pntr) * LLIS));
 }
 
@@ -315,37 +316,37 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * 		break;
  * 	}
  * 	case ART_ANUM_BREG: {
- * 		int64_t* param = (int64_t*) (p.ip[1] * LLIS);
+ * 		int64_t* param = (int64_t*) (((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] * LLIS);
  * 		int64_t len = 2;
  * 		pntraction
  * 		break;
  * 	}
  * 	case ART_ASR_BREG: {
- * 		int64_t* param = (int64_t*) (p.sr[cmd.bytes[7]] * LLIS);
+ * 		int64_t* param = (int64_t*) (p[cmd.bytes[7]] * LLIS);
  * 		int64_t len = 1;
  * 		pntraction
  * 		break;
  * 	}
  * 	case ART_ANUM_BNUM: {
- * 		int64_t* param = (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS);
+ * 		int64_t* param = (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[2]) * LLIS);
  * 		int64_t len = 3;
  * 		pntraction
  * 		break;
  * 	}
  * 	case ART_ASR_BNUM: {
- * 		int64_t* param = *((int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS);
+ * 		int64_t* param = *((int64_t*) ((p[cmd.bytes[7]] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1]) * LLIS);
  * 		int64_t len = 2;
  * 		pntraction
  * 		break;
  * 	}
  * 	case ART_ANUM_BSR: {
- * 		int64_t* param = *((int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS);
+ * 		int64_t* param = *((int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + p[cmd.bytes[7]]) * LLIS);
  * 		int64_t len = 2;
  * 		pntraction
  * 		break;
  * 	}
  * 	case ART_ASR_BSR: {
- * 		int64_t* param = (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS);
+ * 		int64_t* param = (int64_t*) ((p[cmd.bytes[7]] + p[cmd.bytes[6]]) * LLIS);
  * 		int64_t len = 2;
  * 		pntraction
  * 		break;
@@ -355,54 +356,54 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * 	}
  * @formatter:on
  */
-#define oneParamAllowNoConst(pntraction, sraction) switch (cmd.bytes[1]) { case ART_ASR: { int64_t param = cmd.bytes[7]; int64_t len = 1; sraction break; } case ART_ANUM_BREG: { int64_t* param = (int64_t*) (p.ip[1] * LLIS); int64_t len = 2; pntraction break; } case ART_ASR_BREG: { int64_t* param = (int64_t*) (p.sr[cmd.bytes[7]] * LLIS); int64_t len = 1; pntraction break; } case ART_ANUM_BNUM: { int64_t* param = (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS); int64_t len = 3; pntraction break; } case ART_ASR_BNUM: { int64_t* param = (int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS); int64_t len = 2; pntraction break; } case ART_ANUM_BSR: { int64_t* param = (int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS); int64_t len = 2; pntraction break; } case ART_ASR_BSR: { int64_t* param = (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS); int64_t len = 2; pntraction break; } default: unknownCommandReturn }
+#define oneParamAllowNoConst(pntraction, sraction) switch (cmd.bytes[1]) { case ART_ASR: { int64_t param = cmd.bytes[7]; int64_t len = 1; sraction break; } case ART_ANUM_BREG: { int64_t* param = (int64_t*) (((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] * LLIS); int64_t len = 2; pntraction break; } case ART_ASR_BREG: { int64_t* param = (int64_t*) (p[cmd.bytes[7]] * LLIS); int64_t len = 1; pntraction break; } case ART_ANUM_BNUM: { int64_t* param = (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[2]) * LLIS); int64_t len = 3; pntraction break; } case ART_ASR_BNUM: { int64_t* param = (int64_t*) ((p[cmd.bytes[7]] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1]) * LLIS); int64_t len = 2; pntraction break; } case ART_ANUM_BSR: { int64_t* param = (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + p[cmd.bytes[7]]) * LLIS); int64_t len = 2; pntraction break; } case ART_ASR_BSR: { int64_t* param = (int64_t*) ((p[cmd.bytes[7]] + p[cmd.bytes[6]]) * LLIS); int64_t len = 2; pntraction break; } default: unknownCommandReturn }
 /*
  * @formatter:off
  * 	switch (cmd.bytes[1]) {
  * 	case ART_ANUM: {
- * 		int64_t param = p.ip[1];
+ * 		int64_t param = ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
  * 		int64_t len = 2;
  * 		action
  * 		break;
  * 	}
  * 	case ART_ASR: {
- * 		int64_t param = p.sr[cmd.bytes[7]];
+ * 		int64_t param = p[cmd.bytes[7]];
  * 		int64_t len = 1;
  * 		action
  * 		break;
  * 	}
  * 	case ART_ANUM_BREG: {
- * 		int64_t param = *((int64_t*) (p.ip[1] * LLIS));
+ * 		int64_t param = *((int64_t*) (((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] * LLIS));
  * 		int64_t len = 2;
  * 		action
  * 		break;
  * 	}
  * 	case ART_ASR_BREG: {
- * 		int64_t param = *((int64_t*) (p.sr[cmd.bytes[7]] * LLIS));
+ * 		int64_t param = *((int64_t*) (p[cmd.bytes[7]] * LLIS));
  * 		int64_t len = 1;
  * 		action
  * 		break;
  * 	}
  * 	case ART_ANUM_BNUM: {
- * 		int64_t param = *((int64_t*) ((p.ip[1] + p.ip[2]) * LLIS));
+ * 		int64_t param = *((int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[2]) * LLIS));
  * 		int64_t len = 3;
  * 		action
  * 		break;
  * 	}
  * 	case ART_ASR_BNUM: {
- * 		int64_t param = *((int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS));
+ * 		int64_t param = *((int64_t*) ((p[cmd.bytes[7]] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1]) * LLIS));
  * 		int64_t len = 2;
  * 		action
  * 		break;
  * 	}
  * 	case ART_ANUM_BSR: {
- * 		int64_t param = *((int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS));
+ * 		int64_t param = *((int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + p[cmd.bytes[7]]) * LLIS));
  * 		int64_t len = 2;
  * 		action
  * 		break;
  * 	}
  * 	case ART_ASR_BSR: {
- * 		int64_t param = *((int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS));
+ * 		int64_t param = *((int64_t*) ((p[cmd.bytes[7]] + p[cmd.bytes[6]]) * LLIS));
  * 		int64_t len = 2;
  * 		action
  * 		break;
@@ -412,10 +413,10 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * 	}
  * @formatter:on
  */
-#define oneParamAllowConst(action) switch (cmd.bytes[1]) { case ART_ANUM: { int64_t param = p.ip[1]; int64_t len = 2; action break; } case ART_ASR: { int64_t param = p.sr[cmd.bytes[7]]; int64_t len = 1; action break; } case ART_ANUM_BREG: { int64_t param = *( (int64_t*) (p.ip[1] * LLIS)); int64_t len = 2; action break; } case ART_ASR_BREG: { int64_t param = *( (int64_t*) (p.sr[cmd.bytes[7]] * LLIS) ); int64_t len = 1; action break; } case ART_ANUM_BNUM: { int64_t param = *( (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS)); int64_t len = 3; action break; } case ART_ASR_BNUM: { int64_t param = *( (int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS)); int64_t len = 2; action break; } case ART_ANUM_BSR: { int64_t param = *( (int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS)); int64_t len = 2; action break; } case ART_ASR_BSR: { int64_t param = *( (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS)); int64_t len = 2; action break; } default: unknownCommandReturn }
-#define getTwoParamsConsts int64_t param1; int64_t _ipi; int64_t _bytesi; switch (cmd.bytes[1]) { case ART_ANUM: param1 = p.ip[1]; _ipi = 2; _bytesi = 7; break; case ART_ANUM_BNUM: param1 = *((int64_t*) ((p.ip[1] + p.ip[2]) * LLIS)); _ipi = 3; _bytesi = 7; break; case ART_ANUM_BREG: param1 = *((int64_t*) (p.ip[1] * LLIS)); _ipi = 2; _bytesi = 7; break; case ART_ANUM_BSR: param1 = *((int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS)); _ipi = 2; _bytesi = 6; break; case ART_ASR: param1 = p.sr[cmd.bytes[7]]; _ipi = 1; _bytesi = 6; break; case ART_ASR_BNUM: param1 = *((int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS)); _ipi = 2; _bytesi = 6; break; case ART_ASR_BREG: param1 = *((int64_t*) (p.sr[cmd.bytes[7]] * LLIS)); _ipi = 1; _bytesi = 6; break; case ART_ASR_BSR: param1 = *((int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS)); _ipi = 1; _bytesi = 5; break; default: unknownCommandReturn } int64_t param2; switch (cmd.bytes[2]) { case ART_ANUM: param2 = p.ip[_ipi]; break; case ART_ANUM_BNUM: param2 = *((int64_t*) ((p.ip[_ipi] + p.ip[_ipi + 1]) * LLIS)); break; case ART_ANUM_BREG: param2 = *((int64_t*) (p.ip[_ipi] * LLIS)); break; case ART_ANUM_BSR: param2 = *((int64_t*) ((p.ip[_ipi] + p.sr[cmd.bytes[_bytesi]]) * LLIS)); break; case ART_ASR: param2 = p.sr[cmd.bytes[_bytesi]]; break; case ART_ASR_BNUM: param2 = *((int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.ip[_ipi]) * LLIS)); break; case ART_ASR_BREG: param2 = *((int64_t*) (p.sr[cmd.bytes[_bytesi]] * LLIS)); break; case ART_ASR_BSR: param2 = *((int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.sr[cmd.bytes[_bytesi - 1]]) * LLIS)); break; default: unknownCommandReturn }
-#define getTwoParamP1NoConstP2Const int64_t *param1; int64_t _ipi; int64_t _bytesi; switch (cmd.bytes[1]) { case ART_ANUM_BNUM: param1 = (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS); _ipi = 3; _bytesi = 7; break; case ART_ANUM_BREG: param1 = (int64_t*) (p.ip[1] * LLIS); _ipi = 2; _bytesi = 7; break; case ART_ANUM_BSR: param1 = (int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS); _ipi = 2; _bytesi = 6; break; case ART_ASR: param1 = &p.sr[cmd.bytes[7]]; _ipi = 1; _bytesi = 6; break; case ART_ASR_BNUM: param1 = (int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS); _ipi = 2; _bytesi = 6; break; case ART_ASR_BREG: param1 = (int64_t*) (p.sr[cmd.bytes[7]] * LLIS); _ipi = 1; _bytesi = 6; break; case ART_ASR_BSR: param1 = (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS); _ipi = 1; _bytesi = 5; break; default: unknownCommandReturn } int64_t param2; switch (cmd.bytes[2]) { case ART_ANUM: param2 = p.ip[_ipi]; break; case ART_ANUM_BNUM: param2 = *((int64_t*) ((p.ip[_ipi] + p.ip[_ipi + 1]) * LLIS)); break; case ART_ANUM_BREG: param2 = *((int64_t*) (p.ip[_ipi] * LLIS)); break; case ART_ANUM_BSR: param2 = *((int64_t*) ((p.ip[_ipi] + p.sr[cmd.bytes[_bytesi]]) * LLIS)); break; case ART_ASR: param2 = p.sr[cmd.bytes[_bytesi]]; break; case ART_ASR_BNUM: param2 = *((int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.ip[_ipi]) * LLIS)); break; case ART_ASR_BREG: param2 = *((int64_t*) (p.sr[cmd.bytes[_bytesi]] * LLIS)); break; case ART_ASR_BSR: param2 = *((int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.sr[cmd.bytes[_bytesi - 1]]) * LLIS)); break; default: unknownCommandReturn }
-#define getTwoParamNoConsts int64_t *param1; int64_t _ipi; int64_t _bytesi; switch (cmd.bytes[1]) { case ART_ANUM_BNUM: param1 = (int64_t*) ((p.ip[1] + p.ip[2]) * LLIS); _ipi = 3; _bytesi = 7; break; case ART_ANUM_BREG: param1 = (int64_t*) (p.ip[1] * LLIS); _ipi = 2; _bytesi = 7; break; case ART_ANUM_BSR: param1 = (int64_t*) ((p.ip[1] + p.sr[cmd.bytes[7]]) * LLIS); _ipi = 2; _bytesi = 6; break; case ART_ASR: param1 = &p.sr[cmd.bytes[7]]; _ipi = 1; _bytesi = 6; break; case ART_ASR_BNUM: param1 = (int64_t*) ((p.sr[cmd.bytes[7]] + p.ip[1]) * LLIS); _ipi = 2; _bytesi = 6; break; case ART_ASR_BREG: param1 = (int64_t*) (p.sr[cmd.bytes[7]] * LLIS); _ipi = 1; _bytesi = 6; break; case ART_ASR_BSR: param1 = (int64_t*) ((p.sr[cmd.bytes[7]] + p.sr[cmd.bytes[6]]) * LLIS); _ipi = 1; _bytesi = 5; break; default: unknownCommandReturn } int64_t *param2; switch (cmd.bytes[2]) { case ART_ANUM_BNUM: param2 = (int64_t*) ((p.ip[_ipi] + p.ip[_ipi + 1]) * LLIS); break; case ART_ANUM_BREG: param2 = (int64_t*) (p.ip[_ipi] * LLIS); break; case ART_ANUM_BSR: param2 = (int64_t*) ((p.ip[_ipi] + p.sr[cmd.bytes[_bytesi]]) * LLIS); break; case ART_ASR: param2 = &p.sr[cmd.bytes[_bytesi]]; break; case ART_ASR_BNUM: param2 = (int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.ip[_ipi]) * LLIS); break; case ART_ASR_BREG: param2 = (int64_t*) (p.sr[cmd.bytes[_bytesi]] * LLIS); break; case ART_ASR_BSR: param2 = (int64_t*) ((p.sr[cmd.bytes[_bytesi]] + p.sr[cmd.bytes[_bytesi - 1]]) * LLIS); break; default: unknownCommandReturn }
+#define oneParamAllowConst(action) switch (cmd.bytes[1]) { case ART_ANUM: { int64_t param = ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1]; int64_t len = 2; action break; } case ART_ASR: { int64_t param = p[cmd.bytes[7]]; int64_t len = 1; action break; } case ART_ANUM_BREG: { int64_t param = *( (int64_t*) (((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] * LLIS)); int64_t len = 2; action break; } case ART_ASR_BREG: { int64_t param = *( (int64_t*) (p[cmd.bytes[7]] * LLIS) ); int64_t len = 1; action break; } case ART_ANUM_BNUM: { int64_t param = *( (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[2]) * LLIS)); int64_t len = 3; action break; } case ART_ASR_BNUM: { int64_t param = *( (int64_t*) ((p[cmd.bytes[7]] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1]) * LLIS)); int64_t len = 2; action break; } case ART_ANUM_BSR: { int64_t param = *( (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + p[cmd.bytes[7]]) * LLIS)); int64_t len = 2; action break; } case ART_ASR_BSR: { int64_t param = *( (int64_t*) ((p[cmd.bytes[7]] + p[cmd.bytes[6]]) * LLIS)); int64_t len = 2; action break; } default: unknownCommandReturn }
+#define getTwoParamsConsts int64_t param1; int64_t len; int64_t _bytesi; switch (cmd.bytes[1]) { case ART_ANUM: param1 = ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1]; len = 2; _bytesi = 7; break; case ART_ANUM_BNUM: param1 = *((int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[2]) * LLIS)); len = 3; _bytesi = 7; break; case ART_ANUM_BREG: param1 = *((int64_t*) (((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] * LLIS)); len = 2; _bytesi = 7; break; case ART_ANUM_BSR: param1 = *((int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + p[cmd.bytes[7]]) * LLIS)); len = 2; _bytesi = 6; break; case ART_ASR: param1 = p[cmd.bytes[7]]; len = 1; _bytesi = 6; break; case ART_ASR_BNUM: param1 = *((int64_t*) ((p[cmd.bytes[7]] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1]) * LLIS)); len = 2; _bytesi = 6; break; case ART_ASR_BREG: param1 = *((int64_t*) (p[cmd.bytes[7]] * LLIS)); len = 1; _bytesi = 6; break; case ART_ASR_BSR: param1 = *((int64_t*) ((p[cmd.bytes[7]] + p[cmd.bytes[6]]) * LLIS)); len = 1; _bytesi = 5; break; default: unknownCommandReturn } int64_t param2; switch (cmd.bytes[2]) { case ART_ANUM: param2 = ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len]; len += 1; break; case ART_ANUM_BNUM: param2 = *((int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len + 1]) * LLIS)); len += 2; break; case ART_ANUM_BREG: param2 = *((int64_t*) (((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len] * LLIS)); len += 1; break; case ART_ANUM_BSR: param2 = *((int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len] + p[cmd.bytes[_bytesi]]) * LLIS)); len += 1; break; case ART_ASR: param2 = p[cmd.bytes[_bytesi]]; break; case ART_ASR_BNUM: param2 = *((int64_t*) ((p[cmd.bytes[_bytesi]] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len]) * LLIS)); len += 1; break; case ART_ASR_BREG: param2 = *((int64_t*) (p[cmd.bytes[_bytesi]] * LLIS)); break; case ART_ASR_BSR: param2 = *((int64_t*) ((p[cmd.bytes[_bytesi]] + p[cmd.bytes[_bytesi - 1]]) * LLIS)); break; default: unknownCommandReturn } //			getTwoParamsConsts
+#define getTwoParamP1NoConstP2Const int64_t* param1; int64_t len; int64_t _bytesi; switch (cmd.bytes[1]) { case ART_ANUM_BNUM: param1 = (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[2]) * LLIS); len = 3; _bytesi = 7; break; case ART_ANUM_BREG: param1 = (int64_t*) (((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] * LLIS); len = 2; _bytesi = 7; break; case ART_ANUM_BSR: param1 = (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + p[cmd.bytes[7]]) * LLIS); len = 2; _bytesi = 6; break; case ART_ASR: param1 = &p[cmd.bytes[7]]; len = 1; _bytesi = 6; break; case ART_ASR_BNUM: param1 = (int64_t*) ((p[cmd.bytes[7]] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1]) * LLIS); len = 2; _bytesi = 6; break; case ART_ASR_BREG: param1 = (int64_t*) (p[cmd.bytes[7]] * LLIS); len = 1; _bytesi = 6; break; case ART_ASR_BSR: param1 = (int64_t*) ((p[cmd.bytes[7]] + p[cmd.bytes[6]]) * LLIS); len = 1; _bytesi = 5; break; default: unknownCommandReturn } int64_t param2; switch (cmd.bytes[2]) { case ART_ANUM: param2 = ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len]; len += 1; break; case ART_ANUM_BNUM: param2 = *((int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len + 1]) * LLIS)); len += 2; break; case ART_ANUM_BREG: param2 = *((int64_t*) (((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len] * LLIS)); len += 1; break; case ART_ANUM_BSR: param2 = *((int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len] + p[cmd.bytes[_bytesi]]) * LLIS)); len += 1; break; case ART_ASR: param2 = p[cmd.bytes[_bytesi]]; break; case ART_ASR_BNUM: param2 = *((int64_t*) ((p[cmd.bytes[_bytesi]] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len]) * LLIS)); len += 1; break; case ART_ASR_BREG: param2 = *((int64_t*) (p[cmd.bytes[_bytesi]] * LLIS)); break; case ART_ASR_BSR: param2 = *((int64_t*) ((p[cmd.bytes[_bytesi]] + p[cmd.bytes[_bytesi - 1]]) * LLIS)); break; default: unknownCommandReturn }
+#define getTwoParamNoConsts int64_t* param1; int64_t len; int64_t _bytesi; switch (cmd.bytes[1]) { case ART_ANUM_BNUM: param1 = (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[2]) * LLIS); len = 3; _bytesi = 7; break; case ART_ANUM_BREG: param1 = (int64_t*) (((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] * LLIS); len = 2; _bytesi = 7; break; case ART_ANUM_BSR: param1 = (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1] + p[cmd.bytes[7]]) * LLIS); len = 2; _bytesi = 6; break; case ART_ASR: param1 = &p[cmd.bytes[7]]; len = 1; _bytesi = 6; break; case ART_ASR_BNUM: param1 = (int64_t*) ((p[cmd.bytes[7]] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1]) * LLIS); len = 2; _bytesi = 6; break; case ART_ASR_BREG: param1 = (int64_t*) (p[cmd.bytes[7]] * LLIS); len = 1; _bytesi = 6; break; case ART_ASR_BSR: param1 = (int64_t*) ((p[cmd.bytes[7]] + p[cmd.bytes[6]]) * LLIS); len = 1; _bytesi = 5; break; default: unknownCommandReturn } int64_t* param2; switch (cmd.bytes[2]) { case ART_ANUM_BNUM: param2 = (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len + 1]) * LLIS); len += 2; break; case ART_ANUM_BREG: param2 = (int64_t*) (((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len] * LLIS); len += 1; break; case ART_ANUM_BSR: param2 = (int64_t*) ((((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len] + p[cmd.bytes[_bytesi]]) * LLIS); len += 1; break; case ART_ASR: param2 = &p[cmd.bytes[_bytesi]]; break; case ART_ASR_BNUM: param2 = (int64_t*) ((p[cmd.bytes[_bytesi]] + ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[len]) * LLIS); len += 1; break; case ART_ASR_BREG: param2 = (int64_t*) (p[cmd.bytes[_bytesi]] * LLIS); break; case ART_ASR_BSR: param2 = (int64_t*) ((p[cmd.bytes[_bytesi]] + p[cmd.bytes[_bytesi - 1]]) * LLIS); break; default: unknownCommandReturn }
 
 /*
  * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
@@ -424,187 +425,203 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_execute(JNIEnv *env, jobject caller) {
 	puts("[N-LOG]: enter execute");
-	pvm p = *((pvm*) (*env)->GetLongField(env, caller, values));
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	while (1) {
 		command cmd;
-		cmd.cmd = *p.ip;
-		printf("my command=%d", cmd.cmd);
+		cmd.cmd = *((int64_t*)p[OFFSET_INSTRUCTION_POINTER]);
+		printf("[N-LOG]: pvm=%d\n", p);
+		printf("[N-LOG]: AX=%d\n", p[0]);
+		printf("[N-LOG]: BX=%d\n", p[1]);
+		printf("[N-LOG]: CX=%d\n", p[2]);
+		printf("[N-LOG]: DX=%d\n", p[3]);
+		printf("[N-LOG]: IP=%d\n", p[OFFSET_INSTRUCTION_POINTER]);
+		printf("[N-LOG]: SP=%d\n", p[OFFSET_STACK_POINTER]);
+		printf("[N-LOG]: command=%d\n", cmd.cmd);
 		switch (cmd.bytes[0]) {
 		case CMD_MOV: {
 			getTwoParamP1NoConstP2Const
-			*param1 = param2;
+			param1[0] = param2;
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
 		case CMD_ADD: {
 			getTwoParamP1NoConstP2Const
-			*param1 &= param2;
+			param1[0] += param2;
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
 		case CMD_SUB: {
 			getTwoParamP1NoConstP2Const
-			*param1 -= param2;
+			param1[0] -= param2;
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
 		case CMD_MUL: {
 			getTwoParamP1NoConstP2Const
-			*param1 *= param2;
+			param1[0] *= param2;
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
 		case CMD_DIV: {
 			getTwoParamNoConsts
-			int64_t div = (*param1) / (*param2);
-			int64_t mod = (*param1) % (*param2);
-			*param1 = div;
-			*param2 = mod;
+			int64_t div = (param1[0]) / (param2[0]);
+			int64_t mod = (param1[0]) % (param2[0]);
+			param1[0] = div;
+			param2[0] = mod;
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
 		case CMD_AND: {
 			getTwoParamP1NoConstP2Const
-			*param1 ^= param2;
+			param1[0] &= param2;
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
 		case CMD_OR: {
 			getTwoParamP1NoConstP2Const
-			*param1 |= param2;
+			param1[0] |= param2;
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
 		case CMD_XOR: {
 			getTwoParamP1NoConstP2Const
-			*param1 ^= param2;
+			param1[0] ^= param2;
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
 		case CMD_NOT:
-			oneParamAllowNoConst(*param = ~(*param);p.ip += len;, p.sr[param] = ~p.sr[param]; p.ip += len;)
+			oneParamAllowNoConst(param[0] = ~(param[0]);p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = ~p[param]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_NEG:
-			oneParamAllowNoConst(*param = -(*param);p.ip += len;, p.sr[param] = -p.sr[param]; p.ip += len;)
+			oneParamAllowNoConst(param[0] = -(param[0]);p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = -p[param]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_JMP:
-			p.ip += p.ip[1];
+			p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			break;
 		case CMD_JMPEQ:
-			if (!(p.status & (STATUS_GREATHER | STATUS_LOWER))) {
-				p.ip += p.ip[1];
+			if (!(p[OFFSET_STATUS_REG] & (STATUS_GREATHER | STATUS_LOWER))) {
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_JMPNE:
-			if (p.status & (STATUS_GREATHER | STATUS_LOWER)) {
-				p.ip += p.ip[1];
+			if (p[OFFSET_STATUS_REG] & (STATUS_GREATHER | STATUS_LOWER)) {
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_JMPGT:
-			if (p.status & STATUS_GREATHER) {
-				p.ip += p.ip[1];
+			if (p[OFFSET_STATUS_REG] & STATUS_GREATHER) {
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_JMPGE:
-			if (!(p.status & STATUS_LOWER)) {
-				p.ip += p.ip[1];
+			if (!(p[OFFSET_STATUS_REG] & STATUS_LOWER)) {
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_JMPLO:
-			if (p.status & STATUS_LOWER) {
-				p.ip += p.ip[1];
+			if (p[OFFSET_STATUS_REG] & STATUS_LOWER) {
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_JMPLE:
-			if (!(p.status & STATUS_GREATHER)) {
-				p.ip += p.ip[1];
+			if (!(p[OFFSET_STATUS_REG] & STATUS_GREATHER)) {
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_CALL:
-			p.sp++;
-			*p.sp = ((int64_t) p.ip) / LLIS;
-			p.ip += p.ip[1];
+			(p[OFFSET_STACK_POINTER] += LLIS);
+			((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+			p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			break;
 		case CMD_CALLEQ:
-			if (!(p.status & (STATUS_GREATHER | STATUS_LOWER))) {
-				p.sp++;
-				*p.sp = ((int64_t) p.ip) / LLIS;
-				p.ip += p.ip[1];
+			if (!(p[OFFSET_STATUS_REG] & (STATUS_GREATHER | STATUS_LOWER))) {
+				(p[OFFSET_STACK_POINTER] += LLIS);
+				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_CALLNE:
-			if (p.status & (STATUS_GREATHER | STATUS_LOWER)) {
-				p.sp++;
-				*p.sp = ((int64_t) p.ip) / LLIS;
-				p.ip += p.ip[1];
+			if (p[OFFSET_STATUS_REG] & (STATUS_GREATHER | STATUS_LOWER)) {
+				(p[OFFSET_STACK_POINTER] += LLIS);
+				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_CALLGT:
-			if (p.status & STATUS_GREATHER) {
-				p.sp++;
-				*p.sp = ((int64_t) p.ip) / LLIS;
-				p.ip += p.ip[1];
+			if (p[OFFSET_STATUS_REG] & STATUS_GREATHER) {
+				(p[OFFSET_STACK_POINTER] += LLIS);
+				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_CALLGE:
-			if (!(p.status & STATUS_LOWER)) {
-				p.sp++;
-				*p.sp = ((int64_t) p.ip) / LLIS;
-				p.ip += p.ip[1];
+			if (!(p[OFFSET_STATUS_REG] & STATUS_LOWER)) {
+				(p[OFFSET_STACK_POINTER] += LLIS);
+				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_CALLLO:
-			if (p.status & STATUS_LOWER) {
-				p.sp++;
-				*p.sp = ((int64_t) p.ip) / LLIS;
-				p.ip += p.ip[1];
+			if (p[OFFSET_STATUS_REG] & STATUS_LOWER) {
+				(p[OFFSET_STACK_POINTER] += LLIS);
+				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_CALLLE:
-			if (!(p.status & STATUS_GREATHER)) {
-				p.sp++;
-				*p.sp = ((int64_t) p.ip) / LLIS;
-				p.ip += p.ip[1];
+			if (!(p[OFFSET_STATUS_REG] & STATUS_GREATHER)) {
+				(p[OFFSET_STACK_POINTER] += LLIS);
+				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
-				p.ip += 2;
+				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_CMP: {
 			getTwoParamsConsts
-			p.status &= STATUS_GREATHER | STATUS_LOWER;
+			p[OFFSET_STATUS_REG] &= STATUS_GREATHER | STATUS_LOWER;
 			if (param1 > param2) {
-				p.status |= STATUS_GREATHER;
+				p[OFFSET_STATUS_REG] |= STATUS_GREATHER;
 			} else if (param1 < param2) {
-				p.status |= STATUS_LOWER;
+				p[OFFSET_STATUS_REG] |= STATUS_LOWER;
 			}
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
 		case CMD_RET:
-			p.ip = (int64_t*) *p.sp;
-			p.sp--;
+			p[OFFSET_INSTRUCTION_POINTER] = ( (int64_t*)p[OFFSET_STACK_POINTER])[0] * LLIS;
+			(p[OFFSET_STACK_POINTER] -= LLIS);
 			break;
 		case CMD_INT:
 			//@formatter:off
 			oneParamAllowConst(
 					switch(param) {
 					case 0:
-						switch(p.sr[0]) {
+						switch(p[0]) {
 						case 1: {
-							int64_t* pntr = malloc((p.sr[1] * LLIS) + LLIS - 1);
+							int64_t* pntr = malloc((p[1] * LLIS) + LLIS - 1);
 							if (pntr) {
 								int64_t mem = (int64_t) pntr;
 								int64_t mod = mem / LLIS;
@@ -612,14 +629,14 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 								if (mod) {
 									mem += mod - LLIS;
 								}
-								p.sr[1] = mem;
+								p[1] = mem;
 							} else {
-								p.sr[1] = -1;
+								p[1] = -1;
 							}
 							break;
 						}
 						case 2: {
-							int64_t* pntr = realloc((int64_t*) (p.sr[1] * LLIS), (p.sr[2] * LLIS) + LLIS - 1);
+							int64_t* pntr = realloc((int64_t*) (p[1] * LLIS), (p[2] * LLIS) + LLIS - 1);
 							if (pntr){
 								int64_t mem = (int64_t) pntr;
 								int64_t mod = mem / LLIS;
@@ -627,22 +644,22 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 								if (mod) {
 									mem += mod - LLIS;
 								}
-								p.sr[1] = mem;
+								p[1] = mem;
 							} else {
-								p.sr[1] = -1;
+								p[1] = -1;
 							}
 							break;
 						}
 						case 3:
-							free((int64_t*) (p.sr[1] * LLIS));
+							free((int64_t*) (p[1] * LLIS));
 							break;
 						default:
 							unknownCommandReturn
 						}
 						break;
 					case 1:
-						switch(p.sr[0]){
-						case 1: return p.sr[1];
+						switch(p[0]){
+						case 1: return p[1];
 						case 2: /*unknown command*/
 							return -2;
 						default:
@@ -652,21 +669,21 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 					default:
 						unknownCommandReturn
 					}
-				p.ip += len;
+				p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			)
 //@formatter:on
 			break;
 		case CMD_PUSH:
-			oneParamAllowConst(p.sp ++; *p.sp = param; p.ip += len;)
+			oneParamAllowConst((p[OFFSET_STACK_POINTER] += LLIS); ((int64_t*)p[OFFSET_STACK_POINTER])[0] = param * LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_POP:
-			oneParamAllowNoConst(*param = *p.sp; p.ip += len;, p.sr[param] = *p.sp; p.ip += len;)
+			oneParamAllowNoConst(param[0] = ((int64_t*)p[OFFSET_STACK_POINTER])[0]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = ((int64_t*)p[OFFSET_STACK_POINTER])[0]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_SET_IP:
-			oneParamAllowConst(p.ip = (int64_t*) (param * LLIS);)
+			oneParamAllowConst(p[OFFSET_INSTRUCTION_POINTER] = param * LLIS;)
 			break;
 		case CMD_SET_SP:
-			oneParamAllowConst(p.sp = (int64_t*) (param * LLIS); p.ip += len;)
+			oneParamAllowConst(p[OFFSET_STACK_POINTER] = (param * LLIS); p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		default:
 			unknownCommandReturn
@@ -681,8 +698,9 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setInstructionPointer(JNIEnv *env, jobject caller, jlong ip) {
-	pvm *p = (pvm*) (*env)->GetLongField(env, caller, values);
-	p->ip = (int64_t*) (ip * LLIS);
+	puts("[N-LOG]: enter setInstructionPointer");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	p[OFFSET_INSTRUCTION_POINTER] = ip * LLIS;
 }
 
 /*
@@ -691,8 +709,9 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setStackPointer(JNIEnv *env, jobject caller, jlong sp) {
-	pvm *p = (pvm*) (*env)->GetLongField(env, caller, values);
-	p->sp = (int64_t*) (sp * LLIS);
+	puts("[N-LOG]: enter setStackPointer");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	p[OFFSET_STACK_POINTER] = sp * LLIS;
 }
 
 /*
@@ -701,9 +720,10 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_push(JNIEnv *env, jobject caller, jlong value) {
-	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
-	p.sp++;
-	p.sp[0] = value;
+	puts("[N-LOG]: enter push");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	(p[OFFSET_STACK_POINTER] += LLIS);
+	((int64_t*)p[OFFSET_STACK_POINTER])[0] = value;
 }
 
 /*
@@ -712,9 +732,10 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_pop(JNIEnv *env, jobject caller) {
-	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
-	int64_t val = *p.sp;
-	p.sp--;
+	puts("[N-LOG]: enter pop");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t val = ((int64_t*)p[OFFSET_STACK_POINTER])[0];
+	(p[OFFSET_STACK_POINTER] -= LLIS);
 	return val;
 }
 
@@ -724,6 +745,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_get(JNIEnv *env, jobject caller, jlong pntr) {
+	puts("[N-LOG]: enter get");
 	return *(int64_t*) (pntr * LLIS);
 }
 
@@ -733,7 +755,8 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_set(JNIEnv *env, jobject caller, jlong pntr, jlong value) {
-	printf("enter set(pntr=0x%16x, value=0x%16x)\n", pntr, value);
+	puts("[N-LOG]: enter set");
+	printf("enter set(pntr=%d, value=%d)\n", pntr, value);
 	int64_t *p = (int64_t*) (pntr * LLIS);
 	p[0] = value;
 }
@@ -744,8 +767,12 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setAX(JNIEnv *env, jobject caller, jlong value) {
-	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
-	p.sr[0] = value;
+	puts("[N-LOG]: enter setAX");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: AX=%d\n", p[0]);
+	p[0] = value;
+	printf("[N-LOG]: AX=%d\n", p[0]);
+	puts("[N-LOG]: exit setAX");
 }
 
 /*
@@ -754,8 +781,12 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setBX(JNIEnv *env, jobject caller, jlong value) {
-	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
-	p.sr[1] = value;
+	puts("[N-LOG]: enter setBX");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: BX=%d\n", p[1]);
+	p[1] = value;
+	printf("[N-LOG]: BX=%d\n", p[1]);
+	puts("[N-LOG]: exit setBX");
 }
 
 /*
@@ -764,8 +795,12 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setCX(JNIEnv *env, jobject caller, jlong value) {
-	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
-	p.sr[2] = value;
+	puts("[N-LOG]: enter setCX");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: CX=%d\n", p[2]);
+	p[2] = value;
+	printf("[N-LOG]: CX=%d\n", p[2]);
+	puts("[N-LOG]: exit setCX");
 }
 
 /*
@@ -774,8 +809,12 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setDX(JNIEnv *env, jobject caller, jlong value) {
-	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
-	p.sr[3] = value;
+	puts("[N-LOG]: enter setDX");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: DX=%d\n", p[3]);
+	p[3] = value;
+	printf("[N-LOG]: DX=%d\n", p[3]);
+	puts("[N-LOG]: exit setDX");
 }
 
 /*
@@ -784,8 +823,9 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getAX(JNIEnv *env, jobject caller) {
-	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
-	return p.sr[0];
+	puts("[N-LOG]: enter getAX");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	return p[0];
 }
 
 /*
@@ -794,8 +834,9 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getBX(JNIEnv *env, jobject caller) {
-	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
-	return p.sr[1];
+	puts("[N-LOG]: enter getBX");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	return p[1];
 }
 /*
  * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
@@ -803,8 +844,9 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getCX(JNIEnv *env, jobject caller) {
-	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
-	return p.sr[2];
+	puts("[N-LOG]: enter getCX");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	return p[2];
 }
 
 /*
@@ -813,8 +855,9 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getDX(JNIEnv *env, jobject caller) {
-	pvm p = *(pvm*) (*env)->GetLongField(env, caller, values);
-	return p.sr[3];
+	puts("[N-LOG]: enter getDX");
+	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	return p[3];
 }
 
 /*
@@ -823,7 +866,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_finalize(JNIEnv *env, jobject caller) {
-	pvm *p = (pvm*) (*env)->GetLongField(env, caller, values);
-	free(p->sr);
+	puts("[N-LOG]: enter finalize");
+	int64_t*p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	free(p);
 }
