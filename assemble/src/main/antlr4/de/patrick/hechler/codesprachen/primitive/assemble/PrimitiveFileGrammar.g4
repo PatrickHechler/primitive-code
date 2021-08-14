@@ -211,6 +211,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	)
  	|
  	(
+ 		DEC_NUM0
+ 		{$num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
+
+ 	)
+ 	|
+ 	(
  		OCT_NUM
  		{$num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
 
@@ -230,7 +236,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	|
  	(
  		NEG_DEC_NUM
- 		{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(2), 10);}
+ 		{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
+
+ 	)
+ 	|
+ 	(
+ 		NEG_DEC_NUM0
+ 		{$num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
 
  	)
  	|
@@ -341,6 +353,18 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  		|
  		(
  			(
+ 				(
+ 					INC
+ 					{cmd = Commands.CMD_INC;}
+
+ 				)
+ 				|
+ 				(
+ 					DEC
+ 					{cmd = Commands.CMD_DEC;}
+
+ 				)
+ 				|
  				(
  					GET_IP
  					{cmd = Commands.CMD_GET_IP;}
@@ -486,6 +510,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				)
  				|
  				(
+ 					SET_SP
+ 					{cmd = Commands.CMD_SET_SP;}
+
+ 				)
+ 				|
+ 				(
  					SET_IP
  					{cmd = Commands.CMD_SET_IP;}
 
@@ -515,6 +545,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  SET_IP
  :
  	'SET_IP'
+ ;
+
+ SET_SP
+ :
+ 	'SET_SP'
  ;
 
  CALLLE
@@ -687,6 +722,16 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'GET_IP'
  ;
 
+ DEC
+ :
+ 	'DEC'
+ ;
+
+ INC
+ :
+ 	'INC'
+ ;
+
  AX
  :
  	'AX'
@@ -734,7 +779,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 
  NEG_DEC_NUM
  :
- 	'N-' [0-9]+
+ 	'NDEC-' [0-9]+
+ ;
+
+ NEG_DEC_NUM0
+ :
+ 	'-' [0-9]+
  ;
 
  NEG_OCT_NUM
@@ -750,6 +800,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  HEX_NUM
  :
  	'HEX-' [0-9a-fA-F]+
+ ;
+
+ DEC_NUM0
+ :
+ 	'DEC-' [0-9]+
  ;
 
  DEC_NUM

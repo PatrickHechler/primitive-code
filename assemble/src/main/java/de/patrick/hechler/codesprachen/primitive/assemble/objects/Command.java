@@ -85,7 +85,6 @@ public class Command {
 		case CMD_OR:
 		case CMD_POP:
 		case CMD_PUSH:
-		case CMD_SET_IP:
 		case CMD_SUB:
 		case CMD_XOR:
 		case CMD_CMP:
@@ -126,6 +125,12 @@ public class Command {
 				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
 			}
 			return len;
+		case CMD_DEC:
+		case CMD_INC:
+		case CMD_SET_IP:
+		case CMD_SET_SP:
+		case CMD_GET_IP:
+		case CMD_GET_SP:
 		case CMD_INT:
 		case CMD_NEG:
 		case CMD_NOT:

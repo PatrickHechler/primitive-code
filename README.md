@@ -277,10 +277,15 @@ a register based coding language with primitive operations
     * `p <- SP`
     * `IP <- IP + CMD_LEN`
 
+* `INC <NO_CONST_PARAM>`
+    * `p <- p + 1`
+    * `IP <- IP + CMD_LEN`
+
+* `DEC <NO_CONST_PARAM>`
+    * `p <- p - 1`
+    * `IP <- IP + CMD_LEN`
+
 ### TODO:
-* increment and decrement
-    * `INC <NO_CONST_PARAM>`
-    * `DEC <NO_CONST_PARAM>`
 * carry flag
     * `JMPCS <LABEL>`
     * `JMPCC <LABEL>`

@@ -75,12 +75,15 @@ public class PrimitiveAssembler {
 				case CMD_PUSH:
 				case CMD_GET_SP:
 				case CMD_GET_IP:
+				case CMD_DEC:
+				case CMD_INC:
 					if (cmd.p1.art == Param.ART_ANUM) {
 						throw new IllegalStateException("no constants allowed!");
 					}
+				case CMD_SET_SP:
+				case CMD_SET_IP:
 				case CMD_INT:
 				case CMD_POP:
-				case CMD_SET_IP:
 					writeOneParam(cmd, bytes);
 					break;
 				case CMD_DIV:
