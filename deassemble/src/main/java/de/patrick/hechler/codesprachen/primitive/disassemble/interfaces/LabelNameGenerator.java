@@ -1,10 +1,27 @@
 package de.patrick.hechler.codesprachen.primitive.disassemble.interfaces;
 
+import java.util.Arrays;
 import java.util.List;
 
 import de.patrick.hechler.codesprachen.primitive.disassemble.objects.Command;
 
 public interface LabelNameGenerator {
+	
+	LabelNameGenerator SIMPLE_GEN = (t, c, d) -> {
+		char[] chars = Integer.toString(d, 26).toCharArray();
+		for (int i = 0; i < chars.length; i ++ ) {
+			if (chars[i] >= '0' && chars[i] <= '9') {
+				chars[i] += 'A' - '0';// 0..9 -> a..j
+			} else if (chars[i] >= 'a' && chars[i] <= 'z') {
+				chars[i] += 'K' - 'a';// a..p -> K..Z
+			} else if (chars[i] >= 'A' && chars[i] <= 'Z') {
+				chars[i] += 'K' - 'A';// A..P -> K..Z
+			} else {
+				throw new IllegalStateException("unknown string representation of the int " + d + " with the radix 26 curupt char='" + chars[i] + "' i=" + i + " chars=" + Arrays.toString(chars));
+			}
+		}
+		return "L-" + new String(chars);
+	};
 	
 	/**
 	 * the {@link LabelNameGenerator} generates the name for labels.<br>
@@ -28,8 +45,8 @@ public interface LabelNameGenerator {
 	String generateName(long targetPos, List <Command> commands, int destenyCommandIndex);
 	
 	/**
-	 * a valid name is not empty ({@code length > 0}) 
-	 * and contains only 
+	 * a valid name is not empty ({@code length > 0}) and contains only the chars a-z, A-Z, '-' and '_'
+	 * 
 	 * @param check
 	 */
 	static void checkName(String check) {

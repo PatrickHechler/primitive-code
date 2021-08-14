@@ -1,6 +1,7 @@
 package de.patrick.hechler.codesprachen.primitive.disassemble.objects;
 
 import java.util.List;
+import java.util.Map;
 
 import de.patrick.hechler.codesprachen.primitive.disassemble.enums.Commands;
 import de.patrick.hechler.codesprachen.primitive.disassemble.enums.Commands.ParamArt;
@@ -24,16 +25,16 @@ public class Command {
 		this.lng = lng;
 	}
 	
-	public Command(Commands cmd, Param p1, Param p2, LabelNameGenerator lng) {
-		this(cmd, p1, p2, -1, lng);
+	public Command(Commands cmd, Param p1, Param p2) {
+		this(cmd, p1, p2, -1, null);
 	}
 	
-	public Command(Commands cmd, LabelNameGenerator lng) {
-		this(cmd, null, null, -1, lng);
+	public Command(Commands cmd) {
+		this(cmd, null, null, -1, null);
 	}
 	
-	public Command(Commands cmd, Param p1, LabelNameGenerator lng) {
-		this(cmd, p1, null, -1, lng);
+	public Command(Commands cmd, Param p1) {
+		this(cmd, p1, null, -1, null);
 	}
 	
 	public Command(Commands cmd, long labelDest, LabelNameGenerator lng) {
@@ -45,7 +46,30 @@ public class Command {
 		StringBuilder build = new StringBuilder(cmd.toString());
 		switch(cmd.art) {
 		case label:
-			build.append(' ').append(lng.generateName(labelDest, null, -1));
+			build.append(' ').append("DEST-POS=" + labelDest);
+			break;
+		case noParams:
+			break;
+		case oneParamAllowConst:
+		case oneParamNoConst:
+			build.append(' ').append(p1);
+			break;
+		case twoParamsAllowConsts:
+		case twoParamsNoConsts:
+		case twoParamsP1NoConstP2AllowConst:
+			build.append(' ').append(p1).append(", ").append(p2);
+			break;
+		default:
+			break;
+		}
+		return build.toString();
+	}
+	
+	public String toString(List<Command> cmds, Map<Long,Integer> indices) {
+		StringBuilder build = new StringBuilder(cmd.toString());
+		switch(cmd.art) {
+		case label:
+			build.append(' ').append(lng.generateName(labelDest, cmds, (int) indices.get((Long) labelDest)));
 			break;
 		case noParams:
 			break;

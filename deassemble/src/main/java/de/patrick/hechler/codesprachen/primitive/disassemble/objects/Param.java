@@ -190,11 +190,11 @@ public class Param {
 		case SR_AX:
 			return "AX";
 		case SR_BX:
-			return "AX";
+			return "BX";
 		case SR_CX:
-			return "AX";
+			return "CX";
 		case SR_DX:
-			return "AX";
+			return "DX";
 		default:
 			throw new InternalError("this is no register");
 		}

@@ -23,7 +23,7 @@ public class PrimitiveDisassembler {
 	private final LabelNameGenerator lng;
 	
 	public PrimitiveDisassembler(PrintStream out) {
-		this((t, c, d) -> "L-" + d, out);
+		this(LabelNameGenerator.SIMPLE_GEN, out);
 	}
 	
 	public PrimitiveDisassembler(LabelNameGenerator lng, PrintStream out) {
@@ -46,7 +46,7 @@ public class PrimitiveDisassembler {
 				out.print("@" + lng.generateName(pos, cmds, i) + " ");
 			}
 			Command cmd = cmds.get(i);
-			out.println(cmd.toString());
+			out.println(cmd.toString(cmds, indices));
 			pos += cmd.length();
 		}
 	}
@@ -88,7 +88,7 @@ public class PrimitiveDisassembler {
 					for (int ii = 1; ii < 8; ii ++ ) {
 						Param.zeroCheck(bytes[ii]);
 					}
-					command = new Command(cmd, lng);
+					command = new Command(cmd);
 					break;
 				case oneParamAllowConst:
 					command = buildOneParam(bytes, in, cmd);
@@ -261,7 +261,7 @@ public class PrimitiveDisassembler {
 		default:
 			throw new NoCommandException("the command has no valid art");
 		}
-		return new Command(cmd, p1, pb.build(), lng);
+		return new Command(cmd, p1, pb.build());
 	}
 	
 	private Command buildOneParam(byte[] bytes, InputStream in, Commands cmd) throws NoCommandException, IOException {
@@ -318,7 +318,7 @@ public class PrimitiveDisassembler {
 		default:
 			throw new NoCommandException("the command has no valid art");
 		}
-		return new Command(cmd, pb.build(), lng);
+		return new Command(cmd, pb.build());
 	}
 	
 	public static long convertLong(byte[] bytes) {
