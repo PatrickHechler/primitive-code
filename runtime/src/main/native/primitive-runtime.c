@@ -38,6 +38,8 @@ enum {
 	CMD_LSH = 0x0B,
 	CMD_RLSH = 0x0C,
 	CMD_RASH = 0x0D,
+	CMD_DEC = 0x0E,
+	CMD_INC = 0x0F,
 	CMD_JMP = 0x10,
 	CMD_JMPEQ = 0x11,
 	CMD_JMPNE = 0x12,
@@ -315,8 +317,8 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
 	free((void*) (((long long) pntr) * LLIS));
 }
 
-#define unknownCommandExit exit(-2);/*TODO: link to unknown command interupt so that later the interupt can be overwritten*/
-#define unknownCommandReturn return -2;/*TODO: link to unknown command interupt so that later the interupt can be overwritten*/
+#define unknownCommandExit exit(-2);
+#define unknownCommandReturn return -2;
 /*
  * @formatter:off
  * 	switch (cmd.bytes[1]) {
@@ -521,8 +523,10 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			break;
 		case CMD_JMPEQ:
 			if (!(p[OFFSET_STATUS_REG] & (STATUS_GREATHER | STATUS_LOWER))) {
+				puts("[N-LOG]: jumped equal");
 				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
+				puts("[N-LOG]: not jumped equal");
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
@@ -622,7 +626,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			break;
 		case CMD_CMP: {
 			getTwoParamsConsts
-			p[OFFSET_STATUS_REG] &= STATUS_GREATHER | STATUS_LOWER;
+			p[OFFSET_STATUS_REG] &= ~(STATUS_GREATHER | STATUS_LOWER);
 			if (param1 > param2) {
 				p[OFFSET_STATUS_REG] |= STATUS_GREATHER;
 			} else if (param1 < param2) {
@@ -705,13 +709,19 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			oneParamAllowConst(p[OFFSET_INSTRUCTION_POINTER] = param * LLIS;)
 			break;
 		case CMD_SET_SP:
-			oneParamAllowConst(p[OFFSET_STACK_POINTER] = (param * LLIS); p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			oneParamAllowConst(p[OFFSET_STACK_POINTER] = param; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_GET_IP:
-			oneParamAllowNoConst(param[0] = p[OFFSET_STACK_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[OFFSET_STACK_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			oneParamAllowNoConst(param[0] = p[OFFSET_INSTRUCTION_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[OFFSET_INSTRUCTION_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_GET_SP:
-			oneParamAllowNoConst(param[0] = p[OFFSET_INSTRUCTION_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[OFFSET_INSTRUCTION_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			oneParamAllowNoConst(param[0] = p[OFFSET_STACK_POINTER]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[OFFSET_STACK_POINTER]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
+		case CMD_INC:
+			oneParamAllowNoConst(param[0] = param[0] + 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[param] + 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
+		case CMD_DEC:
+			oneParamAllowNoConst(param[0] = param[0] - 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[param] - 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		default:
 			unknownCommandReturn
