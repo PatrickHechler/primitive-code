@@ -269,8 +269,11 @@ a register based coding language with primitive operations
 
 ## TODO:
 * user specified interrupts
-    * `IRET`
-    * overwrite `INT N`
+    * `IRET` return from custom interrupts
+    * set interrupt table
+    * get interrupt table
+    * set interrupt number (int-table 'length')
+    * get interrupt number (int-table 'length')
 * out + log/err + in stream + file streams
     * functions to get out, log/err, in
     * functions to get file streams
