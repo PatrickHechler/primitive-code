@@ -206,7 +206,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	|
  	(
  		DEC_NUM
- 		{$num = Long.parseLong($DEC_NUM.getText().substring(4), 10);}
+ 		{$num = Long.parseLong($DEC_NUM.getText(), 10);}
 
  	)
  	|
@@ -219,6 +219,30 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	(
  		BIN_NUM
  		{$num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
+
+ 	)
+ 	|
+ 	(
+ 		NEG_HEX_NUM
+ 		{$num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
+
+ 	)
+ 	|
+ 	(
+ 		NEG_DEC_NUM
+ 		{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(2), 10);}
+
+ 	)
+ 	|
+ 	(
+ 		NEG_OCT_NUM
+ 		{$num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
+
+ 	)
+ 	|
+ 	(
+ 		NEG_BIN_NUM
+ 		{$num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
 
  	)
  	|
@@ -247,62 +271,62 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	(
  		(
  			(
-	 			(
-	 				MOV
-	 				{cmd = Commands.CMD_MOV;}
-	
-	 			)
-	 			|
-	 			(
-	 				ADD
-	 				{cmd = Commands.CMD_ADD;}
-	
-	 			)
-	 			|
-	 			(
-	 				SUB
-	 				{cmd = Commands.CMD_SUB;}
-	
-	 			)
-	 			|
-	 			(
-	 				MUL
-	 				{cmd = Commands.CMD_MUL;}
-	
-	 			)
-	 			|
-	 			(
-	 				DIV
-	 				{cmd = Commands.CMD_DIV;}
-	
-	 			)
-	 			|
-	 			(
-	 				AND
-	 				{cmd = Commands.CMD_AND;}
-	
-	 			)
-	 			|
-	 			(
-	 				OR
-	 				{cmd = Commands.CMD_OR;}
-	
-	 			)
-	 			|
-	 			(
-	 				XOR
-	 				{cmd = Commands.CMD_XOR;}
-	
-	 			)
-	 			|
-	 			(
-	 				CMP
-	 				{cmd = Commands.CMD_CMP;}
-	
-	 			)
- 			)
- 			p1 = param [pos, constants] COMMA p2 = param [pos, constants]
-	 		{$c = new Command(cmd, $p1.p, $p2.p);}
+ 				(
+ 					MOV
+ 					{cmd = Commands.CMD_MOV;}
+
+ 				)
+ 				|
+ 				(
+ 					ADD
+ 					{cmd = Commands.CMD_ADD;}
+
+ 				)
+ 				|
+ 				(
+ 					SUB
+ 					{cmd = Commands.CMD_SUB;}
+
+ 				)
+ 				|
+ 				(
+ 					MUL
+ 					{cmd = Commands.CMD_MUL;}
+
+ 				)
+ 				|
+ 				(
+ 					DIV
+ 					{cmd = Commands.CMD_DIV;}
+
+ 				)
+ 				|
+ 				(
+ 					AND
+ 					{cmd = Commands.CMD_AND;}
+
+ 				)
+ 				|
+ 				(
+ 					OR
+ 					{cmd = Commands.CMD_OR;}
+
+ 				)
+ 				|
+ 				(
+ 					XOR
+ 					{cmd = Commands.CMD_XOR;}
+
+ 				)
+ 				|
+ 				(
+ 					CMP
+ 					{cmd = Commands.CMD_CMP;}
+
+ 				)
+ 			) p1 = param [pos, constants] COMMA p2 = param [pos, constants]
+ 			{$c = new Command(cmd, $p1.p, $p2.p);}
+
  		)
  		|
  		(
@@ -311,17 +335,36 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				{cmd = Commands.CMD_RET;}
 
  			)
-	 		{$c = new Command(cmd, null, null);}
-		)
+ 			{$c = new Command(cmd, null, null);}
+
+ 		)
  		|
  		(
  			(
-	 			(
-	 				INT
-	 				{cmd = Commands.CMD_INT;}
-	
-	 			)
-	 			|
+ 				(
+ 					INT
+ 					{cmd = Commands.CMD_INT;}
+
+ 				)
+ 				|
+ 				(
+ 					RASH
+ 					{cmd = Commands.CMD_RASH;}
+
+ 				)
+ 				|
+ 				(
+ 					RLSH
+ 					{cmd = Commands.CMD_RLSH;}
+
+ 				)
+ 				|
+ 				(
+ 					LSH
+ 					{cmd = Commands.CMD_LSH;}
+
+ 				)
+ 				|
  				(
  					NOT
  					{cmd = Commands.CMD_NOT;}
@@ -435,11 +478,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  					{cmd = Commands.CMD_SET_IP;}
 
  				)
- 			)
- 			 p1 = param [pos,constants]
-	 		{$c = new Command(cmd, $p1.p, null);}
- 		)
+ 			) p1 = param [pos,constants]
+ 			{$c = new Command(cmd, $p1.p, null);}
 
+ 		)
  	)
  	|
  	(
@@ -553,6 +595,21 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'NOT'
  ;
 
+ LSH
+ :
+ 	'LSH'
+ ;
+
+ RLSH
+ :
+ 	'RLSH'
+ ;
+
+ RASH
+ :
+ 	'RASH'
+ ;
+
  CMP
  :
  	'CMP'
@@ -648,6 +705,26 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	','
  ;
 
+NEG_HEX_NUM
+ :
+ 	'NHEX-' [0-9a-fA-F]+
+ ;
+
+ NEG_DEC_NUM
+ :
+ 	'N-' [0-9]+
+ ;
+
+ NEG_OCT_NUM
+ :
+ 	'NOCT-' [0-7]+
+ ;
+
+ NEG_BIN_NUM
+ :
+ 	'NBIN-' [01]+
+ ;
+
  HEX_NUM
  :
  	'HEX-' [0-9a-fA-F]+
@@ -655,7 +732,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 
  DEC_NUM
  :
- 	'DEC-' [0-9]+
+ 	[0-9]+
  ;
 
  OCT_NUM

@@ -35,13 +35,12 @@ public class PrimitiveAssemblerTest extends Checker {
 			long ax = 5L;
 			long bx = 30L;
 			pvm.setAX(ax);
-			pvm.setAX(ax);
 			pvm.setBX(bx);
 			System.out.println("execute");
 			pvm.execute(commands);
 			long cx = pvm.getCX();
 			assertEquals(ax+bx, cx);
-			System.out.println(cx);
+			System.out.println("CX=" + cx);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

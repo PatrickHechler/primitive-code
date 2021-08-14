@@ -129,6 +129,9 @@ public class Command {
 		case CMD_INT:
 		case CMD_NEG:
 		case CMD_NOT:
+		case CMD_LSH:
+		case CMD_RASH:
+		case CMD_RLSH:
 			switch (p1.art) {
 			case Param.ART_ANUM_BNUM:
 				return 3;

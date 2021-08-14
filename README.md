@@ -4,17 +4,13 @@ a register based coding language with primitive operations
 ### CONSTANTS:
 
 * `--POS--` = the position from the begin of the next command
-    * this constant can not be deleted or overwritten
-
-the other pre defined constants can be deleted and overwritten like the other user specified constants
-
-* `INT-MEMORY` = 0
-* `INT-MEMORY-ALLOC` = 1
-* `INT-MEMORY-REALLOC` = 2
-* `INT-MEMORY-FREE` = 3
-* `INT-ERRORS` = 1
-* `INT-ERRORS-EXIT` = 1
-* `INT-ERRORS-UNKNOWN_COMMAND` = 2
+* `#INT-MEMORY` = 0
+* `#INT-MEMORY-ALLOC` = 1
+* `#INT-MEMORY-REALLOC` = 2
+* `#INT-MEMORY-FREE` = 3
+* `#INT-ERRORS` = 1
+* `#INT-ERRORS-EXIT` = 1
+* `#INT-ERRORS-UNKNOWN_COMMAND` = 2
 
 ### COMMANDS:
 
@@ -59,14 +55,31 @@ the other pre defined constants can be deleted and overwritten like the other us
     * `p1 <- p1 ^ p2`
     * `IP <- IP + CMD_LEN`
 
+`LSH <NO_CONST_PARAM>`
+* shifts bits of the parameter logically left
+* this effectively multiplies the parameter with two
+    * `p1 <- p1 * 2`
+    * `IP <- IP + CMD_LEN`
+
+`RLSH <NO_CONST_PARAM>`
+* shifts bits of the parameter logically right
+    * `p1 <- p1 >> 1`
+    * `IP <- IP + CMD_LEN`
+
+`RASH <NO_CONST_PARAM>`
+* shifts bits of the parameter arithmetic right
+* this effectively divides the parameter with two
+    * `p1 <- p1 / 2`
+    * `IP <- IP + CMD_LEN`
+
 `NOT <NO_CONST_PARAM>`
 * uses the logical NOT operator with the parameter and stores the result in the parameter
-    * `p1 <- ! p`
+    * `p1 <- ! p1`
     * `IP <- IP + CMD_LEN`
 
 `NEG <NO_CONST_PARAM>`
 * uses the arithmetic negation operation with the parameter and stores the result in the parameter 
-    * `p1 <- 0 - p`
+    * `p1 <- 0 - p1`
     * `IP <- IP + CMD_LEN`
 
 `JMP <LABEL>`
@@ -209,26 +222,26 @@ the other pre defined constants can be deleted and overwritten like the other us
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-	* 0: memory management
-		* use `AX` to specify the method of memory management
-				1. allocate a memory-block
-					* `BX` saves the size of the block
-					* if the value of `BX` is `-1` after the call the memory-block could not be allocated
-					* if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block
-				2. reallocate a memory-block
-					* `BX` points to the memory-block
-					* `CX` saves the new size of the memory-block
-					* if the value of `BX` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
-					* if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
-				3. free a memory-block
-					* `BX` points to the old memory-block
-					* after this the memory-block should not be used
-	* 1: errors
-		* use `AX` to specify the error
-			1. exit
-				* use `BX` to specify the exit number of the progress
-			2. unknown command
-				* exits the progress with the exit number -2
+    * 0: memory management
+        * use `AX` to specify the method of memory management
+                1. allocate a memory-block
+                    * `BX` saves the size of the block
+                    * if the value of `BX` is `-1` after the call the memory-block could not be allocated
+                    * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block
+                2. reallocate a memory-block
+                    * `BX` points to the memory-block
+                    * `CX` saves the new size of the memory-block
+                    * if the value of `BX` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
+                    * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
+                3. free a memory-block
+                    * `BX` points to the old memory-block
+                    * after this the memory-block should not be used
+    * 1: errors
+        * use `AX` to specify the error
+            1. exit
+                * use `BX` to specify the exit number of the progress
+            2. unknown command
+                * exits the progress with the exit number -2
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack
@@ -252,10 +265,14 @@ the other pre defined constants can be deleted and overwritten like the other us
     * `IP <- IP + CMD_LEN`
 
 ### TODO:
-* shift operations
-    * logical left shift
-    * logical right shift
-    * arithmetic right shift
+* increment and decrement
+    * `INC <NO_CONST_PARAM>`
+    * `DEC <NO_CONST_PARAM>`
+* carry flag
+    * `JMPCS <LABEL>`
+    * `JMPCC <LABEL>`
+    * `CALLCS <LABEL>`
+    * `CALLCC <LABEL>`
 * user specified interrupts
-    * IRET
-	* overwrite INT N
+    * `IRET`
+    * overwrite `INT N`

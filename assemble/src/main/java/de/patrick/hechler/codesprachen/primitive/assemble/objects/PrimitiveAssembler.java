@@ -67,6 +67,9 @@ public class PrimitiveAssembler {
 				switch (cmd.cmd) {
 				case CMD_RET:
 					break;// nothing more to write
+				case CMD_RASH:
+				case CMD_RLSH:
+				case CMD_LSH:
 				case CMD_NEG:
 				case CMD_NOT:
 				case CMD_PUSH:
@@ -212,14 +215,14 @@ public class PrimitiveAssembler {
 	}
 	
 	private static void convertLong(byte[] bytes, long num) {
-		bytes[7] = (byte) num;
-		bytes[6] = (byte) (num << 8);
-		bytes[5] = (byte) (num << 16);
-		bytes[4] = (byte) (num << 24);
-		bytes[3] = (byte) (num << 32);
-		bytes[2] = (byte) (num << 40);
-		bytes[1] = (byte) (num << 48);
-		bytes[0] = (byte) (num << 56);
+		bytes[0] = (byte) num;
+		bytes[1] = (byte) (num >> 8);
+		bytes[2] = (byte) (num >> 16);
+		bytes[3] = (byte) (num >> 24);
+		bytes[4] = (byte) (num >> 32);
+		bytes[5] = (byte) (num >> 40);
+		bytes[6] = (byte) (num >> 48);
+		bytes[7] = (byte) (num >> 56);
 	}
 	
 	private void writeTwoParam(Command cmd, byte[] bytes) throws IOException {

@@ -35,6 +35,9 @@ enum {
 	CMD_XOR = 0x08,
 	CMD_NOT = 0x09,
 	CMD_NEG = 0x0A,
+	CMD_LSH = 0x0B,
+	CMD_RLSH = 0x0C,
+	CMD_RASH = 0x0D,
 	CMD_JMP = 0x10,
 	CMD_JMPEQ = 0x11,
 	CMD_JMPNE = 0x12,
@@ -95,14 +98,20 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 	if (p == NULL) {
 		jclass ecls = (*env)->FindClass(env, "java/lang/OutOfMemoryError");
 		jint c = (*env)->ThrowNew(env, ecls, "not enugh memory to allocate the struct pvm (three pointers)");
-		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
+		printf("[N-ERR]: continued after exception, will now return with %I64d\n", c);
 		return c;
 	}
 	p[OFFSET_INTERUPT_POINTER] = -1;
 	if (!values) {
 		values = (*env)->GetFieldID(env, cls, "values", "J");
 	}
-	printf("[N-LOG]: pvm: %d\n", p);
+	printf("[N-LOG]: pvm=%I64d\n", p);
+	printf("[N-LOG]: AX=%I64d\n", p[0]);
+	printf("[N-LOG]: BX=%I64d\n", p[1]);
+	printf("[N-LOG]: CX=%I64d\n", p[2]);
+	printf("[N-LOG]: DX=%I64d\n", p[3]);
+	printf("[N-LOG]: IP=%I64d\n", p[OFFSET_INSTRUCTION_POINTER]);
+	printf("[N-LOG]: SP=%I64d\n", p[OFFSET_STACK_POINTER]);
 	puts("[N-LOG]: exit create");
 	return (jlong) p;
 }
@@ -125,7 +134,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		msg[21 + fl] = '\'';
 		msg[22 + fl] = '\0';
 		jint c = (*env)->ThrowNew(env, ecls, msg);
-		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
+		printf("[N-ERR]: continued after exception, will now return with %I64d\n", c);
 		return c;
 	}
 	puts("[N-LOG]: exit openfile");
@@ -146,7 +155,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		strcpy(msg, "error on seeking the end of the file errno=0x");
 		itoa(errno, msg + 45, 16);
 		jint c = (*env)->ThrowNew(env, ecls, msg);
-		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
+		printf("[N-ERR]: continued after exception, will now return with %I64d\n", c);
 		return c;
 	}
 	int64_t fpos;
@@ -156,7 +165,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		strcpy(msg, "error on seeking the pos of the file errno=0x");
 		itoa(errno, msg + 45, 16);
 		jint c = (*env)->ThrowNew(env, ecls, msg);
-		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
+		printf("[N-ERR]: continued after exception, will now return with %I64d\n", c);
 		return c;
 	}
 	return fpos;
@@ -177,7 +186,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		strcpy(msg, "error on geting the pos of the file errno=0x");
 		itoa(errno, msg + 44, 16);
 		jint c = (*env)->ThrowNew(env, ecls, msg);
-		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
+		printf("[N-ERR]: continued after exception, will now return with %I64d\n", c);
 		return c;
 	}
 	return fpos;
@@ -198,7 +207,7 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
 		strcpy(msg, "error on geting the pos of the file errno=0x");
 		itoa(errno, msg + 44, 16);
 		jint c = (*env)->ThrowNew(env, ecls, msg);
-		printf("[N-ERR]: continued after exception, will now return ThrowNew returned with %d\n", c);
+		printf("[N-ERR]: continued after exception, will now return ThrowNew returned with %I64d\n", c);
 		return;
 	}
 	fpos[0] = pos * LLIS;
@@ -208,7 +217,7 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
 		strcpy(msg, "error by seting the pos of the file errno=0x");
 		itoa(errno, msg + 44, 16);
 		jint c = (*env)->ThrowNew(env, ecls, msg);
-		printf("[N-ERR]: continued after exception, will now return ThrowNew returned with %d\n", c);
+		printf("[N-ERR]: continued after exception, will now return ThrowNew returned with %I64d\n", c);
 		return;
 	}
 }
@@ -238,7 +247,7 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
 		strcpy(msg, "error by closing the pos of the file errno=0x");
 		itoa(errno, msg + 45, 16);
 		jint c = (*env)->ThrowNew(env, ecls, msg);
-		printf("[N-ERR]: continued after exception, will now return ThrowNew returned with %d\n", c);
+		printf("[N-ERR]: continued after exception, will now return ThrowNew returned with %I64d\n", c);
 		return;
 	}
 }
@@ -253,13 +262,13 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 	void *ret = malloc(len * LLIS + LLIS - 1);
 	int64_t r = (int64_t) ret;
 	int64_t mod = r % LLIS;
-	printf("[N-LOG]: orig pointer: %d\n", r);
+	printf("[N-LOG]: orig pointer: %I64d\n", r);
 	r = r / LLIS;
 	if (mod) {
 		r++;
 	}
-	printf("[N-LOG]: return:       %d\n", r);
-	printf("[N-LOG]: mod=%d\n", mod);
+	printf("[N-LOG]: return:       %I64d\n", r);
+	printf("[N-LOG]: mod=%I64d\n", mod);
 	puts("[N-LOG]: exit malloc");
 	return r;
 }
@@ -274,14 +283,14 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 	void *ret = realloc((void*) (pntr * LLIS), len * LLIS + LLIS - 1);
 	int64_t r = (int64_t) ret;
 	int64_t mod = r % LLIS;
-	printf("[N-LOG]: old pointer: %d\n", pntr * LLIS);
-	printf("[N-LOG]: new pointer: %d\n", r);
+	printf("[N-LOG]: old pointer: %I64d\n", pntr * LLIS);
+	printf("[N-LOG]: new pointer: %I64d\n", r);
 	r = r / LLIS;
 	if (mod) {
 		r++;
 	}
-	printf("[N-LOG]: return:      %d\n", r);
-	printf("[N-LOG]: mod=%d\n", mod);
+	printf("[N-LOG]: return:      %I64d\n", r);
+	printf("[N-LOG]: mod=%I64d\n", mod);
 	puts("[N-LOG]: exit realloc");
 	return r;
 //	void *ret = realloc((void*) (pntr * I64S), len * I64S + I64S - 1);
@@ -425,18 +434,19 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_execute(JNIEnv *env, jobject caller) {
 	puts("[N-LOG]: enter execute");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	while (1) {
 		command cmd;
-		cmd.cmd = *((int64_t*)p[OFFSET_INSTRUCTION_POINTER]);
-		printf("[N-LOG]: pvm=%d\n", p);
-		printf("[N-LOG]: AX=%d\n", p[0]);
-		printf("[N-LOG]: BX=%d\n", p[1]);
-		printf("[N-LOG]: CX=%d\n", p[2]);
-		printf("[N-LOG]: DX=%d\n", p[3]);
-		printf("[N-LOG]: IP=%d\n", p[OFFSET_INSTRUCTION_POINTER]);
-		printf("[N-LOG]: SP=%d\n", p[OFFSET_STACK_POINTER]);
-		printf("[N-LOG]: command=%d\n", cmd.cmd);
+		cmd.cmd = *((int64_t*) p[OFFSET_INSTRUCTION_POINTER]);
+		printf("[N-LOG]: pvm=%I64d\n", p);
+		printf("[N-LOG]: AX=%I64d\n", p[0]);
+		printf("[N-LOG]: BX=%I64d\n", p[1]);
+		printf("[N-LOG]: CX=%I64d\n", p[2]);
+		printf("[N-LOG]: DX=%I64d\n", p[3]);
+		printf("[N-LOG]: IP=%I64d\n", p[OFFSET_INSTRUCTION_POINTER]);
+		printf("[N-LOG]: SP=%I64d\n", p[OFFSET_STACK_POINTER]);
+		printf("[N-LOG]: cmd.bytes[0]=%I64d\n", cmd.bytes[0]);
+		printf("[N-LOG]: cmd.cmd=%I64d\n", cmd.cmd);
 		switch (cmd.bytes[0]) {
 		case CMD_MOV: {
 			getTwoParamP1NoConstP2Const
@@ -489,6 +499,15 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
+		case CMD_LSH:
+			oneParamAllowNoConst(param[0] = param[0] << 1;p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[param] << 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
+		case CMD_RASH:
+			oneParamAllowNoConst(param[0] = param[0] >> 1;p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[param] >> 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
+		case CMD_RLSH:
+			oneParamAllowNoConst(param[0] = ((uint64_t)param[0]) >> 1;p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = ((uint64_t)p[param]) >> 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
 		case CMD_NOT:
 			oneParamAllowNoConst(param[0] = ~(param[0]);p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = ~p[param]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
@@ -496,60 +515,60 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			oneParamAllowNoConst(param[0] = -(param[0]);p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = -p[param]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_JMP:
-			p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+			p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			break;
 		case CMD_JMPEQ:
 			if (!(p[OFFSET_STATUS_REG] & (STATUS_GREATHER | STATUS_LOWER))) {
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_JMPNE:
 			if (p[OFFSET_STATUS_REG] & (STATUS_GREATHER | STATUS_LOWER)) {
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_JMPGT:
 			if (p[OFFSET_STATUS_REG] & STATUS_GREATHER) {
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_JMPGE:
 			if (!(p[OFFSET_STATUS_REG] & STATUS_LOWER)) {
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_JMPLO:
 			if (p[OFFSET_STATUS_REG] & STATUS_LOWER) {
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_JMPLE:
 			if (!(p[OFFSET_STATUS_REG] & STATUS_GREATHER)) {
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
 			break;
 		case CMD_CALL:
 			(p[OFFSET_STACK_POINTER] += LLIS);
-			((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
-			p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+			((int64_t*) p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+			p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			break;
 		case CMD_CALLEQ:
 			if (!(p[OFFSET_STATUS_REG] & (STATUS_GREATHER | STATUS_LOWER))) {
 				(p[OFFSET_STACK_POINTER] += LLIS);
-				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				((int64_t*) p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
@@ -557,8 +576,8 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		case CMD_CALLNE:
 			if (p[OFFSET_STATUS_REG] & (STATUS_GREATHER | STATUS_LOWER)) {
 				(p[OFFSET_STACK_POINTER] += LLIS);
-				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				((int64_t*) p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
@@ -566,8 +585,8 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		case CMD_CALLGT:
 			if (p[OFFSET_STATUS_REG] & STATUS_GREATHER) {
 				(p[OFFSET_STACK_POINTER] += LLIS);
-				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				((int64_t*) p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
@@ -575,8 +594,8 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		case CMD_CALLGE:
 			if (!(p[OFFSET_STATUS_REG] & STATUS_LOWER)) {
 				(p[OFFSET_STACK_POINTER] += LLIS);
-				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				((int64_t*) p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
@@ -584,8 +603,8 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		case CMD_CALLLO:
 			if (p[OFFSET_STATUS_REG] & STATUS_LOWER) {
 				(p[OFFSET_STACK_POINTER] += LLIS);
-				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				((int64_t*) p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
@@ -593,8 +612,8 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		case CMD_CALLLE:
 			if (!(p[OFFSET_STATUS_REG] & STATUS_GREATHER)) {
 				(p[OFFSET_STACK_POINTER] += LLIS);
-				((int64_t*)p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
-				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*)p[OFFSET_INSTRUCTION_POINTER])[1];
+				((int64_t*) p[OFFSET_STACK_POINTER])[0] = ((int64_t) ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])) / LLIS;
+				p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
 			} else {
 				p[OFFSET_INSTRUCTION_POINTER] += 2 * LLIS;
 			}
@@ -611,7 +630,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			break;
 		}
 		case CMD_RET:
-			p[OFFSET_INSTRUCTION_POINTER] = ( (int64_t*)p[OFFSET_STACK_POINTER])[0] * LLIS;
+			p[OFFSET_INSTRUCTION_POINTER] = ((int64_t*) p[OFFSET_STACK_POINTER])[0] * LLIS;
 			(p[OFFSET_STACK_POINTER] -= LLIS);
 			break;
 		case CMD_INT:
@@ -677,7 +696,8 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			oneParamAllowConst((p[OFFSET_STACK_POINTER] += LLIS); ((int64_t*)p[OFFSET_STACK_POINTER])[0] = param * LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_POP:
-			oneParamAllowNoConst(param[0] = ((int64_t*)p[OFFSET_STACK_POINTER])[0]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = ((int64_t*)p[OFFSET_STACK_POINTER])[0]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			oneParamAllowNoConst(param[0] = ((int64_t*)p[OFFSET_STACK_POINTER])[0]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					p[param] = ((int64_t*)p[OFFSET_STACK_POINTER])[0]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_SET_IP:
 			oneParamAllowConst(p[OFFSET_INSTRUCTION_POINTER] = param * LLIS;)
@@ -699,7 +719,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setInstructionPointer(JNIEnv *env, jobject caller, jlong ip) {
 	puts("[N-LOG]: enter setInstructionPointer");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	p[OFFSET_INSTRUCTION_POINTER] = ip * LLIS;
 }
 
@@ -710,7 +730,7 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setStackPointer(JNIEnv *env, jobject caller, jlong sp) {
 	puts("[N-LOG]: enter setStackPointer");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	p[OFFSET_STACK_POINTER] = sp * LLIS;
 }
 
@@ -721,9 +741,9 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_push(JNIEnv *env, jobject caller, jlong value) {
 	puts("[N-LOG]: enter push");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	(p[OFFSET_STACK_POINTER] += LLIS);
-	((int64_t*)p[OFFSET_STACK_POINTER])[0] = value;
+	((int64_t*) p[OFFSET_STACK_POINTER])[0] = value;
 }
 
 /*
@@ -733,8 +753,8 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_pop(JNIEnv *env, jobject caller) {
 	puts("[N-LOG]: enter pop");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
-	int64_t val = ((int64_t*)p[OFFSET_STACK_POINTER])[0];
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t val = ((int64_t*) p[OFFSET_STACK_POINTER])[0];
 	(p[OFFSET_STACK_POINTER] -= LLIS);
 	return val;
 }
@@ -756,7 +776,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_set(JNIEnv *env, jobject caller, jlong pntr, jlong value) {
 	puts("[N-LOG]: enter set");
-	printf("enter set(pntr=%d, value=%d)\n", pntr, value);
+	printf("enter set(pntr=%I64d, value=%I64d)\n", pntr, value);
 	int64_t *p = (int64_t*) (pntr * LLIS);
 	p[0] = value;
 }
@@ -768,10 +788,10 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setAX(JNIEnv *env, jobject caller, jlong value) {
 	puts("[N-LOG]: enter setAX");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
-	printf("[N-LOG]: AX=%d\n", p[0]);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: AX=%I64d\n", p[0]);
 	p[0] = value;
-	printf("[N-LOG]: AX=%d\n", p[0]);
+	printf("[N-LOG]: AX=%I64d\n", p[0]);
 	puts("[N-LOG]: exit setAX");
 }
 
@@ -782,10 +802,10 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setBX(JNIEnv *env, jobject caller, jlong value) {
 	puts("[N-LOG]: enter setBX");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
-	printf("[N-LOG]: BX=%d\n", p[1]);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: BX=%I64d\n", p[1]);
 	p[1] = value;
-	printf("[N-LOG]: BX=%d\n", p[1]);
+	printf("[N-LOG]: BX=%I64d\n", p[1]);
 	puts("[N-LOG]: exit setBX");
 }
 
@@ -796,10 +816,10 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setCX(JNIEnv *env, jobject caller, jlong value) {
 	puts("[N-LOG]: enter setCX");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
-	printf("[N-LOG]: CX=%d\n", p[2]);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: CX=%I64d\n", p[2]);
 	p[2] = value;
-	printf("[N-LOG]: CX=%d\n", p[2]);
+	printf("[N-LOG]: CX=%I64d\n", p[2]);
 	puts("[N-LOG]: exit setCX");
 }
 
@@ -810,10 +830,10 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setDX(JNIEnv *env, jobject caller, jlong value) {
 	puts("[N-LOG]: enter setDX");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
-	printf("[N-LOG]: DX=%d\n", p[3]);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: DX=%I64d\n", p[3]);
 	p[3] = value;
-	printf("[N-LOG]: DX=%d\n", p[3]);
+	printf("[N-LOG]: DX=%I64d\n", p[3]);
 	puts("[N-LOG]: exit setDX");
 }
 
@@ -824,7 +844,7 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getAX(JNIEnv *env, jobject caller) {
 	puts("[N-LOG]: enter getAX");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	return p[0];
 }
 
@@ -835,7 +855,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getBX(JNIEnv *env, jobject caller) {
 	puts("[N-LOG]: enter getBX");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	return p[1];
 }
 /*
@@ -845,7 +865,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getCX(JNIEnv *env, jobject caller) {
 	puts("[N-LOG]: enter getCX");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	return p[2];
 }
 
@@ -856,7 +876,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getDX(JNIEnv *env, jobject caller) {
 	puts("[N-LOG]: enter getDX");
-	int64_t* p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	return p[3];
 }
 
@@ -867,6 +887,6 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_finalize(JNIEnv *env, jobject caller) {
 	puts("[N-LOG]: enter finalize");
-	int64_t*p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
 	free(p);
 }
