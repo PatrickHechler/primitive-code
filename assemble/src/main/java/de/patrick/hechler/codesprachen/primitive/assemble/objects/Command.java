@@ -155,13 +155,9 @@ public class Command {
 		case CMD_RET:
 			return 1;
 		case CMD_CALL:
-		case CMD_CALLEQ:
-		case CMD_CALLGE:
-		case CMD_CALLGT:
-		case CMD_CALLLE:
-		case CMD_CALLLO:
-		case CMD_CALLNE:
 		case CMD_JMP:
+		case CMD_JMPCS:
+		case CMD_JMPCC:
 		case CMD_JMPEQ:
 		case CMD_JMPGE:
 		case CMD_JMPGT:

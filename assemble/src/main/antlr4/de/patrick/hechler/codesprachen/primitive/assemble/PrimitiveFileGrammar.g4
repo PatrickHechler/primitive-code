@@ -468,44 +468,20 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				)
  				|
  				(
+ 					JMPCS
+ 					{cmd = Commands.CMD_JMPCS;}
+
+ 				)
+ 				|
+ 				(
+ 					JMPCC
+ 					{cmd = Commands.CMD_JMPCC;}
+
+ 				)
+ 				|
+ 				(
  					CALL
  					{cmd = Commands.CMD_CALL;}
-
- 				)
- 				|
- 				(
- 					CALLEQ
- 					{cmd = Commands.CMD_CALLEQ;}
-
- 				)
- 				|
- 				(
- 					CALLNE
- 					{cmd = Commands.CMD_CALLNE;}
-
- 				)
- 				|
- 				(
- 					CALLGT
- 					{cmd = Commands.CMD_CALLGT;}
-
- 				)
- 				|
- 				(
- 					CALLGE
- 					{cmd = Commands.CMD_CALLGE;}
-
- 				)
- 				|
- 				(
- 					CALLLO
- 					{cmd = Commands.CMD_CALLLO;}
-
- 				)
- 				|
- 				(
- 					CALLLE
- 					{cmd = Commands.CMD_CALLLE;}
 
  				)
  				|
@@ -552,39 +528,19 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'SET_SP'
  ;
 
- CALLLE
- :
- 	'CALLLE'
- ;
-
- CALLLO
- :
- 	'CALLLO'
- ;
-
- CALLGE
- :
- 	'CALLGE'
- ;
-
- CALLGT
- :
- 	'CALLGT'
- ;
-
- CALLNE
- :
- 	'CALLNE'
- ;
-
- CALLEQ
- :
- 	'CALLEQ'
- ;
-
  CALL
  :
  	'CALL'
+ ;
+
+ JMPCC
+ :
+ 	'JMPCC'
+ ;
+
+ JMPCS
+ :
+ 	'JMPCS'
  ;
 
  JMPLE

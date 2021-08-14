@@ -1,7 +1,7 @@
 # primitive-code
 a register based coding language with primitive operations
 
-### CONSTANTS:
+## CONSTANTS:
 
 * `--POS--` = the position from the begin of the next command
 * `#INT-MEMORY` = 0
@@ -12,7 +12,7 @@ a register based coding language with primitive operations
 * `#INT-ERRORS-EXIT` = 1
 * `#INT-ERRORS-UNKNOWN_COMMAND` = 2
 
-### COMMANDS:
+## COMMANDS:
 
 `MOV <NO_CONST_PARAM> , <PARAM>`
 * copies the value of the second parameter to the first parameter
@@ -21,16 +21,28 @@ a register based coding language with primitive operations
 
 `ADD <NO_CONST_PARAM> , <PARAM>`
 * adds the values of both parameters and stores the sum in the first parameter
+    * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
+        * `CARRY <- 1`
+    * else
+        * `CARRY <- 0`
     * `p1 <- p1 + p2`
     * `IP <- IP + CMD_LEN`
 
 `SUB <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second parameter from the first parameter and stores the result in the first parameter
+    * `if ((p1 > 0) & (p2 < 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 + p2) > 0))`
+        * `CARRY <- 1`
+    * else
+        * `CARRY <- 0`
     * `p1 <- p1 - p2`
     * `IP <- IP + CMD_LEN`
 
 `MUL <NO_CONST_PARAM> , <PARAM>`
 * multiplies the first parameter with the second and stores the result in the first parameter
+    * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
+        * `CARRY <- 1`
+    * else
+        * `CARRY <- 0`
     * `p1 <- p1 * p2`
     * `IP <- IP + CMD_LEN`
 
@@ -58,27 +70,41 @@ a register based coding language with primitive operations
 `LSH <NO_CONST_PARAM>`
 * shifts bits of the parameter logically left
 * this effectively multiplies the parameter with two
+    * `if p1 = HEX-8000000000000000
+        * `CARRY <- 1`
+    * else
+        * `CARRY <- 0`
     * `p1 <- p1 * 2`
     * `IP <- IP + CMD_LEN`
 
 `RLSH <NO_CONST_PARAM>`
 * shifts bits of the parameter logically right
+    * `if p1 = HEX-0000000000000001
+        * `CARRY <- 1`
+    * else
+        * `CARRY <- 0`
     * `p1 <- p1 >> 1`
     * `IP <- IP + CMD_LEN`
 
 `RASH <NO_CONST_PARAM>`
 * shifts bits of the parameter arithmetic right
 * this effectively divides the parameter with two
+    * `if p1 = HEX-0000000000000001
+        * `CARRY <- 1`
+    * else
+        * `CARRY <- 0`
     * `p1 <- p1 / 2`
     * `IP <- IP + CMD_LEN`
 
 `NOT <NO_CONST_PARAM>`
-* uses the logical NOT operator with the parameter and stores the result in the parameter
-    * `p1 <- ! p1`
+* uses the logical NOT operator with every bit of the parameter and stores the result in the parameter
+* this instruction works like `XOR p1, -1` 
+    * `p1 <- ~ p1`
     * `IP <- IP + CMD_LEN`
 
 `NEG <NO_CONST_PARAM>`
 * uses the arithmetic negation operation with the parameter and stores the result in the parameter 
+* this instruction works like `MUL p1, -1`
     * `p1 <- 0 - p1`
     * `IP <- IP + CMD_LEN`
 
@@ -135,71 +161,27 @@ a register based coding language with primitive operations
         * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
+`JMPCS <LABEL>`
+* sets the instruction pointer to position of the command after the label if the last carry flag is set
+    * `if CARRY`
+        * `IP <- IP - --POS-- + LABEL`
+    * `else`
+        * `IP <- IP + CMD_LEN`
+    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
+
+`JMPCS <LABEL>`
+* sets the instruction pointer to position of the command after the label if the last carry flag is cleared
+    * `if ! CARRY`
+        * `IP <- IP - --POS-- + LABEL`
+    * `else`
+        * `IP <- IP + CMD_LEN`
+    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
+
 `CALL <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
     * `[SP] <- IP`
     * `SP <- SP + 1`
     * `IP <- IP - --POS-- + LABEL`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
-
-`CALLEQ <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last compare result was not greater
-    * `if ( ! GREATHER) & ( ! LOWER)`
-        * `[SP] <- IP`
-        * `SP <- SP + 1`
-        * `IP <- IP - --POS-- + LABEL`
-    * `else`
-        * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
-
-`CALLNE <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last compare result was not greater
-    * `if GREATHER | LOWER`
-        * `[SP] <- IP`
-        * `SP <- SP + 1`
-        * `IP <- IP - --POS-- + LABEL`
-    * `else`
-        * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
-
-`CALLGT <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last compare result was not greater
-    * `if GREATHER`
-        * `[SP] <- IP`
-        * `SP <- SP + 1`
-        * `IP <- IP - --POS-- + LABEL`
-    * `else`
-        * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
-
-`CALLGE <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last compare result was not greater
-    * `if ! LOWER`
-        * `[SP] <- IP`
-        * `SP <- SP + 1`
-        * `IP <- IP - --POS-- + LABEL`
-    * `else`
-        * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
-
-`CALLLO <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last compare result was not greater
-    * `if ! LOWER`
-        * `[SP] <- IP`
-        * `SP <- SP + 1`
-        * `IP <- IP - --POS-- + LABEL`
-    * `else`
-        * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
-
-`CALLLE <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last compare result was not greater
-    * `if ! GREATHER`
-        * `[SP] <- IP`
-        * `SP <- SP + 1`
-        * `IP <- IP - --POS-- + LABEL`
-    * `else`
-        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `CMP <PARAM> , <PARAM>`
@@ -268,7 +250,7 @@ a register based coding language with primitive operations
 * copies the instruction pointer to the parameter
     * `p <- IP`
     * `IP <- IP + CMD_LEN`
-* note, that the instruction pointer will modify as result of this command, but after the value has been copied
+* note, that the instruction pointer will modify as result of this command
     * the written value will be the instruction pointer directly before this command
     * so you can use `SET_IP` to land at this command (`GET_IP`)
 
@@ -285,12 +267,11 @@ a register based coding language with primitive operations
     * `p <- p - 1`
     * `IP <- IP + CMD_LEN`
 
-### TODO:
-* carry flag
-    * `JMPCS <LABEL>`
-    * `JMPCC <LABEL>`
-    * `CALLCS <LABEL>`
-    * `CALLCC <LABEL>`
+## TODO:
 * user specified interrupts
     * `IRET`
     * overwrite `INT N`
+* out + log/err + in stream + file streams
+    * functions to get out, log/err, in
+    * functions to get file streams
+    * functions to write/read from streams or to set/get the pos

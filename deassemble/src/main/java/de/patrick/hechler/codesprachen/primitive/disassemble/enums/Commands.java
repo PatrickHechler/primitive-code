@@ -10,8 +10,8 @@ public enum Commands {
 	CMD_NOT(ParamArt.oneParamNoConst), CMD_NEG(ParamArt.oneParamNoConst),
 	CMD_LSH(ParamArt.oneParamNoConst), CMD_RLSH(ParamArt.oneParamNoConst), CMD_RASH(ParamArt.oneParamNoConst), 
 	
-	CMD_JMP(ParamArt.label), CMD_JMPEQ(ParamArt.label), CMD_JMPNE(ParamArt.label), CMD_JMPGT(ParamArt.label), CMD_JMPGE(ParamArt.label), CMD_JMPLO(ParamArt.label), CMD_JMPLE(ParamArt.label),
-	CMD_CALL(ParamArt.label), CMD_CALLEQ(ParamArt.label), CMD_CALLNE(ParamArt.label), CMD_CALLGT(ParamArt.label), CMD_CALLGE(ParamArt.label), CMD_CALLLO(ParamArt.label), CMD_CALLLE(ParamArt.label),
+	CMD_JMP(ParamArt.label), CMD_JMPEQ(ParamArt.label), CMD_JMPNE(ParamArt.label), CMD_JMPGT(ParamArt.label), CMD_JMPGE(ParamArt.label), CMD_JMPLO(ParamArt.label), CMD_JMPLE(ParamArt.label), CMD_JMPCS(ParamArt.label), CMD_JMPCC(ParamArt.label),
+	CMD_CALL(ParamArt.label),
 	
 	CMD_CMP(ParamArt.twoParamsAllowConsts),
 	CMD_RET(ParamArt.noParams), CMD_INT(ParamArt.oneParamAllowConst),
@@ -63,22 +63,18 @@ public enum Commands {
 	private static final int JMPGE = 0x14;
 	private static final int JMPLO = 0x15;
 	private static final int JMPLE = 0x16;
-	private static final int CALL = 0x17;
-	private static final int CALLEQ = 0x18;
-	private static final int CALLNE = 0x19;
-	private static final int CALLGT = 0x1A;
-	private static final int CALLGE = 0x1B;
-	private static final int CALLLO = 0x1C;
-	private static final int CALLLE = 0x1D;
-	private static final int CMP = 0x20;
-	private static final int RET = 0x21;
-	private static final int INT = 0x22;
-	private static final int PUSH = 0x23;
-	private static final int POP = 0x24;
-	private static final int SET_IP = 0x25;
-	private static final int SET_SP = 0x26;
-	private static final int GET_IP = 0x27;
-	private static final int GET_SP = 0x28;
+	private static final int JMPCS = 0x17;
+	private static final int JMPCC = 0x18;
+	private static final int CALL = 0x20;
+	private static final int CMP = 0x21;
+	private static final int RET = 0x22;
+	private static final int INT = 0x23;
+	private static final int PUSH = 0x24;
+	private static final int POP = 0x25;
+	private static final int SET_IP = 0x26;
+	private static final int SET_SP = 0x27;
+	private static final int GET_IP = 0x28;
+	private static final int GET_SP = 0x29;
 	
 	public int num() {
 		switch (this) {
@@ -88,18 +84,6 @@ public enum Commands {
 			return AND;
 		case CMD_CALL:
 			return CALL;
-		case CMD_CALLEQ:
-			return CALLEQ;
-		case CMD_CALLGE:
-			return CALLGE;
-		case CMD_CALLGT:
-			return CALLGT;
-		case CMD_CALLLE:
-			return CALLLE;
-		case CMD_CALLLO:
-			return CALLLO;
-		case CMD_CALLNE:
-			return CALLNE;
 		case CMD_CMP:
 			return CMP;
 		case CMD_DIV:
@@ -108,6 +92,10 @@ public enum Commands {
 			return INT;
 		case CMD_JMP:
 			return JMP;
+		case CMD_JMPCS:
+			return JMPCS;
+		case CMD_JMPCC:
+			return JMPCC;
 		case CMD_JMPEQ:
 			return JMPEQ;
 		case CMD_JMPGE:
@@ -190,6 +178,10 @@ public enum Commands {
 			return CMD_RASH;
 		case JMP:
 			return CMD_JMP;
+		case JMPCS:
+			return CMD_JMPCS;
+		case JMPCC:
+			return CMD_JMPCC;
 		case JMPEQ:
 			return CMD_JMPEQ;
 		case JMPNE:
@@ -204,18 +196,6 @@ public enum Commands {
 			return CMD_JMPLE;
 		case CALL:
 			return CMD_CALL;
-		case CALLEQ:
-			return CMD_CALLEQ;
-		case CALLNE:
-			return CMD_CALLNE;
-		case CALLGT:
-			return CMD_CALLGT;
-		case CALLGE:
-			return CMD_CALLGE;
-		case CALLLO:
-			return CMD_CALLLO;
-		case CALLLE:
-			return CMD_CALLLE;
 		case CMP:
 			return CMD_CMP;
 		case RET:
