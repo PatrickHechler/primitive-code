@@ -59,6 +59,8 @@ enum {
 	CMD_POP = 0x24,
 	CMD_SET_IP = 0x25,
 	CMD_SET_SP = 0x26,
+	CMD_GET_IP = 0x27,
+	CMD_GET_SP = 0x28,
 };
 
 enum {
@@ -704,6 +706,12 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			break;
 		case CMD_SET_SP:
 			oneParamAllowConst(p[OFFSET_STACK_POINTER] = (param * LLIS); p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
+		case CMD_GET_IP:
+			oneParamAllowNoConst(param[0] = p[OFFSET_STACK_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[OFFSET_STACK_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
+		case CMD_GET_SP:
+			oneParamAllowNoConst(param[0] = p[OFFSET_INSTRUCTION_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[OFFSET_INSTRUCTION_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		default:
 			unknownCommandReturn

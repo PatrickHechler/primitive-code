@@ -342,6 +342,18 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  		(
  			(
  				(
+ 					GET_IP
+ 					{cmd = Commands.CMD_GET_IP;}
+
+ 				)
+ 				|
+ 				(
+ 					GET_SP
+ 					{cmd = Commands.CMD_GET_SP;}
+
+ 				)
+ 				|
+ 				(
  					INT
  					{cmd = Commands.CMD_INT;}
 
@@ -665,6 +677,16 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'INT'
  ;
 
+ GET_SP
+ :
+ 	'GET_SP'
+ ;
+
+ GET_IP
+ :
+ 	'GET_IP'
+ ;
+
  AX
  :
  	'AX'
@@ -705,7 +727,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	','
  ;
 
-NEG_HEX_NUM
+ NEG_HEX_NUM
  :
  	'NHEX-' [0-9a-fA-F]+
  ;

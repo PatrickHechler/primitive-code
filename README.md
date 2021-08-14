@@ -264,6 +264,19 @@ a register based coding language with primitive operations
     * `SP <- p`
     * `IP <- IP + CMD_LEN`
 
+`GET_IP <NO_CONST_PARAM>`
+* copies the instruction pointer to the parameter
+    * `p <- IP`
+    * `IP <- IP + CMD_LEN`
+* note, that the instruction pointer will modify as result of this command, but after the value has been copied
+    * the written value will be the instruction pointer directly before this command
+    * so you can use `SET_IP` to land at this command (`GET_IP`)
+
+`GET_SP <NO_CONST_PARAM>`
+* copies the stack pointer to the parameter
+    * `p <- SP`
+    * `IP <- IP + CMD_LEN`
+
 ### TODO:
 * increment and decrement
     * `INC <NO_CONST_PARAM>`

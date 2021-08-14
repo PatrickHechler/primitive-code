@@ -17,6 +17,7 @@ public enum Commands {
 	CMD_RET(ParamArt.noParams), CMD_INT(ParamArt.oneParamAllowConst),
 	CMD_PUSH(ParamArt.oneParamAllowConst), CMD_POP(ParamArt.oneParamNoConst),
 	CMD_SET_IP(ParamArt.oneParamAllowConst), CMD_SET_SP(ParamArt.oneParamAllowConst),
+	CMD_GET_IP(ParamArt.oneParamNoConst), CMD_GET_SP(ParamArt.oneParamNoConst),
 	
 	;
 	//@formatter:on
@@ -76,6 +77,8 @@ public enum Commands {
 	private static final int POP = 0x24;
 	private static final int SET_IP = 0x25;
 	private static final int SET_SP = 0x26;
+	private static final int GET_IP = 0x27;
+	private static final int GET_SP = 0x28;
 	
 	public int num() {
 		switch (this) {
@@ -143,6 +146,10 @@ public enum Commands {
 			return SET_IP;
 		case CMD_SET_SP:
 			return SET_SP;
+		case CMD_GET_IP:
+			return GET_IP;
+		case CMD_GET_SP:
+			return GET_SP;
 		case CMD_SUB:
 			return SUB;
 		case CMD_XOR:

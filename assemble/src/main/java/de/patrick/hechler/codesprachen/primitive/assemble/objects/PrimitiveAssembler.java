@@ -73,6 +73,8 @@ public class PrimitiveAssembler {
 				case CMD_NEG:
 				case CMD_NOT:
 				case CMD_PUSH:
+				case CMD_GET_SP:
+				case CMD_GET_IP:
 					if (cmd.p1.art == Param.ART_ANUM) {
 						throw new IllegalStateException("no constants allowed!");
 					}
