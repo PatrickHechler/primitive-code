@@ -104,7 +104,6 @@ public class Param {
 		public int art = 0;
 		public long v1 = 0;
 		public long v2 = 0;
-		public long v3 = 0;
 		
 		public boolean isValid() {
 			try {

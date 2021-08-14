@@ -126,12 +126,12 @@ public class PrimitiveAssembler {
 						}
 						dest = (long) zw;
 						assert dest >= 0;
-						dest = pos - dest;
+						dest -= pos;
 					} else if (cmd.p1.art == Param.ART_ANUM) {
 						assert cmd.p1.label == null;
 						assert cmd.p1.off == 0;
 						if ( !supressWarn) {
-							System.err.println("[WARN]: jump/call operation with a number instead of a label as param!");
+							System.err.println("[WARN]: it is not recomended to use jump/call operation with a number instead of a label as param!");
 						}
 						dest = cmd.p1.num;
 					} else {

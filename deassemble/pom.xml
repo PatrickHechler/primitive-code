@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
-	<artifactId>deassemble</artifactId>
+	<artifactId>disassemble</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
