@@ -268,6 +268,9 @@ a register based coding language with primitive operations
     * `IP <- IP + CMD_LEN`
 
 ## TODO:
+* carry
+    * `ADDC` add with carry
+    * `SUBC` subtract with carry
 * user specified interrupts
     * `IRET` return from custom interrupts
     * set interrupt table
