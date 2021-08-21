@@ -3,6 +3,7 @@ JAVA_HOME=	C:\MC\BIN\Java11
 DLLFLAGS =	-g -shared -Wl,--add-stdcall-alias
 INCLUDES =	-I$(JAVA_HOME)\include -I$(JAVA_HOME)\include\win32
 
+CC	= gcc
 
 CFLAGS	=	-g -IC:\MC\BIN\Java11\include -IC:\MC\BIN\Java11\include\win32
 
@@ -13,14 +14,14 @@ LIBS =
 TARGET =	primitive-runtime.dll
 
 $(TARGET):	$(OBJS)
-	gcc -o $(TARGET) $(OBJS) $(DLLFLAGS) $(LIBS)
+	$(CC) -o $(TARGET) $(OBJS) $(DLLFLAGS) $(LIBS)
 	copy $(TARGET) %git%\primitive-code\assemble\
 
 %.o: %.c
-	gcc $(CFLAGS) $(INCLUDES) $< -c
+	$(CC) $(CFLAGS) $(INCLUDES) $< -c
 
 %.dll:	%.c
-	gcc $(INCLUDES) -shared -o %.dll %.c
+	$(CC) $(INCLUDES) -shared -o %.dll %.c
 
 all:	$(TARGET)
 

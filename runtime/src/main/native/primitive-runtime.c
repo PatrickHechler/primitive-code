@@ -294,14 +294,6 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 	printf("[N-LOG]: mod=%I64d\n", mod);
 	puts("[N-LOG]: exit realloc");
 	return r;
-//	void *ret = realloc((void*) (pntr * I64S), len * I64S + I64S - 1);
-//	int64_t r = (int64_t) ret;
-//	int64_t mod = r % I64S;
-//	r = r / I64S;
-//	if (mod) {
-//		r++;
-//	}
-//	return r;
 }
 
 /*
@@ -314,7 +306,6 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
 	free((void*) (((long long) pntr) * LLIS));
 }
 
-#define unknownCommandExit exit(-2);
 #define unknownCommandReturn return -2;
 /*
  * @formatter:off
