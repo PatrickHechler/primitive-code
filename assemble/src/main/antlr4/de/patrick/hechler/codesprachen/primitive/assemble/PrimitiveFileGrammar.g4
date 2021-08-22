@@ -27,6 +27,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	constants.put("INT-ERRORS", 1L);
  	constants.put("INT-ERRORS-EXIT", 1L);
  	constants.put("INT-ERRORS-UNKNOWN_COMMAND", 2L);
+ 	constants.put("MAX-VALUE", 0x7FFFFFFFFFFFFFFFL);
+ 	constants.put("MIN-VALUE", -0x8000000000000000L);
  }
  :
  	(
