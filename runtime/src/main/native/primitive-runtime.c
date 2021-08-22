@@ -13,9 +13,10 @@
 
 #define LLIS sizeof(int64_t)
 
-#define STATUS_LOWER      0x0000000000000001LL
-#define STATUS_GREATHER   0x0000000000000002LL
-#define STATUS_CARRY      0x0000000000000004LL
+#define STATUS_LOWER          0x0000000000000001LL
+#define STATUS_GREATHER       0x0000000000000002LL
+#define STATUS_CARRY          0x0000000000000004LL
+#define STATUS_ARITMETHIC_ERR 0x0000000000000008LL
 
 jfieldID values = NULL;
 
@@ -505,10 +506,17 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		}
 		case CMD_DIV: {
 			getTwoParamNoConsts
-			int64_t div = (param1[0]) / (param2[0]);
-			int64_t mod = (param1[0]) % (param2[0]);
-			param1[0] = div;
-			param2[0] = mod;
+			int64_t p1 = param1[0];
+			int64_t p2 = param2[0];
+			if (p2 == 0){
+				p[OFFSET_STATUS_REG] |= STATUS_ARITMETHIC_ERR;
+			} else {
+				p[OFFSET_STATUS_REG] &= ~STATUS_ARITMETHIC_ERR;
+				int64_t div = p1 / p2;
+				int64_t mod = p1 % p2;
+				param1[0] = div;
+				param2[0] = mod;
+			}
 			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
