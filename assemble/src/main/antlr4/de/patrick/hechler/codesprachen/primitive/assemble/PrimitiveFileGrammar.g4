@@ -304,6 +304,18 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				)
  				|
  				(
+ 					ADDC
+ 					{cmd = Commands.CMD_ADDC;}
+
+ 				)
+ 				|
+ 				(
+ 					SUBC
+ 					{cmd = Commands.CMD_SUBC;}
+
+ 				)
+ 				|
+ 				(
  					MUL
  					{cmd = Commands.CMD_MUL;}
 
@@ -643,6 +655,16 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  MUL
  :
  	'MUL'
+ ;
+
+ SUBC
+ :
+ 	'SUBC'
+ ;
+
+ ADDC
+ :
+ 	'ADDC'
  ;
 
  SUB

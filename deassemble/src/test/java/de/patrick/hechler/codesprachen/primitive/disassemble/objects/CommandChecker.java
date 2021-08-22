@@ -54,6 +54,14 @@ public class CommandChecker extends Checker {
 		pb.v1 = 5;
 		cmd = new Command(Commands.CMD_ADD, p, pb.build());
 		assertEquals("ADD DX, [5]", cmd.toString());
+		pb = new ParamBuilder();
+		pb.art = Param.ART_ASR;
+		pb.v1 = Param.SR_DX;;
+		p = pb.build();
+		pb.art = Param.ART_ANUM;
+		pb.v1 = 0;
+		cmd = new Command(Commands.CMD_ADDC, p, pb.build());
+		assertEquals("ADDC DX, 0", cmd.toString());
 	}
 	
 	@Check

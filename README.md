@@ -18,10 +18,10 @@ this is the assembler for the primitive VM
 
 ## STATUS:
 * the status register has some flags which are initialized with random values
-    * `LOWER` :          `HEX-0000000000000001`
-    * `GREATHER` :       `HEX-0000000000000002`
-    * `CARRY` :          `HEX-0000000000000004`
-    * `ARITMETHIC_ERR` : `HEX-0000000000000008`
+    * `LOWER`
+    * `GREATHER`
+    * `CARRY`
+    * `ARITMETHIC_ERR`
 
 ## COMMANDS:
 
@@ -41,15 +41,37 @@ this is the assembler for the primitive VM
     * `p1 <- p1 + p2`
     * `IP <- IP + CMD_LEN`
 
+`ADDC <NO_CONST_PARAM> , <PARAM>`
+* adds the values of both parameters and the carry flag and stores the sum in the first parameter
+    * `if ((p1 > 0) & ((p2 + CARRY) > 0) & ((p1 + p2 + CARRY) < 0)) | ((p1 < 0) & ((p2 + CARRY) < 0) & ((p1 + (p2 + CARRY)) > 0))`
+        * `CARRY <- 1`
+        * `ARITMETHIC_ERR` <- 1`
+    * else
+        * `CARRY <- 0`
+        * `ARITMETHIC_ERR` <- 0`
+    * `p1 <- p1 + (p2 + CARRY)`
+    * `IP <- IP + CMD_LEN`
+
 `SUB <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second parameter from the first parameter and stores the result in the first parameter
-    * `if ((p1 > 0) & (p2 < 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 + p2) > 0))`
+    * `if ((p1 > 0) & (p2 < 0) & ((p1 - p2) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - p2) > 0))`
         * `CARRY <- 1`
         * `ARITMETHIC_ERR` <- 1`
     * else
         * `CARRY <- 0`
         * `ARITMETHIC_ERR` <- 0`
     * `p1 <- p1 - p2`
+    * `IP <- IP + CMD_LEN`
+
+`SUBC <NO_CONST_PARAM> , <PARAM>`
+* subtracts the second parameter with the carry flag from the first parameter and stores the result in the first parameter
+    * `if (p1 > 0) & ((p2 + CARRY) < 0) & ((p1 - (p2 + CARRY)) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - (p2 + CARRY)) > 0))`
+        * `CARRY <- 1`
+        * `ARITMETHIC_ERR` <- 1`
+    * else
+        * `CARRY <- 0`
+        * `ARITMETHIC_ERR` <- 0`
+    * `p1 <- p1 - (p2 + CARRY)`
     * `IP <- IP + CMD_LEN`
 
 `MUL <NO_CONST_PARAM> , <PARAM>`
@@ -305,9 +327,6 @@ this is the assembler for the primitive VM
     * `IP <- IP + CMD_LEN`
 
 ## TODO:
-* carry
-    * `ADDC` add with carry
-    * `SUBC` subtract with carry
 * user specified interrupts
     * `IRET` return from custom interrupts
     * set interrupt table

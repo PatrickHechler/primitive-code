@@ -79,6 +79,7 @@ public class Command {
 	public long length() {
 		switch (cmd) {
 		case CMD_ADD:
+		case CMD_ADDC:
 		case CMD_AND:
 		case CMD_MOV:
 		case CMD_MUL:
@@ -86,6 +87,7 @@ public class Command {
 		case CMD_POP:
 		case CMD_PUSH:
 		case CMD_SUB:
+		case CMD_SUBC:
 		case CMD_XOR:
 		case CMD_CMP:
 		case CMD_DIV:

@@ -92,7 +92,9 @@ public class PrimitiveAssembler {
 					}
 				case CMD_MOV:
 				case CMD_ADD:
+				case CMD_ADDC:
 				case CMD_SUB:
+				case CMD_SUBC:
 				case CMD_MUL:
 				case CMD_AND:
 				case CMD_OR:

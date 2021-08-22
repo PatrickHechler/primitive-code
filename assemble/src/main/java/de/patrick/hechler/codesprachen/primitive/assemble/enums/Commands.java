@@ -20,6 +20,8 @@ public enum Commands {
 	CMD_SET_IP(0x26), CMD_SET_SP(0x27),
 	CMD_GET_IP(0x28), CMD_GET_SP(0x29),
 	
+	CMD_ADDC(0x30), CMD_SUBC(0x31),
+	
 	;
 	//@formatter:on
 	

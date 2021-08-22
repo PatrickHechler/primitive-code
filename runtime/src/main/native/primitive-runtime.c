@@ -61,6 +61,8 @@ enum {
 	CMD_SET_SP = 0x27,
 	CMD_GET_IP = 0x28,
 	CMD_GET_SP = 0x29,
+	CMD_ADDC = 0x30,
+	CMD_SUBC = 0x31,
 };
 
 enum {
@@ -453,17 +455,45 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			int64_t erg = p1 + param2;
 			if (p1 > 0) {
 				if (param2 > 0 && erg < 0) {
-					p[OFFSET_STATUS_REG] |= STATUS_CARRY;
+					p[OFFSET_STATUS_REG] |= STATUS_CARRY | STATUS_ARITMETHIC_ERR;
 				} else {
-					p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;
+					p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY | STATUS_ARITMETHIC_ERR);
 				}
 			} else if (param2 < 0 && erg > 0) {
-				p[OFFSET_STATUS_REG] |= STATUS_CARRY;
+				p[OFFSET_STATUS_REG] |= STATUS_CARRY | STATUS_ARITMETHIC_ERR;
 			} else {
-				p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;
+				p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY | STATUS_ARITMETHIC_ERR);
 			}
 			param1[0] = erg;
 			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
+			break;
+		}
+		case CMD_ADDC: {
+			printf("[N-LOG]: in command <ADDC>\n");
+			getTwoParamP1NoConstP2Const
+			int64_t p1 = param1[0];
+			int64_t c = (p[OFFSET_STATUS_REG] & STATUS_CARRY) ? 1 : 0;
+			int64_t erg = p1 + param2 + c;
+			printf("[N-LOG]: p1=        %I64d\n", p1);
+			printf("[N-LOG]: p2=        %I64d\n", param2);
+			printf("[N-LOG]: carry=     %I64d\n", c);
+			printf("[N-LOG]: status=    %I64d\n", p[OFFSET_STATUS_REG]);
+			if (p1 > 0) {
+				if ((param2 + c)> 0 && erg < 0) {
+					p[OFFSET_STATUS_REG] |= STATUS_CARRY | STATUS_ARITMETHIC_ERR;
+				} else {
+					p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY | STATUS_ARITMETHIC_ERR);
+				}
+			} else if ((param2 + c) < 0 && erg > 0) {
+				p[OFFSET_STATUS_REG] |= STATUS_CARRY | STATUS_ARITMETHIC_ERR;
+			} else {
+				p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY | STATUS_ARITMETHIC_ERR);
+			}
+			param1[0] = erg;
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
+			printf("[N-LOG]: erg=       %I64d\n", erg);
+			printf("[N-LOG]: new status=%I64u\n", erg);
+			printf("[N-LOG]: finish command <ADDC>\n");
 			break;
 		}
 		case CMD_SUB: {
@@ -472,14 +502,34 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			int64_t erg = p1 - param2;
 			if (p1 > 0) {
 				if (param2 < 0 && erg < 0) {
-					p[OFFSET_STATUS_REG] |= STATUS_CARRY;
+					p[OFFSET_STATUS_REG] |= STATUS_CARRY | STATUS_ARITMETHIC_ERR;
 				} else {
-					p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;
+					p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY | STATUS_ARITMETHIC_ERR);
 				}
 			} else if (param2 > 0 && erg > 0) {
-				p[OFFSET_STATUS_REG] |= STATUS_CARRY;
+				p[OFFSET_STATUS_REG] |= STATUS_CARRY | STATUS_ARITMETHIC_ERR;
 			} else {
-				p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;
+				p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY | STATUS_ARITMETHIC_ERR);
+			}
+			param1[0] = erg;
+			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
+			break;
+		}
+		case CMD_SUBC: {
+			getTwoParamP1NoConstP2Const
+			int64_t p1 = param1[0];
+			int64_t c = (p[OFFSET_STATUS_REG] & STATUS_CARRY) ? 1 : 0;
+			int64_t erg = p1 - param2 - c;
+			if (p1 > 0) {
+				if ((param2 + c)< 0 && erg < 0) {
+					p[OFFSET_STATUS_REG] |= STATUS_CARRY | STATUS_ARITMETHIC_ERR;
+				} else {
+					p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY | STATUS_ARITMETHIC_ERR);
+				}
+			} else if ((param2 + c)> 0 && erg > 0) {
+				p[OFFSET_STATUS_REG] |= STATUS_CARRY | STATUS_ARITMETHIC_ERR;
+			} else {
+				p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY | STATUS_ARITMETHIC_ERR);
 			}
 			param1[0] = erg;
 			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
@@ -491,14 +541,14 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			int64_t erg = p1 * param2;
 			if (p1 > 0) {
 				if (param2 > 0 && erg < 0) {
-					p[OFFSET_STATUS_REG] |= STATUS_CARRY;
+					p[OFFSET_STATUS_REG] |= STATUS_CARRY | STATUS_ARITMETHIC_ERR;
 				} else {
-					p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;
+					p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY | STATUS_ARITMETHIC_ERR);
 				}
 			} else if (param2 < 0 && erg > 0) {
-				p[OFFSET_STATUS_REG] |= STATUS_CARRY;
+				p[OFFSET_STATUS_REG] |= STATUS_CARRY | STATUS_ARITMETHIC_ERR;
 			} else {
-				p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;
+				p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY | STATUS_ARITMETHIC_ERR);
 			}
 			param1[0] = erg;
 			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
@@ -508,7 +558,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			getTwoParamNoConsts
 			int64_t p1 = param1[0];
 			int64_t p2 = param2[0];
-			if (p2 == 0){
+			if (p2 == 0) {
 				p[OFFSET_STATUS_REG] |= STATUS_ARITMETHIC_ERR;
 			} else {
 				p[OFFSET_STATUS_REG] &= ~STATUS_ARITMETHIC_ERR;
@@ -540,24 +590,26 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		}
 		case CMD_LSH:
 			oneParamAllowNoConst(
-					if (param[0]&0x8000000000000000ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY;}else{p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;}param[0] = param[0] << 1;p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
-					if (p[param]&0x8000000000000000ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY;}else{p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;} p[param] = p[param] << 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+					if (param[0]&0x8000000000000000ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;}else{p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} param[0] = param[0] << 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					if (p[param]&0x8000000000000000ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;}else{p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[param] = p[param] << 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_RASH:
 			oneParamAllowNoConst(
-					if(param[0]&0x0000000000000001ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY;}else{p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;} param[0] = param[0] >> 1;p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
-					if(p[param]&0x0000000000000001ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY;}else{p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;} p[param] = p[param] >> 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+					if(param[0]&0x0000000000000001ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;}else{p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} param[0] = param[0] >> 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					if(p[param]&0x0000000000000001ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;}else{p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[param] = p[param] >> 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_RLSH:
 			oneParamAllowNoConst(
-					if(param[0]&0x0000000000000001ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY;}else{p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;} param[0] = ((uint64_t)param[0]) >> 1;p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
-					if(p[param]&0x0000000000000001ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY;}else{p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;} p[param] = ((uint64_t)p[param]) >> 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+					if(param[0]&0x0000000000000001ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;}else{p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} param[0] = ((uint64_t)param[0]) >> 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					if(p[param]&0x0000000000000001ULL){p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;}else{p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[param] = ((uint64_t)p[param]) >> 1; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_NOT:
 			oneParamAllowNoConst(param[0] = ~(param[0]);p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = ~p[param]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_NEG:
-			oneParamAllowNoConst(param[0] = -(param[0]);p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = -p[param]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			oneParamAllowNoConst(
+					if(param[0]==-0x8000000000000000LL){p[OFFSET_STATUS_REG] |= STATUS_ARITMETHIC_ERR;}else{p[OFFSET_STATUS_REG] &= ~(STATUS_ARITMETHIC_ERR);} param[0] = -(param[0]);p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					if(p[param]==-0x8000000000000000LL){p[OFFSET_STATUS_REG] |= STATUS_ARITMETHIC_ERR;}else{p[OFFSET_STATUS_REG] &= ~(STATUS_ARITMETHIC_ERR);} p[param] = -p[param]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_JMP:
 			p[OFFSET_INSTRUCTION_POINTER] += LLIS * ((int64_t*) p[OFFSET_INSTRUCTION_POINTER])[1];
@@ -721,13 +773,13 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			break;
 		case CMD_INC:
 			oneParamAllowNoConst(
-					param[0] = param[0] + 1; if (param[0] == -0x8000000000000000LL) {p[OFFSET_STATUS_REG] |= STATUS_CARRY;} else {p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
-					p[param] = p[param] + 1; if (p[param] == -0x8000000000000000LL) {p[OFFSET_STATUS_REG] |= STATUS_CARRY;} else {p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+					param[0] = param[0] + 1; if (param[0] == -0x8000000000000000LL) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					p[param] = p[param] + 1; if (p[param] == -0x8000000000000000LL) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_DEC:
 			oneParamAllowNoConst(
-					param[0] = param[0] - 1; if (param[0] == 0x7FFFFFFFFFFFFFFFLL) {p[OFFSET_STATUS_REG] |= STATUS_CARRY;} else {p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
-					p[param] = p[param] - 1; if (p[param] == 0x7FFFFFFFFFFFFFFFLL) {p[OFFSET_STATUS_REG] |= STATUS_CARRY;} else {p[OFFSET_STATUS_REG] &= ~STATUS_CARRY;} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+					param[0] = param[0] - 1; if (param[0] == 0x7FFFFFFFFFFFFFFFLL) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					p[param] = p[param] - 1; if (p[param] == 0x7FFFFFFFFFFFFFFFLL) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		default:
 			unknownCommandReturn

@@ -19,6 +19,8 @@ public enum Commands {
 	CMD_SET_IP(ParamArt.oneParamAllowConst), CMD_SET_SP(ParamArt.oneParamAllowConst),
 	CMD_GET_IP(ParamArt.oneParamNoConst), CMD_GET_SP(ParamArt.oneParamNoConst),
 	
+	CMD_ADDC(ParamArt.twoParamsP1NoConstP2AllowConst), CMD_SUBC(ParamArt.twoParamsP1NoConstP2AllowConst),
+	
 	;
 	//@formatter:on
 	
@@ -75,6 +77,8 @@ public enum Commands {
 	private static final int SET_SP = 0x27;
 	private static final int GET_IP = 0x28;
 	private static final int GET_SP = 0x29;
+	private static final int ADDC = 0x30;
+	private static final int SUBC = 0x31;
 	
 	public int num() {
 		switch (this) {
@@ -142,6 +146,10 @@ public enum Commands {
 			return SUB;
 		case CMD_XOR:
 			return XOR;
+		case CMD_ADDC:
+			return ADDC;
+		case CMD_SUBC:
+			return SUBC;
 		default:
 			throw new InternalError("unknown command: " + this.name());
 		
@@ -210,6 +218,10 @@ public enum Commands {
 			return CMD_SET_IP;
 		case SET_SP:
 			return CMD_SET_SP;
+		case ADDC:
+			return CMD_ADDC;
+		case SUBC:
+			return CMD_SUBC;
 		default:
 			throw new NoCommandException("this byte does not show a command!");
 		}
