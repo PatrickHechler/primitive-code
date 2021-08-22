@@ -1,16 +1,27 @@
 # primitive-code
 a register based coding language with primitive operations
 
+this is the assembler for the primitive VM
+
 ## CONSTANTS:
 
-* `--POS--` = the position from the begin of the next command
-* `#INT-MEMORY` = 0
-* `#INT-MEMORY-ALLOC` = 1
-* `#INT-MEMORY-REALLOC` = 2
-* `#INT-MEMORY-FREE` = 3
-* `#INT-ERRORS` = 1
-* `#INT-ERRORS-EXIT` = 1
-* `#INT-ERRORS-UNKNOWN_COMMAND` = 2
+* `--POS--` :                          the position from the begin of the next command
+* `#INT-MEMORY` :                      0
+* `#INT-MEMORY-ALLOC` :                1
+* `#INT-MEMORY-REALLOC` :              2
+* `#INT-MEMORY-FREE` :                 3
+* `#INT-ERRORS` :                      1
+* `#INT-ERRORS-EXIT` :                 1
+* `#INT-ERRORS-UNKNOWN_COMMAND` :      2
+* `#MAX-VALUE` :                   HEX-7FFFFFFFFFFFFFFF
+* `#MIN-VALUE` :                  NHEX-8000000000000000
+
+## STATUS:
+* the status register has some flags which are initialized with random values
+    * `LOWER` :          `HEX-0000000000000001`
+    * `GREATHER` :       `HEX-0000000000000002`
+    * `CARRY` :          `HEX-0000000000000004`
+    * `ARITMETHIC_ERR` : `HEX-0000000000000008`
 
 ## COMMANDS:
 
@@ -23,8 +34,10 @@ a register based coding language with primitive operations
 * adds the values of both parameters and stores the sum in the first parameter
     * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
         * `CARRY <- 1`
+        * `ARITMETHIC_ERR` <- 1`
     * else
         * `CARRY <- 0`
+        * `ARITMETHIC_ERR` <- 0`
     * `p1 <- p1 + p2`
     * `IP <- IP + CMD_LEN`
 
@@ -32,8 +45,10 @@ a register based coding language with primitive operations
 * subtracts the second parameter from the first parameter and stores the result in the first parameter
     * `if ((p1 > 0) & (p2 < 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 + p2) > 0))`
         * `CARRY <- 1`
+        * `ARITMETHIC_ERR` <- 1`
     * else
         * `CARRY <- 0`
+        * `ARITMETHIC_ERR` <- 0`
     * `p1 <- p1 - p2`
     * `IP <- IP + CMD_LEN`
 
@@ -41,15 +56,21 @@ a register based coding language with primitive operations
 * multiplies the first parameter with the second and stores the result in the first parameter
     * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
         * `CARRY <- 1`
+        * `ARITMETHIC_ERR` <- 1`
     * else
         * `CARRY <- 0`
+        * `ARITMETHIC_ERR` <- 0`
     * `p1 <- p1 * p2`
     * `IP <- IP + CMD_LEN`
 
 `DIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
 * divides the first parameter with the second and stores the result in the first parameter and the reminder in the second parameter
-    * `p1 <- p1 / p2`
-    * `p2 <- p1 % p2`
+    * `if p2 = 0`
+        * `ARITMETHIC_ERR` <- 1`
+    * else
+        * `ARITMETHIC_ERR` <- 0`
+        * `p1 <- p1 / p2`
+        * `p2 <- p1 % p2`
     * `IP <- IP + CMD_LEN`
 
 `AND <NO_CONST_PARAM> , <PARAM>`
@@ -105,7 +126,11 @@ a register based coding language with primitive operations
 `NEG <NO_CONST_PARAM>`
 * uses the arithmetic negation operation with the parameter and stores the result in the parameter 
 * this instruction works like `MUL p1, -1`
-    * `p1 <- 0 - p1`
+    * `if p1 = #MIN-VALUE`
+        * `ARITMETHIC_ERR <- 1`
+    * `else`
+        * `ARITMETHIC_ERR <- 0`
+        * `p1 <- 0 - p1`
     * `IP <- IP + CMD_LEN`
 
 `JMP <LABEL>`
@@ -260,10 +285,22 @@ a register based coding language with primitive operations
     * `IP <- IP + CMD_LEN`
 
 * `INC <NO_CONST_PARAM>`
+    * `if p = MAX-VALUE`
+        * `CARRY <- 1`
+        * `ARITMETHIC_ERR <- 1`
+    * else
+        * `CARRY <- 0`
+        * `ARITMETHIC_ERR <- 0`
     * `p <- p + 1`
     * `IP <- IP + CMD_LEN`
 
 * `DEC <NO_CONST_PARAM>`
+    * `if p = MIN-VALUE`
+        * `CARRY <- 1`
+        * `ARITMETHIC_ERR <- 1`
+    * else
+        * `CARRY <- 0`
+        * `ARITMETHIC_ERR <- 0`
     * `p <- p - 1`
     * `IP <- IP + CMD_LEN`
 
