@@ -1,9 +1,9 @@
 /**
  * Define a grammar called Hello
  */
- grammar ConstantPoolGrammar;
+grammar ConstantPoolGrammar;
 
- @header {
+@header {
 import java.util.*;
 import java.math.*;
 import java.nio.charset.*;
@@ -12,313 +12,430 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.Command.ConstantPoolCommand;
 }
 
- consts [Map<String,Long> constants, Map<String, Long> labels, long pos]
- returns [ConstantPoolCommand pool] @init {$pool = new ConstantPoolCommand();}
- :
- 	START
- 	(
- 		(
- 			(
- 				string [$pool]
- 			)
- 			|
- 			(
- 				numconst [$pool]
- 			)
- 			|
- 			(
- 				CONSTANT
- 				{boolean simpleAdd = true;}
+consts [Map<String,Long> constants, Map<String, Long> labels, long pos]
+returns [ConstantPoolCommand pool] @init {$pool = new ConstantPoolCommand();}
+:
+	START
+	(
+		(
+			string [$pool]
+		)
+		|
+		(
+			numconst [$pool]
+		)
+		|
+		(
+			LABEL_DECLARATION
+			{labels.put($LABEL_DECLARATION.getText().substring(1), (Long) (pos + $pool.length()));}
 
- 				(
- 					(
- 						HEX_NUM
- 						{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($HEX_NUM.getText(), 16));}
+		)
+		|
+		(
+			CONSTANT
+			{boolean simpleAdd = true;}
 
- 					)
- 					|
- 					(
- 						DEC_NUM
- 						{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($HEX_NUM.getText(), 10));}
+			(
+				(
+					(
+						(
+							(
+								HEX_NUM
+								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($HEX_NUM.getText(), 16));}
 
- 					)
- 					|
- 					(
- 						OCT_NUM
- 						{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($HEX_NUM.getText(), 8));}
+							)
+							|
+							(
+								DEC_NUM
+								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($DEC_NUM.getText(), 10));}
 
- 					)
- 					|
- 					(
- 						BIN_NUM
- 						{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($HEX_NUM.getText(), 2));}
+							)
+							|
+							(
+								DEC_NUM0
+								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($DEC_NUM0.getText(), 10));}
 
- 					)
- 					|
- 					(
- 						POS
- 						{constants.put($CONSTANT.getText().substring(1), (Long) (pos + $pool.length()));}
+							)
+							|
+							(
+								OCT_NUM
+								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($OCT_NUM.getText(), 8));}
 
- 					)
- 					{simpleAdd = false;}
+							)
+							|
+							(
+								BIN_NUM
+								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($BIN_NUM.getText(), 2));}
 
- 				)?
- 				{
- 					if (simpleAdd) {
- 						Long szw = constants.get($CONSTANT.getText().substring(1));
- 						if (szw == null) {
- 							throw new RuntimeException("unknown constant: '" + $CONSTANT.getText().substring(1) + "' (I know: '" + constants + "')");
- 						}
- 						long zw = (long) szw;
- 						$pool.addBytes(new byte[]{(byte) (zw >> 56), (byte) (zw >> 48), (byte) (zw >> 40), (byte) (zw >> 32), (byte) (zw >> 24), (byte) (zw >> 16), (byte) (zw >> 8), (byte) zw});
- 					}
- 				}
+							)
+							|
+							(
+								NEG_HEX_NUM
+								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_HEX_NUM.getText(), 16));}
 
- 			)
- 			|
- 			(
- 				LABEL_DECLARATION
- 				{labels.put($LABEL_DECLARATION.getText().substring(1), (Long) (pos + $pool.length()));}
+							)
+							|
+							(
+								NEG_DEC_NUM
+								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_DEC_NUM.getText(), 10));}
 
- 			)
- 		)*
- 	) ENDE EOF
- ;
+							)
+							|
+							(
+								NEG_DEC_NUM0
+								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_DEC_NUM0.getText(), 10));}
 
- string [ConstantPoolCommand pool] @init {Charset cs = StandardCharsets.UTF_8;}
- :
- 	(
- 		CHARS CHAR_STR
- 		{
- 			String name = $CHAR_STR.getText();
-			name = name.substring(1, name.length() - 1);
- 			name = name.replaceAll("\\\\r", "\r");
- 			name = name.replaceAll("\\\\n", "\n");
- 			name = name.replaceAll("\\\\t", "\t");
- 			name = name.replaceAll("\\\\0", "\0");
- 			name = name.replaceAll("\\\\0", "\0");
- 			name = name.replaceAll("\\\\(.)", "$1");
- 			cs = Charset.forName(name);
- 		}
+							)
+							|
+							(
+								NEG_OCT_NUM
+								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_OCT_NUM.getText(), 8));}
 
- 	)? STR_STR
- 	{
+							)
+							|
+							(
+								NEG_BIN_NUM
+								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_BIN_NUM.getText(), 2));}
+
+							)
+							|
+							(
+								POS
+								{constants.put($CONSTANT.getText().substring(1), (Long) (pos + $pool.length()));}
+
+							)
+						)
+						{simpleAdd = false;}
+
+					)?
+				)
+				{
+				if (simpleAdd) {
+					Long szw = constants.get($CONSTANT.getText().substring(1));
+					if (szw == null) {
+						throw new RuntimeException("unknown constant: '" + $CONSTANT.getText().substring(1) + "' (I know: '" + constants + "')");
+					}
+					long zw = (long) szw;
+					$pool.addBytes(new byte[]{(byte) (zw >> 56), (byte) (zw >> 48), (byte) (zw >> 40), (byte) (zw >> 32), (byte) (zw >> 24), (byte) (zw >> 16), (byte) (zw >> 8), (byte) zw});
+				}
+			}
+
+			)
+			|
+			(
+				DEL
+				{constants.remove($CONSTANT.getText().substring(1));}
+
+			)
+		)
+	)* ENDE EOF
+;
+
+string [ConstantPoolCommand pool] @init {Charset cs = Charset.defaultCharset();}
+:
+	(
+		(
+			CHARS CHAR_STR
+			{
+	 			String name = $CHAR_STR.getText();
+				name = name.substring(1, name.length() - 1);
+				char[] chars = new char[name.length()];
+				char[] strchars = name.toCharArray();
+				for (int ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
+					if (strchars[si] == '\\') {
+						si ++;
+						switch(strchars[si]){
+						case 'r':
+							chars[ci] = '\r';
+							break;
+						case 'n':
+							chars[ci] = '\n';
+							break;
+						case 't':
+							chars[ci] = '\t';
+							break;
+						case '0':
+							chars[ci] = '\0';
+							break;
+						case '\\':
+							chars[ci] = '\\';
+							break;
+						default:
+							throw new RuntimeException("illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
+						}
+					} else {
+						chars[ci] = strchars[si];
+					}
+				}
+	 			cs = Charset.forName(new String(chars));
+	 		}
+
+		)?
+	) STR_STR
+	{
 		String str = $STR_STR.getText();
 		str = str.substring(1, str.length() - 1);
-		str = str.replaceAll("\\\\r", "\r");
-		str = str.replaceAll("\\\\n", "\n");
-		str = str.replaceAll("\\\\t", "\t");
-		str = str.replaceAll("\\\\0", "\0");
-		str = str.replaceAll("\\\\0", "\0");
-		str = str.replaceAll("\\\\(.)", "$1");
-		byte[] bytes = str.getBytes(cs);
-		pool.addBytes(bytes);
-	}
-
- ;
-
- numconst [ConstantPoolCommand pool] @init {int radix;}
- :
- 	(
- 		(
- 			HEX_START
- 			{radix = 16;}
-
- 		)
- 		|
- 		(
- 			DEC_START
- 			{radix = 10;}
-
- 		)
- 		|
- 		(
- 			OCT_START
- 			{radix = 8;}
-
- 		)
- 		|
- 		(
- 			BIN_START
- 			{radix = 2;}
-
- 		)
- 	)
- 	{
- 		byte[] buffer = new byte[7];
- 		int bufi = 0;
- 	}
- 	(
- 		ANY_NUM
- 		{
-			BigInteger bi = new BigInteger($ANY_NUM.getText(), radix);
-			byte[] bytes = bi.toByteArray();
-			//the signum is always 1 (or 0, but never -1), because of the ANY_NUM Token (which does not permit a '-' or '+' befor the number)
-			//it is possible, that the sign bit goes to the next byte (for example HEX: 80 -> HEX: 0080)
-			int bits = bi.bitLength();
-			int len = bits / 8 + (bits % 8 != 0 ? 1 : 0);
-			if (len < bytes.length) {
-				byte[] zw = new byte[len];
-				if (bytes.length - len != 1) {
-					throw new AssertionError("byte.len - len != 1: bytes.len=" + bytes.length + " len=" + len);
+		char[] chars = new char[str.length()];
+		char[] strchars = str.toCharArray();
+		for (int ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
+			if (strchars[si] == '\\') {
+				si ++;
+				switch(strchars[si]){
+				case 'r':
+					chars[ci] = '\r';
+					break;
+				case 'n':
+					chars[ci] = '\n';
+					break;
+				case 't':
+					chars[ci] = '\t';
+					break;
+				case '0':
+					chars[ci] = '\0';
+					break;
+				case '\\':
+					chars[ci] = '\\';
+					break;
+				default:
+					throw new RuntimeException("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
 				}
-				System.arraycopy(bytes, 1, zw, 0, len);
-				bytes = zw;
-			}
-			if (bufi > 0) {
-				byte[] zw = new byte[bufi + bytes.length];
-				System.arraycopy(buffer, 0, zw, 0, bufi);
-				System.arraycopy(bytes, 0, zw, bufi, bytes.length);
-				bytes = zw;
-			}
-			bufi = bytes.length % 8;
-			if (bufi > 0) {
-				System.arraycopy(bytes, bytes.length - bufi, buffer, 0, bufi);
-				bytes = Arrays.copyOf(bytes, bytes.length - bufi);
-			}
-			if (bytes.length > 0){
-				pool.addBytes(bytes);
+			} else {
+				chars[ci] = strchars[si];
 			}
 		}
+		byte[] bytes = new String(chars).getBytes(cs);
+		pool.addBytes(bytes);
+		System.out.println("[J-LOG]: string='"+new String(bytes,cs)+"'");
+		System.out.println("[J-LOG]: string='"+new String(bytes,StandardCharsets.UTF_16LE)+"'");
+		for(int i = 0; i < bytes.length; i ++) {
+			System.out.println("[J-LOG]: bytes[" + i + "]=" + (0xFF & (int) bytes[i]));
+		}
+	}
 
- 	)+
- 	{
- 		if (bufi > 0) {
- 			pool.addBytes(Arrays.copyOf(buffer, bufi));
- 		}
- 	}
- ;
+;
 
- CHARS
- :
- 	'CHARS'
- ;
+numconst [ConstantPoolCommand pool] @init {int radix;}
+:
+	(
+		{long num;}
 
- CHAR_STR
- :
- 	'\''
- 	(
- 		(
- 			~'\''
- 		)
- 		|
- 		(
- 			'\\' .
- 		)
- 	)* '\''
- ;
+		(
+			(
+				HEX_NUM
+				{num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
 
- STR_STR
- :
- 	'"'
- 	(
- 		(
- 			~'"'
- 		)
- 		|
- 		(
- 			'\\' .
- 		)
- 	)* '"'
- ;
+			)
+			|
+			(
+				DEC_NUM
+				{num = Long.parseLong($DEC_NUM.getText(), 10);}
 
- START
- :
- 	':'
- ;
+			)
+			|
+			(
+				DEC_NUM0
+				{num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
 
- ENDE
- :
- 	'>'
- ;
+			)
+			|
+			(
+				OCT_NUM
+				{num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
 
- HEX_NUM
- :
- 	'HEX-' [0-9a-fA-F]+
- ;
+			)
+			|
+			(
+				BIN_NUM
+				{num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
 
- DEC_NUM
- :
- 	'DEC-' [0-9]+
- ;
+			)
+			|
+			(
+				NEG_HEX_NUM
+				{num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
 
- OCT_NUM
- :
- 	'OCT-' [0-7]+
- ;
+			)
+			|
+			(
+				NEG_DEC_NUM
+				{num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
 
- BIN_NUM
- :
- 	'BIN-' [01]+
- ;
+			)
+			|
+			(
+				NEG_DEC_NUM0
+				{num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
 
- HEX_START
- :
- 	'HEX:'
- ;
+			)
+			|
+			(
+				NEG_OCT_NUM
+				{num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
 
- DEC_START
- :
- 	'DEC:'
- ;
+			)
+			|
+			(
+				NEG_BIN_NUM
+				{num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
 
- OCT_START
- :
- 	'OCT:'
- ;
+			)
+		)
+		{
+	 		pool.addBytes(new byte[]{
+	 		(byte) num,
+	 		(byte) (num << 8),
+	 		(byte) (num << 16),
+	 		(byte) (num << 24),
+	 		(byte) (num << 32),
+	 		(byte) (num << 40),
+	 		(byte) (num << 48),
+	 		(byte) (num << 56),
+	 		});
+	 	}
 
- BIN_START
- :
- 	'BIN:'
- ;
+	)+
+;
 
- DEL
- :
- 	'~DEL'
- ;
+CHARS
+:
+	'CHARS'
+;
 
- POS
- :
- 	'--POS--'
- ;
+CHAR_STR
+:
+	'\''
+	(
+		(
+			~'\''
+		)
+		|
+		(
+			'\\' .
+		)
+	)* '\''
+;
 
- ANY_NUM
- :
- 	[0-9a-fA-f]+
- ;
+STR_STR
+:
+	'"'
+	(
+		(
+			~'"'
+		)
+		|
+		(
+			'\\' .
+		)
+	)* '"'
+;
 
- CONSTANT
- :
- 	'#' [a-zA-Z\-_]+
- ;
+START
+:
+	':'
+;
 
- LABEL_DECLARATION
- :
- 	'@' [a-zA-Z\-_]+
- ;
+ENDE
+:
+	'>'
+;
 
- LINE_COMMENT
- :
- 	'|>'
- 	(
- 		~( [\r\n] )
- 	)* -> skip
- ;
+NEG_HEX_NUM
+:
+	'NHEX-' [0-9a-fA-F]+
+;
 
- BLOCK_COMMENT
- :
- 	'|:'
- 	(
- 		~'|'
- 		|
- 		(
- 			'|' ~'>'
- 		)
- 	)* '|>' -> skip
- ;
+NEG_DEC_NUM
+:
+	'NDEC-' [0-9]+
+;
 
- WS
- :
- 	[ \t\r\n]+ -> skip
- ;
+NEG_DEC_NUM0
+:
+	'-' [0-9]+
+;
+
+NEG_OCT_NUM
+:
+	'NOCT-' [0-7]+
+;
+
+NEG_BIN_NUM
+:
+	'NBIN-' [01]+
+;
+
+HEX_NUM
+:
+	'HEX-' [0-9a-fA-F]+
+;
+
+DEC_NUM0
+:
+	'DEC-' [0-9]+
+;
+
+DEC_NUM
+:
+	[0-9]+
+;
+
+OCT_NUM
+:
+	'OCT-' [0-7]+
+;
+
+BIN_NUM
+:
+	'BIN-' [01]+
+;
+
+DEL
+:
+	'~DEL'
+;
+
+POS
+:
+	'--POS--'
+;
+
+ANY_NUM
+:
+	[0-9a-fA-f]+
+;
+
+CONSTANT
+:
+	'#' [a-zA-Z\-_]+
+;
+
+LABEL_DECLARATION
+:
+	'@' [a-zA-Z\-_]+
+;
+
+LINE_COMMENT
+:
+	'|>'
+	(
+		~( [\r\n] )
+	)* -> skip
+;
+
+BLOCK_COMMENT
+:
+	'|:'
+	(
+		~'|'
+		|
+		(
+			'|' ~'>'
+		)
+	)* '|>' -> skip
+;
+
+WS
+:
+	[ \t\r\n]+ -> skip
+;
  

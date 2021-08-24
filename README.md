@@ -5,14 +5,28 @@ this is the assembler for the primitive VM
 
 ## CONSTANTS:
 
+except for the `--POS--` constant all other constants can be overwritten and removed
+
 * `--POS--` :                          the position from the begin of the next command
-* `#INT-MEMORY` :                      0
+* `#INT-MEMORY` :                      1
 * `#INT-MEMORY-ALLOC` :                1
 * `#INT-MEMORY-REALLOC` :              2
 * `#INT-MEMORY-FREE` :                 3
-* `#INT-ERRORS` :                      1
+* `#INT-ERRORS` :                      2
 * `#INT-ERRORS-EXIT` :                 1
 * `#INT-ERRORS-UNKNOWN_COMMAND` :      2
+* `#INT-STREAMS` :                     3
+* `#INT-STREAMS-GET_OUT` :             1
+* `#INT-STREAMS-GET_LOG` :             2
+* `#INT-STREAMS-GET_IN` :              3
+* `#INT-STREAMS-NEW_IN` :              4
+* `#INT-STREAMS-NEW_OUT` :             5
+* `#INT-STREAMS-WRITE` :               6
+* `#INT-STREAMS-READ` :                7
+* `#INT-STREAMS-REM` :                 8
+* `#INT-STREAMS-MK_DIR` :              9
+* `#INT-STREAMS-REM_DIR` :             10
+* `#INT-STREAMS-CLOSE_STREM` :         11
 * `#MAX-VALUE` :                   HEX-7FFFFFFFFFFFFFFF
 * `#MIN-VALUE` :                  NHEX-8000000000000000
 
@@ -22,6 +36,13 @@ this is the assembler for the primitive VM
     * `GREATHER`
     * `CARRY`
     * `ARITMETHIC_ERR`
+
+## STRINGS:
+* if any command, function or whatever of primitive-code refers to STRING(s) this definition is used
+* a string is a structure which contains multiple characters of the UTF-16 encoding
+* the first element of the string is the number of characters it contains 
+* all following elements contains four characters
+    * the last element may contain less characters (it contains the number of the first element modulo four characters)
 
 ## COMMANDS:
 
@@ -251,27 +272,68 @@ this is the assembler for the primitive VM
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-    * 0: memory management
+    1. memory management
         * use `AX` to specify the method of memory management
-                1. allocate a memory-block
-                    * `BX` saves the size of the block
-                    * if the value of `BX` is `-1` after the call the memory-block could not be allocated
-                    * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block
-                2. reallocate a memory-block
-                    * `BX` points to the memory-block
-                    * `CX` saves the new size of the memory-block
-                    * if the value of `BX` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
-                    * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
-                3. free a memory-block
-                    * `BX` points to the old memory-block
-                    * after this the memory-block should not be used
-    * 1: errors
+            1. allocate a memory-block
+                * `BX` saves the size of the block
+                * if the value of `BX` is `-1` after the call the memory-block could not be allocated
+                * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block
+            2. reallocate a memory-block
+                * `BX` points to the memory-block
+                * `CX` saves the new size of the memory-block
+                * if the value of `BX` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
+                * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
+            3. free a memory-block
+                * `BX` points to the old memory-block
+                * after this the memory-block should not be used
+    2. errors
         * use `AX` to specify the error
             1. exit
                 * use `BX` to specify the exit number of the progress
             2. unknown command
                 * exits the progress with the exit number -2
+    3. streams
+        * use `AX` to specify
+            1. get out stream
+                * sets the `AX` value to the default out stream of this progress
+            2. get log stream
+                * sets the `AX` value to the default log stream of this progress
+            3. get in stream
+                * sets the `AX` value to the default in stream of this progress
+            4. open new in stream
+                * `BX` contains a pointer to the STRING, which refers to the file which should be read
+                * opens a new in stream to the specified file
+                * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+            5. open new out stream
+                * `BX` contains a pointer to the STRING, which refers to the file which should be created
+                * opens a new out stream to the specified file
+                * if the file exist already it's contend will be overwritten
+                * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+            6. write
+                * `BX` contains the STREAM-ID
+                * `CX` contains the number of elements to write
+                * `DX` points to the elements to write
+                * after execution `AX` will contain the number of written elements
+            7. read
+                * `BX` contains the STREAM-ID
+                * `CX` contains the number of elements to read
+                * `DX` points to the elements to read
+                * after execution `AX` will contain the number of read elements or -1 if the stream reached its end before this call
+            8. remove file
+                * `BX` contains a pointer of a STRING with the file
+                * if the file was successfully removed `AX` will contain `1`, if not `0`
+            9. make dictionary
+                * `BX` contains a pointer of a STRING with the dictionary
+                * if the dictionary was successfully created `AX` will contain `1`, if not `0`
+            10. remove dictionary
+                * `BX` contains a pointer of a STRING with the dictionary
+                * if the dictionary was successfully removed `AX` will contain `1`, if not `0`
+                * if the dictionary is not empty this call will fail (and set `AX` to `0`)
+            11. close stream
+                * `BX` contains the STREAM-ID
+                * if the stream was closed successfully `AX` will contain `1`, if not `0`
 
+`PUSH <PARAM>`
 `PUSH <PARAM>`
 * pushes the parameter to the stack
     * `SP <- SP + 1`

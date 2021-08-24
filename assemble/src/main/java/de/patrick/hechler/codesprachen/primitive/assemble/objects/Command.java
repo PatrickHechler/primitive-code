@@ -45,9 +45,6 @@ public class Command {
 				int l = bytes.length;
 				int nl = l + (8 - mod);
 				bytes = Arrays.copyOf(bytes, nl);
-				for (; l < bytes.length; l ++ ) {
-					bytes[l] = 0x00;
-				}
 				len ++ ;
 				System.err.println("[WARN]: the added bytes does not fit in the right len (len % 8 != 0) added empty (0x00) bytes to the end (len=" + l + " newLen=" + nl + ")");
 			}
@@ -84,8 +81,6 @@ public class Command {
 		case CMD_MOV:
 		case CMD_MUL:
 		case CMD_OR:
-		case CMD_POP:
-		case CMD_PUSH:
 		case CMD_SUB:
 		case CMD_SUBC:
 		case CMD_XOR:
@@ -124,9 +119,11 @@ public class Command {
 			case Param.ART_ASR_BSR:
 				break;
 			default:
-				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
+				throw new IllegalStateException("unknown art: " + Param.artToString(p2.art));
 			}
 			return len;
+		case CMD_POP:
+		case CMD_PUSH:
 		case CMD_DEC:
 		case CMD_INC:
 		case CMD_SET_IP:

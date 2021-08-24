@@ -20,15 +20,28 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	Map<String,Long> constants = new HashMap<>();
  	$labels = new HashMap<>();
  	$commands = new ArrayList<>();
- 	constants.put("INT-MEMORY", 0L);
- 	constants.put("INT-MEMORY-ALLOC", 1L);
- 	constants.put("INT-MEMORY-REALLOC", 2L);
- 	constants.put("INT-MEMORY-FREE", 3L);
- 	constants.put("INT-ERRORS", 1L);
- 	constants.put("INT-ERRORS-EXIT", 1L);
- 	constants.put("INT-ERRORS-UNKNOWN_COMMAND", 2L);
- 	constants.put("MAX-VALUE", 0x7FFFFFFFFFFFFFFFL);
- 	constants.put("MIN-VALUE", -0x8000000000000000L);
+ 	constants.put("INT-MEMORY", (Long) 1L);
+	constants.put("INT-MEMORY", (Long) 1L);
+	constants.put("INT-MEMORY-ALLOC", (Long) 1L);
+	constants.put("INT-MEMORY-REALLOC", (Long) 2L);
+	constants.put("INT-MEMORY-FREE", (Long) 3L);
+	constants.put("INT-ERRORS", (Long) 2L);
+	constants.put("INT-ERRORS-EXIT", (Long) 1L);
+	constants.put("INT-ERRORS-UNKNOWN_COMMAND", (Long) 2L);
+	constants.put("INT-STREAMS", (Long) 3L);
+	constants.put("INT-STREAMS-GET_OUT", (Long) 1L);
+	constants.put("INT-STREAMS-GET_LOG", (Long) 2L);
+	constants.put("INT-STREAMS-GET_IN", (Long) 3L);
+	constants.put("INT-STREAMS-NEW_IN", (Long) 4L);
+	constants.put("INT-STREAMS-NEW_OUT", (Long) 5L);
+	constants.put("INT-STREAMS-WRITE", (Long) 6L);
+	constants.put("INT-STREAMS-READ", (Long) 7L);
+	constants.put("INT-STREAMS-REM", (Long) 8L);
+	constants.put("INT-STREAMS-MK_DIR", (Long) 9L);
+	constants.put("INT-STREAMS-REM_DIR", (Long) 10L);
+	constants.put("INT-STREAMS-CLOSE_STREAM", (Long) 11L);
+	constants.put("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
+	constants.put("MIN-VALUE", (Long) (-0x8000000000000000L));
  }
  :
  	(
@@ -46,15 +59,17 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  		(
  			CONSTANT
  			(
- 				nummer [pos, constants]
- 				{constants.put($CONSTANT.getText().substring(1), $nummer.num);}
+ 				(
+ 					nummer [pos, constants]
+ 					{constants.put($CONSTANT.getText().substring(1), $nummer.num);}
 
- 			)
- 			|
- 			(
- 				DEL
- 				{constants.remove($CONSTANT.getText().substring(1));}
+ 				)
+ 				|
+ 				(
+ 					DEL
+ 					{constants.remove($CONSTANT.getText().substring(1));}
 
+ 				)
  			)
  		)
  	)* EOF
@@ -802,11 +817,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'BIN-' [01]+
  ;
 
- NAME
- :
- 	[a-zA-Z\-_]+
- ;
-
  DEL
  :
  	'~DEL'
@@ -815,6 +825,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  POS
  :
  	'--POS--'
+ ;
+
+ NAME
+ :
+ 	[a-zA-Z\-_]+
  ;
 
  CONSTANT
@@ -843,7 +858,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			'\''
  			(
  				(
- 					~'\''
+ 					~[\r\n'\\]
  				)
  				|
  				(
@@ -856,7 +871,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			'"'
  			(
  				(
- 					~'"'
+ 					~[\r\n"\\]
  				)
  				|
  				(
@@ -866,7 +881,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  		)
  		|
  		(
- 			~'>'
+ 			(
+ 				~'>'
+ 			)+
  		)
  	)* '>'
  ;

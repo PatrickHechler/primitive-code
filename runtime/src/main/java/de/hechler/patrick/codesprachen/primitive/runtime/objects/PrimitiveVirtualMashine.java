@@ -9,43 +9,6 @@ public class PrimitiveVirtualMashine {
 		System.load(Paths.get("./primitive-runtime.dll").toAbsolutePath().toString());
 	}
 	
-	public static void main(String[] args) {
-		PrimitiveVirtualMashine pvm = new PrimitiveVirtualMashine();
-		System.out.println("[J-LOG]: values=" + pvm.values);
-		System.out.println("[J-LOG]: >> openfile(\"dummy\")");
-		try {
-			System.out.println("[J-LOG]: " + pvm.openfile("dummy") + " <- openfile(\"dummy\") <<");
-		} catch (IOException e) {
-			System.err.println("[J-ERR]: catched native error in openfile(\"dummy\"):");
-			e.printStackTrace();
-			System.out.println("[J-LOG]: " + e.getClass().getName() + " throwed by openfile(\"dummy\") <<");
-		}
-		
-		System.out.println("[J-LOG]: >> malloc(10L)");
-		long mem = pvm.malloc(10L);
-		System.out.println("[J-LOG]: " + mem + " <- malloc(10L) <<");
-		
-		System.out.println("[J-LOG]: >> realloc(" + mem + "L, 11L)");
-		mem = pvm.realloc(mem, 11L);
-		System.out.println("[J-LOG]: " + mem + " <- malloc(11L) <<");
-		
-		System.out.println("[J-LOG]: >> realloc(" + mem + "L, 2L)");
-		pvm.realloc(mem, 2L);
-		System.out.println("[J-LOG]: " + mem + " <- realloc(2L) <<");
-		
-		System.out.println("[J-LOG]: >> malloc(2L)");
-		long mem0 = pvm.malloc(2L);
-		System.out.println("[J-LOG]: " + mem0 + " <- malloc(2L) <<");
-		
-		System.out.println("[J-LOG]: >> free(" + mem + ")");
-		pvm.free(mem);
-		System.out.println("[J-LOG]: free(" + mem + ") <<");
-		
-		System.out.println("[J-LOG]: >> free(" + mem0 + ")");
-		pvm.free(mem0);
-		System.out.println("[J-LOG]: free(" + mem0 + ") <<");
-	}
-	
 	/**
 	 * allocates the memory needed for the primitive virtual machine
 	 * 
@@ -62,7 +25,6 @@ public class PrimitiveVirtualMashine {
 	
 	public PrimitiveVirtualMashine() throws OutOfMemoryError {
 		values = create();
-		System.out.println("[J-LOG]: values=" + values);
 	}
 	
 	/**
@@ -72,7 +34,7 @@ public class PrimitiveVirtualMashine {
 	 * 
 	 * @param file
 	 *            the full name of the file to be executed
-	 * @return the exit code of the runed progress
+	 * @return the exit code of the executed progress
 	 * @throws OutOfMemoryError
 	 *             if there is not enough memory for the file to be loaded before execution
 	 * @throws IOException

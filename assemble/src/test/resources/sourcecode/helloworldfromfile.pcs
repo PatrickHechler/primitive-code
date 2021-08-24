@@ -1,0 +1,32 @@
+|:
+| Hello World code which prints the first 22 elements of file on the default out stream
+|>
+JMP START
+:
+	#OUT-FILE-NAME-SIZE 22 |> number of int64 elements
+	#OUT-FILE-STRING --POS--
+	88 |> strlen
+	CHARS 'UTF-16LE' "C:\\Users\\Patrick\\git\\primitive-code\\assemble\\src\\test\\resources\\readfiles\\helloworld.txt"
+>
+@START
+#GET_IP-POS --POS--
+GET_IP BX
+SUB BX , #GET_IP-POS
+#GET_IP-POS ~DEL
+ADD BX , #OUT-FILE-STRING
+MOV AX , #INT-STREAMS-NEW_IN
+INT #INT-STREAMS
+MOV DX , BX
+MOV BX , AX
+MOV CX , #OUT-FILE-NAME-SIZE |> just use the now unneeded filename for the input (so I don't need to allocate new memory)
+MOV AX , #INT-STREAMS-READ
+INT #INT-STREAMS
+MOV CX , AX
+MOV AX , #INT-STREAMS-GET_OUT
+INT #INT-STREAMS
+MOV BX , AX
+MOV AX , #INT-STREAMS-WRITE
+INT #INT-STREAMS
+MOV BX , 0 |> EXIT-SUCCESS
+MOV AX , #INT-ERRORS-EXIT
+INT #INT-ERRORS

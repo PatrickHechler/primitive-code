@@ -1,0 +1,9 @@
+|: 
+| Hello World code which adds the values of AX and BX and returns the result in CX
+|>
+@START
+ADD AX, BX
+MOV CX, AX
+MOV BX, 0 |> EXIT-SUCCESS
+MOV AX, #INT-ERRORS-EXIT
+INT #INT-ERRORS
