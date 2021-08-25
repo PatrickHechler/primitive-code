@@ -26,12 +26,6 @@ returns [ConstantPoolCommand pool] @init {$pool = new ConstantPoolCommand();}
 		)
 		|
 		(
-			LABEL_DECLARATION
-			{labels.put($LABEL_DECLARATION.getText().substring(1), (Long) (pos + $pool.length()));}
-
-		)
-		|
-		(
 			CONSTANT
 			{boolean simpleAdd = true;}
 
