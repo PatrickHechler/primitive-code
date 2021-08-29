@@ -84,6 +84,9 @@ enum {
 	CMD_SET_SP = 0x27,
 	CMD_GET_IP = 0x28,
 	CMD_GET_SP = 0x29,
+	CMD_GET_INTS = 0x2A,
+	CMD_SET_INTS = 0x2B,
+	CMD_IRET = 0x2C,
 	CMD_ADDC = 0x30,
 	CMD_SUBC = 0x31,
 };
@@ -332,7 +335,9 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
 	free((void*) (((long long) pntr) * LLIS));
 }
 
-#define unknownCommandReturn return -2;
+//#define unknownCommandReturn return -2;
+#define unknownCommandReturn if (p[OFFSET_INTERUPT_POINTER] != -1 * LLIS) { int64_t inter = ((int64_t*) p[OFFSET_INTERUPT_POINTER])(DEF_INT_ERRORS); if (inter != -1) { inter *= LLIS; p[0] = DEF_INT_ERRORS_UNKNOWN_COMMAND; p[OFFSET_STACK_POINTER] += LLIS; ((int64_t*)p[OFFSET_STACK_POINTER])[0] = p[OFFSET_INSTRUCTION_POINTER]; p[OFFSET_INSTRUCTION_POINTER] = inter; } else { return -2; } } else { return -2; }
+
 /*
  * @formatter:off
  * 	switch (cmd.bytes[1]) {
@@ -766,8 +771,12 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			break;
 		}
+		case CMD_IRET:
+			printf("[N-LOG]: CMD=IRET\n");
+			goto CMD_ANY_RETURN;
 		case CMD_RET:
 			printf("[N-LOG]: CMD=RET\n");
+			CMD_ANY_RETURN:
 			fflush(stdout);
 			p[OFFSET_INSTRUCTION_POINTER] = ((int64_t*) p[OFFSET_STACK_POINTER])[0] * LLIS;
 			(p[OFFSET_STACK_POINTER] -= LLIS);
@@ -787,317 +796,335 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 			oneParamAllowConst(
 					puts("[N-LOG]: INT");
 					fflush(stdout);
-					switch(param) {
-					case DEF_INT_MEMORY:
-						puts("[N-LOG]: INT MEMORY");
-						puts("[N-LOG]: INT");
-						switch(p[0]) {
-						case DEF_INT_MEMORY_ALLOC: {
-							puts("[N-LOG]: INT MEMORY ALLOC");
-							int64_t* pntr = malloc((p[1] * LLIS) + LLIS - 1);
-							puts("[N-LOG]: int64_t* pntr = malloc((p[1] * LLIS) + LLIS - 1);");
-							printf("[N-LOG]: pntr=%I64d\n", pntr);
-							puts("[N-LOG]: if (pntr) {");
-							if (pntr) {
-								puts("[N-LOG]: \tint64_t mem = (int64_t) pntr;");
-								int64_t mem = (int64_t) pntr;
-								printf("[N-LOG]: mem= %I64d\n", mem);
-								puts("[N-LOG]: \tint64_t mod = mem % LLIS;");
-								int64_t mod = mem % LLIS;
-								printf("[N-LOG]: mod= %I64d\n", mod);
-								puts("[N-LOG]: \tmem = mem / LLIS;");
-								mem = mem / LLIS;
-								printf("[N-LOG]: mem= %I64d\n", mem);
-								puts("[N-LOG]: \tif (mod) {");
-								if (mod) {
-									puts("[N-LOG]: \t\tmem += mod - LLIS;");
-									mem += mod - LLIS;
+					if (p[OFFSET_INTERUPT_POINTER] != -1 * LLIS && ((int64_t*) p[OFFSET_INTERUPT_POINTER])[param] != -1) {
+						int64_t inter = ((int64_t*) p[OFFSET_INTERUPT_POINTER])[param];
+						inter *= LLIS;
+						p[OFFSET_STACK_POINTER] += LLIS;
+						((int64_t*)p[OFFSET_STACK_POINTER])[0] = p[OFFSET_INSTRUCTION_POINTER];
+						p[OFFSET_INSTRUCTION_POINTER] = inter;
+					} else {
+						switch(param) {
+						case DEF_INT_MEMORY:
+							puts("[N-LOG]: INT MEMORY");
+							puts("[N-LOG]: INT");
+							switch(p[0]) {
+							case DEF_INT_MEMORY_ALLOC: {
+								puts("[N-LOG]: INT MEMORY ALLOC");
+								int64_t* pntr = malloc((p[1] * LLIS) + LLIS - 1);
+								puts("[N-LOG]: int64_t* pntr = malloc((p[1] * LLIS) + LLIS - 1);");
+								printf("[N-LOG]: pntr=%I64d\n", pntr);
+								puts("[N-LOG]: if (pntr) {");
+								if (pntr) {
+									puts("[N-LOG]: \tint64_t mem = (int64_t) pntr;");
+									int64_t mem = (int64_t) pntr;
+									printf("[N-LOG]: mem= %I64d\n", mem);
+									puts("[N-LOG]: \tint64_t mod = mem % LLIS;");
+									int64_t mod = mem % LLIS;
+									printf("[N-LOG]: mod= %I64d\n", mod);
+									puts("[N-LOG]: \tmem = mem / LLIS;");
+									mem = mem / LLIS;
+									printf("[N-LOG]: mem= %I64d\n", mem);
+									puts("[N-LOG]: \tif (mod) {");
+									if (mod) {
+										puts("[N-LOG]: \t\tmem += mod - LLIS;");
+										mem += mod - LLIS;
+									}
+									puts("[N-LOG]: \t}");
+									printf("[N-LOG]: mem= %I64d\n", mem);
+									puts("[N-LOG]: p[1] = mem;");
+									p[1] = mem;
+									puts("[N-LOG]: } else {...}");
+								} else {
+									puts("[N-LOG]: ...} else {");
+									puts("[N-LOG]: \tp[1] = -1;");
+									p[1] = -1;
+									puts("[N-LOG]: }");
 								}
-								puts("[N-LOG]: \t}");
-								printf("[N-LOG]: mem= %I64d\n", mem);
-								puts("[N-LOG]: p[1] = mem;");
-								p[1] = mem;
-								puts("[N-LOG]: } else {...}");
-							} else {
-								puts("[N-LOG]: ...} else {");
-								puts("[N-LOG]: \tp[1] = -1;");
-								p[1] = -1;
-								puts("[N-LOG]: }");
+								printf("[N-LOG]: p[1]=%I64d\n", p[1]);
+								break;
 							}
-							printf("[N-LOG]: p[1]=%I64d\n", p[1]);
-							break;
-						}
-						case DEF_INT_MEMORY_REALLOC: {
-							puts("[N-LOG]: INT MEMORY REALLOC");
-							int64_t* pntr = realloc((int64_t*) (p[1] * LLIS), (p[2] * LLIS) + LLIS - 1);
-							if (pntr){
-								int64_t mem = (int64_t) pntr;
-								int64_t mod = mem / LLIS;
-								mem = mem % LLIS;
-								if (mod) {
-									mem += mod - LLIS;
+							case DEF_INT_MEMORY_REALLOC: {
+								puts("[N-LOG]: INT MEMORY REALLOC");
+								int64_t* pntr = realloc((int64_t*) (p[1] * LLIS), (p[2] * LLIS) + LLIS - 1);
+								if (pntr){
+									int64_t mem = (int64_t) pntr;
+									int64_t mod = mem / LLIS;
+									mem = mem % LLIS;
+									if (mod) {
+										mem += mod - LLIS;
+									}
+									p[1] = mem;
+								} else {
+									p[1] = -1;
 								}
-								p[1] = mem;
-							} else {
-								p[1] = -1;
+								break;
+							}
+							case DEF_INT_MEMORY_FREE:
+								puts("[N-LOG]: INT MEMORY FREE");
+								free((int64_t*) (p[1] * LLIS));
+								break;
+							default:
+								puts("[N-LOG]: unknown command M=0!");
+								unknownCommandReturn
 							}
 							break;
-						}
-						case DEF_INT_MEMORY_FREE:
-							puts("[N-LOG]: INT MEMORY FREE");
-							free((int64_t*) (p[1] * LLIS));
-							break;
-						default:
-							puts("[N-LOG]: unknown command M=0!");
-							unknownCommandReturn
-						}
-						break;
-					case DEF_INT_ERRORS:
-						puts("[N-LOG]: INT ERRORS");
-						fflush(stdout);
-						switch(p[0]){
-						case DEF_INT_ERRORS_EXIT:
-							puts("[N-LOG]: INT ERRORS EXIT");
-							printf("[N-LOG]: return execute with %I64d\n", p[1]);
-							return p[1];
-						case DEF_INT_ERRORS_UNKNOWN_COMMAND: /*unknown command*/
-							puts("[N-LOG]: INT ERRORS UNCNOWN_COMMAND");
-							puts("[N-LOG]: wanted unknown command return!");
-							return -2;
-						default:
-							puts("[N-LOG]: unknown command M=1!");
-							unknownCommandReturn
-						}
-						break;
-					case DEF_INT_STREAMS:
-						puts("[N-LOG]: INT STREAMS");
-						fflush(stdout);
-						switch(p[0]){
-						case DEF_INT_STREAMS_GET_OUT: {
-							puts("[N-LOG]: INT STREAMS GET_OUT");
+						case DEF_INT_ERRORS:
+							puts("[N-LOG]: INT ERRORS");
 							fflush(stdout);
-							p[0] = (int64_t) stdout;
-							break;
-						}
-						case DEF_INT_STREAMS_GET_LOG: {
-							puts("[N-LOG]: INT STREAMS GET_LOG");
-							fflush(stdout);
-							p[0] = (int64_t) stderr;
-							break;
-						}
-						case DEF_INT_STREAMS_GET_IN: {
-							puts("[N-LOG]: INT STREAMS GET_IN");
-							fflush(stdout);
-							p[0] = (int64_t) stdin;
-							break;
-						}
-						case DEF_INT_STREAMS_NEW_IN: {
-							puts("[N-LOG]: INT STREAMS NEW_IN");
-							fflush(stdout);
-							int64_t* wstr = (int64_t*) (p[1] * LLIS);
-							stringToChars
-							printf("[N-LOG]: file: '%s'\n", str);
-							FILE* f = fopen64(str, "rb");
-							if (f) {
-								free(str);
-								p[0] = (int64_t) f;
-							} else {
-								p[0] = -1LL;
+							switch(p[0]){
+							case DEF_INT_ERRORS_EXIT:
+								puts("[N-LOG]: INT ERRORS EXIT");
+								printf("[N-LOG]: return execute with %I64d\n", p[1]);
+								return p[1];
+							case DEF_INT_ERRORS_UNKNOWN_COMMAND: /*unknown command*/
+								puts("[N-LOG]: INT ERRORS UNCNOWN_COMMAND");
+								puts("[N-LOG]: wanted unknown command return!");
+								return -2;
+							default:
+								puts("[N-LOG]: unknown command M=1!");
+								unknownCommandReturn
 							}
 							break;
-						}
-						case DEF_INT_STREAMS_NEW_OUT: {
-							puts("[N-LOG]: INT STREAMS NEW_OUT");
+						case DEF_INT_STREAMS:
+							puts("[N-LOG]: INT STREAMS");
 							fflush(stdout);
-							int64_t* wstr = (int64_t*) (p[1] * LLIS);
-							stringToChars
-							printf("[N-LOG]: wstr.len=%I64d\n", wstr[-1]);
-							if (zw == -1){
-								printf("[N-LOG]: illegal name '%s'\n", str);
-								p[0] = -1;
-							} else {
-								printf("[N-LOG]: file='%s'\n", str);
+							switch(p[0]){
+							case DEF_INT_STREAMS_GET_OUT: {
+								puts("[N-LOG]: INT STREAMS GET_OUT");
 								fflush(stdout);
-								FILE* f = fopen64(str, "w");
-								free(str);
+								p[0] = (int64_t) stdout;
+								break;
+							}
+							case DEF_INT_STREAMS_GET_LOG: {
+								puts("[N-LOG]: INT STREAMS GET_LOG");
+								fflush(stdout);
+								p[0] = (int64_t) stderr;
+								break;
+							}
+							case DEF_INT_STREAMS_GET_IN: {
+								puts("[N-LOG]: INT STREAMS GET_IN");
+								fflush(stdout);
+								p[0] = (int64_t) stdin;
+								break;
+							}
+							case DEF_INT_STREAMS_NEW_IN: {
+								puts("[N-LOG]: INT STREAMS NEW_IN");
+								fflush(stdout);
+								int64_t* wstr = (int64_t*) (p[1] * LLIS);
+								stringToChars
+								printf("[N-LOG]: file: '%s'\n", str);
+								FILE* f = fopen64(str, "rb");
 								if (f) {
-									printf("[N-LOG]: _base=%d\n", f[0]._base);
-									printf("[N-LOG]: _bufsiz=%d\n", f[0]._bufsiz);
-									printf("[N-LOG]: _charbuf=%d\n", f[0]._charbuf);
-									printf("[N-LOG]: _cnt=%d\n", f[0]._cnt);
-									printf("[N-LOG]: _file=%d\n", f[0]._file);
-									printf("[N-LOG]: _flag=%d\n", f[0]._flag);
-									printf("[N-LOG]: _ptr=%d\n", f[0]._ptr);
-									printf("[N-LOG]: _tmpfname=%d\n", f[0]._tmpfname);
+									free(str);
 									p[0] = (int64_t) f;
 								} else {
-									p[0] = -1;
+									p[0] = -1LL;
 								}
+								break;
 							}
-							break;
-						}
-						case DEF_INT_STREAMS_WRITE: {
-							puts("[N-LOG]: INT STREAMS WRITE");
-							fflush(stdout);
-							FILE* f = (FILE*) p[1];
-							printf("[N-LOG]: _base=%d", f[0]._base);
-							printf("[N-LOG]: _bufsiz=%d", f[0]._bufsiz);
-							printf("[N-LOG]: _charbuf=%d", f[0]._charbuf);
-							printf("[N-LOG]: _cnt=%d", f[0]._cnt);
-							printf("[N-LOG]: _file=%d", f[0]._file);
-							printf("[N-LOG]: _flag=%d", f[0]._flag);
-							printf("[N-LOG]: _ptr=%d", f[0]._ptr);
-							printf("[N-LOG]: _tmpfname=%d", f[0]._tmpfname);
-							printf("[N-LOG]: f==stdout %d\n", f == stdout);
-							fflush(stdout);
-							printf("[N-LOG]: fwrite((int64_t*)p[3], LLIS, p[2], f);\n");
-							fflush(stdout);
-							printf("[N-LOG]: fwrite((int64_t*)%I64d, %d, %I64d, %I64d);\n", p[3], LLIS, p[2], f);
-							fflush(stdout);
-							p[0] = fwrite((int64_t*)(p[3] * LLIS), LLIS, p[2], f);
-							printf("[N-LOG]: wrote %I64d\n", p[0]);
-							fflush(stdout);
-							break;
-							puts("[N-ERR]: AFTER BREAK!!!");
-							fflush(stdout);
-						}
-						case DEF_INT_STREAMS_READ: {
-							puts("[N-LOG]: INT STREAMS READ");
-							fflush(stdout);
-							FILE* f = (FILE*) p[1];
-							int64_t* pos;
-							fgetpos64(f, pos);
-							size_t zw = fread((int64_t*)(p[3] * LLIS),LLIS,p[2],f);
-							if (!zw) {
-								int64_t old = pos[0];
-								fseek(f,0,SEEK_END);
-								fgetpos64(f, pos);
-								fsetpos64(f, pos);
-								if (pos[0] == old) {
+							case DEF_INT_STREAMS_NEW_OUT: {
+								puts("[N-LOG]: INT STREAMS NEW_OUT");
+								fflush(stdout);
+								int64_t* wstr = (int64_t*) (p[1] * LLIS);
+								stringToChars
+								printf("[N-LOG]: wstr.len=%I64d\n", wstr[-1]);
+								if (zw == -1){
+									printf("[N-LOG]: illegal name '%s'\n", str);
 									p[0] = -1;
+								} else {
+									printf("[N-LOG]: file='%s'\n", str);
+									fflush(stdout);
+									FILE* f = fopen64(str, "w");
+									free(str);
+									if (f) {
+										printf("[N-LOG]: _base=%d\n", f[0]._base);
+										printf("[N-LOG]: _bufsiz=%d\n", f[0]._bufsiz);
+										printf("[N-LOG]: _charbuf=%d\n", f[0]._charbuf);
+										printf("[N-LOG]: _cnt=%d\n", f[0]._cnt);
+										printf("[N-LOG]: _file=%d\n", f[0]._file);
+										printf("[N-LOG]: _flag=%d\n", f[0]._flag);
+										printf("[N-LOG]: _ptr=%d\n", f[0]._ptr);
+										printf("[N-LOG]: _tmpfname=%d\n", f[0]._tmpfname);
+										p[0] = (int64_t) f;
+									} else {
+										p[0] = -1;
+									}
+								}
+								break;
+							}
+							case DEF_INT_STREAMS_WRITE: {
+								puts("[N-LOG]: INT STREAMS WRITE");
+								fflush(stdout);
+								FILE* f = (FILE*) p[1];
+								printf("[N-LOG]: _base=%d", f[0]._base);
+								printf("[N-LOG]: _bufsiz=%d", f[0]._bufsiz);
+								printf("[N-LOG]: _charbuf=%d", f[0]._charbuf);
+								printf("[N-LOG]: _cnt=%d", f[0]._cnt);
+								printf("[N-LOG]: _file=%d", f[0]._file);
+								printf("[N-LOG]: _flag=%d", f[0]._flag);
+								printf("[N-LOG]: _ptr=%d", f[0]._ptr);
+								printf("[N-LOG]: _tmpfname=%d", f[0]._tmpfname);
+								printf("[N-LOG]: f==stdout %d\n", f == stdout);
+								fflush(stdout);
+								printf("[N-LOG]: fwrite((int64_t*)p[3], LLIS, p[2], f);\n");
+								fflush(stdout);
+								printf("[N-LOG]: fwrite((int64_t*)%I64d, %d, %I64d, %I64d);\n", p[3], LLIS, p[2], f);
+								fflush(stdout);
+								p[0] = fwrite((int64_t*)(p[3] * LLIS), LLIS, p[2], f);
+								printf("[N-LOG]: wrote %I64d\n", p[0]);
+								fflush(stdout);
+								break;
+								puts("[N-ERR]: AFTER BREAK!!!");
+								fflush(stdout);
+							}
+							case DEF_INT_STREAMS_READ: {
+								puts("[N-LOG]: INT STREAMS READ");
+								fflush(stdout);
+								FILE* f = (FILE*) p[1];
+								int64_t* pos;
+								fgetpos64(f, pos);
+								size_t zw = fread((int64_t*)(p[3] * LLIS),LLIS,p[2],f);
+								if (!zw) {
+									int64_t old = pos[0];
+									fseek(f,0,SEEK_END);
+									fgetpos64(f, pos);
+									fsetpos64(f, pos);
+									if (pos[0] == old) {
+										p[0] = -1;
+									} else {
+										p[0] = zw;
+									}
 								} else {
 									p[0] = zw;
 								}
-							} else {
-								p[0] = zw;
+								break;
+							}
+							case DEF_INT_STREAMS_REM: {
+								puts("[N-LOG]: INT STREAMS REM");
+								fflush(stdout);
+								int64_t* wstr = (int64_t*)(p[1] * LLIS);
+								stringToChars
+								if (zw != -1 && 0 == unlink(str)/*0:success and -1:fail*/) {
+									p[0] = 1;
+								} else {
+									p[0] = 0;
+								}
+								break;
+							}
+							case DEF_INT_STREAMS_MK_DIR: {
+								puts("[N-LOG]: INT STREAMS MK_DIR");
+								fflush(stdout);
+								int64_t* wstr = (int64_t*)(p[1] * LLIS);
+								stringToChars
+								if (zw != -1 && 0 == mkdir(str)/*0:success and -1:fail*/) {
+									p[0] = 1;
+								} else {
+									p[0] = 0;
+								}
+								break;
+							}
+							case DEF_INT_STREAMS_REM_DIR: {
+								puts("[N-LOG]: INT STREAMS REM_DIR");
+								fflush(stdout);
+								int64_t* wstr = (int64_t*)(p[1] * LLIS);
+								stringToChars
+								if (zw != -1 && 0 == rmdir(str)/*0:success and -1:fail*/) {
+									p[0] = 1;
+								} else {
+									p[0] = 0;
+								}
+								break;
+							}
+							case DEF_INT_STREAMS_CLOSE_STREAM: {
+								puts("[N-LOG]: INT STREAMS CLOSE_STREAM");
+								fflush(stdout);
+								FILE* f = (FILE*) p[1];
+								if (fclose(f)) {
+									p[0] = 1;
+								} else {
+									p[0] = 0;
+								}
+								break;
+							}
+							default:
+								puts("[N-LOG]: unknown command M=2!");
+								fflush(stdout);
+								unknownCommandReturn
 							}
 							break;
-						}
-						case DEF_INT_STREAMS_REM: {
-							puts("[N-LOG]: INT STREAMS REM");
-							fflush(stdout);
-							int64_t* wstr = (int64_t*)(p[1] * LLIS);
-							stringToChars
-							if (zw != -1 && 0 == unlink(str)/*0:success and -1:fail*/) {
-								p[0] = 1;
-							} else {
-								p[0] = 0;
-							}
-							break;
-						}
-						case DEF_INT_STREAMS_MK_DIR: {
-							puts("[N-LOG]: INT STREAMS MK_DIR");
-							fflush(stdout);
-							int64_t* wstr = (int64_t*)(p[1] * LLIS);
-							stringToChars
-							if (zw != -1 && 0 == mkdir(str)/*0:success and -1:fail*/) {
-								p[0] = 1;
-							} else {
-								p[0] = 0;
-							}
-							break;
-						}
-						case DEF_INT_STREAMS_REM_DIR: {
-							puts("[N-LOG]: INT STREAMS REM_DIR");
-							fflush(stdout);
-							int64_t* wstr = (int64_t*)(p[1] * LLIS);
-							stringToChars
-							if (zw != -1 && 0 == rmdir(str)/*0:success and -1:fail*/) {
-								p[0] = 1;
-							} else {
-								p[0] = 0;
-							}
-							break;
-						}
-						case DEF_INT_STREAMS_CLOSE_STREAM: {
-							puts("[N-LOG]: INT STREAMS CLOSE_STREAM");
-							fflush(stdout);
-							FILE* f = (FILE*) p[1];
-							if (fclose(f)) {
-								p[0] = 1;
-							} else {
-								p[0] = 0;
-							}
-							break;
-						}
 						default:
-							puts("[N-LOG]: unknown command M=2!");
+							puts("[N-LOG]: unknown command M=3!");
 							fflush(stdout);
 							unknownCommandReturn
 						}
-						break;
-					default:
-						puts("[N-LOG]: unknown command M=3!");
-						fflush(stdout);
-						unknownCommandReturn
+					p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 					}
-				p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;
 			)
 //@formatter:on
-printf("[N-LOG]: exit INT\n");
+			printf("[N-LOG]: exit INT\n");
 			break;
 		case CMD_PUSH:
 			printf("[N-LOG]: CMD=PUSH\n");
 			fflush(stdout);
 			oneParamAllowConst((p[OFFSET_STACK_POINTER] += LLIS); ((int64_t*)p[OFFSET_STACK_POINTER])[0] = param; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
-break;
+			break;
 		case CMD_POP:
 			printf("[N-LOG]: CMD=POP\n");
 			fflush(stdout);
 			oneParamAllowNoConst(param[0] = ((int64_t*)p[OFFSET_STACK_POINTER])[0]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
-		p[param] = ((int64_t*)p[OFFSET_STACK_POINTER])[0]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
-break;
+					p[param] = ((int64_t*)p[OFFSET_STACK_POINTER])[0]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
 		case CMD_SET_IP:
 			printf("[N-LOG]: CMD=SET_IP\n");
 			fflush(stdout);
 			oneParamAllowConst(p[OFFSET_INSTRUCTION_POINTER] = param * LLIS;)
-break;
+			break;
 		case CMD_SET_SP:
 			printf("[N-LOG]: CMD=SET_SP\n");
 			fflush(stdout);
 			oneParamAllowConst(p[OFFSET_STACK_POINTER] = param * LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
-break;
+			break;
 		case CMD_GET_IP:
 			printf("[N-LOG]: CMD=GET_IP\n");
 			fflush(stdout);
 			oneParamAllowNoConst(param[0] = p[OFFSET_INSTRUCTION_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
-		p[param] = p[OFFSET_INSTRUCTION_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
-break;
+					p[param] = p[OFFSET_INSTRUCTION_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
 		case CMD_GET_SP:
 			printf("[N-LOG]: CMD=GET_SP\n");
 			fflush(stdout);
 			oneParamAllowNoConst(param[0] = p[OFFSET_STACK_POINTER]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[OFFSET_STACK_POINTER]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
-break;
+			break;
+		case CMD_SET_INTS:
+			printf("[N-LOG]: CMD=GET_SP\n");
+			fflush(stdout);
+			oneParamAllowConst(p[OFFSET_INTERUPT_POINTER] = param * LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
+		case CMD_GET_INTS:
+			printf("[N-LOG]: CMD=GET_SP\n");
+			fflush(stdout);
+			oneParamAllowNoConst(param[0] = p[OFFSET_INTERUPT_POINTER] / LLIS; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					p[param] = p[OFFSET_INTERUPT_POINTER]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
 		case CMD_INC:
 			printf("[N-LOG]: CMD=INC\n");
 			fflush(stdout);
 			oneParamAllowNoConst(
-		param[0] = param[0] + 1; if (param[0] == DEF_MIN_VALUE) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
-		p[param] = p[param] + 1; if (p[param] == DEF_MIN_VALUE) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
-break;
+					param[0] = param[0] + 1; if (param[0] == DEF_MIN_VALUE) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					p[param] = p[param] + 1; if (p[param] == DEF_MIN_VALUE) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
 		case CMD_DEC:
 			printf("[N-LOG]: CMD=DEC\n");
 			fflush(stdout);
 			oneParamAllowNoConst(
-		param[0] = param[0] - 1; if (param[0] == DEF_MAX_VALUE) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
-		p[param] = p[param] - 1; if (p[param] == DEF_MAX_VALUE) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
-break;
-default:
-puts("[N-LOG]: unknown command M=4!");
-unknownCommandReturn
-break;
-}
-}
+					param[0] = param[0] - 1; if (param[0] == DEF_MAX_VALUE) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					p[param] = p[param] - 1; if (p[param] == DEF_MAX_VALUE) {p[OFFSET_STATUS_REG] |= STATUS_CARRY|STATUS_ARITMETHIC_ERR;} else {p[OFFSET_STATUS_REG] &= ~(STATUS_CARRY|STATUS_ARITMETHIC_ERR);} p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			break;
+		default:
+			puts("[N-LOG]: unknown command M=4!");
+			unknownCommandReturn
+		}
+	}
 }
 
 /*
@@ -1106,9 +1133,9 @@ break;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setInstructionPointer(JNIEnv *env, jobject caller, jlong ip) {
-puts("[N-LOG]: enter setInstructionPointer");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-p[OFFSET_INSTRUCTION_POINTER] = ip * LLIS;
+	puts("[N-LOG]: enter setInstructionPointer");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	p[OFFSET_INSTRUCTION_POINTER] = ip * LLIS;
 }
 
 /*
@@ -1117,9 +1144,9 @@ p[OFFSET_INSTRUCTION_POINTER] = ip * LLIS;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setStackPointer(JNIEnv *env, jobject caller, jlong sp) {
-puts("[N-LOG]: enter setStackPointer");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-p[OFFSET_STACK_POINTER] = sp * LLIS;
+	puts("[N-LOG]: enter setStackPointer");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	p[OFFSET_STACK_POINTER] = sp * LLIS;
 }
 
 /*
@@ -1128,10 +1155,10 @@ p[OFFSET_STACK_POINTER] = sp * LLIS;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_push(JNIEnv *env, jobject caller, jlong value) {
-puts("[N-LOG]: enter push");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-(p[OFFSET_STACK_POINTER] += LLIS);
-((int64_t*) p[OFFSET_STACK_POINTER])[0] = value;
+	puts("[N-LOG]: enter push");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	(p[OFFSET_STACK_POINTER] += LLIS);
+	((int64_t*) p[OFFSET_STACK_POINTER])[0] = value;
 }
 
 /*
@@ -1140,11 +1167,11 @@ int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_pop(JNIEnv *env, jobject caller) {
-puts("[N-LOG]: enter pop");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-int64_t val = ((int64_t*) p[OFFSET_STACK_POINTER])[0];
-(p[OFFSET_STACK_POINTER] -= LLIS);
-return val;
+	puts("[N-LOG]: enter pop");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	int64_t val = ((int64_t*) p[OFFSET_STACK_POINTER])[0];
+	(p[OFFSET_STACK_POINTER] -= LLIS);
+	return val;
 }
 
 /*
@@ -1153,8 +1180,8 @@ return val;
  * Signature: (J)J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_get(JNIEnv *env, jobject caller, jlong pntr) {
-puts("[N-LOG]: enter get");
-return *(int64_t*) (pntr * LLIS);
+	puts("[N-LOG]: enter get");
+	return *(int64_t*) (pntr * LLIS);
 }
 
 /*
@@ -1163,10 +1190,10 @@ return *(int64_t*) (pntr * LLIS);
  * Signature: (JJ)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_set(JNIEnv *env, jobject caller, jlong pntr, jlong value) {
-puts("[N-LOG]: enter set");
-printf("enter set(pntr=%I64d, value=%I64d)\n", pntr, value);
-int64_t *p = (int64_t*) (pntr * LLIS);
-p[0] = value;
+	puts("[N-LOG]: enter set");
+	printf("enter set(pntr=%I64d, value=%I64d)\n", pntr, value);
+	int64_t *p = (int64_t*) (pntr * LLIS);
+	p[0] = value;
 }
 
 /*
@@ -1175,12 +1202,12 @@ p[0] = value;
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setAX(JNIEnv *env, jobject caller, jlong value) {
-puts("[N-LOG]: enter setAX");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-printf("[N-LOG]: AX=%I64d\n", p[0]);
-p[0] = value;
-printf("[N-LOG]: AX=%I64d\n", p[0]);
-puts("[N-LOG]: exit setAX");
+	puts("[N-LOG]: enter setAX");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: AX=%I64d\n", p[0]);
+	p[0] = value;
+	printf("[N-LOG]: AX=%I64d\n", p[0]);
+	puts("[N-LOG]: exit setAX");
 }
 
 /*
@@ -1189,12 +1216,12 @@ puts("[N-LOG]: exit setAX");
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setBX(JNIEnv *env, jobject caller, jlong value) {
-puts("[N-LOG]: enter setBX");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-printf("[N-LOG]: BX=%I64d\n", p[1]);
-p[1] = value;
-printf("[N-LOG]: BX=%I64d\n", p[1]);
-puts("[N-LOG]: exit setBX");
+	puts("[N-LOG]: enter setBX");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: BX=%I64d\n", p[1]);
+	p[1] = value;
+	printf("[N-LOG]: BX=%I64d\n", p[1]);
+	puts("[N-LOG]: exit setBX");
 }
 
 /*
@@ -1203,12 +1230,12 @@ puts("[N-LOG]: exit setBX");
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setCX(JNIEnv *env, jobject caller, jlong value) {
-puts("[N-LOG]: enter setCX");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-printf("[N-LOG]: CX=%I64d\n", p[2]);
-p[2] = value;
-printf("[N-LOG]: CX=%I64d\n", p[2]);
-puts("[N-LOG]: exit setCX");
+	puts("[N-LOG]: enter setCX");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: CX=%I64d\n", p[2]);
+	p[2] = value;
+	printf("[N-LOG]: CX=%I64d\n", p[2]);
+	puts("[N-LOG]: exit setCX");
 }
 
 /*
@@ -1217,12 +1244,12 @@ puts("[N-LOG]: exit setCX");
  * Signature: (J)V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setDX(JNIEnv *env, jobject caller, jlong value) {
-puts("[N-LOG]: enter setDX");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-printf("[N-LOG]: DX=%I64d\n", p[3]);
-p[3] = value;
-printf("[N-LOG]: DX=%I64d\n", p[3]);
-puts("[N-LOG]: exit setDX");
+	puts("[N-LOG]: enter setDX");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	printf("[N-LOG]: DX=%I64d\n", p[3]);
+	p[3] = value;
+	printf("[N-LOG]: DX=%I64d\n", p[3]);
+	puts("[N-LOG]: exit setDX");
 }
 
 /*
@@ -1231,9 +1258,9 @@ puts("[N-LOG]: exit setDX");
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getAX(JNIEnv *env, jobject caller) {
-puts("[N-LOG]: enter getAX");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-return p[0];
+	puts("[N-LOG]: enter getAX");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	return p[0];
 }
 
 /*
@@ -1242,9 +1269,9 @@ return p[0];
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getBX(JNIEnv *env, jobject caller) {
-puts("[N-LOG]: enter getBX");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-return p[1];
+	puts("[N-LOG]: enter getBX");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	return p[1];
 }
 /*
  * Class:     de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine
@@ -1252,9 +1279,9 @@ return p[1];
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getCX(JNIEnv *env, jobject caller) {
-puts("[N-LOG]: enter getCX");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-return p[2];
+	puts("[N-LOG]: enter getCX");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	return p[2];
 }
 
 /*
@@ -1263,9 +1290,9 @@ return p[2];
  * Signature: ()J
  */
 JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_getDX(JNIEnv *env, jobject caller) {
-puts("[N-LOG]: enter getDX");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-return p[3];
+	puts("[N-LOG]: enter getDX");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	return p[3];
 }
 
 /*
@@ -1274,7 +1301,7 @@ return p[3];
  * Signature: ()V
  */
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_finalize(JNIEnv *env, jobject caller) {
-puts("[N-LOG]: enter finalize");
-int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
-free(p);
+	puts("[N-LOG]: enter finalize");
+	int64_t *p = (int64_t*) (*env)->GetLongField(env, caller, values);
+	free(p);
 }

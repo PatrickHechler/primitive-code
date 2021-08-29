@@ -128,8 +128,10 @@ public class Command {
 		case CMD_INC:
 		case CMD_SET_IP:
 		case CMD_SET_SP:
+		case CMD_SET_INTS:
 		case CMD_GET_IP:
 		case CMD_GET_SP:
+		case CMD_GET_INTS:
 		case CMD_INT:
 		case CMD_NEG:
 		case CMD_NOT:
@@ -151,6 +153,7 @@ public class Command {
 			default:
 				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
 			}
+		case CMD_IRET:
 		case CMD_RET:
 			return 1;
 		case CMD_CALL:

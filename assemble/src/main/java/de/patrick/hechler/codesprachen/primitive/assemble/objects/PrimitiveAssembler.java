@@ -66,6 +66,7 @@ public class PrimitiveAssembler {
 				bytes[0] = (byte) cmd.cmd.num;
 				switch (cmd.cmd) {
 				case CMD_RET:
+				case CMD_IRET:
 					break;// nothing more to write
 				case CMD_RASH:
 				case CMD_RLSH:
@@ -75,6 +76,7 @@ public class PrimitiveAssembler {
 				case CMD_PUSH:
 				case CMD_GET_SP:
 				case CMD_GET_IP:
+				case CMD_GET_INTS:
 				case CMD_DEC:
 				case CMD_INC:
 					if (cmd.p1.art == Param.ART_ANUM) {
@@ -82,6 +84,7 @@ public class PrimitiveAssembler {
 					}
 				case CMD_SET_SP:
 				case CMD_SET_IP:
+				case CMD_SET_INTS:
 				case CMD_INT:
 				case CMD_POP:
 					writeOneParam(cmd, bytes);

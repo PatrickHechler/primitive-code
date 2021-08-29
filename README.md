@@ -334,7 +334,6 @@ except for the `--POS--` constant all other constants can be overwritten and rem
                 * if the stream was closed successfully `AX` will contain `1`, if not `0`
 
 `PUSH <PARAM>`
-`PUSH <PARAM>`
 * pushes the parameter to the stack
     * `SP <- SP + 1`
     * `[SP] <- p`
@@ -346,6 +345,10 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `SP <- SP - 1`
     * `IP <- IP + CMD_LEN`
 
+`SET_INTS <PARAM>`
+* sets the interrupt pointer to the parameter
+    * `INTS <- p`
+
 `SET_IP <PARAM>`
 * sets the instruction pointer to the parameter
     * `IP <- p`
@@ -353,6 +356,11 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 `SET_SP <PARAM>`
 * sets the stack pointer to the parameter
     * `SP <- p`
+    * `IP <- IP + CMD_LEN`
+
+`GET_INTS <NO_CONST_PARAM>`
+* copies the interrupt pointer to the parameter
+    * `p <- INTS`
     * `IP <- IP + CMD_LEN`
 
 `GET_IP <NO_CONST_PARAM>`
@@ -389,13 +397,7 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `IP <- IP + CMD_LEN`
 
 ## TODO:
-* user specified interrupts
-    * `IRET` return from custom interrupts
-    * set interrupt table
-    * get interrupt table
-    * set interrupt number (int-table 'length')
-    * get interrupt number (int-table 'length')
-* out + log/err + in stream + file streams
-    * functions to get out, log/err, in
-    * functions to get file streams
-    * functions to write/read from streams or to set/get the pos
+* more stream functions
+    * function to set the position to the end
+    * function to set the position to any value
+    * function to get the position
