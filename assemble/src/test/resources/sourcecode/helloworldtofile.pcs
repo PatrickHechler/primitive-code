@@ -9,8 +9,12 @@ JMP START
 
 
 	#OUT-FILE-STRING --POS--
-	67 |> strlen
-	CHARS 'UTF-16LE' "C:\\Users\\Patrick\\git\\primitive-code\\assemble\\target\\testout\\out.txt"
+	|> 67 |> strlen
+	|> CHARS 'UTF-16LE' "C:\\Users\\Patrick\\git\\primitive-code\\assemble\\target\\testout\\out.txt"
+	16 |> strlen
+	CHARS 'UTF-16LE' ".\\output\\out.txt"
+	
+
 >
 @START
 #GET_IP-POS --POS--

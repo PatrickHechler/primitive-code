@@ -3,10 +3,11 @@
 |>
 JMP START
 :
-	#OUT-FILE-NAME-SIZE 22 |> number of int64 elements
+	#OUT-FILE-NAME-SIZE 12 |> number of int64 elements
 	#OUT-FILE-STRING --POS--
-	88 |> strlen
-	CHARS 'UTF-16LE' "C:\\Users\\Patrick\\git\\primitive-code\\assemble\\src\\test\\resources\\readfiles\\helloworld.txt"
+	45 |> strlen
+	CHARS 'UTF-16LE' ".\\src\\test\\resources\\readfiles\\helloworld.txt"
+	
 >
 @START
 #GET_IP-POS --POS--

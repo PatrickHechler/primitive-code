@@ -19,11 +19,11 @@ public class PrimitiveAssemblerTest extends Checker {
 	public final static String INPUT_ADD = "/sourcecode/add.pcs";
 	public final static String INPUT_HELLO_WORLD = "/sourcecode/helloworld.pcs";
 	public final static String INPUT_HELLO_WORLD_TO_FILE = "/sourcecode/helloworldtofile.pcs";
-	public final static String INPUT_HELLO_WORLD_TO_FILE_OUTPUT = "C:\\Users\\Patrick\\git\\primitive-code\\assemble\\target\\testout\\out.txt";
+	public final static String INPUT_HELLO_WORLD_TO_FILE_OUTPUT = ".\\output\\out.txt";
 	public final static String VALUE_HELLO_WORLD_TO_FILE_OUTPUT = "hello file world";
 	public final static String INPUT_HELLO_WORLD_FROM_FILE = "/sourcecode/helloworldfromfile.pcs";
 	
-	@Check
+	@Check(disabled = false)
 	public void assembleAddTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -52,7 +52,7 @@ public class PrimitiveAssemblerTest extends Checker {
 		}
 	}
 	
-	@Check
+	@Check(disabled = false)
 	public void assembleHelloWorldTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -81,7 +81,7 @@ public class PrimitiveAssemblerTest extends Checker {
 		}
 	}
 	
-	@Check
+	@Check(disabled = false)
 	public void assembleHelloWorldToFileTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -111,7 +111,7 @@ public class PrimitiveAssemblerTest extends Checker {
 		}
 	}
 	
-	@Check
+	@Check(disabled = false)
 	public void assembleHelloWorldFromFileTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
