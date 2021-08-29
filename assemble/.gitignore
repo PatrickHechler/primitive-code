@@ -5,3 +5,4 @@
 /bin/
 /primitive-runtime.dll
 /hs_err_pid*
+/output/

@@ -1,6 +1,7 @@
 package de.hechler.patrick.codesprachen.primitive.compile.objects;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -93,6 +94,8 @@ public class PrimitiveAssemblerTest extends Checker {
 			System.out.println(hexCodeBytes);
 			String hexCodeLongs = TestUtils.toHexCode(TestUtils.toLong(code));
 			System.out.println(hexCodeLongs);
+			
+			new File(INPUT_HELLO_WORLD_TO_FILE_OUTPUT).getParentFile().mkdirs();
 			
 			PrimitiveVirtualMashine pvm = new PrimitiveVirtualMashine();
 			long[] commands = TestUtils.toLong(code);
