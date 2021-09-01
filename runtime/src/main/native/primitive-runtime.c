@@ -336,7 +336,7 @@ JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_ob
 }
 
 //#define unknownCommandReturn return -2;
-#define unknownCommandReturn if (p[OFFSET_INTERUPT_POINTER] != -1 * LLIS) { int64_t inter = ((int64_t*) p[OFFSET_INTERUPT_POINTER])(DEF_INT_ERRORS); if (inter != -1) { inter *= LLIS; p[0] = DEF_INT_ERRORS_UNKNOWN_COMMAND; p[OFFSET_STACK_POINTER] += LLIS; ((int64_t*)p[OFFSET_STACK_POINTER])[0] = p[OFFSET_INSTRUCTION_POINTER]; p[OFFSET_INSTRUCTION_POINTER] = inter; } else { return -2; } } else { return -2; }
+#define unknownCommandReturn if (p[OFFSET_INTERUPT_POINTER] != -1 * LLIS) { int64_t inter = ((int64_t*) p[OFFSET_INTERUPT_POINTER])[DEF_INT_ERRORS]; if (inter != -1) { inter *= LLIS; p[0] = DEF_INT_ERRORS_UNKNOWN_COMMAND; p[OFFSET_STACK_POINTER] += LLIS; ((int64_t*)p[OFFSET_STACK_POINTER])[0] = p[OFFSET_INSTRUCTION_POINTER]; p[OFFSET_INSTRUCTION_POINTER] = inter; } else { return -2; } } else { return -2; }
 
 /*
  * @formatter:off
