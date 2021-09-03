@@ -16,8 +16,11 @@ public enum Commands {
 	CMD_CMP(ParamArt.twoParamsAllowConsts),
 	CMD_RET(ParamArt.noParams), CMD_INT(ParamArt.oneParamAllowConst),
 	CMD_PUSH(ParamArt.oneParamAllowConst), CMD_POP(ParamArt.oneParamNoConst),
-	CMD_SET_IP(ParamArt.oneParamAllowConst), CMD_SET_SP(ParamArt.oneParamAllowConst),
-	CMD_GET_IP(ParamArt.oneParamNoConst), CMD_GET_SP(ParamArt.oneParamNoConst),
+	CMD_SET_IP(ParamArt.oneParamAllowConst), CMD_SET_SP(ParamArt.oneParamAllowConst), 
+	CMD_GET_IP(ParamArt.oneParamNoConst), CMD_GET_SP(ParamArt.oneParamNoConst), 
+	CMD_GET_INTS(ParamArt.oneParamNoConst),
+	CMD_SET_INTS(ParamArt.oneParamAllowConst), 
+	CMD_IRET(ParamArt.oneParamAllowConst), 
 	
 	CMD_ADDC(ParamArt.twoParamsP1NoConstP2AllowConst), CMD_SUBC(ParamArt.twoParamsP1NoConstP2AllowConst),
 	
@@ -77,6 +80,9 @@ public enum Commands {
 	private static final int SET_SP = 0x27;
 	private static final int GET_IP = 0x28;
 	private static final int GET_SP = 0x29;
+	private static final int GET_INTS = 0x2A;
+	private static final int SET_INTS = 0x2B;
+	private static final int IRET = 0x2C;
 	private static final int ADDC = 0x30;
 	private static final int SUBC = 0x31;
 	
@@ -142,6 +148,12 @@ public enum Commands {
 			return GET_IP;
 		case CMD_GET_SP:
 			return GET_SP;
+		case CMD_GET_INTS:
+			return GET_INTS;
+		case CMD_SET_INTS:
+			return SET_INTS;
+		case CMD_IRET:
+			return IRET;
 		case CMD_SUB:
 			return SUB;
 		case CMD_XOR:

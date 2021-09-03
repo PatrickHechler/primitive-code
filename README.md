@@ -390,7 +390,7 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `if p = MIN-VALUE`
         * `CARRY <- 1`
         * `ARITMETHIC_ERR <- 1`
-    * else
+    * `else`
         * `CARRY <- 0`
         * `ARITMETHIC_ERR <- 0`
     * `p <- p - 1`

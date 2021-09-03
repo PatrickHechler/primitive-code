@@ -196,7 +196,7 @@ public class Param {
 		case SR_DX:
 			return "DX";
 		default:
-			throw new InternalError("this is no register");
+			throw new InternalError("why am I here, I cauth all no regs some lines above");
 		}
 	}
 	
