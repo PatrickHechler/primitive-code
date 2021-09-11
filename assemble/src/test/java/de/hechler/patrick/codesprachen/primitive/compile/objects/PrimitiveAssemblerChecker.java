@@ -8,14 +8,13 @@ import java.io.InputStream;
 import java.nio.charset.Charset;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PrimitiveVirtualMashine;
-import de.hechler.patrick.zeugs.check.CheckResult;
 import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.anotations.Check;
 import de.hechler.patrick.zeugs.check.anotations.CheckClass;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
 
 @CheckClass
-public class PrimitiveAssemblerTest extends Checker {
+public class PrimitiveAssemblerChecker extends Checker {
 	
 	public final static String INPUT_ADD = "/sourcecode/add.pcs";
 	public final static String INPUT_HELLO_WORLD = "/sourcecode/helloworld.pcs";
@@ -135,17 +134,6 @@ public class PrimitiveAssemblerTest extends Checker {
 			helloWorldIn.close();
 		} catch (IOException e) {
 			throw new RuntimeException(e);
-		}
-	}
-	
-	public static void main(String[] args) {
-		CheckResult check = Checker.check(PrimitiveAssemblerTest.class);
-		check.print();
-		if (check.wentUnexpected()) {
-			check.forAllUnexpected((m, t) -> {
-				System.err.println(m.getName() + ":");
-				t.printStackTrace();
-			});
 		}
 	}
 	

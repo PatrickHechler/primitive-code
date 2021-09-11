@@ -15,20 +15,19 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.Command.Consta
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
 }
 
- parse returns [List<Command> commands, Map<String,Long> labels] @init {
+ parse returns [List<Command> commands, Map<String,Long> labels] @init { 
  	long pos = 0;
  	Map<String,Long> constants = new HashMap<>();
  	$labels = new HashMap<>();
  	$commands = new ArrayList<>();
- 	constants.put("INT-MEMORY", (Long) 1L);
-	constants.put("INT-MEMORY", (Long) 1L);
+	constants.put("INT-MEMORY", (Long) 0L);
 	constants.put("INT-MEMORY-ALLOC", (Long) 1L);
 	constants.put("INT-MEMORY-REALLOC", (Long) 2L);
 	constants.put("INT-MEMORY-FREE", (Long) 3L);
-	constants.put("INT-ERRORS", (Long) 2L);
+	constants.put("INT-ERRORS", (Long) 1L);
 	constants.put("INT-ERRORS-EXIT", (Long) 1L);
 	constants.put("INT-ERRORS-UNKNOWN_COMMAND", (Long) 2L);
-	constants.put("INT-STREAMS", (Long) 3L);
+	constants.put("INT-STREAMS", (Long) 2L);
 	constants.put("INT-STREAMS-GET_OUT", (Long) 1L);
 	constants.put("INT-STREAMS-GET_LOG", (Long) 2L);
 	constants.put("INT-STREAMS-GET_IN", (Long) 3L);
@@ -40,6 +39,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 	constants.put("INT-STREAMS-MK_DIR", (Long) 9L);
 	constants.put("INT-STREAMS-REM_DIR", (Long) 10L);
 	constants.put("INT-STREAMS-CLOSE_STREAM", (Long) 11L);
+	constants.put("INT-STREAMS-GET_POS", (Long) 12L);
+	constants.put("INT-STREAMS-SET_POS", (Long) 13L);
+	constants.put("INT-STREAMS-TO_END", (Long) 14L);
 	constants.put("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
 	constants.put("MIN-VALUE", (Long) (-0x8000000000000000L));
  }

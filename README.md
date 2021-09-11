@@ -332,6 +332,17 @@ except for the `--POS--` constant all other constants can be overwritten and rem
             11. close stream
                 * `BX` contains the STREAM-ID
                 * if the stream was closed successfully `AX` will contain `1`, if not `0`
+            12. get stream pos
+                * `BX` contains the STREAM-ID
+                * `AX` will contain the position of the stream or `-1` if something went wrong.
+                * this will set `AX` to the stream position
+            13. set stream pos
+                * `BX` contains the STREAM-ID
+                * `CX` contains the new stream position.
+                * this will set the stream position to `CX`
+            14. set stream to end
+                * `BX` contains the STREAM-ID
+                * this will set the stream position to the end
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack
@@ -397,7 +408,3 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `IP <- IP + CMD_LEN`
 
 ## TODO:
-* more stream functions
-    * function to set the position to the end
-    * function to set the position to any value
-    * function to get the position
