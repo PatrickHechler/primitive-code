@@ -10,21 +10,26 @@ public class PrimitiveCodeAssembleMainTest {
 		main(new String[0]);
 	}
 	
+	private static final int CNT = 1 << 10;
+	
 	public static void main(String[] args) {
-		System.out.println("start checks");
-		BigCheckResult checked = Checker.checkAll(true, PrimitiveAssemblerChecker.class);
-		System.out.println("finished checks");
-		checked.print();
-		checked.forAllUnexpectedCheckResults((cls, cr) -> {
-			System.err.println("some errors on class: " + cls.getName());
-			cr.forAllUnexpected((m, t) -> {
-				System.err.println("method: " + m);
-				t.printStackTrace(System.err);
+		for (int i = 0; i < CNT; i ++ ) {
+			System.out.println("----- start checks : " + i + " -----");
+			BigCheckResult checked = Checker.checkAll(true, PrimitiveAssemblerChecker.class);
+			System.out.println("----- finished checks : " + i + " -----");
+			checked.print();
+			checked.forAllUnexpectedCheckResults((cls, cr) -> {
+				System.err.println("some errors on class: " + cls.getName());
+				cr.forAllUnexpected((m, t) -> {
+					System.err.println("method: " + m);
+					t.printStackTrace(System.err);
+				});
 			});
-		});
-		if ( ! checked.allUnexpected().isEmpty()) {
-			throw new RuntimeException("not all checks went well!");
+			if (checked.wentUnexpected()) {
+				throw new RuntimeException("not all checks went well!");
+			}
 		}
+		System.out.println("___super finish___");
 	}
 	
 }

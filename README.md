@@ -27,6 +27,9 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * `#INT-STREAMS-MK_DIR` :              9
 * `#INT-STREAMS-REM_DIR` :             10
 * `#INT-STREAMS-CLOSE_STREM` :         11
+* `#INT-STREAMS-GET_POS` :             12
+* `#INT-STREAMS-SET_POS` :             13
+* `#INT-STREAMS-SET_POS_TO_END` :      14
 * `#MAX-VALUE` :                   HEX-7FFFFFFFFFFFFFFF
 * `#MIN-VALUE` :                  NHEX-8000000000000000
 
@@ -272,7 +275,7 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-    1. memory management
+    * 0: memory management
         * use `AX` to specify the method of memory management
             1. allocate a memory-block
                 * `BX` saves the size of the block
@@ -286,13 +289,13 @@ except for the `--POS--` constant all other constants can be overwritten and rem
             3. free a memory-block
                 * `BX` points to the old memory-block
                 * after this the memory-block should not be used
-    2. errors
+    * 1: errors
         * use `AX` to specify the error
             1. exit
                 * use `BX` to specify the exit number of the progress
             2. unknown command
                 * exits the progress with the exit number -2
-    3. streams
+    * 2: streams
         * use `AX` to specify
             1. get out stream
                 * sets the `AX` value to the default out stream of this progress
@@ -318,7 +321,7 @@ except for the `--POS--` constant all other constants can be overwritten and rem
                 * `BX` contains the STREAM-ID
                 * `CX` contains the number of elements to read
                 * `DX` points to the elements to read
-                * after execution `AX` will contain the number of read elements or -1 if the stream reached its end before this call
+                * after execution `AX` will contain the number of elements, which has been read.
             8. remove file
                 * `BX` contains a pointer of a STRING with the file
                 * if the file was successfully removed `AX` will contain `1`, if not `0`
@@ -336,13 +339,16 @@ except for the `--POS--` constant all other constants can be overwritten and rem
                 * `BX` contains the STREAM-ID
                 * `AX` will contain the position of the stream or `-1` if something went wrong.
                 * this will set `AX` to the stream position
+				* if the stream-ID is the ID of a default stream the behavior is undefined.
             13. set stream pos
                 * `BX` contains the STREAM-ID
                 * `CX` contains the new stream position.
                 * this will set the stream position to `CX`
+				* if the stream-ID is the ID of a default stream the behavior is undefined.
             14. set stream to end
                 * `BX` contains the STREAM-ID
                 * this will set the stream position to the end
+				* if the stream-ID is the ID of a default stream the behavior is undefined.
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack

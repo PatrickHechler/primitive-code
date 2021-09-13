@@ -41,7 +41,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 	constants.put("INT-STREAMS-CLOSE_STREAM", (Long) 11L);
 	constants.put("INT-STREAMS-GET_POS", (Long) 12L);
 	constants.put("INT-STREAMS-SET_POS", (Long) 13L);
-	constants.put("INT-STREAMS-TO_END", (Long) 14L);
+	constants.put("INT-STREAMS-SET_POS_TO_END", (Long) 14L);
 	constants.put("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
 	constants.put("MIN-VALUE", (Long) (-0x8000000000000000L));
  }

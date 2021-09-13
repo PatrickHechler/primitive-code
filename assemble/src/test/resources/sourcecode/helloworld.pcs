@@ -5,7 +5,7 @@
 JMP START
 :
 	#HELLO_WORLD-STR --POS--
-	"!!hello world!!\n"
+	"!!Hello world!!\n"
 	#HELLO_WORLD-END --POS--
 >
 @START

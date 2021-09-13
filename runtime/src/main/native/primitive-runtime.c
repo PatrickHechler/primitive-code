@@ -38,9 +38,9 @@
 #define DEF_INT_STREAMS_MK_DIR 9
 #define DEF_INT_STREAMS_REM_DIR 10
 #define DEF_INT_STREAMS_CLOSE_STREAM 11
-#define DEF_INT_STREAMS_GET_STREAM_POS 12
-#define DEF_INT_STREAMS_SET_STREAM_POS 13
-#define DEF_INT_STREAMS_STREAM_POS_TO_END 14
+#define DEF_INT_STREAMS_GET_POS 12
+#define DEF_INT_STREAMS_SET_POS 13
+#define DEF_INT_STREAMS_SET_POS_TO_END 14
 #define DEF_MAX_VALUE 0x7FFFFFFFFFFFFFFFLL
 #define DEF_MIN_VALUE -0x8000000000000000LL
 
@@ -882,14 +882,17 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 							switch(p[0]){
 							case DEF_INT_ERRORS_EXIT:
 								puts("[N-LOG]: INT ERRORS EXIT");
+								fflush(stdout);
 								printf("[N-LOG]: return execute with %I64d\n", p[1]);
 								return p[1];
 							case DEF_INT_ERRORS_UNKNOWN_COMMAND: /*unknown command*/
 								puts("[N-LOG]: INT ERRORS UNCNOWN_COMMAND");
+								fflush(stdout);
 								puts("[N-LOG]: wanted unknown command return!");
 								return -2;
 							default:
 								puts("[N-LOG]: unknown command M=1!");
+								fflush(stdout);
 								unknownCommandReturn
 							}
 							break;
@@ -964,14 +967,14 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 								puts("[N-LOG]: INT STREAMS WRITE");
 								fflush(stdout);
 								FILE* f = (FILE*) p[1];
-								printf("[N-LOG]: _base=%d", f[0]._base);
-								printf("[N-LOG]: _bufsiz=%d", f[0]._bufsiz);
-								printf("[N-LOG]: _charbuf=%d", f[0]._charbuf);
-								printf("[N-LOG]: _cnt=%d", f[0]._cnt);
-								printf("[N-LOG]: _file=%d", f[0]._file);
-								printf("[N-LOG]: _flag=%d", f[0]._flag);
-								printf("[N-LOG]: _ptr=%d", f[0]._ptr);
-								printf("[N-LOG]: _tmpfname=%d", f[0]._tmpfname);
+								printf("[N-LOG]: _base=%d\n", f[0]._base);
+								printf("[N-LOG]: _bufsiz=%d\n", f[0]._bufsiz);
+								printf("[N-LOG]: _charbuf=%d\n", f[0]._charbuf);
+								printf("[N-LOG]: _cnt=%d\n", f[0]._cnt);
+								printf("[N-LOG]: _file=%d\n", f[0]._file);
+								printf("[N-LOG]: _flag=%d\n", f[0]._flag);
+								printf("[N-LOG]: _ptr=%d\n", f[0]._ptr);
+								printf("[N-LOG]: _tmpfname=%d\n", f[0]._tmpfname);
 								printf("[N-LOG]: f==stdout %d\n", f == stdout);
 								fflush(stdout);
 								printf("[N-LOG]: fwrite((int64_t*)p[3], LLIS, p[2], f);\n");
@@ -989,26 +992,8 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 								puts("[N-LOG]: INT STREAMS READ");
 								fflush(stdout);
 								FILE* f = (FILE*) p[1];
-								fpos_t* pos;
-								printf("[N-LOG]: call get pos fileno=%d\n", fileno(f));
-								fflush(stdout);
-								fgetpos64(f, pos);
-								printf("[N-LOG]: pos=%I64d", pos[0]);
-								fflush(stdout);
 								size_t zw = fread((void*)(p[3] * LLIS),LLIS,p[2],f);
-								if (!zw) {
-									int64_t old = pos[0];
-									fseeko64(f,0,SEEK_END);
-									fgetpos64(f, pos);
-									fsetpos64(f, pos);
-									if (pos[0] == old) {
-										p[0] = -1LL;
-									} else {
-										p[0] = zw;
-									}
-								} else {
-									p[0] = zw;
-								}
+								p[0] = zw;
 								break;
 							}
 							case DEF_INT_STREAMS_REM: {
@@ -1058,7 +1043,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 								}
 								break;
 							}
-							case DEF_INT_STREAMS_GET_STREAM_POS: {
+							case DEF_INT_STREAMS_GET_POS: {
 								puts("[N-LOG]: INT STREAMS GET_STREAM_POS");
 								fflush(stdout);
 								FILE* f = (FILE*)p[1];
@@ -1067,22 +1052,27 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 								}
 								break;
 							}
-							case DEF_INT_STREAMS_SET_STREAM_POS: {
+							case DEF_INT_STREAMS_SET_POS: {
 								puts("[N-LOG]: INT STREAMS SET_STREAM_POS");
 								fflush(stdout);
 								FILE* f = (FILE*)p[1];
 								int64_t* zw;
 								if (fgetpos64(f, zw)) {
+									puts("[N-LOG]: did not got the position");
+									fflush(stdout);
 									p[0] = -1LL;
-								}
-								zw[0] = p[2];
-								if (fsetpos64(f, zw)) {
-									p[0] = -1LL;
+								} else {
+									zw[0] = p[2];
+									if (fsetpos64(f, zw)) {
+										puts("[N-LOG]: could not set the position");
+										fflush(stdout);
+										p[0] = -1LL;
+									}
 								}
 								break;
 							}
-							case DEF_INT_STREAMS_STREAM_POS_TO_END: {
-								puts("[N-LOG]: INT STREAMS POS_TO_END");
+							case DEF_INT_STREAMS_SET_POS_TO_END: {
+								puts("[N-LOG]: INT STREAMS SET_POS_TO_END");
 								fflush(stdout);
 								FILE* f = (FILE*)p[1];
 								fseeko64(f, 0, SEEK_END);
@@ -1135,7 +1125,8 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		case CMD_GET_SP:
 			printf("[N-LOG]: CMD=GET_SP\n");
 			fflush(stdout);
-			oneParamAllowNoConst(param[0] = (p[OFFSET_STACK_POINTER] == -1LL) ? -1LL : (p[OFFSET_STACK_POINTER] / LLIS); p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;, p[param] = p[OFFSET_STACK_POINTER]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
+			oneParamAllowNoConst(param[0] = (p[OFFSET_STACK_POINTER] == -1LL) ? -1LL : (p[OFFSET_STACK_POINTER] / LLIS); p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+					p[param] = p[OFFSET_STACK_POINTER]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_SET_INTS:
 			printf("[N-LOG]: CMD=SET_INTS\n");
@@ -1145,7 +1136,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		case CMD_GET_INTS:
 			printf("[N-LOG]: CMD=GET_INTS\n");
 			fflush(stdout);
-			oneParamAllowNoConst(param[0] = (p[OFFSET_INTERUPT_POINTER] == -1LL) ? -1LL :  (p[OFFSET_INTERUPT_POINTER] / LLIS); p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
+			oneParamAllowNoConst(param[0] = (p[OFFSET_INTERUPT_POINTER] == -1LL) ? -1LL : (p[OFFSET_INTERUPT_POINTER] / LLIS); p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;,
 					p[param] = p[OFFSET_INTERUPT_POINTER]; p[OFFSET_INSTRUCTION_POINTER] += len * LLIS;)
 			break;
 		case CMD_INC:
