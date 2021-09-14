@@ -822,34 +822,17 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 								puts("[N-LOG]: INT MEMORY ALLOC");
 								fflush(stdout);
 								int64_t* pntr = malloc((p[1] * LLIS) + LLIS - 1);
-								puts("[N-LOG]: int64_t* pntr = malloc((p[1] * LLIS) + LLIS - 1);");
-								printf("[N-LOG]: pntr=%I64d\n", pntr);
-								puts("[N-LOG]: if (pntr) {");
+								printf("[N-LOG]: pntr=%I64d (pntr == NULL)=%d\n", pntr, pntr == NULL);
 								if (pntr) {
-									puts("[N-LOG]: \tint64_t mem = (int64_t) pntr;");
 									int64_t mem = (int64_t) pntr;
-									printf("[N-LOG]: mem= %I64d\n", mem);
-									puts("[N-LOG]: \tint64_t mod = mem % LLIS;");
 									int64_t mod = mem % LLIS;
-									printf("[N-LOG]: mod= %I64d\n", mod);
-									puts("[N-LOG]: \tmem = mem / LLIS;");
 									mem = mem / LLIS;
-									printf("[N-LOG]: mem= %I64d\n", mem);
-									puts("[N-LOG]: \tif (mod) {");
 									if (mod) {
-										puts("[N-LOG]: \t\tmem += mod - LLIS;");
 										mem += mod - LLIS;
 									}
-									puts("[N-LOG]: \t}");
-									printf("[N-LOG]: mem= %I64d\n", mem);
-									puts("[N-LOG]: p[1] = mem;");
 									p[1] = mem;
-									puts("[N-LOG]: } else {...}");
 								} else {
-									puts("[N-LOG]: ...} else {");
-									puts("[N-LOG]: \tp[1] = -1LL;");
 									p[1] = -1LL;
-									puts("[N-LOG]: }");
 								}
 								printf("[N-LOG]: p[1]=%I64d\n", p[1]);
 								break;
@@ -871,11 +854,14 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 								}
 								break;
 							}
-							case DEF_INT_MEMORY_FREE:
+							case DEF_INT_MEMORY_FREE: {
 								puts("[N-LOG]: INT MEMORY FREE");
 								fflush(stdout);
 								free((int64_t*) (p[1] * LLIS));
+								puts("[N-LOG]: freed memory");
+								fflush(stdout);
 								break;
+							}
 							default:
 								puts("[N-LOG]: unknown command M=0!");
 								fflush(stdout);
