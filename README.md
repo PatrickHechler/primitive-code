@@ -58,10 +58,10 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * adds the values of both parameters and stores the sum in the first parameter
     * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR` <- 1`
-    * else
+        * `ARITMETHIC_ERR <- 1`
+    * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR` <- 0`
+        * `ARITMETHIC_ERR <- 0`
     * `p1 <- p1 + p2`
     * `IP <- IP + CMD_LEN`
 
@@ -69,10 +69,10 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * adds the values of both parameters and the carry flag and stores the sum in the first parameter
     * `if ((p1 > 0) & ((p2 + CARRY) > 0) & ((p1 + p2 + CARRY) < 0)) | ((p1 < 0) & ((p2 + CARRY) < 0) & ((p1 + (p2 + CARRY)) > 0))`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR` <- 1`
-    * else
+        * `ARITMETHIC_ERR <- 1`
+    * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR` <- 0`
+        * `ARITMETHIC_ERR <- 0`
     * `p1 <- p1 + (p2 + CARRY)`
     * `IP <- IP + CMD_LEN`
 
@@ -80,10 +80,10 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * subtracts the second parameter from the first parameter and stores the result in the first parameter
     * `if ((p1 > 0) & (p2 < 0) & ((p1 - p2) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - p2) > 0))`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR` <- 1`
-    * else
+        * `ARITMETHIC_ERR <- 1`
+    * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR` <- 0`
+        * `ARITMETHIC_ERR <- 0`
     * `p1 <- p1 - p2`
     * `IP <- IP + CMD_LEN`
 
@@ -91,10 +91,10 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * subtracts the second parameter with the carry flag from the first parameter and stores the result in the first parameter
     * `if (p1 > 0) & ((p2 + CARRY) < 0) & ((p1 - (p2 + CARRY)) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - (p2 + CARRY)) > 0))`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR` <- 1`
-    * else
+        * `ARITMETHIC_ERR <- 1`
+    * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR` <- 0`
+        * `ARITMETHIC_ERR <- 0`
     * `p1 <- p1 - (p2 + CARRY)`
     * `IP <- IP + CMD_LEN`
 
@@ -102,19 +102,19 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * multiplies the first parameter with the second and stores the result in the first parameter
     * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR` <- 1`
-    * else
+        * `ARITMETHIC_ERR <- 1`
+    * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR` <- 0`
+        * `ARITMETHIC_ERR <- 0`
     * `p1 <- p1 * p2`
     * `IP <- IP + CMD_LEN`
 
 `DIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
 * divides the first parameter with the second and stores the result in the first parameter and the reminder in the second parameter
     * `if p2 = 0`
-        * `ARITMETHIC_ERR` <- 1`
-    * else
-        * `ARITMETHIC_ERR` <- 0`
+        * `ARITMETHIC_ERR <- 1`
+    * `else`
+        * `ARITMETHIC_ERR <- 0`
         * `p1 <- p1 / p2`
         * `p2 <- p1 % p2`
     * `IP <- IP + CMD_LEN`
@@ -137,18 +137,18 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 `LSH <NO_CONST_PARAM>`
 * shifts bits of the parameter logically left
 * this effectively multiplies the parameter with two
-    * `if p1 = HEX-8000000000000000
+    * `if p1 = HEX-8000000000000000`
         * `CARRY <- 1`
-    * else
+    * `else`
         * `CARRY <- 0`
     * `p1 <- p1 * 2`
     * `IP <- IP + CMD_LEN`
 
 `RLSH <NO_CONST_PARAM>`
 * shifts bits of the parameter logically right
-    * `if p1 = HEX-0000000000000001
+    * `if p1 = HEX-0000000000000001`
         * `CARRY <- 1`
-    * else
+    * `else`
         * `CARRY <- 0`
     * `p1 <- p1 >> 1`
     * `IP <- IP + CMD_LEN`
@@ -156,9 +156,9 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 `RASH <NO_CONST_PARAM>`
 * shifts bits of the parameter arithmetic right
 * this effectively divides the parameter with two
-    * `if p1 = HEX-0000000000000001
+    * `if p1 = HEX-0000000000000001`
         * `CARRY <- 1`
-    * else
+    * `else`
         * `CARRY <- 0`
     * `p1 <- p1 / 2`
     * `IP <- IP + CMD_LEN`
@@ -258,14 +258,14 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 `CMP <PARAM> , <PARAM>`
 * compares the two values and stores the result in the status register
     * `if p1 < p2`
-        * LOWER <- 1
-        * GREATHER <- 0
+        * `LOWER <- 1`
+        * `GREATHER <- 0`
     * `if p1 > p2`
-        * LOWER <- 0
-        * GREATHER <- 1
+        * `LOWER <- 0`
+        * `GREATHER <- 1`
     * `if p1 = p2`
-        * LOWER <- 0
-        * GREATHER <- 0
+        * `LOWER <- 0`
+        * `GREATHER <- 0`
     * `IP <- IP + CMD_LEN`
 
 `RET`
@@ -277,78 +277,85 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * calls the interrupt specified by the parameter
     * 0: memory management
         * use `AX` to specify the method of memory management
-            1. allocate a memory-block
+            * 1: allocate a memory-block
                 * `BX` saves the size of the block
                 * if the value of `BX` is `-1` after the call the memory-block could not be allocated
                 * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block
-            2. reallocate a memory-block
+            * 2: reallocate a memory-block
                 * `BX` points to the memory-block
                 * `CX` saves the new size of the memory-block
                 * if the value of `BX` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
                 * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
-            3. free a memory-block
+            * 3: free a memory-block
                 * `BX` points to the old memory-block
                 * after this the memory-block should not be used
     * 1: errors
         * use `AX` to specify the error
-            1. exit
+            * 1: exit
                 * use `BX` to specify the exit number of the progress
-            2. unknown command
+            * 2: unknown command
                 * exits the progress with the exit number -2
     * 2: streams
         * use `AX` to specify
-            1. get out stream
+            * 1: get out stream
                 * sets the `AX` value to the default out stream of this progress
-            2. get log stream
+            * 2: get log stream
                 * sets the `AX` value to the default log stream of this progress
-            3. get in stream
+            * 3: get in stream
                 * sets the `AX` value to the default in stream of this progress
-            4. open new in stream
+            * 4: open new in stream
                 * `BX` contains a pointer to the STRING, which refers to the file which should be read
                 * opens a new in stream to the specified file
                 * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
-            5. open new out stream
+            * 5: open new out stream
                 * `BX` contains a pointer to the STRING, which refers to the file which should be created
                 * opens a new out stream to the specified file
                 * if the file exist already it's contend will be overwritten
                 * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
-            6. write
+            * 6: write
                 * `BX` contains the STREAM-ID
                 * `CX` contains the number of elements to write
                 * `DX` points to the elements to write
                 * after execution `AX` will contain the number of written elements
-            7. read
+            * 7: read
                 * `BX` contains the STREAM-ID
                 * `CX` contains the number of elements to read
                 * `DX` points to the elements to read
-                * after execution `AX` will contain the number of elements, which has been read.
-            8. remove file
+                * after execution `AX` will contain the number of elements, which has been completely read.
+                * after execution `BX` will contain the number bits which has been read in the last element the remaining bits of this element will be cleared.
+            * 8: remove file
                 * `BX` contains a pointer of a STRING with the file
                 * if the file was successfully removed `AX` will contain `1`, if not `0`
-            9. make dictionary
+            * 9: make dictionary
                 * `BX` contains a pointer of a STRING with the dictionary
                 * if the dictionary was successfully created `AX` will contain `1`, if not `0`
-            10. remove dictionary
+            * 10: remove dictionary
                 * `BX` contains a pointer of a STRING with the dictionary
                 * if the dictionary was successfully removed `AX` will contain `1`, if not `0`
                 * if the dictionary is not empty this call will fail (and set `AX` to `0`)
-            11. close stream
+            * 11: close stream
                 * `BX` contains the STREAM-ID
                 * if the stream was closed successfully `AX` will contain `1`, if not `0`
-            12. get stream pos
+            * 12: get stream pos
                 * `BX` contains the STREAM-ID
                 * `AX` will contain the position of the stream or `-1` if something went wrong.
                 * this will set `AX` to the stream position
 				* if the stream-ID is the ID of a default stream the behavior is undefined.
-            13. set stream pos
+            * 13: set stream pos
                 * `BX` contains the STREAM-ID
                 * `CX` contains the new stream position.
                 * this will set the stream position to `CX`
 				* if the stream-ID is the ID of a default stream the behavior is undefined.
-            14. set stream to end
+            * 14: set stream to end
                 * `BX` contains the STREAM-ID
                 * this will set the stream position to the end
 				* if the stream-ID is the ID of a default stream the behavior is undefined.
+        * 3: time
+            * 1: to get the time in milliseconds
+                * `AX` will contain the time in milliseconds
+            * 2: to wait the given time in milliseconds
+                * `BX` contain the number of milliseconds to wait
+                * `BX` will contain the number of remaining milliseconds (or `0` if it finished waiting)
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack
@@ -397,7 +404,7 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `if p = MAX-VALUE`
         * `CARRY <- 1`
         * `ARITMETHIC_ERR <- 1`
-    * else
+    * `else`
         * `CARRY <- 0`
         * `ARITMETHIC_ERR <- 0`
     * `p <- p + 1`
@@ -413,4 +420,11 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `p <- p - 1`
     * `IP <- IP + CMD_LEN`
 
-## TODO:
+## TODO
+* bug fix
+    * set stream position
+        * PrimitiveAssemblerChecker.assembleHelloWorldToFileTest()
+        * JVM crash with error
+    * read from stream
+        * PrimitiveAssemblerChecker.assembleHelloWorldToFileTest()
+* (Multithreading)

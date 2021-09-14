@@ -1,5 +1,8 @@
 package de.patrick.hechler.codesprachen.primitive.assemble;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 import de.hechler.patrick.codesprachen.primitive.compile.objects.PrimitiveAssemblerChecker;
 import de.hechler.patrick.zeugs.check.BigCheckResult;
 import de.hechler.patrick.zeugs.check.Checker;
@@ -10,9 +13,11 @@ public class PrimitiveCodeAssembleMainTest {
 		main(new String[0]);
 	}
 	
-	private static final int CNT = 1 << 10;
+	private static final int CNT = 1 << 12;
 	
 	public static void main(String[] args) {
+		System.out.println(
+				"[J-LOG]: '" + ".\\src\\test\\resources\\readfiles\\helloworld.txt" + "' exists: " + Files.exists(Paths.get(".\\src\\test\\resources\\readfiles\\helloworld.txt")));
 		for (int i = 0; i < CNT; i ++ ) {
 			System.out.println("----- start checks : " + i + " -----");
 			BigCheckResult checked = Checker.checkAll(true, PrimitiveAssemblerChecker.class);

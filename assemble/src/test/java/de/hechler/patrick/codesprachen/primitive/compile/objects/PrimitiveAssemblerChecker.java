@@ -23,7 +23,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 	public final static String VALUE_HELLO_WORLD_TO_FILE_OUTPUT = "hello file world";
 	public final static String INPUT_HELLO_WORLD_FROM_FILE = "/sourcecode/helloworldfromfile.pcs";
 	
-	@Check(disabled = false)
+	@Check(disabled = true)
 	public void assembleAddTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -52,7 +52,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 		}
 	}
 	
-	@Check(disabled = false)
+	@Check(disabled = true)
 	public void assembleHelloWorldTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -81,7 +81,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 		}
 	}
 	
-	@Check(disabled = false)
+	@Check(disabled = true)
 	public void assembleHelloWorldToFileTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
