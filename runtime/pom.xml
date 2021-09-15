@@ -7,7 +7,7 @@
      
 	<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
 	<artifactId>runtime</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>1.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
  
 	<properties>
@@ -72,4 +72,21 @@
         </plugins>
  
     </build>
+
+	<!-- see: https://blog.sonatype.com/using-nexus-3-as-your-repository-part-1-maven-artifacts -->
+	<!-- also see eclipse deploy problem: https://bugs.eclipse.org/bugs/show_bug.cgi?id=566513 -->
+	<!-- workaround: in JVM tab define "-Daether.connector.basic.threads=1" -->
+	<distributionManagement>
+		<repository>
+			<id>patmcsreleases</id>
+			<name>PatMCS Maven Repository</name>
+			<url>http://nexuspat.hechler.de/repository/maven-releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>patmcssnapshots</id>
+			<name>PatMCS Maven Snapshots</name>
+			<url>http://nexuspat.hechler.de/repository/maven-snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
+
 </project>

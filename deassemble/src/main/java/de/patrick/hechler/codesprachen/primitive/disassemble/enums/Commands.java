@@ -9,6 +9,7 @@ public enum Commands {
 	CMD_AND(ParamArt.twoParamsP1NoConstP2AllowConst), CMD_OR(ParamArt.twoParamsP1NoConstP2AllowConst), CMD_XOR(ParamArt.twoParamsP1NoConstP2AllowConst),
 	CMD_NOT(ParamArt.oneParamNoConst), CMD_NEG(ParamArt.oneParamNoConst),
 	CMD_LSH(ParamArt.oneParamNoConst), CMD_RLSH(ParamArt.oneParamNoConst), CMD_RASH(ParamArt.oneParamNoConst), 
+	CMD_DEC(ParamArt.oneParamNoConst), CMD_INC(ParamArt.oneParamNoConst), 
 	
 	CMD_JMP(ParamArt.label), CMD_JMPEQ(ParamArt.label), CMD_JMPNE(ParamArt.label), CMD_JMPGT(ParamArt.label), CMD_JMPGE(ParamArt.label), CMD_JMPLO(ParamArt.label), CMD_JMPLE(ParamArt.label), CMD_JMPCS(ParamArt.label), CMD_JMPCC(ParamArt.label),
 	CMD_CALL(ParamArt.label),
@@ -61,6 +62,8 @@ public enum Commands {
 	private static final int LSH = 0x0B;
 	private static final int RLSH = 0x0C;
 	private static final int RASH = 0x0D;
+	private static final int DEC = 0x0E;
+	private static final int INC = 0x0F;
 	private static final int JMP = 0x10;
 	private static final int JMPEQ = 0x11;
 	private static final int JMPNE = 0x12;
@@ -162,6 +165,10 @@ public enum Commands {
 			return ADDC;
 		case CMD_SUBC:
 			return SUBC;
+		case CMD_DEC:
+			return DEC;
+		case CMD_INC:
+			return INC;
 		default:
 			throw new InternalError("unknown command: " + this.name());
 		
@@ -234,6 +241,10 @@ public enum Commands {
 			return CMD_ADDC;
 		case SUBC:
 			return CMD_SUBC;
+		case DEC:
+			return CMD_DEC;
+		case INC:
+			return CMD_INC;
 		default:
 			throw new NoCommandException("this byte does not show a command!");
 		}
