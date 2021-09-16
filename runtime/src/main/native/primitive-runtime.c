@@ -203,17 +203,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
 		return c;
 	}
-	int64_t fpos;
-	if (!fgetpos64(file, &fpos)) {
-		jclass ecls = (*env)->FindClass(env, "java/io/IOException");
-		char *msg = malloc(16 + 45);
-		strcpy(msg, "error on seeking the pos of the file errno=0x");
-		itoa(errno, msg + 45, 16);
-		jint c = (*env)->ThrowNew(env, ecls, msg);
-		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
-		return c;
-	}
-	return fpos;
+	return ftello64(file);
 }
 
 /*
@@ -225,16 +215,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 	puts("[N-LOG]: enter filepos");
 	FILE *file = (FILE*) pntr;
 	int64_t fpos;
-	if (!fgetpos64(file, &fpos)) {
-		jclass ecls = (*env)->FindClass(env, "java/io/IOException");
-		char *msg = malloc(16 + 44);
-		strcpy(msg, "error on geting the pos of the file errno=0x");
-		itoa(errno, msg + 44, 16);
-		jint c = (*env)->ThrowNew(env, ecls, msg);
-		printf("[N-ERR]: continued after exception, will now return with %d\n", c);
-		return c;
-	}
-	return fpos;
+	return ftello64(file);
 }
 
 /*
@@ -245,18 +226,7 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 JNIEXPORT void JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_objects_PrimitiveVirtualMashine_setfilepos(JNIEnv *env, jobject caller, jlong pntr, jlong pos) {
 	puts("[N-LOG]: enter setfilepos");
 	FILE *file = (FILE*) pntr;
-	int64_t *fpos;
-	if (!fgetpos64(file, fpos)) {
-		jclass ecls = (*env)->FindClass(env, "java/io/IOException");
-		char *msg = malloc(16 + 44);
-		strcpy(msg, "error on geting the pos of the file errno=0x");
-		itoa(errno, msg + 44, 16);
-		jint c = (*env)->ThrowNew(env, ecls, msg);
-		printf("[N-ERR]: continued after exception, will now return ThrowNew returned with %I64d\n", c);
-		return;
-	}
-	fpos[0] = pos * LLIS;
-	if (!fsetpos64(file, fpos)) {
+	if (!fseeko64(file, pos * LLIS, SEEK_SET)) {
 		jclass ecls = (*env)->FindClass(env, "java/io/IOException");
 		char *msg = malloc(16 + 44);
 		strcpy(msg, "error by seting the pos of the file errno=0x");
@@ -923,7 +893,6 @@ JNIEXPORT jlong JNICALL Java_de_hechler_patrick_codesprachen_primitive_runtime_o
 								fflush(stdout);
 								int64_t* wstr = (int64_t*) (p[1] * LLIS);
 								stringToChars
-
 								printf("[N-LOG]: file: '%s'\n", str);
 								fflush(stdout);
 								FILE* f = fopen64(str, "rb");
