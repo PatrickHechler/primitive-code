@@ -3,6 +3,14 @@ a register based coding language with primitive operations
 
 this is the assembler for the primitive VM
 
+## Start
+
+* A primitive code file can be assembled to a primitive-machine-code (.pmc) file.
+* A pmc-file can be executed with a primitive-virtual-machine.
+    * the `AX` register will contain the number of arguments
+    * the `BX` register will point to the argument pointers 
+    * the argument pointers will point to STRINGs
+
 ## CONSTANTS:
 
 except for the `--POS--` constant all other constants can be overwritten and removed
@@ -422,5 +430,6 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `IP <- IP + CMD_LEN`
 
 ## TODO
+* sockets
 * progress arguments
 * (Multithreading)

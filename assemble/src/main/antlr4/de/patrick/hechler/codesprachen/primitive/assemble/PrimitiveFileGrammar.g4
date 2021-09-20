@@ -15,8 +15,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.Command.Consta
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
 }
 
- parse returns [List<Command> commands, Map<String,Long> labels] @init {  
- 	long pos = 0;
+ parse [long startpos] returns
+ [List<Command> commands, Map<String,Long> labels, long pos] @init {
+ 	$pos = startpos;  
  	Map<String,Long> constants = new HashMap<>();
  	$labels = new HashMap<>();
  	$commands = new ArrayList<>();
@@ -51,11 +52,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  :
  	(
  		(
- 			command [pos, constants, $labels]
+ 			command [$pos, constants, $labels]
  			{
  				if ($command.c != null) {
  					$commands.add($command.c);
-	 				pos += $command.c.length();
+	 				$pos += $command.c.length();
  				}
  			}
 
@@ -65,7 +66,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			CONSTANT
  			(
  				(
- 					nummer [pos, constants]
+ 					nummer [$pos, constants]
  					{constants.put($CONSTANT.getText().substring(1), $nummer.num);}
 
  				)

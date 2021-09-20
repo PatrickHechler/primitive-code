@@ -2,8 +2,10 @@ package de.patrick.hechler.codesprachen.primitive.assemble.objects;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
+import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
 
@@ -24,27 +26,46 @@ public class PrimitiveAssembler {
 		this(out, false);
 	}
 	
-	
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings) {
 		this.out = out;
 		this.supressWarn = supressWarnings;
 	}
 	
 	
-	public void assemble(InputStream in) throws IOException {
-		assemble(new ANTLRInputStream(in));
+	
+	public ParseContext preassemble(InputStream in) throws IOException {
+		return preassemble(new InputStreamReader(in));
 	}
 	
-	public void assemble(Reader in) throws IOException {
-		assemble(new ANTLRInputStream(in));
+	public ParseContext preassemble(InputStream in, Charset cs) throws IOException {
+		return preassemble(new InputStreamReader(in, cs));
 	}
 	
-	public void assemble(ANTLRInputStream antlrin) throws IOException {
+	public ParseContext preassemble(Reader in) throws IOException {
+		return preassemble(new ANTLRInputStream(in));
+	}
+	
+	public ParseContext preassemble(ANTLRInputStream antlrin) throws IOException {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
-		ParseContext parsed = parser.parse();
-		assemble(parsed);
+		return parser.parse(0L);
+	}
+	
+	public void assemble(InputStream in) throws IOException {
+		assemble(preassemble(in));
+	}
+	
+	public void assemble(InputStream in, Charset cs) throws IOException {
+		assemble(preassemble(in, cs));
+	}
+	
+	public void assemble(Reader in) throws IOException {
+		assemble(preassemble(in));
+	}
+	
+	public void assemble(ANTLRInputStream antlrin) throws IOException {
+		assemble(preassemble(antlrin));
 	}
 	
 	public void assemble(PrimitiveFileGrammarParser.ParseContext parsed) throws IOException {
@@ -52,7 +73,6 @@ public class PrimitiveAssembler {
 		Map <String, Long> labels = parsed.labels;
 		assemble(cmds, labels);
 	}
-	
 	
 	public void assemble(List <Command> cmds, Map <String, Long> labels) throws IOException {
 		long pos = 0;
@@ -155,8 +175,6 @@ public class PrimitiveAssembler {
 		}
 		out.flush();
 	}
-	
-	
 	
 	private void writeOneParam(Command cmd, byte[] bytes) throws IOException {
 		assert cmd.p1 != null : "I need a first Param!";
