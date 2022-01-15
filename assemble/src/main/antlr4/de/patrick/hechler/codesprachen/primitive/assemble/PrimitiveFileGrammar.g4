@@ -29,25 +29,25 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 	constants.put("INT-MEMORY-ALLOC", (Long) 5L);
 	constants.put("INT-MEMORY-REALLOC", (Long) 6L);
 	constants.put("INT-MEMORY-FREE", (Long) 7L);
-	constants.put("INT-STREAMS-GET_STD_OUT", (Long) 8L);
-	constants.put("INT-STREAMS-GET_STD_LOG", (Long) 9L);
-	constants.put("INT-STREAMS-GET_STD_IN", (Long) 10L);
-	constants.put("INT-STREAMS-NEW_IN", (Long) 11L);
-	constants.put("INT-STREAMS-NEW_OUT", (Long) 12L);
-	constants.put("INT-STREAMS-WRITE", (Long) 13L);
-	constants.put("INT-STREAMS-READ", (Long) 14L);
-	constants.put("INT-STREAMS-CLOSE_STREAM", (Long) 15L);
-	constants.put("INT-STREAMS-GET_POS", (Long) 16L);
-	constants.put("INT-STREAMS-SET_POS", (Long) 17L);
-	constants.put("INT-STREAMS-SET_POS_TO_END", (Long) 18L);
-	constants.put("INT-STREAMS-REM", (Long) 19L);
-	constants.put("INT-STREAMS-MK_DIR", (Long) 20L);
-	constants.put("INT-STREAMS-REM_DIR", (Long) 21L);
-	constants.put("INT-TIME-GET", (Long) 22L);
-	constants.put("INT-TIME-WAIT", (Long) 23L);
-	constants.put("INT-TIME-RANDOM", (Long) 24L);
+	constants.put("INT-STREAMS-NEW_IN", (Long) 8L);
+	constants.put("INT-STREAMS-NEW_OUT", (Long) 9L);
+	constants.put("INT-STREAMS-WRITE", (Long) 10L);
+	constants.put("INT-STREAMS-READ", (Long) 11L);
+	constants.put("INT-STREAMS-CLOSE_STREAM", (Long) 12L);
+	constants.put("INT-STREAMS-GET_POS", (Long) 13L);
+	constants.put("INT-STREAMS-SET_POS", (Long) 14L);
+	constants.put("INT-STREAMS-SET_POS_TO_END", (Long) 15L);
+	constants.put("INT-STREAMS-REM", (Long) 16L);
+	constants.put("INT-STREAMS-MK_DIR", (Long) 17L);
+	constants.put("INT-STREAMS-REM_DIR", (Long) 18L);
+	constants.put("INT-TIME-GET", (Long) 19L);
+	constants.put("INT-TIME-WAIT", (Long) 20L);
+	constants.put("INT-RANDOM", (Long) 21L);
 	constants.put("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
 	constants.put("MIN-VALUE", (Long) (-0x8000000000000000L));
+	constants.put("STD-IN", (Long) 0L);
+	constants.put("STD-OUT", (Long) 1L);
+	constants.put("STD-LOG", (Long) 2L);
  }
  :
  	(
@@ -401,6 +401,18 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				)
  				|
  				(
+ 					GET_INTCNT
+ 					{cmd = Commands.CMD_GET_INTCNT;}
+
+ 				)
+ 				|
+ 				(
+ 					GET_INTS
+ 					{cmd = Commands.CMD_GET_INTS;}
+
+ 				)
+ 				|
+ 				(
  					GET_IP
  					{cmd = Commands.CMD_GET_IP;}
 
@@ -521,6 +533,18 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				)
  				|
  				(
+ 					SET_INTCNT
+ 					{cmd = Commands.CMD_SET_INTCNT;}
+
+ 				)
+ 				|
+ 				(
+ 					SET_INTS
+ 					{cmd = Commands.CMD_SET_INTS;}
+
+ 				)
+ 				|
+ 				(
  					SET_SP
  					{cmd = Commands.CMD_SET_SP;}
 
@@ -551,6 +575,15 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  		{$c = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos);}
 
  	)
+ ;
+
+ SET_INTCNT
+ :
+ 	'SET_INTCNT'
+ ;
+ SET_INTS
+ :
+ 	'SET_INTS'
  ;
 
  SET_IP
@@ -711,6 +744,15 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  INT
  :
  	'INT'
+ ;
+
+ GET_INTCNT
+ :
+ 	'GET_INTCNT'
+ ;
+ GET_INTS
+ :
+ 	'GET_INTS'
  ;
 
  GET_SP
