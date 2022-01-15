@@ -15,32 +15,34 @@ this is the assembler for the primitive VM
 
 except for the `--POS--` constant all other constants can be overwritten and removed
 
-* `--POS--` :                          the position from the begin of the next command
-* `#INT-MEMORY` :                      0
-* `#INT-ERRORS` :                      1
-* `#INT-STREAMS` :                     2
-* `#INT-TIME` :                        3
-* `#INT-MEMORY-ALLOC` :                0
-* `#INT-MEMORY-REALLOC` :              1
-* `#INT-MEMORY-FREE` :                 2
-* `#INT-ERRORS-EXIT` :                 0
-* `#INT-ERRORS-UNKNOWN_COMMAND` :      1
-* `#INT-STREAMS-GET_OUT` :             0
-* `#INT-STREAMS-GET_LOG` :             1
-* `#INT-STREAMS-GET_IN` :              2
-* `#INT-STREAMS-NEW_IN` :              3
-* `#INT-STREAMS-NEW_OUT` :             4
-* `#INT-STREAMS-WRITE` :               5
-* `#INT-STREAMS-READ` :                6
-* `#INT-STREAMS-REM` :                 7
-* `#INT-STREAMS-MK_DIR` :              8
-* `#INT-STREAMS-REM_DIR` :             9
-* `#INT-STREAMS-CLOSE_STREM` :         10
-* `#INT-STREAMS-GET_POS` :             11
-* `#INT-STREAMS-SET_POS` :             12
-* `#INT-STREAMS-SET_POS_TO_END` :      13
-* `#MAX-VALUE` :                   HEX-7FFFFFFFFFFFFFFF
-* `#MIN-VALUE` :                  NHEX-8000000000000000
+* `--POS--` :                           the position from the begin of the next command
+* `#DEF_INT_ERRORS_UNKNOWN_COMMAND` :    0
+* `#DEF_INT_ERRORS_ILLEGAL_INTERRUPT` :  1
+* `#DEF_INT_ERRORS_ILLEGAL_MEMORY` :     2
+* `#DEF_INT_ERRORS_ARITHMETIC_ERROR` :   3
+* `#DEF_INT_EXIT` :                      4
+* `#DEF_INT_MEMORY_ALLOC` :              5
+* `#DEF_INT_MEMORY_REALLOC` :            6
+* `#DEF_INT_MEMORY_FREE` :               7
+* `#DEF_INT_STREAMS_GET_STD_OUT` :       8
+* `#DEF_INT_STREAMS_GET_STD_LOG` :       9
+* `#DEF_INT_STREAMS_GET_STD_IN` :       10
+* `#DEF_INT_STREAMS_NEW_IN` :           11
+* `#DEF_INT_STREAMS_NEW_OUT` :          12
+* `#DEF_INT_STREAMS_WRITE` :            13
+* `#DEF_INT_STREAMS_READ` :             14
+* `#DEF_INT_STREAMS_CLOSE_STREAM` :     15
+* `#DEF_INT_STREAMS_GET_POS` :          16
+* `#DEF_INT_STREAMS_SET_POS` :          17
+* `#DEF_INT_STREAMS_SET_POS_TO_END` :   18
+* `#DEF_INT_FS_REM` :                   19
+* `#DEF_INT_FS_MK_DIR` :                20
+* `#DEF_INT_FS_REM_DIR` :               21
+* `#DEF_INT_TIME_GET` :                 22
+* `#DEF_INT_TIME_WAIT` :                23
+* `#DEF_INT_RANDOM` :                   24
+* `#MAX-VALUE` :                    HEX-7FFFFFFFFFFFFFFF
+* `#MIN-VALUE` :                   NHEX-8000000000000000
 
 ## STATUS:
 * the status register has some flags which are initialized with random values
@@ -284,87 +286,89 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-    * 0: memory management
-        * use `AX` to specify the method of memory management
-            * 0: allocate a memory-block
-                * `BX` saves the size of the block
-                * if the value of `BX` is `-1` after the call the memory-block could not be allocated
-                * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block
-            * 1: reallocate a memory-block
-                * `BX` points to the memory-block
-                * `CX` saves the new size of the memory-block
-                * if the value of `BX` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
-                * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
-            * 2: free a memory-block
-                * `BX` points to the old memory-block
-                * after this the memory-block should not be used
-    * 1: errors
-        * use `AX` to specify the error
-            * 0: exit
-                * use `BX` to specify the exit number of the progress
-            * 1: unknown command
-                * exits the progress with the exit number -2
-    * 2: streams
-        * use `AX` to specify
-            * 0: get out stream
-                * sets the `AX` value to the default out stream of this progress
-            * 1: get log stream
-                * sets the `AX` value to the default log stream of this progress
-            * 2: get in stream
-                * sets the `AX` value to the default in stream of this progress
-            * 3: open new in stream
-                * `BX` contains a pointer to the STRING, which refers to the file which should be read
-                * opens a new in stream to the specified file
-                * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
-            * 4: open new out stream
-                * `BX` contains a pointer to the STRING, which refers to the file which should be created
-                * opens a new out stream to the specified file
-                * if the file exist already it's contend will be overwritten
-                * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
-            * 5: write
-                * `BX` contains the STREAM-ID
-                * `CX` contains the number of elements to write
-                * `DX` points to the elements to write
-                * after execution `AX` will contain the number of written elements
-            * 6: read
-                * `BX` contains the STREAM-ID
-                * `CX` contains the number of elements to read
-                * `DX` points to the elements to read
-                * after execution `AX` will contain the number of elements, which has been completely read.
-                * after execution `BX` will contain the number bits which has been read in the last element the remaining bits of this element will be cleared.
-            * 7: remove file
-                * `BX` contains a pointer of a STRING with the file
-                * if the file was successfully removed `AX` will contain `1`, if not `0`
-            * 8: make dictionary
-                * `BX` contains a pointer of a STRING with the dictionary
-                * if the dictionary was successfully created `AX` will contain `1`, if not `0`
-            * 9: remove dictionary
-                * `BX` contains a pointer of a STRING with the dictionary
-                * if the dictionary was successfully removed `AX` will contain `1`, if not `0`
-                * if the dictionary is not empty this call will fail (and set `AX` to `0`)
-            * 10: close stream
-                * `BX` contains the STREAM-ID
-                * if the stream was closed successfully `AX` will contain `1`, if not `0`
-            * 11: get stream pos
-                * `BX` contains the STREAM-ID
-                * `AX` will contain the position of the stream or `-1` if something went wrong.
-                * this will set `AX` to the stream position
-				* if the stream-ID is the ID of a default stream the behavior is undefined.
-            * 12: set stream pos
-                * `BX` contains the STREAM-ID
-                * `CX` contains the new stream position.
-                * this will set the stream position to `CX`
-				* if the stream-ID is the ID of a default stream the behavior is undefined.
-            * 13: set stream to end
-                * `BX` contains the STREAM-ID
-                * this will set the stream position to the end
-				* if the stream-ID is the ID of a default stream the behavior is undefined.
-        * 3: time
-            * 0: to get the time in milliseconds
-                * `AX` will contain the time in milliseconds
-            * 1: to wait the given time in milliseconds
-                * `BX` contain the number of milliseconds to wait
-                * `BX` will contain the number of remaining milliseconds (or `0` if it finished waiting)
+	* 0: unknown command
+		* calls the exit interrupt with -2
+	* 1: illegal interrupt
+		* calls the exit interrupt with -2
+		* if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with -3
+	* 2: illegal memory
+		* calls the exit interrupt with -2
+	* 3: arithmetic error
+		* calls the exit interrupt with -2
+	* 4: exit
+		* use `AX` to specify the exit number of the progress
+	* 5: allocate a memory-block
+		* `AX` saves the size of the block
+		* if the value of `AX` is `-1` after the call the memory-block could not be allocated
+		* if the value of `AX` is not `-1`, `AX` points to the first element of the allocated memory-block
+	* 6: reallocate a memory-block
+		* `AX` points to the memory-block
+		* `BX` saves the new size of the memory-block
+		* if the value of `BX` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
+		* if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
+	* 7: free a memory-block
+		* `AX` points to the old memory-block
+		* after this the memory-block should not be used
+	* 8: get in stream
+		* sets the `AX` value to the default in stream of this progress
+	* 9: get out stream
+		* sets the `AX` value to the default out stream of this progress
+	* 10: get log stream
+		* sets the `AX` value to the default log stream of this progress
+	* 11: open new in stream
+		* `AX` contains a pointer to the STRING, which refers to the file which should be read
+		* opens a new in stream to the specified file
+		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+	* 12: open new out stream
+		* `AX` contains a pointer to the STRING, which refers to the file which should be created
+		* opens a new out stream to the specified file
+		* if the file exist already it's contend will be overwritten
+		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+	* 13: write
+		* `AX` contains the STREAM-ID
+		* `BX` contains the number of elements to write
+		* `CX` points to the elements to write
+		* after execution `AX` will contain the number of written elements
+	* 14: read
+		* `AX` contains the STREAM-ID
+		* `BX` contains the number of elements to read
+		* `CX` points to the elements to read
+		* after execution `AX` will contain the number of elements, which has been completely read.
+	* 15: close stream
+		* `AX` contains the STREAM-ID
+		* if the stream was closed successfully `AX` will contain `1`, if not `0`
+	* 16: get stream pos
+		* `AX` contains the STREAM-ID
+		* `BX` will contain the position of the stream or `-1` if something went wrong.
+		* if the stream-ID is the ID of a default or input stream the behavior is undefined.
+	* 17: set stream pos
+		* `AX` contains the STREAM-ID
+		* `BX` contains the position to be set.
+		* if the stream-ID is the ID of a default stream the behavior is undefined.
+		* `BX` will contain the new stream position.
+	* 18: set stream to end
+		* `AX` contains the STREAM-ID
+		* this will set the stream position to the end
+		* `BX` will the new file pos or `-1` if something went wrong
+		* if the stream-ID is the ID of a default or input stream the behavior is undefined.
+	* 19: remove file
+		* `AX` contains a pointer of a STRING with the file
+		* if the file was successfully removed `AX` will contain `1`, if not `0`
+	* 20: make dictionary
+		* `AX` contains a pointer of a STRING with the dictionary
+		* if the dictionary was successfully created `AX` will contain `1`, if not `0`
+	* 21: remove dictionary
+		* `AX` contains a pointer of a STRING with the dictionary
+		* if the dictionary was successfully removed `AX` will contain `1`, if not `0`
+		* if the dictionary is not empty this call will fail (and set `AX` to `0`)
+	* 22: to get the time in nanoseconds
+		* `AX` will contain the time in nanoseconds or `-1` if not available
+	* 23: to wait the given time in nanoseconds
+		* `AX` contain the number of nanoseconds to wait
+		* `AX` will contain the number of remaining nanoseconds (or `0` if it finished waiting) or `-1` on an error
+		* `AX` will not be negative if the progress waited too long
+	* 24: random
+		* `AX` will be filled with random bits
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack
