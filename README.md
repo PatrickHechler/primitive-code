@@ -43,6 +43,9 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * `#DEF_INT_RANDOM` :                   24
 * `#MAX-VALUE` :                    HEX-7FFFFFFFFFFFFFFF
 * `#MIN-VALUE` :                   NHEX-8000000000000000
+* `#STD-IN :                            0
+* `#STD-OUT :                           1
+* `#STD-LOG :                           2
 
 ## STATUS:
 * the status register has some flags which are initialized with random values
@@ -287,8 +290,10 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
 	* 0: unknown command
+		* `AX` contains the illegal command
 		* calls the exit interrupt with -2
 	* 1: illegal interrupt
+		* `AX` contains the number of the illegal interrupt
 		* calls the exit interrupt with -2
 		* if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with -3
 	* 2: illegal memory
@@ -309,17 +314,28 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 	* 7: free a memory-block
 		* `AX` points to the old memory-block
 		* after this the memory-block should not be used
-	* 8: get in stream
-		* sets the `AX` value to the default in stream of this progress
-	* 9: get out stream
-		* sets the `AX` value to the default out stream of this progress
-	* 10: get log stream
-		* sets the `AX` value to the default log stream of this progress
-	* 11: open new in stream
+	* 8: open new in stream
 		* `AX` contains a pointer to the STRING, which refers to the file which should be read
 		* opens a new in stream to the specified file
 		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
-	* 12: open new out stream
+		* output operations are not supported on the new stream
+	* 9: open new out stream
+		* `AX` contains a pointer to the STRING, which refers to the file which should be created
+		* opens a new out stream to the specified file
+		* if the file exist already it's contend will be overwritten
+		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+		* input operations are not supported on the new stream
+	* 10: open new out, append stream
+		* `AX` contains a pointer to the STRING, which refers to the file which should be created
+		* opens a new out stream to the specified file
+		* if the file exist already it's contend will be overwritten
+		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+	* 11: open new in/out stream
+		* `AX` contains a pointer to the STRING, which refers to the file which should be created
+		* opens a new out stream to the specified file
+		* if the file exist already it's contend will be overwritten
+		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+	* 12: open new in/out, append stream
 		* `AX` contains a pointer to the STRING, which refers to the file which should be created
 		* opens a new out stream to the specified file
 		* if the file exist already it's contend will be overwritten
@@ -369,6 +385,30 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 		* `AX` will not be negative if the progress waited too long
 	* 24: random
 		* `AX` will be filled with random bits
+	* 25: socket client create
+		* makes a new client socket
+		* `AX` will be set to the SOCKET-ID or `-1` if the operation failed
+	* 26: socket client connect
+		* `AX` points to the SOCKET-ID
+		* `BX` points to a STRING, which names the host
+		* `CX` contains the port
+		* connects an client socket to the host on the port
+		* `BX` will be set to the `1` on success and `0` on a fail
+		* on success, the SOCKET-ID, can be used as a STREAM-ID
+	* 27: socket server create
+		* `AX` contains the port
+		* makes a new server socket
+		* `AX` will be set to the SOCKET-ID or `-1` when the operation fails
+	* 28: socket server listens
+		* `AX` contains the SOCKET-ID
+		* `BX` contains the MAX_QUEUE length
+		* let a server socket listen
+		* `BX` will be set to `1` or `0` when the operation fails
+	* 29: socket server accept
+		* `AX` contains the SOCKET-ID
+		* let a server socket accept a client
+		* this operation will block, until a client connects
+		* `BX` will be set a new SOCKET-ID, which can be used as STREAM-ID, or `-1`
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack
@@ -434,6 +474,5 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `IP <- IP + CMD_LEN`
 
 ## TODO
-* sockets
-* progress arguments
-* (Multithreading)
+* program arguments
+* (Multi-threading/-progressing)
