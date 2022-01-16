@@ -47,10 +47,10 @@ parse [long startpos] returns
 	constants.put("INT-TIME-WAIT", (Long) 23L);
 	constants.put("INT-RANDOM", (Long) 24L);
 	constants.put("INT-SOCKET-CLIENT-CREATE", (Long) 25L);
-	constants.put("INT-SOCKET-CLIENT-CONNECT" (LONG) 26L);
-	constants.put("INT-SOCKET-SERVER-CREATE" (LONG) 27L);
-	constants.put("INT-SOCKET-SERVER-LISTEN" (LONG) 28L);
-	constants.put("INT-SOCKET-SERVER-ACCEPT" (LONG) 29L);
+	constants.put("INT-SOCKET-CLIENT-CONNECT", (Long) 26L);
+	constants.put("INT-SOCKET-SERVER-CREATE", (Long) 27L);
+	constants.put("INT-SOCKET-SERVER-LISTEN", (Long) 28L);
+	constants.put("INT-SOCKET-SERVER-ACCEPT", (Long) 29L);
 	constants.put("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
 	constants.put("MIN-VALUE", (Long) (-0x8000000000000000L));
 	constants.put("STD-IN", (Long) 0L);

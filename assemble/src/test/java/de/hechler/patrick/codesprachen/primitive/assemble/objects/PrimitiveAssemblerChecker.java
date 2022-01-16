@@ -10,7 +10,6 @@ import java.nio.charset.Charset;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMDebugingComunicator;
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMSnapshot;
-import de.hechler.patrick.codesprachen.primitive.runtime.objects.PrimitiveVirtualMashine;
 import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.anotations.Check;
 import de.hechler.patrick.zeugs.check.anotations.CheckClass;
