@@ -25,7 +25,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 	public final static String VALUE_HELLO_WORLD_TO_FILE_OUTPUT = "hello file world";
 	public final static String INPUT_HELLO_WORLD_FROM_FILE = "/sourcecode/helloworldfromfile.pcs";
 	
-	@Check(disabled = true)
+	@Check(disabled = true)//this check should work with the new (because it was changed), the others not
 	public void assembleAddTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
