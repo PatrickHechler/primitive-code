@@ -43,16 +43,15 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * `#DEF_INT_RANDOM` :                   24
 * `#MAX-VALUE` :                    HEX-7FFFFFFFFFFFFFFF
 * `#MIN-VALUE` :                   NHEX-8000000000000000
-* `#STD-IN :                            0
-* `#STD-OUT :                           1
-* `#STD-LOG :                           2
+* `#STD-IN` :                            0
+* `#STD-OUT` :                           1
+* `#STD-LOG` :                           2
 
 ## STATUS:
 * the status register has some flags which are initialized with random values
     * `LOWER`
     * `GREATHER`
     * `CARRY`
-    * `ARITMETHIC_ERR`
 
 ## STRINGS:
 * if any command, function or whatever of primitive-code refers to STRING(s) this definition is used
