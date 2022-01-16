@@ -38,7 +38,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 			String hexCodeLongs = TestUtils.toHexCode(TestUtils.toLong(code));
 			System.out.println(hexCodeLongs);
 			
-			PVMDebugingComunicator pvm = new PVMDebugingComunicator(Runtime.getRuntime().exec(new String[] {"pvm", "--wait", "--port", "5555" }), new Socket("localhost", 5555));
+			PVMDebugingComunicator pvm = new PVMDebugingComunicator(Runtime.getRuntime().exec(new String[] {"./pvm", "--wait", "--port", "5555" }), new Socket("localhost", 5555));
 			long[] commands = TestUtils.toLong(code);
 			long ax = 5L;
 			long bx = 30L;
