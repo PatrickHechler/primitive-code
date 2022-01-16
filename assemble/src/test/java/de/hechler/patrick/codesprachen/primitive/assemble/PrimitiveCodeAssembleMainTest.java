@@ -1,9 +1,9 @@
-package de.patrick.hechler.codesprachen.primitive.assemble;
+package de.hechler.patrick.codesprachen.primitive.assemble;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import de.hechler.patrick.codesprachen.primitive.compile.objects.PrimitiveAssemblerChecker;
+import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveAssemblerChecker;
 import de.hechler.patrick.zeugs.check.BigCheckResult;
 import de.hechler.patrick.zeugs.check.Checker;
 

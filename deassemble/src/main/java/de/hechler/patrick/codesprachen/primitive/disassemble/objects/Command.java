@@ -1,27 +1,27 @@
-package de.patrick.hechler.codesprachen.primitive.disassemble.objects;
+package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
 import java.util.List;
 import java.util.Map;
 
-import de.patrick.hechler.codesprachen.primitive.disassemble.enums.Commands;
-import de.patrick.hechler.codesprachen.primitive.disassemble.enums.Commands.ParamArt;
-import de.patrick.hechler.codesprachen.primitive.disassemble.interfaces.LabelNameGenerator;
+import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands;
+import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands.ParamArt;
+import de.hechler.patrick.codesprachen.primitive.disassemble.interfaces.LabelNameGenerator;
 
 public class Command {
 	
 	public final Commands cmd;
 	public final Param p1;
 	public final Param p2;
-	public final long labelDest;
+	public final long relativeLabel;
 	private LabelNameGenerator lng;
 	
 	
 	
-	private Command(Commands cmd, Param p1, Param p2, long labelDest, LabelNameGenerator lng) {
+	private Command(Commands cmd, Param p1, Param p2, long relativeLabel, LabelNameGenerator lng) {
 		this.cmd = cmd;
 		this.p1 = p1;
 		this.p2 = p2;
-		this.labelDest = labelDest;
+		this.relativeLabel = relativeLabel;
 		this.lng = lng;
 	}
 	
@@ -37,8 +37,8 @@ public class Command {
 		this(cmd, p1, null, -1, null);
 	}
 	
-	public Command(Commands cmd, long labelDest, LabelNameGenerator lng) {
-		this(cmd, null, null, labelDest, lng);
+	public Command(Commands cmd, long relativeLabel, LabelNameGenerator lng) {
+		this(cmd, null, null, relativeLabel, lng);
 	}
 	
 	@Override
@@ -46,7 +46,7 @@ public class Command {
 		StringBuilder build = new StringBuilder(cmd.toString());
 		switch(cmd.art) {
 		case label:
-			build.append(' ').append("DEST-POS=" + labelDest);
+			build.append(' ').append("DEST-POS=" + relativeLabel);
 			break;
 		case noParams:
 			break;
@@ -69,7 +69,7 @@ public class Command {
 		StringBuilder build = new StringBuilder(cmd.toString());
 		switch(cmd.art) {
 		case label:
-			build.append(' ').append(lng.generateName(labelDest, cmds, (int) indices.get((Long) labelDest)));
+			build.append(' ').append(lng.generateName(relativeLabel, cmds, (int) indices.get((Long) relativeLabel)));
 			break;
 		case noParams:
 			break;
@@ -124,11 +124,15 @@ public class Command {
 		public int length() {
 			return longs.size();
 		}
+
+		public long get(int ii) {
+			return longs.get(ii);
+		}
 		
 	}
 	
 	public int length() {
-		if (labelDest != -1) {
+		if (relativeLabel != -1) {
 			return 2;
 		}
 		if (p2 != null) {
@@ -223,7 +227,7 @@ public class Command {
 		}
 		ret[0] = PrimitiveDisassembler.convertLong(first);
 		if (cmd.art == ParamArt.label) {
-			ret[1] = labelDest - pos;
+			ret[1] = relativeLabel - pos;
 		}
 		return ret;
 	}

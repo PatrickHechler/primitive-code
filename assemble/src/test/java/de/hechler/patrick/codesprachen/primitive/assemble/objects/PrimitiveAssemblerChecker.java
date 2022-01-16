@@ -1,12 +1,15 @@
-package de.hechler.patrick.codesprachen.primitive.compile.objects;
+package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.Socket;
 import java.nio.charset.Charset;
 
+import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMDebugingComunicator;
+import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMSnapshot;
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PrimitiveVirtualMashine;
 import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.anotations.Check;
@@ -36,15 +39,18 @@ public class PrimitiveAssemblerChecker extends Checker {
 			String hexCodeLongs = TestUtils.toHexCode(TestUtils.toLong(code));
 			System.out.println(hexCodeLongs);
 			
-			PrimitiveVirtualMashine pvm = new PrimitiveVirtualMashine();
+			PVMDebugingComunicator pvm = new PVMDebugingComunicator(Runtime.getRuntime().exec(new String[] {"pvm", "--wait", "--port", "5555" }), new Socket("localhost", 5555));
 			long[] commands = TestUtils.toLong(code);
 			long ax = 5L;
 			long bx = 30L;
-			pvm.setAX(ax);
-			pvm.setBX(bx);
+			PVMSnapshot pvmsn = new PVMSnapshot(0, 0, 0, 0, 0, 0, 0, 0, 0);
+			pvmsn.ax = ax;
+			pvmsn.bx = bx;
+			pvm.setSnapshot(pvmsn);
 			System.out.println("execute");
-			pvm.execute(commands);
-			long cx = pvm.getCX();
+			pvm.executeUntilExit(commands, false);
+			pvmsn = pvm.getSnapshot();
+			long cx = pvmsn.cx;
 			assertEquals(ax + bx, cx);
 			System.out.println("CX=" + cx);
 		} catch (IOException e) {

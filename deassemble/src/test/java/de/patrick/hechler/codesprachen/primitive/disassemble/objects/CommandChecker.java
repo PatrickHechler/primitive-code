@@ -3,15 +3,17 @@ package de.patrick.hechler.codesprachen.primitive.disassemble.objects;
 import java.util.HashMap;
 import java.util.Map;
 
+import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands;
+import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoCommandException;
+import de.hechler.patrick.codesprachen.primitive.disassemble.interfaces.LabelNameGenerator;
+import de.hechler.patrick.codesprachen.primitive.disassemble.objects.Command;
+import de.hechler.patrick.codesprachen.primitive.disassemble.objects.Param;
+import de.hechler.patrick.codesprachen.primitive.disassemble.objects.Param.ParamBuilder;
 import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.anotations.Check;
 import de.hechler.patrick.zeugs.check.anotations.CheckClass;
 import de.hechler.patrick.zeugs.check.anotations.End;
 import de.hechler.patrick.zeugs.check.anotations.Start;
-import de.patrick.hechler.codesprachen.primitive.disassemble.enums.Commands;
-import de.patrick.hechler.codesprachen.primitive.disassemble.exceptions.NoCommandException;
-import de.patrick.hechler.codesprachen.primitive.disassemble.interfaces.LabelNameGenerator;
-import de.patrick.hechler.codesprachen.primitive.disassemble.objects.Param.ParamBuilder;
 
 @CheckClass
 public class CommandChecker extends Checker {

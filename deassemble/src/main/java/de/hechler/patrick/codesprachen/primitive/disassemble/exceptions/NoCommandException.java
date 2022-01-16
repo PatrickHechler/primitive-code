@@ -1,4 +1,4 @@
-package de.patrick.hechler.codesprachen.primitive.disassemble.exceptions;
+package de.hechler.patrick.codesprachen.primitive.disassemble.exceptions;
 
 
 public class NoCommandException extends Exception {

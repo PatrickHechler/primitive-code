@@ -289,122 +289,123 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-	* 0: unknown command
+	* `0`: unknown command
 		* `AX` contains the illegal command
-		* calls the exit interrupt with -2
-	* 1: illegal interrupt
+		* calls the exit interrupt with `-2`
+	* `1`: illegal interrupt
 		* `AX` contains the number of the illegal interrupt
-		* calls the exit interrupt with -2
-		* if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with -3
-	* 2: illegal memory
-		* calls the exit interrupt with -2
-	* 3: arithmetic error
-		* calls the exit interrupt with -2
-	* 4: exit
+		* calls the exit interrupt with `-2`
+		* if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `-3`
+		* if the forbidden interrupt is the exit input, the program exits with `-3`
+	* `2`: illegal memory
+		* calls the exit interrupt with `-2`
+	* `3`: arithmetic error
+		* calls the exit interrupt with `-2`
+	* `4`: exit
 		* use `AX` to specify the exit number of the progress
-	* 5: allocate a memory-block
+	* `5`: allocate a memory-block
 		* `AX` saves the size of the block
 		* if the value of `AX` is `-1` after the call the memory-block could not be allocated
 		* if the value of `AX` is not `-1`, `AX` points to the first element of the allocated memory-block
-	* 6: reallocate a memory-block
+	* `6`: reallocate a memory-block
 		* `AX` points to the memory-block
 		* `BX` saves the new size of the memory-block
 		* if the value of `BX` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
 		* if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
-	* 7: free a memory-block
+	* `7`: free a memory-block
 		* `AX` points to the old memory-block
 		* after this the memory-block should not be used
-	* 8: open new in stream
+	* `8`: open new in stream
 		* `AX` contains a pointer to the STRING, which refers to the file which should be read
 		* opens a new in stream to the specified file
 		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
 		* output operations are not supported on the new stream
-	* 9: open new out stream
+	* `9`: open new out stream
 		* `AX` contains a pointer to the STRING, which refers to the file which should be created
 		* opens a new out stream to the specified file
 		* if the file exist already it's contend will be overwritten
 		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
 		* input operations are not supported on the new stream
-	* 10: open new out, append stream
+	* `10`: open new out, append stream
 		* `AX` contains a pointer to the STRING, which refers to the file which should be created
 		* opens a new out stream to the specified file
 		* if the file exist already it's contend will be overwritten
 		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
-	* 11: open new in/out stream
+	* `11`: open new in/out stream
 		* `AX` contains a pointer to the STRING, which refers to the file which should be created
 		* opens a new out stream to the specified file
 		* if the file exist already it's contend will be overwritten
 		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
-	* 12: open new in/out, append stream
+	* `12`: open new in/out, append stream
 		* `AX` contains a pointer to the STRING, which refers to the file which should be created
 		* opens a new out stream to the specified file
 		* if the file exist already it's contend will be overwritten
 		* is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
-	* 13: write
+	* `13`: write
 		* `AX` contains the STREAM-ID
 		* `BX` contains the number of elements to write
 		* `CX` points to the elements to write
 		* after execution `AX` will contain the number of written elements
-	* 14: read
+	* `14`: read
 		* `AX` contains the STREAM-ID
 		* `BX` contains the number of elements to read
 		* `CX` points to the elements to read
 		* after execution `AX` will contain the number of elements, which has been completely read.
-	* 15: close stream
+	* `15`: close stream
 		* `AX` contains the STREAM-ID
 		* if the stream was closed successfully `AX` will contain `1`, if not `0`
-	* 16: get stream pos
+	* `16`: get stream pos
 		* `AX` contains the STREAM-ID
 		* `BX` will contain the position of the stream or `-1` if something went wrong.
 		* if the stream-ID is the ID of a default or input stream the behavior is undefined.
-	* 17: set stream pos
+	* `17`: set stream pos
 		* `AX` contains the STREAM-ID
 		* `BX` contains the position to be set.
 		* if the stream-ID is the ID of a default stream the behavior is undefined.
 		* `BX` will contain the new stream position.
-	* 18: set stream to end
+	* `18`: set stream to end
 		* `AX` contains the STREAM-ID
 		* this will set the stream position to the end
 		* `BX` will the new file pos or `-1` if something went wrong
 		* if the stream-ID is the ID of a default or input stream the behavior is undefined.
-	* 19: remove file
+	* `19`: remove file
 		* `AX` contains a pointer of a STRING with the file
 		* if the file was successfully removed `AX` will contain `1`, if not `0`
-	* 20: make dictionary
+	* `20`: make dictionary
 		* `AX` contains a pointer of a STRING with the dictionary
 		* if the dictionary was successfully created `AX` will contain `1`, if not `0`
-	* 21: remove dictionary
+	* `21`: remove dictionary
 		* `AX` contains a pointer of a STRING with the dictionary
 		* if the dictionary was successfully removed `AX` will contain `1`, if not `0`
 		* if the dictionary is not empty this call will fail (and set `AX` to `0`)
-	* 22: to get the time in nanoseconds
+	* `22`: to get the time in nanoseconds
 		* `AX` will contain the time in nanoseconds or `-1` if not available
-	* 23: to wait the given time in nanoseconds
+	* `23`: to wait the given time in nanoseconds
 		* `AX` contain the number of nanoseconds to wait
 		* `AX` will contain the number of remaining nanoseconds (or `0` if it finished waiting) or `-1` on an error
 		* `AX` will not be negative if the progress waited too long
-	* 24: random
+	* `24`: random
 		* `AX` will be filled with random bits
-	* 25: socket client create
+	* `25`: socket client create
 		* makes a new client socket
 		* `AX` will be set to the SOCKET-ID or `-1` if the operation failed
-	* 26: socket client connect
+	* `26`: socket client connect
 		* `AX` points to the SOCKET-ID
 		* `BX` points to a STRING, which names the host
 		* `CX` contains the port
 		* connects an client socket to the host on the port
 		* `BX` will be set to the `1` on success and `0` on a fail
 		* on success, the SOCKET-ID, can be used as a STREAM-ID
-	* 27: socket server create
+	* `27`: socket server create
 		* `AX` contains the port
 		* makes a new server socket
 		* `AX` will be set to the SOCKET-ID or `-1` when the operation fails
-	* 28: socket server listens
+	* `28`: socket server listens
 		* `AX` contains the SOCKET-ID
 		* `BX` contains the MAX_QUEUE length
 		* let a server socket listen
 		* `BX` will be set to `1` or `0` when the operation fails
-	* 29: socket server accept
+	* `29`: socket server accept
 		* `AX` contains the SOCKET-ID
 		* let a server socket accept a client
 		* this operation will block, until a client connects

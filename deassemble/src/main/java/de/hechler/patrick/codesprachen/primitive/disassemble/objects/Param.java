@@ -1,25 +1,25 @@
-package de.patrick.hechler.codesprachen.primitive.disassemble.objects;
+package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
-import de.patrick.hechler.codesprachen.primitive.disassemble.exceptions.NoCommandException;
+import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoCommandException;
 
 public class Param {
 	
-	private static final int BASE = 0x01;
-	private static final int A_NUM = 0x00;
-	private static final int A_SR = 0x02;
-	private static final int NO_B = 0x00;
-	private static final int B_REG = 0x04;
-	private static final int B_NUM = 0x08;
-	private static final int B_SR = 0x0C;
+	public static final int PARAM_BASE = 0x01;
+	public static final int PARAM_A_NUM = 0x00;
+	public static final int PARAM_A_SR = 0x02;
+	public static final int PARAM_NO_B = 0x00;
+	public static final int PARAM_B_REG = 0x04;
+	public static final int PARAM_B_NUM = 0x08;
+	public static final int PARAM_B_SR = 0x0C;
 	
-	public static final int ART_ANUM = BASE | A_NUM | NO_B;
-	public static final int ART_ASR = BASE | A_SR | NO_B;
-	public static final int ART_ANUM_BREG = BASE | A_NUM | B_REG;
-	public static final int ART_ASR_BREG = BASE | A_SR | B_REG;
-	public static final int ART_ANUM_BNUM = BASE | A_NUM | B_NUM;
-	public static final int ART_ASR_BNUM = BASE | A_SR | B_NUM;
-	public static final int ART_ANUM_BSR = BASE | A_NUM | B_SR;
-	public static final int ART_ASR_BSR = BASE | A_SR | B_SR;
+	public static final int ART_ANUM = PARAM_BASE | PARAM_A_NUM | PARAM_NO_B;
+	public static final int ART_ASR = PARAM_BASE | PARAM_A_SR | PARAM_NO_B;
+	public static final int ART_ANUM_BREG = PARAM_BASE | PARAM_A_NUM | PARAM_B_REG;
+	public static final int ART_ASR_BREG = PARAM_BASE | PARAM_A_SR | PARAM_B_REG;
+	public static final int ART_ANUM_BNUM = PARAM_BASE | PARAM_A_NUM | PARAM_B_NUM;
+	public static final int ART_ASR_BNUM = PARAM_BASE | PARAM_A_SR | PARAM_B_NUM;
+	public static final int ART_ANUM_BSR = PARAM_BASE | PARAM_A_NUM | PARAM_B_SR;
+	public static final int ART_ASR_BSR = PARAM_BASE | PARAM_A_SR | PARAM_B_SR;
 	
 	
 	public static final int SR_AX = 0x00;
@@ -62,30 +62,30 @@ public class Param {
 			switch (art) {
 			case ART_ANUM:
 				zeroCheck(v2);
-				return new Param(v1, 0, ART_ANUM);
+				return new Param(v1, 0, art);
 			case ART_ANUM_BNUM:
-				return new Param(v1, v2, ART_ANUM_BNUM);
+				return new Param(v1, v2, art);
 			case ART_ANUM_BREG:
 				zeroCheck(v2);
-				return new Param(v1, 0, ART_ANUM_BREG);
+				return new Param(v1, 0, art);
 			case ART_ANUM_BSR:
 				checkSR(v2);
-				return new Param(v1, v2, ART_ANUM_BSR);
+				return new Param(v1, v2, art);
 			case ART_ASR:
 				checkSR(v1);
 				zeroCheck(v2);
-				return new Param(v1, 0, ART_ASR);
+				return new Param(v1, 0, art);
 			case ART_ASR_BNUM:
 				checkSR(v1);
-				return new Param(v1, v2, ART_ASR_BNUM);
+				return new Param(v1, v2, art);
 			case ART_ASR_BREG:
 				checkSR(v1);
 				zeroCheck(v2);
-				return new Param(v1, 0, ART_ASR_BREG);
+				return new Param(v1, 0, art);
 			case ART_ASR_BSR:
 				checkSR(v1);
 				checkSR(v2);
-				return new Param(v1, v2, ART_ASR_BSR);
+				return new Param(v1, v2, art);
 			default:
 				throw new NoCommandException("unknown art");
 			}
