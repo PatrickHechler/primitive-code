@@ -277,7 +277,7 @@ public class PrimitiveDisassembler {
 				pos += command.length();
 				indices.put((Long) pos, (Integer) i ++ );
 			} catch (NoCommandException nce) {
-				if (cp != null) {
+				if (cp == null) {
 					cp = new ConstantPoolCmd();
 				}
 				long val = convertLong(bytes);

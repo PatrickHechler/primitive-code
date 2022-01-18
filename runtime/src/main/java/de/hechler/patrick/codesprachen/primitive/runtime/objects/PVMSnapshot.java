@@ -61,15 +61,15 @@ public class PVMSnapshot {
 	
 	public void print(PrintStream out) {
 		out.println("PVMSnapshot:");
-		out.println("  ax=" + ax);
-		out.println("  bx=" + bx);
-		out.println("  cx=" + cx);
-		out.println("  dx=" + dx);
-		out.println("  sp=" + sp);
-		out.println("  ip=" + ip);
-		out.println("  status=" + status + " : " + statusToString(status));
-		out.println("  intp=" + intp);
-		out.println("  intcnt=" + intcnt);
+		out.println("  ax=" + PVMDebugger.toFullHexStr(dx));
+		out.println("  bx=" + PVMDebugger.toFullHexStr(dx));
+		out.println("  cx=" + PVMDebugger.toFullHexStr(dx));
+		out.println("  dx=" + PVMDebugger.toFullHexStr(dx));
+		out.println("  sp=" + PVMDebugger.toFullHexStr(sp));
+		out.println("  ip=" + PVMDebugger.toFullHexStr(ip));
+		out.println("  status=" + PVMDebugger.toFullHexStr(status)+ " : " + statusToString(status));
+		out.println("  intp=" + PVMDebugger.toFullHexStr(intp));
+		out.println("  intcnt=" + PVMDebugger.toFullHexStr(intcnt));
 	}
 	
 	private String statusToString(long status) {
