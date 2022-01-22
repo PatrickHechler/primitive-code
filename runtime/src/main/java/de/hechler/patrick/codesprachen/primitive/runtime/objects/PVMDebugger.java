@@ -56,11 +56,9 @@ public class PVMDebugger implements Runnable {
 					switch (str.toLowerCase()) {
 					case "exit":
 						comunicate.executeUntilExit();
-						out.println("startet pvm");
 						break;
 					case "error":
 						comunicate.executeUntilErrorOrExitCall();
-						out.println("startet pvm");
 						break;
 					default:
 						throw new RuntimeException("unknown execute: '" + str + "'");
@@ -68,7 +66,6 @@ public class PVMDebugger implements Runnable {
 					break;
 				case "run":
 					comunicate.run();
-					out.println("startet pvm");
 					break;
 				case "next": {
 					comunicate.executeNext();
