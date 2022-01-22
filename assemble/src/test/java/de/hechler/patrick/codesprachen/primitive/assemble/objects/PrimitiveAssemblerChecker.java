@@ -3,9 +3,12 @@ package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Method;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMDebugingComunicator;
@@ -13,6 +16,9 @@ import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMSnapshot;
 import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.anotations.Check;
 import de.hechler.patrick.zeugs.check.anotations.CheckClass;
+import de.hechler.patrick.zeugs.check.anotations.End;
+import de.hechler.patrick.zeugs.check.anotations.MethodParam;
+import de.hechler.patrick.zeugs.check.anotations.Start;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
 
 @CheckClass
@@ -25,7 +31,45 @@ public class PrimitiveAssemblerChecker extends Checker {
 	public final static String VALUE_HELLO_WORLD_TO_FILE_OUTPUT = "hello file world";
 	public final static String INPUT_HELLO_WORLD_FROM_FILE = "/sourcecode/helloworldfromfile.pcs";
 	
-	@Check(disabled = false)//this check should work with the new (because it was changed), the others not
+	PVMDebugingComunicator pvm;
+	Process pvmexec;
+	
+	static volatile int port = 5555;
+	int myport;
+	
+	@Start
+	private void start(@MethodParam Method met) throws UnknownHostException, IOException {
+		myport = port ++ ;
+		pvmexec = Runtime.getRuntime().exec(new String[] {"wsl", "-d", "ubuntu", "./pvm", "--wait", "--port=" + myport });
+		pvm = new PVMDebugingComunicator(pvmexec, new Socket("localhost", myport));
+		System.out.println("start now:        " + met.getName() + "() myport=" + myport);
+	}
+	
+	@End
+	private void end() throws UnknownHostException, IOException {
+		if (pvmexec != null && pvmexec.isAlive()) {
+			Thread t = Thread.currentThread();
+			new Thread(() -> {
+				try {
+					pvm.exit();
+				} catch (IOException | RuntimeException e1) {
+				}
+				t.interrupt();
+			}).start();
+			;
+			try {
+				Thread.sleep(11000);
+			} catch (InterruptedException e1) {
+			}
+			if (pvmexec.isAlive()) {
+				pvmexec.destroyForcibly();
+			}
+		}
+		pvm = null;
+		pvmexec = null;
+	}
+	
+	@Check(disabled = false)
 	public void assembleAddTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -38,7 +82,20 @@ public class PrimitiveAssemblerChecker extends Checker {
 			String hexCodeLongs = TestUtils.toHexCode(TestUtils.toLong(code));
 			System.out.println(hexCodeLongs);
 			
-			PVMDebugingComunicator pvm = new PVMDebugingComunicator(Runtime.getRuntime().exec(new String[] {"./pvm", "--wait", "--port", "5555" }), new Socket("localhost", 5555));
+			new Thread(() -> {
+				while(true) {
+					try {
+						pvm.getSnapshot().print(System.out);
+					} catch (IOException e) {
+						throw new IOError(e);
+					}
+					try {
+						Thread.sleep(5000);
+					} catch (InterruptedException e) {
+					}
+				}
+			}).start();
+			
 			long[] commands = TestUtils.toLong(code);
 			long ax = 5L;
 			long bx = 30L;
@@ -57,7 +114,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 		}
 	}
 	
-	@Check(disabled = true)
+	@Check(disabled = false)
 	public void assembleHelloWorldTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -70,15 +127,17 @@ public class PrimitiveAssemblerChecker extends Checker {
 			String hexCodeLongs = TestUtils.toHexCode(TestUtils.toLong(code));
 			System.out.println(hexCodeLongs);
 			
-			PrimitiveVirtualMashine pvm = new PrimitiveVirtualMashine();
 			long[] commands = TestUtils.toLong(code);
 			long ax = 5L;
 			long bx = 30L;
-			pvm.setAX(ax);
-			pvm.setBX(bx);
+			
+			PVMSnapshot sn = new PVMSnapshot(ax, bx, 0L, 0L, 0L, 0L, 0L, 0L, 0L);
+			pvm.setSnapshot(sn);
+			
 			System.out.println("execute");
-			pvm.execute(commands);
-			long cx = pvm.getCX();
+			pvm.executeUntilExit(commands, false);
+			sn = pvm.getSnapshot();
+			long cx = sn.cx;
 			assertEquals(ax + bx, cx);
 			System.out.println("CX=" + cx);
 		} catch (IOException e) {
@@ -86,7 +145,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 		}
 	}
 	
-	@Check(disabled = true)
+	@Check(disabled = false)
 	public void assembleHelloWorldToFileTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -101,10 +160,9 @@ public class PrimitiveAssemblerChecker extends Checker {
 			
 			new File(INPUT_HELLO_WORLD_TO_FILE_OUTPUT).getParentFile().mkdirs();
 			
-			PrimitiveVirtualMashine pvm = new PrimitiveVirtualMashine();
 			long[] commands = TestUtils.toLong(code);
 			System.out.println("execute");
-			pvm.execute(commands);
+			pvm.executeUntilExit(commands, false);
 			
 			helloWorldIn.close();
 			helloWorldIn = new FileInputStream(INPUT_HELLO_WORLD_TO_FILE_OUTPUT);
@@ -118,7 +176,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 		}
 	}
 	
-	@Check(disabled = true)
+	@Check(disabled = false)
 	public void assembleHelloWorldFromFileTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
@@ -131,10 +189,9 @@ public class PrimitiveAssemblerChecker extends Checker {
 			String hexCodeLongs = TestUtils.toHexCode(TestUtils.toLong(code));
 			System.out.println(hexCodeLongs);
 			
-			PrimitiveVirtualMashine pvm = new PrimitiveVirtualMashine();
 			long[] commands = TestUtils.toLong(code);
 			System.out.println("execute");
-			pvm.execute(commands);
+			pvm.executeUntilExit(commands, false);
 			
 			helloWorldIn.close();
 		} catch (IOException e) {

@@ -16,31 +16,31 @@ this is the assembler for the primitive VM
 except for the `--POS--` constant all other constants can be overwritten and removed
 
 * `--POS--` :                           the position from the begin of the next command
-* `#DEF_INT_ERRORS_UNKNOWN_COMMAND` :    0
-* `#DEF_INT_ERRORS_ILLEGAL_INTERRUPT` :  1
-* `#DEF_INT_ERRORS_ILLEGAL_MEMORY` :     2
-* `#DEF_INT_ERRORS_ARITHMETIC_ERROR` :   3
-* `#DEF_INT_EXIT` :                      4
-* `#DEF_INT_MEMORY_ALLOC` :              5
-* `#DEF_INT_MEMORY_REALLOC` :            6
-* `#DEF_INT_MEMORY_FREE` :               7
-* `#DEF_INT_STREAMS_GET_STD_OUT` :       8
-* `#DEF_INT_STREAMS_GET_STD_LOG` :       9
-* `#DEF_INT_STREAMS_GET_STD_IN` :       10
-* `#DEF_INT_STREAMS_NEW_IN` :           11
-* `#DEF_INT_STREAMS_NEW_OUT` :          12
-* `#DEF_INT_STREAMS_WRITE` :            13
-* `#DEF_INT_STREAMS_READ` :             14
-* `#DEF_INT_STREAMS_CLOSE_STREAM` :     15
-* `#DEF_INT_STREAMS_GET_POS` :          16
-* `#DEF_INT_STREAMS_SET_POS` :          17
-* `#DEF_INT_STREAMS_SET_POS_TO_END` :   18
-* `#DEF_INT_FS_REM` :                   19
-* `#DEF_INT_FS_MK_DIR` :                20
-* `#DEF_INT_FS_REM_DIR` :               21
-* `#DEF_INT_TIME_GET` :                 22
-* `#DEF_INT_TIME_WAIT` :                23
-* `#DEF_INT_RANDOM` :                   24
+* `#INT_ERRORS_UNKNOWN_COMMAND` :        0
+* `#INT_ERRORS_ILLEGAL_INTERRUPT` :      1
+* `#INT_ERRORS_ILLEGAL_MEMORY` :         2
+* `#INT_ERRORS_ARITHMETIC_ERROR` :       3
+* `#INT_EXIT` :                          4
+* `#INT_MEMORY_ALLOC` :                  5
+* `#INT_MEMORY_REALLOC` :                6
+* `#INT_MEMORY_FREE` :                   7
+* `#INT_STREAMS_GET_STD_OUT` :           8
+* `#INT_STREAMS_GET_STD_LOG` :           9
+* `#INT_STREAMS_GET_STD_IN` :           10
+* `#INT_STREAMS_NEW_IN` :               11
+* `#INT_STREAMS_NEW_OUT` :              12
+* `#INT_STREAMS_WRITE` :                13
+* `#INT_STREAMS_READ` :                 14
+* `#INT_STREAMS_CLOSE_STREAM` :         15
+* `#INT_STREAMS_GET_POS` :              16
+* `#INT_STREAMS_SET_POS` :              17
+* `#INT_STREAMS_SET_POS_TO_END` :       18
+* `#INT_FS_REM` :                       19
+* `#INT_FS_MK_DIR` :                    20
+* `#INT_FS_REM_DIR` :                   21
+* `#INT_TIME_GET` :                     22
+* `#INT_TIME_WAIT` :                    23
+* `#INT_RANDOM` :                       24
 * `#MAX-VALUE` :                    HEX-7FFFFFFFFFFFFFFF
 * `#MIN-VALUE` :                   NHEX-8000000000000000
 * `#STD-IN` :                            0
@@ -286,7 +286,28 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `IP <- [SP]`
     * `SP <- SP - 1`
 
+`IRET`
+* returns from an interrupt
+    * `IP <- CX
+    * `AX <- [DX]`
+    * `BX <- [DX + 8]`
+    * `CX <- [DX + 16]`
+    * `DX <- [DX + 24]`
+    * `FREE DX`
+	    * this does not call the interrupt, which is used to free allocated memory, but is compatible to the interrupt, which is used for allocating memory
+
 `INT <PARAM>`
+* an interrupt can be overwritten:
+    * `MEM-ALLOC{size=32, DX=Pointer} <- DX`
+	    * this does not call the interrupt, which is used to allocate memory, but is compatible to the interrupt, which is used to free allocated memory
+	    * allocate memory and save the `DX` register in the new allocated memory-block
+		* then let the `DX` point to the new allocated memory-block
+	* `[DX]      <- DX`
+	* `[DX + 8]  <- CX`
+	* `[DX + 16] <- BX`
+	* `[DX + 24] <- AX`
+	* `CX        <- IP`
+	* `IP        <- [INT_TABLE + (PARAM * 8)]`
 * calls the interrupt specified by the parameter
 	* `0`: unknown command
 		* `AX` contains the illegal command

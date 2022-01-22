@@ -13,7 +13,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarLex
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser;
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
 import de.patrick.hechler.codesprachen.primitive.assemble.enums.Commands;
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 public class Command {
 	
@@ -39,15 +38,7 @@ public class Command {
 		}
 		
 		public void addBytes(byte[] bytes) {
-			len += bytes.length / 8;
-			int mod = bytes.length % 8;
-			if (mod != 0) {
-				int l = bytes.length;
-				int nl = l + (8 - mod);
-				bytes = Arrays.copyOf(bytes, nl);
-				len ++ ;
-				System.err.println("[WARN]: the added bytes does not fit in the right len (len % 8 != 0) added empty (0x00) bytes to the end (len=" + l + " newLen=" + nl + ")");
-			}
+			len += bytes.length;
 			values.add(bytes);
 		}
 		
@@ -89,30 +80,30 @@ public class Command {
 			int len;
 			switch (p1.art) {
 			case Param.ART_ANUM_BNUM:
-				len = 3;
+				len = 24;
 				break;
 			case Param.ART_ANUM:
 			case Param.ART_ASR_BNUM:
 			case Param.ART_ANUM_BREG:
 			case Param.ART_ANUM_BSR:
-				len = 2;
+				len = 16;
 				break;
 			case Param.ART_ASR:
 			case Param.ART_ASR_BREG:
 			case Param.ART_ASR_BSR:
-				len = 1;
+				len = 8;
 				break;
 			default:
 				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
 			}
 			switch (p2.art) {
 			case Param.ART_ANUM_BNUM:
-				len += 2;
+				len += 16;
 			case Param.ART_ANUM:
 			case Param.ART_ASR_BNUM:
 			case Param.ART_ANUM_BREG:
 			case Param.ART_ANUM_BSR:
-				len += 1;
+				len += 8;
 				break;
 			case Param.ART_ASR:
 			case Param.ART_ASR_BREG:
@@ -140,22 +131,22 @@ public class Command {
 		case CMD_RLSH:
 			switch (p1.art) {
 			case Param.ART_ANUM_BNUM:
-				return 3;
+				return 24;
 			case Param.ART_ANUM:
 			case Param.ART_ASR_BNUM:
 			case Param.ART_ANUM_BREG:
 			case Param.ART_ANUM_BSR:
-				return 2;
+				return 16;
 			case Param.ART_ASR:
 			case Param.ART_ASR_BREG:
 			case Param.ART_ASR_BSR:
-				return 1;
+				return 8;
 			default:
 				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
 			}
 		case CMD_IRET:
 		case CMD_RET:
-			return 1;
+			return 8;
 		case CMD_CALL:
 		case CMD_JMP:
 		case CMD_JMPCS:
@@ -166,7 +157,7 @@ public class Command {
 		case CMD_JMPLE:
 		case CMD_JMPLO:
 		case CMD_JMPNE:
-			return 2;
+			return 24;
 		default:
 			throw new AssertionError("unknown enum constant of my Command: " + cmd.name());
 		}
