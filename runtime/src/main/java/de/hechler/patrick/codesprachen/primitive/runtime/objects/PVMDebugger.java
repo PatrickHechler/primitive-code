@@ -46,6 +46,26 @@ public class PVMDebugger implements Runnable {
 					comunicate.exit();
 					out.println("pvm exited (with 0), will now end");
 					return;
+				case "exec-until":
+				case "exec_until":
+				case "execuntil":
+				case "execute-until":
+				case "execute_until":
+				case "executeuntil":
+					str = in.next();
+					switch (str.toLowerCase()) {
+					case "exit":
+						comunicate.executeUntilExit();
+						out.println("startet pvm");
+						break;
+					case "error":
+						comunicate.executeUntilErrorOrExitCall();
+						out.println("startet pvm");
+						break;
+					default:
+						throw new RuntimeException("unknown execute: '" + str + "'");
+					}
+					break;
 				case "run":
 					comunicate.run();
 					out.println("startet pvm");
@@ -240,6 +260,11 @@ public class PVMDebugger implements Runnable {
 		System.out.println("  to terminate the pvm forcefully");
 		System.out.println("exit");
 		System.out.println("  to send the pvm the exit signal");
+		System.out.println("execute-until");
+		System.out.println("  error");
+		System.out.println("    to let the pvm execute until an error happanes, the exit interrupt gets called or a breakpoint triggers (if enabled)");
+		System.out.println("  exit");
+		System.out.println("    to let the pvm execute until the pvm would exit or a breakpoint triggers (if enabled)");
 		System.out.println("run");
 		System.out.println("  to let the pvm execute (until a breakpoint triggers (if enabled))");
 		System.out.println("next");
