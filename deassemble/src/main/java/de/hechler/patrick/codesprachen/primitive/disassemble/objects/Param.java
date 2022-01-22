@@ -145,14 +145,14 @@ public class Param {
 		case ART_ASR:
 		case ART_ASR_BREG:
 		case ART_ASR_BSR:
-			return 1;
+			return 0;
 		case ART_ANUM:
 		case ART_ANUM_BREG:
 		case ART_ANUM_BSR:
 		case ART_ASR_BNUM:
-			return 2;
+			return 1;
 		case ART_ANUM_BNUM:
-			return 3;
+			return 2;
 		default:
 			throw new InternalError("unknown art: " + art);
 		}

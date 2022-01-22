@@ -5,7 +5,7 @@ this is the assembler for the primitive VM
 
 ## Start
 
-* A primitive code file can be assembled to a primitive-machine-code (.pmc) file.
+* A primitive-asm-code file can be assembled to a primitive-machine-code (.pmc) file.
 * A pmc-file can be executed with a primitive-virtual-machine.
     * the `AX` register will contain the number of arguments
     * the `BX` register will point to the argument pointers 

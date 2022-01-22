@@ -16,14 +16,14 @@ public class Convert {
 	}
 	
 	public static void convertLongToByteArr(byte[] bytes, int off, long val) {
-		bytes[off] = (byte) (val & 0xFF);
-		bytes[off + 1] = (byte) ( (val << 8) & 0xFF);
-		bytes[off + 2] = (byte) ( (val << 16) & 0xFF);
-		bytes[off + 3] = (byte) ( (val << 24) & 0xFF);
-		bytes[off + 4] = (byte) ( (val << 32) & 0xFF);
-		bytes[off + 5] = (byte) ( (val << 40) & 0xFF);
-		bytes[off + 6] = (byte) ( (val << 48) & 0xFF);
-		bytes[off + 7] = (byte) ( (val << 56) & 0xFF);
+		bytes[off] = (byte) (val & 0xFFL);
+		bytes[off + 1] = (byte) ( (val >> 8) & 0xFFL);
+		bytes[off + 2] = (byte) ( (val >> 16) & 0xFFL);
+		bytes[off + 3] = (byte) ( (val >> 24) & 0xFFL);
+		bytes[off + 4] = (byte) ( (val >> 32) & 0xFFL);
+		bytes[off + 5] = (byte) ( (val >> 40) & 0xFFL);
+		bytes[off + 6] = (byte) ( (val >> 48) & 0xFFL);
+		bytes[off + 7] = (byte) ( (val >> 56) & 0xFFL);
 	}
 	
 	public static long convertByteArrToLong(byte[] bytes, int off) {

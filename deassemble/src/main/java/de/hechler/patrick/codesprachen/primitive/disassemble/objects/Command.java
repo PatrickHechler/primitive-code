@@ -1,5 +1,6 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -93,7 +94,7 @@ public class Command {
 		private static final String ENDL = System.lineSeparator();
 		private static final String ZEROS = "000000000000000";
 		
-		private List <Long> longs;
+		private List <Long> longs = new ArrayList<>();
 		
 		public ConstantPoolCmd() {
 			super(null, null, null, -1, null);
@@ -126,7 +127,7 @@ public class Command {
 		}
 
 		public long get(int ii) {
-			return longs.get(ii);
+			return (long) longs.get(ii);
 		}
 		
 	}
@@ -138,9 +139,9 @@ public class Command {
 		if (p2 != null) {
 			int len = p1.length();
 			len += p2.length();
-			return len;
+			return 1 + len;
 		} else if (p1 != null) {
-			return p1.length();
+			return 1 + p1.length();
 		} else {
 			return 1;
 		}

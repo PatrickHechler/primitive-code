@@ -158,7 +158,7 @@ public class PVMDebugingComunicator {
 	/**
 	 * if not other specified the pvm will response with this message<br>
 	 */
-	private static final int EXECUTED_COMMAND = 0xFF;
+	private static final int EXECUTED_COMMAND = 0x7F;
 	
 	public void exit() throws IOException, RuntimeException {
 		out.write(PVM_DEBUG_EXIT);
@@ -197,30 +197,37 @@ public class PVMDebugingComunicator {
 	}
 	
 	public void getMem(long PNTR, byte[] bytes, int off, int len) throws IOException {
+		if (len <= 0) {
+			throw new IllegalArgumentException("len <= 0: len=" + len);
+		}
 		out.write(PVM_DEBUG_GET_MEMORY);
-		if (len < 16) {
-			byte[] zw = new byte[16];
-			convertLongToByteArr(zw, 0, off);
-			convertLongToByteArr(zw, 8, (long) len);
-			out.write(zw);
-		} else {
-			convertLongToByteArr(bytes, off, off);
+		if (len >= 16) {
+			convertLongToByteArr(bytes, off, PNTR);
 			convertLongToByteArr(bytes, off + 8, (long) len);
 			out.write(bytes, off, 16);
+		} else {
+			byte[] zw = new byte[16];
+			convertLongToByteArr(zw, 0, PNTR);
+			convertLongToByteArr(zw, 8, (long) len);
+			out.write(zw);
 		}
-		in.read(bytes, off, len);
+		if (checkedRead(1, 0) == 1) {
+			in.read(bytes, off, len);
+		} else {
+			throw new RuntimeException("the pvm had an error by reading the memory PNTR=0x" + Long.toHexString(PNTR) + " len=" + len);
+		}
 	}
 	
 	public void setMem(long PNTR, byte[] bytes, int off, int len) throws IOException {
 		out.write(PVM_DEBUG_SET_MEMORY);
 		byte[] zw = new byte[16];
-		convertLongToByteArr(zw, 0, off);
+		convertLongToByteArr(zw, 0, PNTR);
 		convertLongToByteArr(zw, 8, (long) len);
 		out.write(zw);
-		convertLongToByteArr(bytes, off, off);
-		convertLongToByteArr(bytes, off + 8, (long) len);
-		out.write(bytes, off, 16);
-		checkedRead(EXECUTED_COMMAND);
+		out.write(bytes, off, len);
+		if (checkedRead(1,0) == 0) {
+			throw new IOException("the pvm had an error by setting the memory (PNTR=" + PNTR + " len=" + len + ")");
+		}
 	}
 	
 	public long[] getBreakpoints() throws IOException {

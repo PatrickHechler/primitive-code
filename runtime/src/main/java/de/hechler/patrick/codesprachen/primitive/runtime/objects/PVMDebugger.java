@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.DisasmMode;
 import de.hechler.patrick.codesprachen.primitive.disassemble.objects.PrimitiveDisassembler;
@@ -31,15 +32,15 @@ public class PVMDebugger implements Runnable {
 		help();
 		while (pvm.isAlive()) {
 			try {
-				out.print("(pdb): ");
+				out.print("(pvmdb): ");
 				String str = in.next();
 				switch (str.toLowerCase()) {
 				case "help":
 					help();
 					break;
 				case "terminate":
-					pvm.destroyForcibly();
-					out.println("exit-code: " + pvm.waitFor());
+					kill(pvm, true);
+					out.println("exit-code: " + pvm.exitValue());
 					break;
 				case "exit":
 					comunicate.exit();
@@ -52,9 +53,20 @@ public class PVMDebugger implements Runnable {
 				case "next": {
 					comunicate.executeNext();
 					PVMSnapshot sn = comunicate.getSnapshot();
-					byte[] bytes = new byte[8];
-					comunicate.getMem(sn.ip, bytes, 0, 8);
-					disasm.deassemble(sn.ip, bytes);
+					int len = 24;
+					byte[] bytes = new byte[len];
+					while (true) {
+						try {
+							comunicate.getMem(sn.ip, bytes, 0, len);
+							disasm.deassemble(sn.ip, bytes);
+							break;
+						} catch (RuntimeException e) {
+							len -= 8;
+							if (len <= 0) {
+								break;
+							}
+						}
+					}
 					break;
 				}
 				case "tell":
@@ -108,7 +120,7 @@ public class PVMDebugger implements Runnable {
 						comunicate.getSnapshot().print(out);
 						break;
 					case "memory": {
-						long PNTR = in.nextLong();
+						long PNTR = in.nextLong(16);
 						int len = in.nextInt();
 						byte[] bytes = new byte[len];
 						comunicate.getMem(PNTR, bytes, 0, len);
@@ -292,4 +304,42 @@ public class PVMDebugger implements Runnable {
 		return ("0000000000000000".substring(str.length())) + str;
 	}
 	
+	public static void kill(Process p, boolean force) {
+		if (p.isAlive()) {
+			if ( !force) {
+				p.destroy();
+				try {
+					p.waitFor(1000L, TimeUnit.MILLISECONDS);
+				} catch (InterruptedException e1) {
+					e1.printStackTrace();
+				}
+			}
+			if (p.isAlive()) {
+				p.destroyForcibly();
+			}
+		}
+		// p.children().forEach(c -> kill(c, force));
+	}
+	
+	// public static void kill(ProcessHandle p, boolean force) {
+	// if (p instanceof Process) {
+	// kill((Process) p, force);
+	// return;
+	// }
+	// if (p.isAlive()) {
+	// if ( !force) {
+	// try {
+	// Thread.sleep(1000L);
+	// } catch (InterruptedException e1) {
+	// e1.printStackTrace();
+	// }
+	// }
+	// p.destroy();
+	// if (p.isAlive()) {
+	// p.destroyForcibly();
+	// }
+	// }
+	// p.children().forEach(c -> kill(c, force));
+	// }
+	//
 }

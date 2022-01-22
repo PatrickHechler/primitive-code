@@ -61,9 +61,9 @@ public class PVMSnapshot {
 	
 	public void print(PrintStream out) {
 		out.println("PVMSnapshot:");
-		out.println("  ax=" + PVMDebugger.toFullHexStr(dx));
-		out.println("  bx=" + PVMDebugger.toFullHexStr(dx));
-		out.println("  cx=" + PVMDebugger.toFullHexStr(dx));
+		out.println("  ax=" + PVMDebugger.toFullHexStr(ax));
+		out.println("  bx=" + PVMDebugger.toFullHexStr(bx));
+		out.println("  cx=" + PVMDebugger.toFullHexStr(cx));
 		out.println("  dx=" + PVMDebugger.toFullHexStr(dx));
 		out.println("  sp=" + PVMDebugger.toFullHexStr(sp));
 		out.println("  ip=" + PVMDebugger.toFullHexStr(ip));

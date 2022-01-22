@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.io.PrintStream;
 import java.net.Socket;
 import java.util.Scanner;
-import java.util.concurrent.TimeUnit;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMDebugger;
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMDebugingComunicator;
@@ -85,7 +84,7 @@ public class PVMRuntimeMain {
 				pmc = args[i];
 				break;
 			default:
-				crash(i,args, "unknown argument");
+				crash(i, args, "unknown argument");
 			}
 		}
 		if (pmc == null) {
@@ -112,23 +111,18 @@ public class PVMRuntimeMain {
 				Thread.sleep(1000);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
-			}//46101
+			}
+			final Process _pvmp = pvmp;
+			Runtime.getRuntime().addShutdownHook(new Thread(() -> PVMDebugger.kill(_pvmp, false)));
 			debug = new PVMDebugger(new Scanner(System.in), System.out, new PVMDebugingComunicator(pvmp, new Socket("localhost", port)), pvmp);
 		} catch (IOException e) {
-			if (pvmp != null && pvmp.isAlive()) {
-				pvmp.destroy();
-				try {
-					pvmp.waitFor(1000L, TimeUnit.MILLISECONDS);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
-				if (pvmp.isAlive()) {
-					pvmp.destroyForcibly();
-				}
+			if (pvmp != null) {
+				PVMDebugger.kill(pvmp, false);
 			}
 			throw new IOError(e);
 		}
 	}
+	
 	
 	private static void crash(int index, String[] args, String msg) {
 		System.err.println(msg);
