@@ -248,20 +248,24 @@ public class PVMDebugingComunicator {
 	public void addBreakpoints(long[] add) throws IOException {
 		out.write(PVM_DEBUG_ADD_BREAKPOINTS);
 		byte[] bytes = new byte[8];
-		for (int i = 0; i < bytes.length; i ++ ) {
+		for (int i = 0; i < add.length; i ++ ) {
 			convertLongToByteArr(bytes, 0, add[i]);
 			out.write(bytes);
 		}
+		convertLongToByteArr(bytes, 0, -1L);
+		out.write(bytes);
 		checkedRead(EXECUTED_COMMAND);
 	}
 	
 	public void removeBreakpoints(long[] rem) throws IOException {
 		out.write(PVM_DEBUG_REMOVE_BREAKPOINTS);
 		byte[] bytes = new byte[8];
-		for (int i = 0; i < bytes.length; i ++ ) {
+		for (int i = 0; i < rem.length; i ++ ) {
 			convertLongToByteArr(bytes, 0, rem[i]);
 			out.write(bytes);
 		}
+		convertLongToByteArr(bytes, 0, -1L);
+		out.write(bytes);
 		checkedRead(EXECUTED_COMMAND);
 	}
 	
