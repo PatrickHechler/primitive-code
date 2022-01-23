@@ -1,15 +1,23 @@
 # primitive-code
 a register based coding language with primitive operations
 
-this is the assembler for the primitive VM
+this is the assembler for the Primitive-Virtual-Machine
 
 ## Start
 
-* A primitive-asm-code file can be assembled to a primitive-machine-code (.pmc) file.
-* A pmc-file can be executed with a primitive-virtual-machine.
+* A primitive-assembler-code file can be assembled to a primitive-machine-code file.
+* A  primitive-machine-code file can be executed with a primitive-virtual-machine.
     * the `AX` register will contain the number of arguments
-    * the `BX` register will point to the argument pointers 
-    * the argument pointers will point to STRINGs
+    * the `BX` register will point to the arguments
+    * the arguments will point to STRINGs
+	    * the first argument will be the program itself, all beyond will be the arguments of the program
+		* example:
+		    * `my_program.pmc --example    value --other=val`
+			* `AX          <- 4`
+			* `[[BX]]      <- "my_program.pmc\0"`
+			* `[[BX + 8]]  <- "--example\0"`
+			* `[[BX + 16]] <- "value\0"`
+			* `[[BX + 24]] <- "--other=val\0"`
 
 ## CONSTANTS:
 
@@ -55,10 +63,8 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 
 ## STRINGS:
 * if any command, function or whatever of primitive-code refers to STRING(s) this definition is used
-* a string is a structure which contains multiple characters of the UTF-16 encoding
-* the first element of the string is the number of characters it contains 
-* all following elements contains four characters
-    * the last element may contain less characters (it contains the number of the first element modulo four characters)
+* a string is an array of multiple characters of the UTF-8 encoding
+* a string ends with a '\0' character
 
 ## COMMANDS:
 
@@ -495,5 +501,5 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `IP <- IP + CMD_LEN`
 
 ## TODO
-* program arguments
 * (Multi-threading/-progressing)
+* execute other programs
