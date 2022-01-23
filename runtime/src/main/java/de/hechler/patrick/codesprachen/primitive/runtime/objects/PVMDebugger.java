@@ -3,6 +3,7 @@ package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
@@ -144,6 +145,24 @@ public class PVMDebugger implements Runnable {
 						disasm.deassemble(PNTR, bytes);
 						break;
 					}
+					case "string": {
+						str = in.next();
+						Charset cs = Charset.forName(str);
+						long PNTR = in.nextLong(16);
+						int len = in.nextInt();
+						byte[] bytes = new byte[len];
+						comunicate.getMem(PNTR, bytes, 0, len);
+						out.print(new String(bytes, cs));
+						break;
+					}
+					case "chars": {
+						long PNTR = in.nextLong(16);
+						int len = in.nextInt();
+						byte[] bytes = new byte[len];
+						comunicate.getMem(PNTR, bytes, 0, len);
+						out.print(new String(bytes, StandardCharsets.US_ASCII));
+						break;
+					}
 					case "breakpoints":
 						if (comunicate.isBreakpointsEnabled()) {
 							out.println("breakpoints: enabled");
@@ -282,6 +301,10 @@ public class PVMDebugger implements Runnable {
 		System.out.println("      makes an snapshot of the pvm and prints it");
 		System.out.println("    memory [ADDR] [LEN]");
 		System.out.println("      reads the memory");
+		System.out.println("    chars [ADDR] [LEN]");
+		System.out.println("      to read the memory as an ASCII string");
+		System.out.println("    string [CHARSET] [ADDR] [LEN]");
+		System.out.println("      to read the memory as an string, with the given charset");
 		System.out.println("    breakpoints");
 		System.out.println("      to list all breakpoints");
 		System.out.println("set");
