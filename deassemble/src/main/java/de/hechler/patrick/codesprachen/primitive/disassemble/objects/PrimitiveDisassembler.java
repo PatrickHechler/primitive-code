@@ -175,7 +175,7 @@ public class PrimitiveDisassembler {
 			default:
 				throw new InternalError("unknown DisasmMode: " + mode.name());
 			}
-			pos += cmd.length() * 8;
+			pos += cmd.length();
 		}
 	}
 	
