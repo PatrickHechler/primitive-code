@@ -5,6 +5,7 @@ import java.io.OutputStream;
 import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
 
@@ -253,6 +254,21 @@ public class PVMDebugger implements Runnable {
 						comunicate.setMem(addr, bytes, 0, 8);
 						break;
 					}
+					case "chars": {
+						long addr = in.nextLong(16);
+						str = in.nextLine().trim();
+						byte[] bytes = formattString(str, StandardCharsets.US_ASCII);
+						comunicate.setMem(addr, bytes, 0, bytes.length);
+					}
+					case "string": {
+						str = in.next();
+						Charset cs = Charset.forName(str);
+						long addr = in.nextLong(16);
+						str = in.nextLine().trim();
+						byte[] bytes = formattString(str, cs);
+						comunicate.setMem(addr, bytes, 0, bytes.length);
+						break;
+					}
 					default:
 						throw new RuntimeException("unknown set: '" + str + "'");
 					}
@@ -267,6 +283,67 @@ public class PVMDebugger implements Runnable {
 		out.println("the pvm terminated with exie-code " + pvm.exitValue());
 		out.println("thanks for using me.");
 		out.println("goodbye, have a nice day.");
+	}
+
+	private byte[] formattString(String str, Charset cs) {
+		char[] carr = str.toCharArray();
+		int start = -1, len = -1;
+		for (int i = 0; i < carr.length && carr[i] != '\0'; i ++ ) {
+			switch (carr[i]) {
+			case '"':
+				if (start == -1) {
+					start = i + 1;
+					break;
+				}
+				if (i + 1 >= carr.length) {
+					break;
+				}
+				if (carr[i + 1] == '\0') {
+					break;
+				}
+				throw new RuntimeException("illegal formatt of string: '" + str + "'");
+			case '\\':
+				if (start == -1) {
+					throw new RuntimeException("illegal formatt of string: '" + str + "'");
+				}
+				if (i >= carr.length) {
+					throw new RuntimeException("illegal formatt of string: '" + str + "'");
+				}
+				switch (carr[i + 1]) {
+				case '"':
+					carr[i] = '"';
+					break;
+				case '\\':
+					carr[i] = '\\';
+					break;
+				case 't':
+					carr[i] = '\t';
+					break;
+				case 'r':
+					carr[i] = '\r';
+					break;
+				case 'n':
+					carr[i] = '\n';
+					break;
+				case '0':
+					carr[i] = '\0';
+					break;
+				default:
+					throw new RuntimeException("illegal formatt of string: '" + str + "'");
+				}
+				System.arraycopy(carr, i + 2, carr, i + 1, carr.length - i - 2);
+				carr[carr.length - 1] = '\0';
+				len ++ ;
+				break;
+			default:
+				if (start == -1 && carr[i] > ' ') {
+					throw new RuntimeException("illegal formatt of string: '" + str + "'");
+				}
+				len ++ ;
+			}
+		}
+		byte[] bytes = new String(carr, start, len).getBytes(cs);
+		return bytes;
 	}
 	
 	private void help() {
@@ -329,6 +406,18 @@ public class PVMDebugger implements Runnable {
 		System.out.println("      the status register");
 		System.out.println("    memory [ADDR] [VALUE]");
 		System.out.println("      set the value of the memory at the given address");
+		System.out.println("    chars [ADDR] [STRING]");
+		System.out.println("      to write the ASCII string to the address");
+		System.out.println("      the string starts and end with '\"'");
+		System.out.println("      to write '\"', write '\\\"'");
+		System.out.println("      to write '\\', write '\\\\'");
+		System.out.println("      to write [TAB], write '\\t'");
+		System.out.println("      to write [CR], write '\\r'");
+		System.out.println("      to write [LF], write '\\n'");
+		System.out.println("      to write [NULL], write '\\0'");
+		System.out.println("    string [CHARSET] [ADDR] [STRING]");
+		System.out.println("      to write the string, with the given charset, to the address");
+		System.out.println("      the string starts and end with '\"'");
 	}
 	
 	
