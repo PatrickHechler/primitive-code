@@ -1,12 +1,13 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands.ParamArt;
 import de.hechler.patrick.codesprachen.primitive.disassemble.interfaces.LabelNameGenerator;
+import de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert;
 
 public class Command {
 	
@@ -45,7 +46,7 @@ public class Command {
 	@Override
 	public String toString() {
 		StringBuilder build = new StringBuilder(cmd.toString());
-		switch(cmd.art) {
+		switch (cmd.art) {
 		case label:
 			build.append(' ').append("DEST-POS=" + relativeLabel);
 			break;
@@ -66,9 +67,9 @@ public class Command {
 		return build.toString();
 	}
 	
-	public String toString(List<Command> cmds, Map<Long,Integer> indices) {
+	public String toString(List <Command> cmds, Map <Long, Integer> indices) {
 		StringBuilder build = new StringBuilder(cmd.toString());
-		switch(cmd.art) {
+		switch (cmd.art) {
 		case label:
 			build.append(' ').append(lng.generateName(relativeLabel, cmds, (int) indices.get((Long) relativeLabel)));
 			break;
@@ -91,146 +92,159 @@ public class Command {
 	
 	public static class ConstantPoolCmd extends Command {
 		
-		private static final String ENDL = System.lineSeparator();
-		private static final String ZEROS = "000000000000000";
-		
-		private List <Long> longs = new ArrayList<>();
+		private byte[] bytes = new byte[0];
 		
 		public ConstantPoolCmd() {
 			super(null, null, null, -1, null);
 		}
 		
 		public void add(long val) {
-			longs.add((Long) val);
+			final int oldlen = bytes.length;
+			bytes = Arrays.copyOf(bytes, oldlen + 8);
+			Convert.convertLongToByteArr(bytes, oldlen, val);
 		}
 		
 		public void add(long[] vals) {
-			for (long val : vals) {
-				longs.add((Long) val);
+			int off = bytes.length;
+			bytes = Arrays.copyOf(bytes, off + (vals.length * 8));
+			for (int i = 0; i < vals.length; i ++ , off += 8) {
+				Convert.convertLongToByteArr(bytes, off, vals[i]);
 			}
+		}
+		
+		public void add(byte[] vals) {
+			final int off = bytes.length;
+			bytes = Arrays.copyOf(bytes, off + vals.length);
+			System.arraycopy(vals, 0, bytes, off, vals.length);
 		}
 		
 		@Override
 		public String toString() {
-			StringBuilder build = new StringBuilder(":").append(ENDL).append("HEX:");
-			for (int i = 0; i < longs.size() - 1; i ++ ) {
-				String zw = Long.toHexString((long) longs.get(i));
-				build.append(ZEROS.substring(16 - zw.length())).append(zw).append(ENDL).append('\t');
+			StringBuilder build = new StringBuilder(":").append('\n').append("HEX:");
+			String hexStr;
+			int off;
+			for (off = 0; off < bytes.length - 8; off += 8) {
+				hexStr = PrimitiveDisassembler.bytesToHexString(bytes, off, 8);
+				build.append(hexStr).append('\n').append("    ");
 			}
-			String zw = Long.toHexString((long) longs.get(longs.size() - 1));
-			build.append(ZEROS.substring(16 - zw.length())).append(zw).append(ENDL);
-			return build.append('>').toString();
+			hexStr = PrimitiveDisassembler.bytesToHexString(bytes, off, bytes.length - off);
+			return build.append(hexStr).append('\n').append('>').toString();
+		}
+		
+		@Override
+		public String toString(List <Command> cmds, Map <Long, Integer> indices) {
+			return toString();
 		}
 		
 		public int length() {
-			return longs.size();
+			return bytes.length;
 		}
-
-		public long get(int ii) {
-			return (long) longs.get(ii);
+		
+		public void get(byte[] bytes, int boff, int off, int len) {
+			System.arraycopy(this.bytes, off, bytes, boff, len);
 		}
 		
 	}
 	
 	public int length() {
 		if (relativeLabel != -1) {
-			return 2;
+			return 16;
 		}
 		if (p2 != null) {
 			int len = p1.length();
 			len += p2.length();
-			return 1 + len;
+			return 8 + len;
 		} else if (p1 != null) {
-			return 1 + p1.length();
+			return 8 + p1.length();
 		} else {
-			return 1;
+			return 8;
 		}
 	}
 	
-	public long[] genLongs(long pos) {
-		long[] ret = new long[length()];
-		byte[] first = new byte[8];
-		first[0] = (byte) cmd.num();
-		int firstI = -1, retI = -1;
+	public byte[] genBytes(long pos) {
+		byte[] bytes = new byte[length()];
+		bytes[0] = (byte) cmd.num();
 		if (p1 != null) {
-			first[1] = (byte) p1.art;
+			int firstI, retI;
+			bytes[1] = (byte) p1.art;
 			switch (p1.art) {
 			case Param.ART_ANUM:
 			case Param.ART_ANUM_BREG:
-				ret[1] = p1.num;
+				Convert.convertLongToByteArr(bytes, 8, p1.num);
 				firstI = 7;
-				retI = 2;
+				retI = 16;
 				break;
 			case Param.ART_ANUM_BNUM:
-				ret[1] = p1.num;
-				ret[2] = p1.off;
+				Convert.convertLongToByteArr(bytes, 8, p1.num);
+				Convert.convertLongToByteArr(bytes, 16, p1.off);
 				firstI = 7;
-				retI = 3;
+				retI = 24;
 				break;
 			case Param.ART_ANUM_BSR:
-				ret[1] = p1.num;
-				first[7] = (byte) p1.off;
+				Convert.convertLongToByteArr(bytes, 8, p1.num);
+				bytes[7] = (byte) p1.off;
 				firstI = 6;
-				retI = 2;
+				retI = 16;
 				break;
 			case Param.ART_ASR:
 			case Param.ART_ASR_BREG:
-				first[7] = (byte) p1.off;
+				bytes[7] = (byte) p1.off;
 				firstI = 6;
-				retI = 1;
+				retI = 8;
 				break;
 			case Param.ART_ASR_BNUM:
-				first[7] = (byte) p1.num;
-				ret[1] = p1.off;
+				bytes[7] = (byte) p1.num;
+				Convert.convertLongToByteArr(bytes, 8, p1.off);
 				firstI = 6;
 				retI = 2;
 				break;
 			case Param.ART_ASR_BSR:
-				first[7] = (byte) p1.num;
-				first[6] = (byte) p1.off;
+				bytes[7] = (byte) p1.num;
+				bytes[6] = (byte) p1.off;
 				firstI = 5;
-				retI = 1;
+				retI = 8;
 				break;
 			default:
 				throw new InternalError("unknown art: " + p1.art);
 			}
-		}
-		if (p2 != null) {
-			first[1] = (byte) p2.art;
-			switch (p2.art) {
-			case Param.ART_ANUM:
-			case Param.ART_ANUM_BREG:
-				ret[retI] = p2.num;
-				break;
-			case Param.ART_ANUM_BNUM:
-				ret[retI] = p2.num;
-				ret[retI + 1] = p2.off;
-				break;
-			case Param.ART_ANUM_BSR:
-				ret[retI] = p2.num;
-				first[firstI] = (byte) p2.off;
-				break;
-			case Param.ART_ASR:
-			case Param.ART_ASR_BREG:
-				first[firstI] = (byte) p2.off;
-				break;
-			case Param.ART_ASR_BNUM:
-				first[firstI] = (byte) p2.num;
-				ret[retI] = p2.off;
-				break;
-			case Param.ART_ASR_BSR:
-				first[firstI] = (byte) p2.num;
-				first[firstI] = (byte) p2.off;
-				break;
-			default:
-				throw new InternalError("unknown art: " + p2.art);
+			if (p2 != null) {
+				bytes[1] = (byte) p2.art;
+				switch (p2.art) {
+				case Param.ART_ANUM:
+				case Param.ART_ANUM_BREG:
+					Convert.convertLongToByteArr(bytes, retI, p2.num);
+					break;
+				case Param.ART_ANUM_BNUM:
+					Convert.convertLongToByteArr(bytes, retI, p2.num);
+					Convert.convertLongToByteArr(bytes, retI + 8, p2.off);
+					break;
+				case Param.ART_ANUM_BSR:
+					Convert.convertLongToByteArr(bytes, retI, p2.num);
+					bytes[firstI] = (byte) p2.off;
+					break;
+				case Param.ART_ASR:
+				case Param.ART_ASR_BREG:
+					bytes[firstI] = (byte) p2.off;
+					break;
+				case Param.ART_ASR_BNUM:
+					bytes[firstI] = (byte) p2.num;
+					Convert.convertLongToByteArr(bytes, retI, p2.off);
+					break;
+				case Param.ART_ASR_BSR:
+					bytes[firstI] = (byte) p2.num;
+					bytes[firstI] = (byte) p2.off;
+					break;
+				default:
+					throw new InternalError("unknown art: " + p2.art);
+				}
+			}
+		} else {
+			assert p2 == null;
+			if (cmd.art == ParamArt.label) {
+				Convert.convertLongToByteArr(bytes, 8, relativeLabel);
 			}
 		}
-		ret[0] = PrimitiveDisassembler.convertLong(first);
-		if (cmd.art == ParamArt.label) {
-			ret[1] = relativeLabel - pos;
-		}
-		return ret;
+		return bytes;
 	}
 	
 }

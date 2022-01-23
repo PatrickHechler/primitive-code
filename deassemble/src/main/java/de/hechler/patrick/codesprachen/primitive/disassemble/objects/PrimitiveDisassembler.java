@@ -69,34 +69,23 @@ public class PrimitiveDisassembler {
 			Command cmd = cmds.get(i);
 			if (cmd instanceof ConstantPoolCmd) {
 				ConstantPoolCmd cp = (ConstantPoolCmd) cmd;
-				boolean first = true;
-				for (int ii = 0; ii < cp.length(); ii ++ ) {
-					switch (mode) {
-					case analysable: {
-						String middle;
-						if (first) {
-							first = false;
-							middle = " -> constant-pool: ";
-						} else {
-							middle = " ->                ";
-						}
-						out.println(longToHexString(pos, longToHexString(middle, cp.get(ii))));
-						break;
+				switch (mode) {
+				case analysable: {
+					byte[] bytes = new byte[8];
+					for (int off = 0; off < cp.length(); off += 8 ) {
+						cp.get(bytes, 0, off, 8);
+						out.println(longToHexString(pos, longToHexString(bytes, ": unknown")));
+						pos += 8;
 					}
-					case executable: {
-						if (first) {
-							out.println(":");
-						}
-						out.println(longToHexString("    ", cp.get(ii)));
-						break;
-					}
-					default:
-						throw new InternalError("unknown cmdart: " + cmd.cmd.art);
-					}
-					pos += 8;
+					break;
 				}
-				if (mode == DisasmMode.executable) {
-					out.println(">");
+				case executable: {
+					out.println(cp);
+					pos += cp.length();
+					break;
+				}
+				default:
+					throw new InternalError("unknown cmdart: " + cmd.cmd.art);
 				}
 				continue;
 			}
@@ -160,7 +149,7 @@ public class PrimitiveDisassembler {
 						bytes[off -- ] = (byte) cmd.p2.off;
 					}
 					out.println(longToHexString(pos, longToHexString(" -> ", bytes, ": " + cmd.toString())));
-					long ipos=pos+8;
+					long ipos = pos + 8;
 					if ( (cmd.p1.art & Param.PARAM_A_SR) == 0) {
 						out.println(longToHexString(ipos, longToHexString(" -> ", cmd.p1.num, ": | [p1-num]")));
 					}
@@ -518,6 +507,7 @@ public class PrimitiveDisassembler {
 		return build.append(suffix).toString();
 	}
 	
+	@SuppressWarnings("unused")
 	private static String longToHexString(String postfix, long val) {
 		String str = "0000000000000000";
 		String hex = Long.toHexString(val);
@@ -580,4 +570,17 @@ public class PrimitiveDisassembler {
 		return build.append(suffix).toString();
 	}
 	
+	public static String bytesToHexString(byte[] bytes, int offset, int len) {
+		StringBuilder res = new StringBuilder();
+		for(int i = 0; i < len; i ++) {
+			String str = Integer.toHexString(0xFF & bytes[offset + i]);
+			if (str.length() == 1) {
+				res.append('0');
+			}
+			res.append(str);
+		}
+		return res.toString();
+	}
+	
 }
+

@@ -150,9 +150,9 @@ public class Param {
 		case ART_ANUM_BREG:
 		case ART_ANUM_BSR:
 		case ART_ASR_BNUM:
-			return 1;
+			return 8;
 		case ART_ANUM_BNUM:
-			return 2;
+			return 16;
 		default:
 			throw new InternalError("unknown art: " + art);
 		}
