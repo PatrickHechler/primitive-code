@@ -74,7 +74,7 @@ public class PrimitiveDisassembler {
 					byte[] bytes = new byte[8];
 					for (int off = 0; off < cp.length(); off += 8 ) {
 						cp.get(bytes, 0, off, 8);
-						out.println(longToHexString(pos, longToHexString(bytes, ": unknown")));
+						out.println(longToHexString(pos, longToHexString(" -> ", bytes, ": unknown")));
 						pos += 8;
 					}
 					break;
