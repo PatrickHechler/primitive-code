@@ -68,15 +68,19 @@ public class Command {
 		switch (cmd) {
 		case CMD_ADD:
 		case CMD_ADDC:
+		case CMD_ADDFP:
 		case CMD_AND:
 		case CMD_MOV:
 		case CMD_MUL:
+		case CMD_MULFP:
 		case CMD_OR:
 		case CMD_SUB:
 		case CMD_SUBC:
+		case CMD_SUBFP:
 		case CMD_XOR:
 		case CMD_CMP:
 		case CMD_DIV:
+		case CMD_DIVFP:
 			int len;
 			switch (p1.art) {
 			case Param.ART_ANUM_BNUM:
@@ -129,6 +133,8 @@ public class Command {
 		case CMD_LSH:
 		case CMD_RASH:
 		case CMD_RLSH:
+		case CMD_NTFP:
+		case CMD_FPTN:
 			switch (p1.art) {
 			case Param.ART_ANUM_BNUM:
 				return 24;

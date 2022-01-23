@@ -501,5 +501,5 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `IP <- IP + CMD_LEN`
 
 ## TODO
-* (Multi-threading/-progressing)
 * execute other programs
+* Multi-threading/-progressing

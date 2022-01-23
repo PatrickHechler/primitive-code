@@ -31,6 +31,9 @@ public enum Commands {
 	
 	
 	CMD_ADDC(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.ADDC), CMD_SUBC(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.SUBC),
+	CMD_ADDDP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.ADDFP), CMD_SUBFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.SUBFP),
+	CMD_MULFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.MULFP), CMD_DIVFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.DIVFP),
+	CMD_NTFP(ParamArt.oneParamNoConst, CmdNums.NTFP), CMD_FPTN(ParamArt.oneParamNoConst, CmdNums.FPTN),
 	
 	;
 	//@formatter:on
@@ -180,6 +183,12 @@ public enum Commands {
 		private static final int SET_INTCNT = 0x2E;
 		private static final int ADDC = 0x30;
 		private static final int SUBC = 0x31;
+		private static final int ADDFP = 0x32;
+		private static final int SUBFP = 0x33;
+		private static final int MULFP = 0x34;
+		private static final int DIVFP = 0x35;
+		private static final int NTFP = 0x36;
+		private static final int FPTN = 0x37;
 		
 	}
 	

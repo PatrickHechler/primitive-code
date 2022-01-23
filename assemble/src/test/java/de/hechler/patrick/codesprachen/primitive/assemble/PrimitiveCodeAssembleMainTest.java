@@ -9,9 +9,9 @@ import de.hechler.patrick.zeugs.check.Checker;
 
 public class PrimitiveCodeAssembleMainTest {
 	
-	public void testname() throws Exception {
-		main(new String[0]);
-	}
+//	public void testname() throws Exception {
+//		main(new String[0]);
+//	}
 	
 	public static void main(String[] args) {
 		System.out.println(

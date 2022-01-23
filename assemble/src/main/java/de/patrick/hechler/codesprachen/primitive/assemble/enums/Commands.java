@@ -24,7 +24,8 @@ public enum Commands {
 	CMD_GET_INTCNT(0x2D), CMD_SET_INTCNT(0x2E),
 	
 	CMD_ADDC(0x30), CMD_SUBC(0x31),
-	
+	CMD_ADDFP(0x32), CMD_SUBFP(0x33), CMD_MULFP(0x34), CMD_DIVFP(0x35),
+	CMD_NTFP(0x36), CMD_FPTN(0x37),
 	;
 	//@formatter:on
 	

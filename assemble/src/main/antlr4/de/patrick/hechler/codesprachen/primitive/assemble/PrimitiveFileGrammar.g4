@@ -345,6 +345,30 @@ returns [Command c] @init {Commands cmd = null;}
 				)
 				|
 				(
+					ADDFP
+					{cmd = Commands.CMD_ADDFP;}
+
+				)
+				|
+				(
+					SUBFP
+					{cmd = Commands.CMD_SUBFP;}
+
+				)
+				|
+				(
+					MULFP
+					{cmd = Commands.CMD_MULFP;}
+
+				)
+				|
+				(
+					DIVFP
+					{cmd = Commands.CMD_DIVFP;}
+
+				)
+				|
+				(
 					MUL
 					{cmd = Commands.CMD_MUL;}
 
@@ -390,6 +414,11 @@ returns [Command c] @init {Commands cmd = null;}
 				{cmd = Commands.CMD_RET;}
 
 			)
+			(
+				IRET
+				{cmd = Commands.CMD_IRET;}
+
+			)
 			{$c = new Command(cmd, null, null);}
 
 		)
@@ -405,6 +434,18 @@ returns [Command c] @init {Commands cmd = null;}
 				(
 					DEC
 					{cmd = Commands.CMD_DEC;}
+
+				)
+				|
+				(
+					NTFP
+					{cmd = Commands.CMD_NTFP;}
+
+				)
+				|
+				(
+					FPTN
+					{cmd = Commands.CMD_FPTN;}
 
 				)
 				|
@@ -749,6 +790,10 @@ RET
 :
 	'RET'
 ;
+IRET
+:
+	'IRET'
+;
 
 INT
 :
@@ -783,6 +828,36 @@ DEC
 INC
 :
 	'INC'
+;
+
+ADDFP
+:
+	'ADDFP'
+;
+
+SUBFP
+:
+	'SUBFP'
+;
+
+MULFP
+:
+	'MULFP'
+;
+
+DIVFP
+:
+	'DIVFP'
+;
+
+NTFP
+:
+	'NTFP'
+;
+
+FPTN
+:
+	'FPTN'
 ;
 
 AX

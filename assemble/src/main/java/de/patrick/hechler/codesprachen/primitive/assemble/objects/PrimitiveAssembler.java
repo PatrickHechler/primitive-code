@@ -100,6 +100,8 @@ public class PrimitiveAssembler {
 				case CMD_GET_INTCNT:
 				case CMD_DEC:
 				case CMD_INC:
+				case CMD_FPTN:
+				case CMD_NTFP:
 					if (cmd.p1.art == Param.ART_ANUM) {
 						throw new IllegalStateException("no constants allowed!");
 					}
@@ -118,9 +120,13 @@ public class PrimitiveAssembler {
 				case CMD_MOV:
 				case CMD_ADD:
 				case CMD_ADDC:
+				case CMD_ADDFP:
 				case CMD_SUB:
 				case CMD_SUBC:
+				case CMD_SUBFP:
 				case CMD_MUL:
+				case CMD_MULFP:
+				case CMD_DIVFP:
 				case CMD_AND:
 				case CMD_OR:
 				case CMD_XOR:
