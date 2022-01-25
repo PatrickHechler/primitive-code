@@ -1,18 +1,18 @@
 /*
  [The "BSD licence"]
  Copyright (c) 2013 Sam Harwell
- All rights reserved.
+ All rights[] reserved.
 
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions
+ Redistribution and[] use in[] source and[] binary forms, with[] or without[]
+ modification, are[] permitted provided[] that the[] following conditions[]
  are met:
- 1. Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
- 2. Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
- 3. The name of the author may not be used to endorse or promote products
-    derived from this software without specific prior written permission.
+ 1. Redistributions of[] source code[] must retain[] the above[] copyright
+    notice, this[] list of[] conditions and[] the following[] disclaimer.
+ 2. Redistributions in[] binary form[] must reproduce[] the above[] copyright
+    notice, this[] list of[] conditions and[] the following[] disclaimer in[] the
+    documentation[] and/or other[] materials provided[] with the[] distribution.
+ 3. The name[] of the[] author may[] not be[] used to[] endorse or[] promote products[]
+    derived from[] this software[] without specific[] prior written[] permission.
 
  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -26,25 +26,25 @@
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-/** C 2011 grammar built from the C11 Spec */
+/** C 2011 grammar[] built from[] the C11 Spec */
 grammar C;
 
 @header {
 /*
  [The "BSD licence"]
  Copyright (c) 2013 Sam Harwell
- All rights reserved.
+ All rights[] reserved.
 
- Redistribution and use in source and binary forms, with or without
- modification, are permitted provided that the following conditions
+ Redistribution and[] use in[] source and[] binary forms, with[] or without[]
+ modification, are[] permitted provided[] that the[] following conditions[]
  are met:
- 1. Redistributions of source code must retain the above copyright
-    notice, this list of conditions and the following disclaimer.
- 2. Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
- 3. The name of the author may not be used to endorse or promote products
-    derived from this software without specific prior written permission.
+ 1. Redistributions of[] source code[] must retain[] the above[] copyright
+    notice, this[] list of[] conditions and[] the following[] disclaimer.
+ 2. Redistributions in[] binary form[] must reproduce[] the above[] copyright
+    notice, this[] list of[] conditions and[] the following[] disclaimer in[] the
+    documentation[] and/or other[] materials provided[] with the[] distribution.
+ 3. The name[] of the[] author may[] not be[] used to[] endorse or[] promote products[]
+    derived from[] this software[] without specific[] prior written[] permission.
 
  THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
  IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -57,752 +57,537 @@ grammar C;
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
  THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
+import de.hechler.patrick.codesprachen.primitive.compile.c.objects.*;
+import de.hechler.patrick.codesprachen.primitive.compile.c.enums.*;
 }
 
-compilationUnit
-:
-	translationUnit? EOF
-;
-
-translationUnit
-:
-	externalDeclaration+
-;
-
-externalDeclaration
-:
-	functionDefinition
-	| declaration
-	| ';' // stray ;
-
-;
-
-functionDefinition
-:
-	declarationSpecifiers? declarator declaration* compoundStatement
-;
-
-primaryExpression
-:
-	Identifier
-	| Constant
-	| StringLiteral+
-	| '(' expression ')'
-	| genericSelection
-	| '__extension__'? '(' compoundStatement ')' // Blocks (GCC extension)
-
-	| '__builtin_va_arg' '(' unaryExpression ',' typeName ')'
-	| '__builtin_offsetof' '(' typeName ',' unaryExpression ')'
-;
-
-genericSelection
-:
-	'_Generic' '(' assignmentExpression ',' genericAssocList ')'
-;
-
-genericAssocList
-:
-	genericAssociation
-	(
-		',' genericAssociation
-	)*
-;
-
-genericAssociation
+compilationUnit [] returns [CompilationUnit cu]
+@init {$cu = new CompilationUnit();}
 :
 	(
-		typeName
-		| 'default'
-	) ':' assignmentExpression
-;
+		(
+			(
+				functionDeclaration [$cu]
+				{$cu.add($functionDeclaration.fh);}
 
-postfixExpression
-:
-	(
-		primaryExpression
-		| '__extension__'? '(' typeName ')' '{' initializerList ','? '}'
-	)
-	(
-		'[' expression ']'
-		| '(' argumentExpressionList? ')'
+			)
+			|
+			(
+				variableDeclaration [$cu]
+				{$cu.addAll($variableDeclaration.cvar);}
+
+			)
+			|
+			(
+				staticAssert [$cu]
+				{$cu.eval($staticAssert.sa);}
+
+			)
+		)? Semi
 		|
 		(
-			'.'
-			| '->'
-		) Identifier
-		|
-		(
-			'++'
-			| '--'
+			function [$cu]
+			{$cu.add($function.func);}
+
 		)
-	)*
+	)* EOF
 ;
 
-argumentExpressionList
+function [CompilationUnit cu] returns [FunctionImpl func] //TODO
+
 :
-	assignmentExpression
+	functionDeclaration [cu] LeftBrace
 	(
-		',' assignmentExpression
-	)*
+		command [cu]
+	)* RightBrace
 ;
 
-unaryExpression
+command [CompilationUnit cu] returns []
 :
 	(
-		'++'
-		| '--'
-		| 'sizeof'
-	)*
-	(
-		postfixExpression
-		| unaryOperator castExpression
+		variableDeclaration [cu]
 		|
 		(
-			'sizeof'
-			| '_Alignof'
-		) '(' typeName ')'
-		| '&&' Identifier // GCC extension address of label
+			Identifier assignmentOperator [cu]
+		)? expression [cu]
+		| staticAssert [cu]
+		| Continue
+		| Break
+		| Goto Identifier
+		| Asm //example: __asm__ ("DIV AX, BX" : "AX=" number, "BX=" divide[] : "=AX" divided, "=BX" modulo);
 
-	)
+		( // asm[] commands
+			Volatile
+		)? LeftParen StringLiteral+
+		( //set asm[] values
+			Colon
+			(
+				StringLiteral+ variable [cu]
+				(
+					Comma StringLiteral+ variable [cu]
+				)*
+			)?
+			( //get values[] after asm[]
+				Colon
+				(
+					StringLiteral+ variable [cu]
+					(
+						Comma StringLiteral+ variable [cu]
+					)*
+				)?
+			)?
+		)? RightParen
+	) Semi
+	| Identifier Colon command [cu]
+	| LeftBrace command [cu]* RightBrace
+	| While LeftParen expression [cu] RightParen command [cu]
+	| Do command [cu] Whitespace LeftParen expression [cu] RightParen Semi
+	| For LeftParen
+	(
+		expression [cu]
+		(
+			Comma
+			(
+				expression [cu]
+			)
+		)*
+		| variableDeclaration [cu]
+	)? Semi expression [cu]? Semi
+	(
+		expression [cu]
+		(
+			Comma expression [cu]
+		)*
+	)? RightParen command [cu]
+	| If LeftParen expression [cu] RightParen command [cu]
+	(
+		Else command [cu]
+	)?
+	| Switch LeftParen expression [cu] RightParen LeftBrace
+	(
+		(
+			Case
+			(
+				constant [cu]
+			)
+			| Default
+		) Colon command [cu]*
+	)* RightBrace
 ;
 
-unaryOperator
+staticAssert [CompilationUnit cu] returns [CStaticAssert sa]
 :
-	'&'
-	| '*'
-	| '+'
-	| '-'
-	| '~'
-	| '!'
+	StaticAssert LeftParen expression [cu] Comma expression [cu] RightParen
 ;
 
-castExpression
+expression [CompilationUnit cu] returns []
 :
-	'__extension__'? '(' typeName ')' castExpression
-	| unaryExpression
-	| DigitSequence // for
-
+	conditionalExpression [cu]
+	| unaryExpression [cu] assignmentOperator [cu] expression [cu]
 ;
 
-multiplicativeExpression
+conditionalExpression [CompilationUnit cu] returns []
 :
-	castExpression
+	logicOrExpression [cu]
+	(
+		Question expression [cu] Colon conditionalExpression [cu]
+	)?
+;
+
+logicOrExpression [CompilationUnit cu] returns []
+:
+	logicalAndExpression [cu]
+	(
+		OrOr logicalAndExpression [cu]
+	)*
+;
+
+logicalAndExpression [CompilationUnit cu] returns []
+:
+	inclusiveOrExpression [cu]
+	(
+		AndAnd inclusiveOrExpression [cu]
+	)*
+;
+
+inclusiveOrExpression [CompilationUnit cu] returns []
+:
+	exclusiveOrExpression [cu]
+	(
+		Or exclusiveOrExpression [cu]
+	)*
+;
+
+exclusiveOrExpression [CompilationUnit cu] returns []
+:
+	andExpression [cu]
+	(
+		Caret andExpression [cu]
+	)*
+;
+
+andExpression [CompilationUnit cu] returns []
+:
+	equalityExpression [cu]
+	(
+		(
+			And
+		) equalityExpression [cu]
+	)*
+;
+
+equalityExpression [CompilationUnit cu] returns []
+:
+	relationalExpression [cu]
+	(
+		(
+			Equal
+			| NotEqual
+		) relationalExpression [cu]
+	)*
+;
+
+relationalExpression [CompilationUnit cu] returns []
+:
+	shiftExpression [cu]
+	(
+		(
+			Less
+			| Greater
+			| LessEqual
+			| GreaterEqual
+		) shiftExpression [cu]
+	)*
+;
+
+shiftExpression [CompilationUnit cu] returns []
+:
+	additiveExpression [cu]
+	(
+		(
+			LeftShift
+			| RightShift
+		) additiveExpression [cu]
+	)*
+;
+
+additiveExpression [CompilationUnit cu] returns []
+:
+	multiplicativeExpression [cu]
+	(
+		(
+			Plus
+			| Minus
+		) multiplicativeExpression [cu]
+	)*
+;
+
+multiplicativeExpression [CompilationUnit cu] returns []
+:
+	castExpression [cu]
 	(
 		(
 			'*'
 			| '/'
 			| '%'
-		) castExpression
+		) castExpression [cu]
 	)*
 ;
 
-additiveExpression
+castExpression [CompilationUnit cu] returns []
 :
-	multiplicativeExpression
-	(
-		(
-			'+'
-			| '-'
-		) multiplicativeExpression
-	)*
+	LeftParen type [cu] RightBrace castExpression [cu]
+	| unaryExpression [cu]
 ;
 
-shiftExpression
-:
-	additiveExpression
-	(
-		(
-			'<<'
-			| '>>'
-		) additiveExpression
-	)*
-;
-
-relationalExpression
-:
-	shiftExpression
-	(
-		(
-			'<'
-			| '>'
-			| '<='
-			| '>='
-		) shiftExpression
-	)*
-;
-
-equalityExpression
-:
-	relationalExpression
-	(
-		(
-			'=='
-			| '!='
-		) relationalExpression
-	)*
-;
-
-andExpression
-:
-	equalityExpression
-	(
-		'&' equalityExpression
-	)*
-;
-
-exclusiveOrExpression
-:
-	andExpression
-	(
-		'^' andExpression
-	)*
-;
-
-inclusiveOrExpression
-:
-	exclusiveOrExpression
-	(
-		'|' exclusiveOrExpression
-	)*
-;
-
-logicalAndExpression
-:
-	inclusiveOrExpression
-	(
-		'&&' inclusiveOrExpression
-	)*
-;
-
-logicalOrExpression
-:
-	logicalAndExpression
-	(
-		'||' logicalAndExpression
-	)*
-;
-
-conditionalExpression
-:
-	logicalOrExpression
-	(
-		'?' expression ':' conditionalExpression
-	)?
-;
-
-assignmentExpression
-:
-	conditionalExpression
-	| unaryExpression assignmentOperator assignmentExpression
-	| DigitSequence // for
-
-;
-
-assignmentOperator
-:
-	'='
-	| '*='
-	| '/='
-	| '%='
-	| '+='
-	| '-='
-	| '<<='
-	| '>>='
-	| '&='
-	| '^='
-	| '|='
-;
-
-expression
-:
-	assignmentExpression
-	(
-		',' assignmentExpression
-	)*
-;
-
-constantExpression
-:
-	conditionalExpression
-;
-
-declaration
-:
-	declarationSpecifiers initDeclaratorList? ';'
-	| staticAssertDeclaration
-;
-
-declarationSpecifiers
-:
-	declarationSpecifier+
-;
-
-declarationSpecifiers2
-:
-	declarationSpecifier+
-;
-
-declarationSpecifier
-:
-	storageClassSpecifier
-	| typeSpecifier
-	| typeQualifier
-	| functionSpecifier
-	| alignmentSpecifier
-;
-
-initDeclaratorList
-:
-	initDeclarator
-	(
-		',' initDeclarator
-	)*
-;
-
-initDeclarator
-:
-	declarator
-	(
-		'=' initializer
-	)?
-;
-
-storageClassSpecifier
-:
-	'typedef'
-	| 'extern'
-	| 'static'
-	| '_Thread_local'
-	| 'auto'
-	| 'register'
-;
-
-typeSpecifier
+unaryExpression [CompilationUnit cu] returns []
 :
 	(
-		'void'
-		| 'char'
-		| 'short'
-		| 'int'
-		| 'long'
-		| 'float'
-		| 'double'
-		| 'signed'
-		| 'unsigned'
-		| '_Bool'
-		| '_Complex'
-		| '__m128'
-		| '__m128d'
-		| '__m128i'
-	)
-	| '__extension__' '('
-	(
-		'__m128'
-		| '__m128d'
-		| '__m128i'
-	) ')'
-	| atomicTypeSpecifier
-	| structOrUnionSpecifier
-	| enumSpecifier
-	| typedefName
-	| '__typeof__' '(' constantExpression ')' // GCC extension
-
-	| typeSpecifier pointer
-;
-
-structOrUnionSpecifier
-:
-	structOrUnion Identifier? '{' structDeclarationList '}'
-	| structOrUnion Identifier
-;
-
-structOrUnion
-:
-	'struct'
-	| 'union'
-;
-
-structDeclarationList
-:
-	structDeclaration+
-;
-
-structDeclaration
-:
-	specifierQualifierList structDeclaratorList? ';'
-	| staticAssertDeclaration
-;
-
-specifierQualifierList
-:
-	(
-		typeSpecifier
-		| typeQualifier
-	) specifierQualifierList?
-;
-
-structDeclaratorList
-:
-	structDeclarator
-	(
-		',' structDeclarator
-	)*
-;
-
-structDeclarator
-:
-	declarator
-	| declarator? ':' constantExpression
-;
-
-enumSpecifier
-:
-	'enum' Identifier? '{' enumeratorList ','? '}'
-	| 'enum' Identifier
-;
-
-enumeratorList
-:
-	enumerator
-	(
-		',' enumerator
-	)*
-;
-
-enumerator
-:
-	enumerationConstant
-	(
-		'=' constantExpression
-	)?
-;
-
-enumerationConstant
-:
-	Identifier
-;
-
-atomicTypeSpecifier
-:
-	'_Atomic' '(' typeName ')'
-;
-
-typeQualifier
-:
-	'const'
-	| 'restrict'
-	| 'volatile'
-	| '_Atomic'
-;
-
-functionSpecifier
-:
-	(
-		'inline'
-		| '_Noreturn'
-//		| '__inline__' // GCC extension
-
-		| '__stdcall'
-	)
-//	| gccAttributeSpecifier
-	| '__declspec' '(' Identifier ')'
-;
-
-alignmentSpecifier
-:
-	'_Alignas' '('
-	(
-		typeName
-		| constantExpression
-	) ')'
-;
-
-declarator
-:
-	pointer? directDeclarator //gccDeclaratorExtension*
-;
-
-directDeclarator
-:
-	Identifier
-	| '(' declarator ')'
-	| directDeclarator '[' typeQualifierList? assignmentExpression? ']'
-	| directDeclarator '[' 'static' typeQualifierList? assignmentExpression ']'
-	| directDeclarator '[' typeQualifierList 'static' assignmentExpression ']'
-	| directDeclarator '[' typeQualifierList? '*' ']'
-	| directDeclarator '(' parameterTypeList ')'
-	| directDeclarator '(' identifierList? ')'
-	| Identifier ':' DigitSequence // bit field
-
-	| '(' typeSpecifier? pointer directDeclarator ')' // function pointer like: (__cdecl *f)
-
-;
-
-//gccDeclaratorExtension
-//:
-//	'__asm' '(' StringLiteral+ ')'
-//	| gccAttributeSpecifier
-//;
-//
-//gccAttributeSpecifier
-//:
-//	'__attribute__' '(' '(' gccAttributeList ')' ')'
-//;
-//
-//gccAttributeList
-//:
-//	gccAttribute?
-//	(
-//		',' gccAttribute?
-//	)*
-//;
-//
-//gccAttribute
-//:
-//	~( ',' | '(' | ')' ) // relaxed def for "identifier or reserved word"
-//
-//	(
-//		'(' argumentExpressionList? ')'
-//	)?
-//;
-
-nestedParenthesesBlock
-:
-	(
-		~( '(' | ')' )
-		| '(' nestedParenthesesBlock ')'
-	)*
-;
-
-pointer
-:
-	(
-		(
-			'*'
-			| '^'
-		) typeQualifierList?
-	)+ // ^ - Blocks language extension
-
-;
-
-typeQualifierList
-:
-	typeQualifier+
-;
-
-parameterTypeList
-:
-	parameterList
-	(
-		',' '...'
-	)?
-;
-
-parameterList
-:
-	parameterDeclaration
-	(
-		',' parameterDeclaration
-	)*
-;
-
-parameterDeclaration
-:
-	declarationSpecifiers declarator
-	| declarationSpecifiers2 abstractDeclarator?
-;
-
-identifierList
-:
-	Identifier
-	(
-		',' Identifier
-	)*
-;
-
-typeName
-:
-	specifierQualifierList abstractDeclarator?
-;
-
-abstractDeclarator
-:
-	pointer
-	| pointer? directAbstractDeclarator //gccDeclaratorExtension*
-;
-
-directAbstractDeclarator
-:
-	'(' abstractDeclarator ')' // gccDeclaratorExtension*
-	| '[' typeQualifierList? assignmentExpression? ']'
-	| '[' 'static' typeQualifierList? assignmentExpression ']'
-	| '[' typeQualifierList 'static' assignmentExpression ']'
-	| '[' '*' ']'
-	| '(' parameterTypeList? ')' // gccDeclaratorExtension*
-	| directAbstractDeclarator '[' typeQualifierList? assignmentExpression? ']'
-	| directAbstractDeclarator '[' 'static' typeQualifierList?
-	assignmentExpression ']'
-	| directAbstractDeclarator '[' typeQualifierList 'static'
-	assignmentExpression ']'
-	| directAbstractDeclarator '[' '*' ']'
-	| directAbstractDeclarator '(' parameterTypeList? ')' //gccDeclaratorExtension*
-;
-
-typedefName
-:
-	Identifier
-;
-
-initializer
-:
-	assignmentExpression
-	| '{' initializerList ','? '}'
-;
-
-initializerList
-:
-	designation? initializer
-	(
-		',' designation? initializer
-	)*
-;
-
-designation
-:
-	designatorList '='
-;
-
-designatorList
-:
-	designator+
-;
-
-designator
-:
-	'[' constantExpression ']'
-	| '.' Identifier
-;
-
-staticAssertDeclaration
-:
-	'_Static_assert' '(' constantExpression ',' StringLiteral+ ')' ';'
-;
-
-statement
-:
-	labeledStatement
-	| compoundStatement
-	| expressionStatement
-	| selectionStatement
-	| iterationStatement
-	| jumpStatement
+		PlusPlus
+		| MinusMinus
+	)? postfixExpression [cu]
 	|
 	(
-		'__asm'
-		| '__asm__'
+		And
+		| Star
+		| Plus
+		| Minus
+		| Tilde
+		| Not
+	) castExpression [cu]
+	|
+	(
+		Sizeof
+		| Alignof
+	) LeftParen type [cu] RightParen
+;
+
+postfixExpression [CompilationUnit cu] returns []
+:
+	primaryExpression [cu]
+	(
+		PlusPlus
+		| MinusMinus
+	)?
+;
+
+primaryExpression [CompilationUnit cu] returns []
+:
+	Constant
+	| StringLiteral
+	| variable [cu]
+	(
+		LeftParen
+		(
+			expression [cu]
+			(
+				Comma expression [cu]
+			)*
+		)? RightParen
+	)?
+	| LeftParen expression [cu] RightParen
+	| Generic LeftParen expression [cu] Comma
+	(
+		type [cu]
+		| Default
+	) Colon expression [cu]
+	(
+		Comma
+		(
+			type [cu]
+			| Default
+		) Colon expression [cu]
+	)* RightParen
+	| Builtin_va_start LeftParen Identifier Comma Identifier RightParen
+	| Builtin_va_end LeftParen Identifier RightParen
+	| Builtin_va_arg LeftParen Identifier Comma type [cu] RightParen
+	| Builtin_offsetof LeftParen type [cu] Comma unaryExpression [cu] RightParen
+;
+
+variable [CompilationUnit cu] returns []
+:
+	(
+		Identifier
+		| Star+ variable [cu]
+		| LeftParen
+		(
+			LeftParen type [cu] RightParen
+		)? expression [cu] RightParen
 	)
 	(
-		'volatile'
-		| '__volatile__'
-	) '('
-	(
-		logicalOrExpression
 		(
-			',' logicalOrExpression
-		)*
-	)?
-	(
-		':'
-		(
-			logicalOrExpression
-			(
-				',' logicalOrExpression
-			)*
-		)?
-	)* ')' ';'
-;
-
-labeledStatement
-:
-	Identifier ':' statement
-	| 'case' constantExpression ':' statement
-	| 'default' ':' statement
-;
-
-compoundStatement
-:
-	'{' blockItemList? '}'
-;
-
-blockItemList
-:
-	blockItem+
-;
-
-blockItem
-:
-	statement
-	| declaration
-;
-
-expressionStatement
-:
-	expression? ';'
-;
-
-selectionStatement
-:
-	'if' '(' expression ')' statement
-	(
-		'else' statement
-	)?
-	| 'switch' '(' expression ')' statement
-;
-
-iterationStatement
-:
-	While '(' expression ')' statement
-	| Do statement While '(' expression ')' ';'
-	| For '(' forCondition ')' statement
-;
-
-//    |   'for' '(' expression? ';' expression?  ';' forUpdate? ')' statement
-//    |   For '(' declaration  expression? ';' expression? ')' statement
-
-forCondition
-:
-	(
-		forDeclaration
-		| expression?
-	) ';' forExpression? ';' forExpression?
-;
-
-forDeclaration
-:
-	declarationSpecifiers initDeclaratorList?
-;
-
-forExpression
-:
-	assignmentExpression
-	(
-		',' assignmentExpression
+			Dot
+			| Arrow
+		) Identifier
+		| LeftBracket primaryExpression [cu] RightBracket
 	)*
 ;
 
-jumpStatement
+functionDeclaration [CompilationUnit cu] returns [FunctionHead fh] //TODO
+
+:
+	type [cu]? Identifier LeftParen
+	(
+		type [cu]
+		(
+			Comma type [cu]
+		)*
+	)? RightParen functionSpezifiers [cu]
+;
+
+functionSpezifiers [CompilationUnit cu] returns []
 :
 	(
-		'goto' Identifier
+		Inline
+		| Noreturn
+	)*
+;
+
+typedefDeclaration [CompilationUnit cu] returns []
+:
+	Typedef type [cu]
+;
+
+variableDeclaration [CompilationUnit cu] returns [CVariable[] cvar]
+:
+	type [cu]
+	(
+		Assign expression [cu]
+	)?
+	(
+		Comma Star* Identifier
+		(
+			Assign expression [cu]
+		)?
+		(
+			LeftBracket
+			(
+				constant [cu]
+			)? RightBracket
+		)*
+	)*
+;
+
+assignmentOperator [CompilationUnit cu] returns []
+:
+	Assign
+	| StarAssign
+	| DivAssign
+	| ModAssign
+	| PlusAssign
+	| MinusAssign
+	| LeftShiftAssign
+	| RightShiftAssign
+	| AndAssign
+	| XorAssign
+	| OrAssign
+;
+
+type [CompilationUnit cu] returns []
+:
+	typeSpezifier [cu] arrayType [cu]?
+	| arrayType [cu]
+;
+
+arrayType [CompilationUnit cu] returns []
+:
+	pointerType [cu]
+	(
+		LeftBrace
+		(
+			constant [cu]
+		)? RightBrace
+	)*
+;
+
+pointerType [CompilationUnit cu] returns []
+:
+	funcType [cu] Star* Identifier?
+;
+
+funcType [CompilationUnit cu] returns []
+:
+	primaryType [cu]
+	(
+		(
+			LeftParen
+			(
+				type [cu]
+				(
+					Comma type [cu]
+				)*
+			)? RightParen
+		)?
+	)?
+;
+
+primaryType [CompilationUnit cu] returns []
+:
+	(
+		Long Long?
+		| Short
+	)? Int
+	| Float
+	|
+	(
+		Long? Double
+		| Double Long
+	)
+	| Void
+	| structOrUnionType [cu]
+	| enumType [cu]
+	| Identifier
+	| LeftParen type [cu] RightBrace
+;
+
+structOrUnionType [CompilationUnit cu] returns []
+:
+	(
+		Struct
+		| Union
+	)
+	(
+		Identifier
 		|
 		(
-			'continue'
-			| 'break'
+			Identifier? LeftBrace type [cu]
+			(
+				Comma type [cu]
+			)* Comma? RightBrace
 		)
-		| 'return' expression?
-		| 'goto' unaryExpression // GCC extension
+	)
+;
 
-	) ';'
+enumType [CompilationUnit cu] returns []
+:
+	Enum
+	(
+		Identifier
+		| Identifier?
+		(
+			LeftBrace Identifier
+			(
+				Assign
+				(
+					constant [cu]
+				)
+			)?
+			(
+				Comma Identifier
+				(
+					Assign
+					(
+						constant [cu]
+					)
+				)?
+			)* Comma? RightBrace
+		)? Identifier
+	)
+;
+
+typeSpezifier [CompilationUnit cu] returns []
+:
+	(
+		Extern
+		| Const
+		| Volatile
+		| Static
+		(
+			| Auto
+			| Register
+		)
+	)+
+;
+
+constant [CompilationUnit cu] returns []
+:
+	expression [cu]
+;
+
+Asm
+:
+	'__asm__'
+	| '__asm'
+;
+
+Builtin_offsetof
+:
+	'__builtin_offsetof'
+;
+
+Builtin_va_start
+:
+	'__builtin_va_start'
+;
+
+Builtin_va_end
+:
+	'__builtin_va_end'
+;
+
+Builtin_va_arg
+:
+	'__builtin_va_arg'
 ;
 
 Auto
@@ -1270,7 +1055,7 @@ IdentifierNondigit
 :
 	Nondigit
 	| UniversalCharacterName
-	//|   // other implementation-defined characters...
+	//|   // other[] implementation-defined characters...
 
 ;
 
@@ -1540,45 +1325,47 @@ SChar
 :
 	~["\\\r\n]
 	| EscapeSequence
-	| '\\\n' // Added line
+	| '\\\n' // Added line[]
 
-	| '\\\r\n' // Added line
+	| '\\\r\n' // Added line[]
 
 ;
 
-ComplexDefine
-:
-	'#' Whitespace? 'define' ~[#\r\n]* -> skip
-;
+//crash
+//ComplexDefine
+//:
+//	'#' Whitespace? 'define' ~[#\r\n]* -> skip
+//;
 
-IncludeDirective
-:
-	'#' Whitespace? 'include' Whitespace?
-	(
-		(
-			'"' ~[\r\n]* '"'
-		)
-		|
-		(
-			'<' ~[\r\n]* '>'
-		)
-	) Whitespace? Newline -> skip
-;
+//crash
+//IncludeDirective
+//:
+//	'#' Whitespace? 'include' Whitespace?
+//	(
+//		(
+//			'"' ~[\r\n]* '"'
+//		)
+//		|
+//		(
+//			'<' ~[\r\n]* '>'
+//		)
+//	) Whitespace? Newline -> skip
+//;
 
-// ignore the following asm blocks:
+// crash[] on the[] following asm[] blocks:
 /*
-    asm
+    asm[]
     {
-        mfspr x, 286;
+        mfspr[] x, 286;
     }
  */
-AsmBlock
-:
-	'asm' ~'{'* '{' ~'}'* '}' -> skip
-;
+//AsmBlock
+//:
+//	'asm' ~'{'* '{' ~'}'* '}' -> skip
+//;
 
-// ignore the lines generated by c preprocessor
-// sample line : '#line 1 "/home/dm/files/dk1.h" 1'
+// ignore[] the lines[] generated by[] c preprocessor[]
+// sample[] line : '#line 1 "/home/dm/files/dk1.h" 1'
 
 LineAfterPreprocessing
 :
@@ -1590,10 +1377,10 @@ LineDirective
 	'#' Whitespace? DecimalConstant Whitespace? StringLiteral ~[\r\n]* -> skip
 ;
 
-PragmaDirective
-:
-	'#' Whitespace? 'pragma' Whitespace ~[\r\n]* -> skip
-;
+//PragmaDirective
+//:
+//	'#' Whitespace? 'pragma' Whitespace ~[\r\n]* -> skip
+//;
 
 Whitespace
 :
