@@ -1,6 +1,6 @@
 |:
 | Hello World code which prints the first 22 elements of file on the default out stream
-|>
+:>
 JMP START
 :
 	#OUT-FILE-STRING --POS--

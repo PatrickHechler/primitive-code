@@ -77,7 +77,7 @@ compilationUnit [] returns [CompilationUnit cu]
 			)
 			|
 			(
-				variableDeclaration [$cu, null]
+				variableDeclaration [$cu, null, true]
 				{$cu.addAll($variableDeclaration.cvars);}
 
 			)
@@ -127,7 +127,7 @@ command [CompilationUnit cu, List<Map<String, NameUse>> nus] returns
 	(
 		(
 			(
-				variableDeclaration [cu, nus]
+				variableDeclaration [cu, nus, true]
 				{$cmd = new CVarDeclareCommand($variableDeclaration.cvars);}
 
 			)
@@ -255,7 +255,7 @@ command [CompilationUnit cu, List<Map<String, NameUse>> nus] returns
 				)
 				|
 				(
-					variableDeclaration [cu, nus]
+					variableDeclaration [cu, nus, true]
 					{init = new CVarDeclareCommand($variableDeclaration.cvars);}
 
 				)
@@ -1471,8 +1471,7 @@ primaryType [CompilationUnit cu, Map<String, NameUse> nus] returns [CType ct]
 ;
 
 structOrUnionType [CompilationUnit cu, Map<String, NameUse> nus] returns
-[CType ct] //TODO
-@init {
+[CType ct] @init {
 	boolean struct = false;
 	String name = null;
 }
@@ -1502,12 +1501,31 @@ structOrUnionType [CompilationUnit cu, Map<String, NameUse> nus] returns
 				Identifier
 				{name = $Identifier.getText();}
 
-			)? LeftBrace variableDeclaration [cu, nus, false]
+			)? LeftBrace
+			{List<CVariable> cvars = new ArrayList<>();}
+
 			(
-				Comma variableDeclaration [cu, nus, false]
-			)* Comma? RightBrace
+				variableDeclaration [cu, nus, false]
+				{cvars.add($variableDeclaration.cvar);}
+
+				(
+					Comma variableDeclaration [cu, nus, false]
+					{cvars.add($variableDeclaration.cvar);}
+
+				)* Comma?
+			)? RightBrace
+			//TODO add to names
+
 		)
 	)
+	{
+		if (struct) {
+			$ct = cu.getStructType(nus, name);
+		} else {
+			$ct = cu.getUnionType(nus, name);
+		}
+	}
+
 ;
 
 enumType [CompilationUnit cu, Map<String, NameUse> nus] returns [CType ct] //TODO

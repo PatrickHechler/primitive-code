@@ -1,6 +1,6 @@
 |:
 | Hello World code which prints '!!hello world!!\n' to a file
-|>
+:>
 JMP START
 :
 	#HELLO_WORLD-STR --POS--

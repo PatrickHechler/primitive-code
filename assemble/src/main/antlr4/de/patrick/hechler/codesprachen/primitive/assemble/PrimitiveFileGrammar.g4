@@ -22,9 +22,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	$labels = new HashMap<>();
  	$commands = new ArrayList<>();
 	constants.put("INT-ERRORS-UNKNOWN_COMMAND", (Long) 0L);
-	constants.put("INT-ERRORS-ILLEGAL_INTERRUPT", (Long) 1L);
-	constants.put("INT-ERRORS-ARITHMETIC_ERROR", (Long) 2L);
-	constants.put("INT-ERRORS-UNKNOWN_COMMAND", (Long) 3L);
+	constants.put("INT_ERRORS_ILLEGAL_INTERRUPT", (Long) 1L);
+	constants.put("INT_ERRORS_ILLEGAL_MEMORY", (Long) 2L);
+	constants.put("INT_ERRORS_ARITHMETIC_ERROR", (Long) 3L);
 	constants.put("INT-EXIT", (Long) 4L);
 	constants.put("INT-MEMORY-ALLOC", (Long) 5L);
 	constants.put("INT-MEMORY-REALLOC", (Long) 6L);

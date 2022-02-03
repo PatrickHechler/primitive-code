@@ -13,8 +13,8 @@
             <Keywords name="Numbers, suffix1"></Keywords>
             <Keywords name="Numbers, suffix2"></Keywords>
             <Keywords name="Numbers, range">0123456789</Keywords>
-            <Keywords name="Operators1">+</Keywords>
-            <Keywords name="Operators2">AX BX CX DX --POS--</Keywords>
+            <Keywords name="Operators1">+ AX BX CX DX</Keywords>
+            <Keywords name="Operators2"></Keywords>
             <Keywords name="Folders in code1, open"></Keywords>
             <Keywords name="Folders in code1, middle"></Keywords>
             <Keywords name="Folders in code1, close"></Keywords>
@@ -28,7 +28,7 @@
             <Keywords name="Keywords2">,</Keywords>
             <Keywords name="Keywords3">CHARS</Keywords>
             <Keywords name="Keywords4">HEX-&#x000D;&#x000A;DEX-&#x000D;&#x000A;DEC-&#x000D;&#x000A;OCT-&#x000D;&#x000A;NHEX-&#x000D;&#x000A;NDEX-&#x000D;&#x000A;NDEC-&#x000D;&#x000A;NOCT-&#x000D;&#x000A;</Keywords>
-            <Keywords name="Keywords5">#INT-ERRORS-UNKNOWN_COMMAND&#x000D;&#x000A;#INT-ERRORS-ILLEGAL_INTERRUPT&#x000D;&#x000A;#INT-ERRORS-ARITHMETIC_ERROR&#x000D;&#x000A;#INT-ERRORS-UNKNOWN_COMMAND&#x000D;&#x000A;#INT-EXIT&#x000D;&#x000A;#INT-MEMORY-ALLOC&#x000D;&#x000A;#INT-MEMORY-REALLOC&#x000D;&#x000A;#INT-MEMORY-FREE&#x000D;&#x000A;#INT-STREAMS-NEW_IN&#x000D;&#x000A;#INT-STREAMS-NEW_OUT&#x000D;&#x000A;#INT-STREAMS-NEW_APPEND&#x000D;&#x000A;#INT_STREAMS-NEW_IN_OUT&#x000D;&#x000A;#INT-STREAMS-NEW_APPEND_IN_OUT&#x000D;&#x000A;#INT-STREAMS-WRITE&#x000D;&#x000A;#INT-STREAMS-READ&#x000D;&#x000A;#INT-STREAMS-CLOSE_STREAM&#x000D;&#x000A;#INT-STREAMS-GET_POS&#x000D;&#x000A;#INT-STREAMS-SET_POS&#x000D;&#x000A;#INT-STREAMS-SET_POS_TO_END&#x000D;&#x000A;#INT-STREAMS-REM&#x000D;&#x000A;#INT-STREAMS-MK_DIR&#x000D;&#x000A;#INT-STREAMS-REM_DIR&#x000D;&#x000A;#INT-TIME-GET&#x000D;&#x000A;#INT-TIME-WAIT&#x000D;&#x000A;#INT-RANDOM&#x000D;&#x000A;#INT-SOCKET-CLIENT-CREATE&#x000D;&#x000A;#INT-SOCKET-CLIENT-CONNECT&#x000D;&#x000A;#INT-SOCKET-SERVER-CREATE&#x000D;&#x000A;#INT-SOCKET-SERVER-LISTEN&#x000D;&#x000A;#INT-SOCKET-SERVER-ACCEPT&#x000D;&#x000A;#MAX-VALUE&#x000D;&#x000A;#MIN-VALUE&#x000D;&#x000A;#STD-IN&#x000D;&#x000A;#STD-OUT&#x000D;&#x000A;#STD-LOG&#x000D;&#x000A;</Keywords>
+            <Keywords name="Keywords5">#INT-ERRORS-UNKNOWN_COMMAND&#x000D;&#x000A;#INT-ERRORS-ILLEGAL_INTERRUPT&#x000D;&#x000A;#INT-ERRORS-ARITHMETIC_ERROR&#x000D;&#x000A;#INT-ERRORS-UNKNOWN_COMMAND&#x000D;&#x000A;#INT-EXIT&#x000D;&#x000A;#INT-MEMORY-ALLOC&#x000D;&#x000A;#INT-MEMORY-REALLOC&#x000D;&#x000A;#INT-MEMORY-FREE&#x000D;&#x000A;#INT-STREAMS-NEW_IN&#x000D;&#x000A;#INT-STREAMS-NEW_OUT&#x000D;&#x000A;#INT-STREAMS-NEW_APPEND&#x000D;&#x000A;#INT_STREAMS-NEW_IN_OUT&#x000D;&#x000A;#INT-STREAMS-NEW_APPEND_IN_OUT&#x000D;&#x000A;#INT-STREAMS-WRITE&#x000D;&#x000A;#INT-STREAMS-READ&#x000D;&#x000A;#INT-STREAMS-CLOSE_STREAM&#x000D;&#x000A;#INT-STREAMS-GET_POS&#x000D;&#x000A;#INT-STREAMS-SET_POS&#x000D;&#x000A;#INT-STREAMS-SET_POS_TO_END&#x000D;&#x000A;#INT-STREAMS-REM&#x000D;&#x000A;#INT-STREAMS-MK_DIR&#x000D;&#x000A;#INT-STREAMS-REM_DIR&#x000D;&#x000A;#INT-TIME-GET&#x000D;&#x000A;#INT-TIME-WAIT&#x000D;&#x000A;#INT-RANDOM&#x000D;&#x000A;#INT-SOCKET-CLIENT-CREATE&#x000D;&#x000A;#INT-SOCKET-CLIENT-CONNECT&#x000D;&#x000A;#INT-SOCKET-SERVER-CREATE&#x000D;&#x000A;#INT-SOCKET-SERVER-LISTEN&#x000D;&#x000A;#INT-SOCKET-SERVER-ACCEPT&#x000D;&#x000A;#MAX-VALUE&#x000D;&#x000A;#MIN-VALUE&#x000D;&#x000A;#STD-IN&#x000D;&#x000A;#STD-OUT&#x000D;&#x000A;#STD-LOG&#x000D;&#x000A;--POS--</Keywords>
             <Keywords name="Keywords6">~DEL</Keywords>
             <Keywords name="Keywords7">@ #</Keywords>
             <Keywords name="Keywords8">TODO</Keywords>
@@ -51,7 +51,7 @@
             <WordsStyle name="FOLDER IN CODE1" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
             <WordsStyle name="FOLDER IN CODE2" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
             <WordsStyle name="FOLDER IN COMMENT" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
-            <WordsStyle name="DELIMITERS1" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="67121940" />
+            <WordsStyle name="DELIMITERS1" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="67368724" />
             <WordsStyle name="DELIMITERS2" fgColor="FF0000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="117531392" />
             <WordsStyle name="DELIMITERS3" fgColor="008000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
             <WordsStyle name="DELIMITERS4" fgColor="000000" bgColor="FFFFFF" fontName="" fontStyle="0" nesting="0" />
