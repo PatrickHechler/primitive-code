@@ -1,9 +1,9 @@
 /**
  * Define a grammar called Hello
  */
-grammar ConstantPoolGrammar;
+ grammar ConstantPoolGrammar;
 
-@header {
+ @header {
 import java.util.*;
 import java.math.*;
 import java.nio.charset.*;
@@ -12,98 +12,98 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.Command.ConstantPoolCommand;
 }
 
-consts [Map<String,Long> constants, Map<String, Long> labels, long pos]
-returns [ConstantPoolCommand pool] @init {$pool = new ConstantPoolCommand();}
-:
-	START
-	(
-		(
-			string [$pool]
-		)
-		|
-		(
-			numconst [$pool]
-		)
-		|
-		(
-			CONSTANT
-			{boolean simpleAdd = true;}
+ consts [Map<String,Long> constants, Map<String, Long> labels, long pos]
+ returns [ConstantPoolCommand pool] @init {$pool = new ConstantPoolCommand();}
+ :
+ 	START
+ 	(
+ 		(
+ 			string [$pool]
+ 		)
+ 		|
+ 		(
+ 			numconst [$pool]
+ 		)
+ 		|
+ 		(
+ 			CONSTANT
+ 			(
+ 				{boolean simpleAdd = true;}
 
-			(
-				(
-					(
-						(
-							(
-								HEX_NUM
-								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($HEX_NUM.getText(), 16));}
+ 				(
+ 					(
+ 						(
+ 							(
+ 								HEX_NUM
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($HEX_NUM.getText(), 16));}
 
-							)
-							|
-							(
-								DEC_NUM
-								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($DEC_NUM.getText(), 10));}
+ 							)
+ 							|
+ 							(
+ 								DEC_NUM
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($DEC_NUM.getText(), 10));}
 
-							)
-							|
-							(
-								DEC_NUM0
-								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($DEC_NUM0.getText(), 10));}
+ 							)
+ 							|
+ 							(
+ 								DEC_NUM0
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($DEC_NUM0.getText(), 10));}
 
-							)
-							|
-							(
-								OCT_NUM
-								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($OCT_NUM.getText(), 8));}
+ 							)
+ 							|
+ 							(
+ 								OCT_NUM
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($OCT_NUM.getText(), 8));}
 
-							)
-							|
-							(
-								BIN_NUM
-								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($BIN_NUM.getText(), 2));}
+ 							)
+ 							|
+ 							(
+ 								BIN_NUM
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($BIN_NUM.getText(), 2));}
 
-							)
-							|
-							(
-								NEG_HEX_NUM
-								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_HEX_NUM.getText(), 16));}
+ 							)
+ 							|
+ 							(
+ 								NEG_HEX_NUM
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_HEX_NUM.getText(), 16));}
 
-							)
-							|
-							(
-								NEG_DEC_NUM
-								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_DEC_NUM.getText(), 10));}
+ 							)
+ 							|
+ 							(
+ 								NEG_DEC_NUM
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_DEC_NUM.getText(), 10));}
 
-							)
-							|
-							(
-								NEG_DEC_NUM0
-								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_DEC_NUM0.getText(), 10));}
+ 							)
+ 							|
+ 							(
+ 								NEG_DEC_NUM0
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_DEC_NUM0.getText(), 10));}
 
-							)
-							|
-							(
-								NEG_OCT_NUM
-								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_OCT_NUM.getText(), 8));}
+ 							)
+ 							|
+ 							(
+ 								NEG_OCT_NUM
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_OCT_NUM.getText(), 8));}
 
-							)
-							|
-							(
-								NEG_BIN_NUM
-								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_BIN_NUM.getText(), 2));}
+ 							)
+ 							|
+ 							(
+ 								NEG_BIN_NUM
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_BIN_NUM.getText(), 2));}
 
-							)
-							|
-							(
-								POS
-								{constants.put($CONSTANT.getText().substring(1), (Long) (pos + $pool.length()));}
+ 							)
+ 							|
+ 							(
+ 								POS
+ 								{constants.put($CONSTANT.getText().substring(1), (Long) (pos + $pool.length()));}
 
-							)
-						)
-						{simpleAdd = false;}
+ 							)
+ 						)
+ 						{simpleAdd = false;}
 
-					)?
-				)
-				{
+ 					)?
+ 				)
+ 				{
 				if (simpleAdd) {
 					Long szw = constants.get($CONSTANT.getText().substring(1));
 					if (szw == null) {
@@ -114,23 +114,24 @@ returns [ConstantPoolCommand pool] @init {$pool = new ConstantPoolCommand();}
 				}
 			}
 
-			)
-			|
-			(
-				DEL
-				{constants.remove($CONSTANT.getText().substring(1));}
+ 			)
+ 			|
+ 			(
+ 				DEL
+ 				{constants.remove($CONSTANT.getText().substring(1));}
 
-			)
-		)
-	)* ENDE EOF
-;
+ 			)
+ 		)
+ 	)* ENDE EOF
+ ;
 
-string [ConstantPoolCommand pool] @init {Charset cs = Charset.defaultCharset();}
-:
-	(
-		(
-			CHARS CHAR_STR
-			{
+ string [ConstantPoolCommand pool]
+ @init {Charset cs = Charset.defaultCharset();}
+ :
+ 	(
+ 		(
+ 			CHARS CHAR_STR
+ 			{
 	 			String name = $CHAR_STR.getText();
 				name = name.substring(1, name.length() - 1);
 				char[] chars = new char[name.length()];
@@ -164,9 +165,9 @@ string [ConstantPoolCommand pool] @init {Charset cs = Charset.defaultCharset();}
 	 			cs = Charset.forName(new String(chars));
 	 		}
 
-		)?
-	) STR_STR
-	{
+ 		)?
+ 	) STR_STR
+ 	{
 		String str = $STR_STR.getText();
 		str = str.substring(1, str.length() - 1);
 		char[] chars = new char[str.length()];
@@ -206,75 +207,75 @@ string [ConstantPoolCommand pool] @init {Charset cs = Charset.defaultCharset();}
 		}
 	}
 
-;
+ ;
 
-numconst [ConstantPoolCommand pool] @init {int radix;}
-:
-	(
-		{long num;}
+ numconst [ConstantPoolCommand pool] @init {int radix;}
+ :
+ 	(
+ 		{long num;}
 
-		(
-			(
-				HEX_NUM
-				{num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
+ 		(
+ 			(
+ 				HEX_NUM
+ 				{num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
 
-			)
-			|
-			(
-				DEC_NUM
-				{num = Long.parseLong($DEC_NUM.getText(), 10);}
+ 			)
+ 			|
+ 			(
+ 				DEC_NUM
+ 				{num = Long.parseLong($DEC_NUM.getText(), 10);}
 
-			)
-			|
-			(
-				DEC_NUM0
-				{num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
+ 			)
+ 			|
+ 			(
+ 				DEC_NUM0
+ 				{num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
 
-			)
-			|
-			(
-				OCT_NUM
-				{num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
+ 			)
+ 			|
+ 			(
+ 				OCT_NUM
+ 				{num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
 
-			)
-			|
-			(
-				BIN_NUM
-				{num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
+ 			)
+ 			|
+ 			(
+ 				BIN_NUM
+ 				{num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
 
-			)
-			|
-			(
-				NEG_HEX_NUM
-				{num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
+ 			)
+ 			|
+ 			(
+ 				NEG_HEX_NUM
+ 				{num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
 
-			)
-			|
-			(
-				NEG_DEC_NUM
-				{num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
+ 			)
+ 			|
+ 			(
+ 				NEG_DEC_NUM
+ 				{num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
 
-			)
-			|
-			(
-				NEG_DEC_NUM0
-				{num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
+ 			)
+ 			|
+ 			(
+ 				NEG_DEC_NUM0
+ 				{num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
 
-			)
-			|
-			(
-				NEG_OCT_NUM
-				{num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
+ 			)
+ 			|
+ 			(
+ 				NEG_OCT_NUM
+ 				{num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
 
-			)
-			|
-			(
-				NEG_BIN_NUM
-				{num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
+ 			)
+ 			|
+ 			(
+ 				NEG_BIN_NUM
+ 				{num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
 
-			)
-		)
-		{
+ 			)
+ 		)
+ 		{
 	 		pool.addBytes(new byte[]{
 	 		(byte) num,
 	 		(byte) (num << 8),
@@ -287,149 +288,149 @@ numconst [ConstantPoolCommand pool] @init {int radix;}
 	 		});
 	 	}
 
-	)+
-;
+ 	)+
+ ;
 
-CHARS
-:
-	'CHARS'
-;
+ CHARS
+ :
+ 	'CHARS'
+ ;
 
-CHAR_STR
-:
-	'\''
-	(
-		(
-			~'\''
-		)
-		|
-		(
-			'\\' .
-		)
-	)* '\''
-;
+ CHAR_STR
+ :
+ 	'\''
+ 	(
+ 		(
+ 			~'\''
+ 		)
+ 		|
+ 		(
+ 			'\\' .
+ 		)
+ 	)* '\''
+ ;
 
-STR_STR
-:
-	'"'
-	(
-		(
-			~'"'
-		)
-		|
-		(
-			'\\' .
-		)
-	)* '"'
-;
+ STR_STR
+ :
+ 	'"'
+ 	(
+ 		(
+ 			~'"'
+ 		)
+ 		|
+ 		(
+ 			'\\' .
+ 		)
+ 	)* '"'
+ ;
 
-START
-:
-	':'
-;
+ START
+ :
+ 	':'
+ ;
 
-ENDE
-:
-	'>'
-;
+ ENDE
+ :
+ 	'>'
+ ;
 
-NEG_HEX_NUM
-:
-	'NHEX-' [0-9a-fA-F]+
-;
+ NEG_HEX_NUM
+ :
+ 	'NHEX-' [0-9a-fA-F]+
+ ;
 
-NEG_DEC_NUM
-:
-	'NDEC-' [0-9]+
-;
+ NEG_DEC_NUM
+ :
+ 	'NDEC-' [0-9]+
+ ;
 
-NEG_DEC_NUM0
-:
-	'-' [0-9]+
-;
+ NEG_DEC_NUM0
+ :
+ 	'-' [0-9]+
+ ;
 
-NEG_OCT_NUM
-:
-	'NOCT-' [0-7]+
-;
+ NEG_OCT_NUM
+ :
+ 	'NOCT-' [0-7]+
+ ;
 
-NEG_BIN_NUM
-:
-	'NBIN-' [01]+
-;
+ NEG_BIN_NUM
+ :
+ 	'NBIN-' [01]+
+ ;
 
-HEX_NUM
-:
-	'HEX-' [0-9a-fA-F]+
-;
+ HEX_NUM
+ :
+ 	'HEX-' [0-9a-fA-F]+
+ ;
 
-DEC_NUM0
-:
-	'DEC-' [0-9]+
-;
+ DEC_NUM0
+ :
+ 	'DEC-' [0-9]+
+ ;
 
-DEC_NUM
-:
-	[0-9]+
-;
+ DEC_NUM
+ :
+ 	[0-9]+
+ ;
 
-OCT_NUM
-:
-	'OCT-' [0-7]+
-;
+ OCT_NUM
+ :
+ 	'OCT-' [0-7]+
+ ;
 
-BIN_NUM
-:
-	'BIN-' [01]+
-;
+ BIN_NUM
+ :
+ 	'BIN-' [01]+
+ ;
 
-DEL
-:
-	'~DEL'
-;
+ DEL
+ :
+ 	'~DEL'
+ ;
 
-POS
-:
-	'--POS--'
-;
+ POS
+ :
+ 	'--POS--'
+ ;
 
-ANY_NUM
-:
-	[0-9a-fA-f]+
-;
+ ANY_NUM
+ :
+ 	[0-9a-fA-f]+
+ ;
 
-CONSTANT
-:
-	'#' [a-zA-Z\-_]+
-;
+ CONSTANT
+ :
+ 	'#' [a-zA-Z\-_]+
+ ;
 
-LABEL_DECLARATION
-:
-	'@' [a-zA-Z\-_]+
-;
+ LABEL_DECLARATION
+ :
+ 	'@' [a-zA-Z\-_]+
+ ;
 
-LINE_COMMENT
-:
-	'|>>'
-	(
-		~( [\r\n] )
-	)* -> skip
-;
+ LINE_COMMENT
+ :
+ 	'|>'
+ 	(
+ 		~( [\r\n] )
+ 	)* -> skip
+ ;
 
-BLOCK_COMMENT
-:
-	'|:'
-	(
-		~'|'
-		|
-		(
-			'|' ~'>'
-		)
-	)* '|>' -> skip
-;
+ BLOCK_COMMENT
+ :
+ 	'|:'
+ 	(
+ 		~'|'
+ 		|
+ 		(
+ 			'|' ~'>'
+ 		)
+ 	)* ':>' -> skip
+ ;
 
-WS
-:
-	[ \t\r\n]+ -> skip
-;
+ WS
+ :
+ 	[ \t\r\n]+ -> skip
+ ;
  

@@ -147,7 +147,7 @@ public class PrimitiveAssembler {
 				case CMD_JMPGE:
 				case CMD_JMPGT:
 				case CMD_JMPLE:
-				case CMD_JMPLO:
+				case CMD_JMPLT:
 				case CMD_JMPNE: {
 					assert cmd.p1 != null : "I need a first param!";
 					assert cmd.p2 == null : "my command can not have a second param";

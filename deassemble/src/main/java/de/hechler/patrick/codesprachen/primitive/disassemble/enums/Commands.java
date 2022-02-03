@@ -15,7 +15,7 @@ public enum Commands {
 	
 	
 	CMD_JMP(ParamArt.label, CmdNums.JMP), CMD_JMPEQ(ParamArt.label, CmdNums.JMPEQ), CMD_JMPNE(ParamArt.label, CmdNums.JMPNE), CMD_JMPGT(ParamArt.label, CmdNums.JMPGT),
-	CMD_JMPGE(ParamArt.label, CmdNums.JMPGE), CMD_JMPLO(ParamArt.label, CmdNums.JMPLO), CMD_JMPLE(ParamArt.label, CmdNums.JMPLE), CMD_JMPCS(ParamArt.label, CmdNums.JMPCS), CMD_JMPCC(ParamArt.label, CmdNums.JMPCC),
+	CMD_JMPGE(ParamArt.label, CmdNums.JMPGE), CMD_JMPLT(ParamArt.label, CmdNums.JMPLT), CMD_JMPLE(ParamArt.label, CmdNums.JMPLE), CMD_JMPCS(ParamArt.label, CmdNums.JMPCS), CMD_JMPCC(ParamArt.label, CmdNums.JMPCC),
 	
 	CMD_CALL(ParamArt.label, CmdNums.CALL),
 	
@@ -107,8 +107,8 @@ public enum Commands {
 			return CMD_JMPGT;
 		case CmdNums.JMPGE:
 			return CMD_JMPGE;
-		case CmdNums.JMPLO:
-			return CMD_JMPLO;
+		case CmdNums.JMPLT:
+			return CMD_JMPLT;
 		case CmdNums.JMPLE:
 			return CMD_JMPLE;
 		case CmdNums.CALL:
@@ -162,7 +162,7 @@ public enum Commands {
 		private static final int JMPNE = 0x12;
 		private static final int JMPGT = 0x13;
 		private static final int JMPGE = 0x14;
-		private static final int JMPLO = 0x15;
+		private static final int JMPLT = 0x15;
 		private static final int JMPLE = 0x16;
 		private static final int JMPCS = 0x17;
 		private static final int JMPCC = 0x18;

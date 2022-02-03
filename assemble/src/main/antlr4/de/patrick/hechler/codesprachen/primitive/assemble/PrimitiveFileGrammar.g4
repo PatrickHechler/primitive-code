@@ -552,8 +552,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				)
  				|
  				(
- 					JMPLO
- 					{cmd = Commands.CMD_JMPLO;}
+ 					JMPLT
+ 					{cmd = Commands.CMD_JMPLT;}
 
  				)
  				|
@@ -666,9 +666,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	'JMPLE'
  ;
 
- JMPLO
+ JMPLT
  :
- 	'JMPLO'
+ 	'JMPLT'
  ;
 
  JMPGE

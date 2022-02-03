@@ -161,7 +161,7 @@ public class Command {
 		case CMD_JMPGE:
 		case CMD_JMPGT:
 		case CMD_JMPLE:
-		case CMD_JMPLO:
+		case CMD_JMPLT:
 		case CMD_JMPNE:
 			return 24;
 		default:
