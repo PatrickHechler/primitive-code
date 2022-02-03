@@ -4,9 +4,9 @@
  * '\s*\[([^\[\]"]|("([^"\r\n]|\\")*"))*\]' -> '' 
  * '\s*{[^({}]|("([^"\r\n]|\\")*")|({[^({}]|("([^"\r\n]|\\")*")|({[^({}]|("([^"\r\n]|\\")*"))*}))*}))*}' -> '' 
  */
-grammar PrimitiveFileGrammar;
+ grammar PrimitiveFileGrammar;
 
-@header {
+ @header {
 import java.util.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.enums.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
@@ -15,8 +15,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.Command.Consta
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
 }
 
-parse [long startpos] returns
-[List<Command> commands, Map<String,Long> labels, long pos] @init {
+ parse [long startpos] returns
+ [List<Command> commands, Map<String,Long> labels, long pos] @init {
  	$pos = startpos;  
  	Map<String,Long> constants = new HashMap<>();
  	$labels = new HashMap<>();
@@ -57,247 +57,247 @@ parse [long startpos] returns
 	constants.put("STD-OUT", (Long) 1L);
 	constants.put("STD-LOG", (Long) 2L);
  }
-:
-	(
-		(
-			command [$pos, constants, $labels]
-			{
+ :
+ 	(
+ 		(
+ 			command [$pos, constants, $labels]
+ 			{
  				if ($command.c != null) {
  					$commands.add($command.c);
 	 				$pos += $command.c.length();
  				}
  			}
 
-		)
-		|
-		(
-			CONSTANT
-			(
-				(
-					nummer [$pos, constants]
-					{constants.put($CONSTANT.getText().substring(1), $nummer.num);}
+ 		)
+ 		|
+ 		(
+ 			CONSTANT
+ 			(
+ 				(
+ 					nummer [$pos, constants]
+ 					{constants.put($CONSTANT.getText().substring(1), $nummer.num);}
 
-				)
-				|
-				(
-					DEL
-					{constants.remove($CONSTANT.getText().substring(1));}
+ 				)
+ 				|
+ 				(
+ 					DEL
+ 					{constants.remove($CONSTANT.getText().substring(1));}
 
-				)
-			)
-		)
-	)* EOF
-;
+ 				)
+ 			)
+ 		)
+ 	)* EOF
+ ;
 
-param [long pos, Map<String,Long> constants] returns [Param p]
-:
-	(
-		{ParamBuilder builder = new ParamBuilder();}
+ param [long pos, Map<String,Long> constants] returns [Param p]
+ :
+ 	(
+ 		{ParamBuilder builder = new ParamBuilder();}
 
-		(
-			(
-				AX
-				{builder.art = ParamBuilder.A_AX;}
+ 		(
+ 			(
+ 				AX
+ 				{builder.art = ParamBuilder.A_AX;}
 
-			)
-			|
-			(
-				BX
-				{builder.art = ParamBuilder.A_BX;}
+ 			)
+ 			|
+ 			(
+ 				BX
+ 				{builder.art = ParamBuilder.A_BX;}
 
-			)
-			|
-			(
-				CX
-				{builder.art = ParamBuilder.A_CX;}
+ 			)
+ 			|
+ 			(
+ 				CX
+ 				{builder.art = ParamBuilder.A_CX;}
 
-			)
-			|
-			(
-				DX
-				{builder.art = ParamBuilder.A_DX;}
+ 			)
+ 			|
+ 			(
+ 				DX
+ 				{builder.art = ParamBuilder.A_DX;}
 
-			)
-			|
-			(
-				nummer [pos, constants]
-				{
+ 			)
+ 			|
+ 			(
+ 				nummer [pos, constants]
+ 				{
  				builder.art = ParamBuilder.A_NUM;
  				builder.v1 = $nummer.num;
  			}
 
-			)
-		)
-		{$p = builder.build();}
+ 			)
+ 		)
+ 		{$p = builder.build();}
 
-	)
-	|
-	(
-		ECK_KL_AUF
-		{
+ 	)
+ 	|
+ 	(
+ 		ECK_KL_AUF
+ 		{
  			ParamBuilder build = new ParamBuilder();
  			build.art = ParamBuilder.B_REG;
  		}
 
-		(
-			(
-				(
-					(
-						AX
-						{build.art |= ParamBuilder.A_AX;}
+ 		(
+ 			(
+ 				(
+ 					(
+ 						AX
+ 						{build.art |= ParamBuilder.A_AX;}
 
-					)
-					|
-					(
-						BX
-						{build.art |= ParamBuilder.A_BX;}
+ 					)
+ 					|
+ 					(
+ 						BX
+ 						{build.art |= ParamBuilder.A_BX;}
 
-					)
-					|
-					(
-						CX
-						{build.art |= ParamBuilder.A_CX;}
+ 					)
+ 					|
+ 					(
+ 						CX
+ 						{build.art |= ParamBuilder.A_CX;}
 
-					)
-					|
-					(
-						DX
-						{build.art |= ParamBuilder.A_DX;}
+ 					)
+ 					|
+ 					(
+ 						DX
+ 						{build.art |= ParamBuilder.A_DX;}
 
-					)
-					|
-					(
-						nummer [pos,constants]
-						{
+ 					)
+ 					|
+ 					(
+ 						nummer [pos,constants]
+ 						{
 							build.art |= ParamBuilder.A_NUM;
 							build.v1 = $nummer.num;
 						}
 
-					)
-				)
-				(
-					PLUS
-					{build.art &= ~ParamBuilder.B_REG;}
+ 					)
+ 				)
+ 				(
+ 					PLUS
+ 					{build.art &= ~ParamBuilder.B_REG;}
 
-					(
-						(
-							AX
-							{build.art |= ParamBuilder.B_AX;}
+ 					(
+ 						(
+ 							AX
+ 							{build.art |= ParamBuilder.B_AX;}
 
-						)
-						|
-						(
-							BX
-							{build.art |= ParamBuilder.B_BX;}
+ 						)
+ 						|
+ 						(
+ 							BX
+ 							{build.art |= ParamBuilder.B_BX;}
 
-						)
-						|
-						(
-							CX
-							{build.art |= ParamBuilder.B_CX;}
+ 						)
+ 						|
+ 						(
+ 							CX
+ 							{build.art |= ParamBuilder.B_CX;}
 
-						)
-						|
-						(
-							DX
-							{build.art |= ParamBuilder.B_DX;}
+ 						)
+ 						|
+ 						(
+ 							DX
+ 							{build.art |= ParamBuilder.B_DX;}
 
-						)
-						|
-						(
-							nummer [pos,constants]
-							{
+ 						)
+ 						|
+ 						(
+ 							nummer [pos,constants]
+ 							{
 								build.art |= ParamBuilder.B_NUM;
 								build.v1 = $nummer.num;
 							}
 
-						)
-					)
-				)?
-			)
-		) ECK_KL_ZU
-		{$p = build.build();}
+ 						)
+ 					)
+ 				)?
+ 			)
+ 		) ECK_KL_ZU
+ 		{$p = build.build();}
 
-	)
-	|
-	(
-		NAME
-		{$p = Param.createLabel($NAME.getText());}
+ 	)
+ 	|
+ 	(
+ 		NAME
+ 		{$p = Param.createLabel($NAME.getText());}
 
-	)
-;
+ 	)
+ ;
 
-nummer [long pos, Map<String, Long> constants] returns [long num]
-:
-	(
-		HEX_NUM
-		{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
+ nummer [long pos, Map<String, Long> constants] returns [long num]
+ :
+ 	(
+ 		HEX_NUM
+ 		{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
 
-	)
-	|
-	(
-		DEC_NUM
-		{$num = Long.parseLong($DEC_NUM.getText(), 10);}
+ 	)
+ 	|
+ 	(
+ 		DEC_NUM
+ 		{$num = Long.parseLong($DEC_NUM.getText(), 10);}
 
-	)
-	|
-	(
-		DEC_NUM0
-		{$num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
+ 	)
+ 	|
+ 	(
+ 		DEC_NUM0
+ 		{$num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
 
-	)
-	|
-	(
-		OCT_NUM
-		{$num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
+ 	)
+ 	|
+ 	(
+ 		OCT_NUM
+ 		{$num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
 
-	)
-	|
-	(
-		BIN_NUM
-		{$num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
+ 	)
+ 	|
+ 	(
+ 		BIN_NUM
+ 		{$num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
 
-	)
-	|
-	(
-		NEG_HEX_NUM
-		{$num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
+ 	)
+ 	|
+ 	(
+ 		NEG_HEX_NUM
+ 		{$num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
 
-	)
-	|
-	(
-		NEG_DEC_NUM
-		{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
+ 	)
+ 	|
+ 	(
+ 		NEG_DEC_NUM
+ 		{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
 
-	)
-	|
-	(
-		NEG_DEC_NUM0
-		{$num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
+ 	)
+ 	|
+ 	(
+ 		NEG_DEC_NUM0
+ 		{$num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
 
-	)
-	|
-	(
-		NEG_OCT_NUM
-		{$num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
+ 	)
+ 	|
+ 	(
+ 		NEG_OCT_NUM
+ 		{$num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
 
-	)
-	|
-	(
-		NEG_BIN_NUM
-		{$num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
+ 	)
+ 	|
+ 	(
+ 		NEG_BIN_NUM
+ 		{$num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
 
-	)
-	|
-	(
-		POS
-		{$num = pos;}
+ 	)
+ 	|
+ 	(
+ 		POS
+ 		{$num = pos;}
 
-	)
-	|
-	(
-		CONSTANT
-		{
+ 	)
+ 	|
+ 	(
+ 		CONSTANT
+ 		{
  			Long zw = constants.get($CONSTANT.getText().substring(1));
  			if (zw == null) {
  				throw new RuntimeException("unknown constant: '" + $CONSTANT.getText() + "', known constants: '" + constants + "'");
@@ -305,754 +305,755 @@ nummer [long pos, Map<String, Long> constants] returns [long num]
  			$num = (long) zw;
  		}
 
-	)
-;
+ 	)
+ ;
 
-command [long pos, Map<String,Long> constants, Map<String,Long> labels]
-returns [Command c] @init {Commands cmd = null;}
-:
-	(
-		(
-			(
-				(
-					MOV
-					{cmd = Commands.CMD_MOV;}
+ command [long pos, Map<String,Long> constants, Map<String,Long> labels]
+ returns [Command c] @init {Commands cmd = null;}
+ :
+ 	(
+ 		(
+ 			(
+ 				(
+ 					MOV
+ 					{cmd = Commands.CMD_MOV;}
 
-				)
-				|
-				(
-					ADD
-					{cmd = Commands.CMD_ADD;}
+ 				)
+ 				|
+ 				(
+ 					ADD
+ 					{cmd = Commands.CMD_ADD;}
 
-				)
-				|
-				(
-					SUB
-					{cmd = Commands.CMD_SUB;}
+ 				)
+ 				|
+ 				(
+ 					SUB
+ 					{cmd = Commands.CMD_SUB;}
 
-				)
-				|
-				(
-					ADDC
-					{cmd = Commands.CMD_ADDC;}
+ 				)
+ 				|
+ 				(
+ 					ADDC
+ 					{cmd = Commands.CMD_ADDC;}
 
-				)
-				|
-				(
-					SUBC
-					{cmd = Commands.CMD_SUBC;}
+ 				)
+ 				|
+ 				(
+ 					SUBC
+ 					{cmd = Commands.CMD_SUBC;}
 
-				)
-				|
-				(
-					ADDFP
-					{cmd = Commands.CMD_ADDFP;}
+ 				)
+ 				|
+ 				(
+ 					ADDFP
+ 					{cmd = Commands.CMD_ADDFP;}
 
-				)
-				|
-				(
-					SUBFP
-					{cmd = Commands.CMD_SUBFP;}
+ 				)
+ 				|
+ 				(
+ 					SUBFP
+ 					{cmd = Commands.CMD_SUBFP;}
 
-				)
-				|
-				(
-					MULFP
-					{cmd = Commands.CMD_MULFP;}
+ 				)
+ 				|
+ 				(
+ 					MULFP
+ 					{cmd = Commands.CMD_MULFP;}
 
-				)
-				|
-				(
-					DIVFP
-					{cmd = Commands.CMD_DIVFP;}
+ 				)
+ 				|
+ 				(
+ 					DIVFP
+ 					{cmd = Commands.CMD_DIVFP;}
 
-				)
-				|
-				(
-					MUL
-					{cmd = Commands.CMD_MUL;}
+ 				)
+ 				|
+ 				(
+ 					MUL
+ 					{cmd = Commands.CMD_MUL;}
 
-				)
-				|
-				(
-					DIV
-					{cmd = Commands.CMD_DIV;}
+ 				)
+ 				|
+ 				(
+ 					DIV
+ 					{cmd = Commands.CMD_DIV;}
 
-				)
-				|
-				(
-					AND
-					{cmd = Commands.CMD_AND;}
+ 				)
+ 				|
+ 				(
+ 					AND
+ 					{cmd = Commands.CMD_AND;}
 
-				)
-				|
-				(
-					OR
-					{cmd = Commands.CMD_OR;}
+ 				)
+ 				|
+ 				(
+ 					OR
+ 					{cmd = Commands.CMD_OR;}
 
-				)
-				|
-				(
-					XOR
-					{cmd = Commands.CMD_XOR;}
+ 				)
+ 				|
+ 				(
+ 					XOR
+ 					{cmd = Commands.CMD_XOR;}
 
-				)
-				|
-				(
-					CMP
-					{cmd = Commands.CMD_CMP;}
+ 				)
+ 				|
+ 				(
+ 					CMP
+ 					{cmd = Commands.CMD_CMP;}
 
-				)
-			) p1 = param [pos, constants] COMMA p2 = param [pos, constants]
-			{$c = new Command(cmd, $p1.p, $p2.p);}
+ 				)
+ 			) p1 = param [pos, constants] COMMA p2 = param [pos, constants]
+ 			{$c = new Command(cmd, $p1.p, $p2.p);}
 
-		)
-		|
-		(
-			(
-				RET
-				{cmd = Commands.CMD_RET;}
+ 		)
+ 		|
+ 		(
+ 			(
+ 				RET
+ 				{cmd = Commands.CMD_RET;}
 
-			)
-			(
-				IRET
-				{cmd = Commands.CMD_IRET;}
+ 			)
+ 			(
+ 				IRET
+ 				{cmd = Commands.CMD_IRET;}
 
-			)
-			{$c = new Command(cmd, null, null);}
+ 			)
+ 			{$c = new Command(cmd, null, null);}
 
-		)
-		|
-		(
-			(
-				(
-					INC
-					{cmd = Commands.CMD_INC;}
+ 		)
+ 		|
+ 		(
+ 			(
+ 				(
+ 					INC
+ 					{cmd = Commands.CMD_INC;}
 
-				)
-				|
-				(
-					DEC
-					{cmd = Commands.CMD_DEC;}
+ 				)
+ 				|
+ 				(
+ 					DEC
+ 					{cmd = Commands.CMD_DEC;}
 
-				)
-				|
-				(
-					NTFP
-					{cmd = Commands.CMD_NTFP;}
+ 				)
+ 				|
+ 				(
+ 					NTFP
+ 					{cmd = Commands.CMD_NTFP;}
 
-				)
-				|
-				(
-					FPTN
-					{cmd = Commands.CMD_FPTN;}
+ 				)
+ 				|
+ 				(
+ 					FPTN
+ 					{cmd = Commands.CMD_FPTN;}
 
-				)
-				|
-				(
-					GET_INTCNT
-					{cmd = Commands.CMD_GET_INTCNT;}
+ 				)
+ 				|
+ 				(
+ 					GET_INTCNT
+ 					{cmd = Commands.CMD_GET_INTCNT;}
 
-				)
-				|
-				(
-					GET_INTS
-					{cmd = Commands.CMD_GET_INTS;}
+ 				)
+ 				|
+ 				(
+ 					GET_INTS
+ 					{cmd = Commands.CMD_GET_INTS;}
 
-				)
-				|
-				(
-					GET_IP
-					{cmd = Commands.CMD_GET_IP;}
+ 				)
+ 				|
+ 				(
+ 					GET_IP
+ 					{cmd = Commands.CMD_GET_IP;}
 
-				)
-				|
-				(
-					GET_SP
-					{cmd = Commands.CMD_GET_SP;}
+ 				)
+ 				|
+ 				(
+ 					GET_SP
+ 					{cmd = Commands.CMD_GET_SP;}
 
-				)
-				|
-				(
-					INT
-					{cmd = Commands.CMD_INT;}
+ 				)
+ 				|
+ 				(
+ 					INT
+ 					{cmd = Commands.CMD_INT;}
 
-				)
-				|
-				(
-					RASH
-					{cmd = Commands.CMD_RASH;}
+ 				)
+ 				|
+ 				(
+ 					RASH
+ 					{cmd = Commands.CMD_RASH;}
 
-				)
-				|
-				(
-					RLSH
-					{cmd = Commands.CMD_RLSH;}
+ 				)
+ 				|
+ 				(
+ 					RLSH
+ 					{cmd = Commands.CMD_RLSH;}
 
-				)
-				|
-				(
-					LSH
-					{cmd = Commands.CMD_LSH;}
+ 				)
+ 				|
+ 				(
+ 					LSH
+ 					{cmd = Commands.CMD_LSH;}
 
-				)
-				|
-				(
-					NOT
-					{cmd = Commands.CMD_NOT;}
+ 				)
+ 				|
+ 				(
+ 					NOT
+ 					{cmd = Commands.CMD_NOT;}
 
-				)
-				|
-				(
-					NEG
-					{cmd = Commands.CMD_NEG;}
+ 				)
+ 				|
+ 				(
+ 					NEG
+ 					{cmd = Commands.CMD_NEG;}
 
-				)
-				|
-				(
-					PUSH
-					{cmd = Commands.CMD_PUSH;}
+ 				)
+ 				|
+ 				(
+ 					PUSH
+ 					{cmd = Commands.CMD_PUSH;}
 
-				)
-				|
-				(
-					POP
-					{cmd = Commands.CMD_POP;}
+ 				)
+ 				|
+ 				(
+ 					POP
+ 					{cmd = Commands.CMD_POP;}
 
-				)
-				|
-				(
-					JMP
-					{cmd = Commands.CMD_JMP;}
+ 				)
+ 				|
+ 				(
+ 					JMP
+ 					{cmd = Commands.CMD_JMP;}
 
-				)
-				|
-				(
-					JMPEQ
-					{cmd = Commands.CMD_JMPEQ;}
+ 				)
+ 				|
+ 				(
+ 					JMPEQ
+ 					{cmd = Commands.CMD_JMPEQ;}
 
-				)
-				|
-				(
-					JMPNE
-					{cmd = Commands.CMD_JMPNE;}
+ 				)
+ 				|
+ 				(
+ 					JMPNE
+ 					{cmd = Commands.CMD_JMPNE;}
 
-				)
-				|
-				(
-					JMPGT
-					{cmd = Commands.CMD_JMPGT;}
+ 				)
+ 				|
+ 				(
+ 					JMPGT
+ 					{cmd = Commands.CMD_JMPGT;}
 
-				)
-				|
-				(
-					JMPGE
-					{cmd = Commands.CMD_JMPGE;}
+ 				)
+ 				|
+ 				(
+ 					JMPGE
+ 					{cmd = Commands.CMD_JMPGE;}
 
-				)
-				|
-				(
-					JMPLO
-					{cmd = Commands.CMD_JMPLO;}
+ 				)
+ 				|
+ 				(
+ 					JMPLO
+ 					{cmd = Commands.CMD_JMPLO;}
 
-				)
-				|
-				(
-					JMPLE
-					{cmd = Commands.CMD_JMPLE;}
+ 				)
+ 				|
+ 				(
+ 					JMPLE
+ 					{cmd = Commands.CMD_JMPLE;}
 
-				)
-				|
-				(
-					JMPCS
-					{cmd = Commands.CMD_JMPCS;}
+ 				)
+ 				|
+ 				(
+ 					JMPCS
+ 					{cmd = Commands.CMD_JMPCS;}
 
-				)
-				|
-				(
-					JMPCC
-					{cmd = Commands.CMD_JMPCC;}
+ 				)
+ 				|
+ 				(
+ 					JMPCC
+ 					{cmd = Commands.CMD_JMPCC;}
 
-				)
-				|
-				(
-					CALL
-					{cmd = Commands.CMD_CALL;}
+ 				)
+ 				|
+ 				(
+ 					CALL
+ 					{cmd = Commands.CMD_CALL;}
 
-				)
-				|
-				(
-					SET_INTCNT
-					{cmd = Commands.CMD_SET_INTCNT;}
+ 				)
+ 				|
+ 				(
+ 					SET_INTCNT
+ 					{cmd = Commands.CMD_SET_INTCNT;}
 
-				)
-				|
-				(
-					SET_INTS
-					{cmd = Commands.CMD_SET_INTS;}
+ 				)
+ 				|
+ 				(
+ 					SET_INTS
+ 					{cmd = Commands.CMD_SET_INTS;}
 
-				)
-				|
-				(
-					SET_SP
-					{cmd = Commands.CMD_SET_SP;}
+ 				)
+ 				|
+ 				(
+ 					SET_SP
+ 					{cmd = Commands.CMD_SET_SP;}
 
-				)
-				|
-				(
-					SET_IP
-					{cmd = Commands.CMD_SET_IP;}
+ 				)
+ 				|
+ 				(
+ 					SET_IP
+ 					{cmd = Commands.CMD_SET_IP;}
 
-				)
-			) p1 = param [pos,constants]
-			{$c = new Command(cmd, $p1.p, null);}
+ 				)
+ 			) p1 = param [pos,constants]
+ 			{$c = new Command(cmd, $p1.p, null);}
 
-		)
-	)
-	|
-	(
-		LABEL_DECLARATION
-		{
+ 		)
+ 	)
+ 	|
+ 	(
+ 		LABEL_DECLARATION
+ 		{
  			labels.put($LABEL_DECLARATION.getText().substring(1), (Long) pos);
 	 		$c = null;
 	 	}
 
-	)
-	|
-	(
-		CONSTANT_POOL
-		{$c = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos);}
-
-	)
-;
-
-SET_INTCNT
-:
-	'SET_INTCNT'
-;
-
-SET_INTS
-:
-	'SET_INTS'
-;
-
-SET_IP
-:
-	'SET_IP'
-;
-
-SET_SP
-:
-	'SET_SP'
-;
-
-CALL
-:
-	'CALL'
-;
-
-JMPCC
-:
-	'JMPCC'
-;
-
-JMPCS
-:
-	'JMPCS'
-;
-
-JMPLE
-:
-	'JMPLE'
-;
-
-JMPLO
-:
-	'JMPLO'
-;
-
-JMPGE
-:
-	'JMPGE'
-;
-
-JMPGT
-:
-	'JMPGT'
-;
-
-JMPNE
-:
-	'JMPNE'
-;
-
-JMPEQ
-:
-	'JMPEQ'
-;
-
-JMP
-:
-	'JMP'
-;
-
-POP
-:
-	'POP'
-;
-
-PUSH
-:
-	'PUSH'
-;
-
-NEG
-:
-	'NEG'
-;
-
-NOT
-:
-	'NOT'
-;
-
-LSH
-:
-	'LSH'
-;
-
-RLSH
-:
-	'RLSH'
-;
-
-RASH
-:
-	'RASH'
-;
-
-CMP
-:
-	'CMP'
-;
-
-XOR
-:
-	'XOR'
-;
-
-OR
-:
-	'OR'
-;
-
-AND
-:
-	'AND'
-;
-
-DIV
-:
-	'DIV'
-;
-
-MUL
-:
-	'MUL'
-;
-
-SUBC
-:
-	'SUBC'
-;
-
-ADDC
-:
-	'ADDC'
-;
-
-SUB
-:
-	'SUB'
-;
-
-ADD
-:
-	'ADD'
-;
-
-MOV
-:
-	'MOV'
-;
-
-RET
-:
-	'RET'
-;
-IRET
-:
-	'IRET'
-;
-
-INT
-:
-	'INT'
-;
-
-GET_INTCNT
-:
-	'GET_INTCNT'
-;
-
-GET_INTS
-:
-	'GET_INTS'
-;
-
-GET_SP
-:
-	'GET_SP'
-;
-
-GET_IP
-:
-	'GET_IP'
-;
-
-DEC
-:
-	'DEC'
-;
-
-INC
-:
-	'INC'
-;
-
-ADDFP
-:
-	'ADDFP'
-;
-
-SUBFP
-:
-	'SUBFP'
-;
-
-MULFP
-:
-	'MULFP'
-;
-
-DIVFP
-:
-	'DIVFP'
-;
-
-NTFP
-:
-	'NTFP'
-;
-
-FPTN
-:
-	'FPTN'
-;
-
-AX
-:
-	'AX'
-;
-
-BX
-:
-	'BX'
-;
-
-CX
-:
-	'CX'
-;
-
-DX
-:
-	'DX'
-;
-
-ECK_KL_AUF
-:
-	'['
-;
-
-ECK_KL_ZU
-:
-	']'
-;
-
-PLUS
-:
-	'+'
-;
-
-COMMA
-:
-	','
-;
-
-NEG_HEX_NUM
-:
-	'NHEX-' [0-9a-fA-F]+
-;
-
-NEG_DEC_NUM
-:
-	'NDEC-' [0-9]+
-;
-
-NEG_DEC_NUM0
-:
-	'-' [0-9]+
-;
-
-NEG_OCT_NUM
-:
-	'NOCT-' [0-7]+
-;
-
-NEG_BIN_NUM
-:
-	'NBIN-' [01]+
-;
-
-HEX_NUM
-:
-	'HEX-' [0-9a-fA-F]+
-;
-
-DEC_NUM0
-:
-	'DEC-' [0-9]+
-;
-
-DEC_NUM
-:
-	[0-9]+
-;
-
-OCT_NUM
-:
-	'OCT-' [0-7]+
-;
-
-BIN_NUM
-:
-	'BIN-' [01]+
-;
-
-DEL
-:
-	'~DEL'
-;
-
-POS
-:
-	'--POS--'
-;
-
-NAME
-:
-	[a-zA-Z\-_] [a-zA-Z\-_0-9]*
-;
-
-CONSTANT
-:
-	'#' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
-;
-
-LABEL_DECLARATION
-:
-	'@' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
-;
-
-CONSTANT_POOL
-:
-	':'
-	(
-		(
-			BLOCK_COMMENT
-		)
-		|
-		(
-			LINE_COMMENT
-		)
-		|
-		(
-			'\''
-			(
-				(
-					~[\r\n'\\]
-				)
-				|
-				(
-					'\\' .
-				)
-			)* '\''
-		)
-		|
-		(
-			'"'
-			(
-				(
-					~[\r\n"\\]
-				)
-				|
-				(
-					'\\' .
-				)
-			)* '"'
-		)
-		|
-		(
-			(
-				~'>'
-			)+
-		)
-	)* '>'
-;
-
-LINE_COMMENT
-:
-	(
-		'|>'
-		(
-			~( [\r\n] )
-		)*
-	) -> skip
-;
-
-BLOCK_COMMENT
-:
-	(
-		'|:'
-		(
-			(
-				(
-					~( '|' )
-				)
-				|
-				(
-					'|'
-					(
-						~( '>' )
-					)
-				)
-			)*
-		) '|>'
-	) -> skip
-;
-
-WS
-:
-	[ \t\r\n]+ -> skip
-;
+ 	)
+ 	|
+ 	(
+ 		CONSTANT_POOL
+ 		{$c = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos);}
+
+ 	)
+ ;
+
+ SET_INTCNT
+ :
+ 	'SET_INTCNT'
+ ;
+
+ SET_INTS
+ :
+ 	'SET_INTS'
+ ;
+
+ SET_IP
+ :
+ 	'SET_IP'
+ ;
+
+ SET_SP
+ :
+ 	'SET_SP'
+ ;
+
+ CALL
+ :
+ 	'CALL'
+ ;
+
+ JMPCC
+ :
+ 	'JMPCC'
+ ;
+
+ JMPCS
+ :
+ 	'JMPCS'
+ ;
+
+ JMPLE
+ :
+ 	'JMPLE'
+ ;
+
+ JMPLO
+ :
+ 	'JMPLO'
+ ;
+
+ JMPGE
+ :
+ 	'JMPGE'
+ ;
+
+ JMPGT
+ :
+ 	'JMPGT'
+ ;
+
+ JMPNE
+ :
+ 	'JMPNE'
+ ;
+
+ JMPEQ
+ :
+ 	'JMPEQ'
+ ;
+
+ JMP
+ :
+ 	'JMP'
+ ;
+
+ POP
+ :
+ 	'POP'
+ ;
+
+ PUSH
+ :
+ 	'PUSH'
+ ;
+
+ NEG
+ :
+ 	'NEG'
+ ;
+
+ NOT
+ :
+ 	'NOT'
+ ;
+
+ LSH
+ :
+ 	'LSH'
+ ;
+
+ RLSH
+ :
+ 	'RLSH'
+ ;
+
+ RASH
+ :
+ 	'RASH'
+ ;
+
+ CMP
+ :
+ 	'CMP'
+ ;
+
+ XOR
+ :
+ 	'XOR'
+ ;
+
+ OR
+ :
+ 	'OR'
+ ;
+
+ AND
+ :
+ 	'AND'
+ ;
+
+ DIV
+ :
+ 	'DIV'
+ ;
+
+ MUL
+ :
+ 	'MUL'
+ ;
+
+ SUBC
+ :
+ 	'SUBC'
+ ;
+
+ ADDC
+ :
+ 	'ADDC'
+ ;
+
+ SUB
+ :
+ 	'SUB'
+ ;
+
+ ADD
+ :
+ 	'ADD'
+ ;
+
+ MOV
+ :
+ 	'MOV'
+ ;
+
+ RET
+ :
+ 	'RET'
+ ;
+
+ IRET
+ :
+ 	'IRET'
+ ;
+
+ INT
+ :
+ 	'INT'
+ ;
+
+ GET_INTCNT
+ :
+ 	'GET_INTCNT'
+ ;
+
+ GET_INTS
+ :
+ 	'GET_INTS'
+ ;
+
+ GET_SP
+ :
+ 	'GET_SP'
+ ;
+
+ GET_IP
+ :
+ 	'GET_IP'
+ ;
+
+ DEC
+ :
+ 	'DEC'
+ ;
+
+ INC
+ :
+ 	'INC'
+ ;
+
+ ADDFP
+ :
+ 	'ADDFP'
+ ;
+
+ SUBFP
+ :
+ 	'SUBFP'
+ ;
+
+ MULFP
+ :
+ 	'MULFP'
+ ;
+
+ DIVFP
+ :
+ 	'DIVFP'
+ ;
+
+ NTFP
+ :
+ 	'NTFP'
+ ;
+
+ FPTN
+ :
+ 	'FPTN'
+ ;
+
+ AX
+ :
+ 	'AX'
+ ;
+
+ BX
+ :
+ 	'BX'
+ ;
+
+ CX
+ :
+ 	'CX'
+ ;
+
+ DX
+ :
+ 	'DX'
+ ;
+
+ ECK_KL_AUF
+ :
+ 	'['
+ ;
+
+ ECK_KL_ZU
+ :
+ 	']'
+ ;
+
+ PLUS
+ :
+ 	'+'
+ ;
+
+ COMMA
+ :
+ 	','
+ ;
+
+ NEG_HEX_NUM
+ :
+ 	'NHEX-' [0-9a-fA-F]+
+ ;
+
+ NEG_DEC_NUM
+ :
+ 	'NDEC-' [0-9]+
+ ;
+
+ NEG_DEC_NUM0
+ :
+ 	'-' [0-9]+
+ ;
+
+ NEG_OCT_NUM
+ :
+ 	'NOCT-' [0-7]+
+ ;
+
+ NEG_BIN_NUM
+ :
+ 	'NBIN-' [01]+
+ ;
+
+ HEX_NUM
+ :
+ 	'HEX-' [0-9a-fA-F]+
+ ;
+
+ DEC_NUM0
+ :
+ 	'DEC-' [0-9]+
+ ;
+
+ DEC_NUM
+ :
+ 	[0-9]+
+ ;
+
+ OCT_NUM
+ :
+ 	'OCT-' [0-7]+
+ ;
+
+ BIN_NUM
+ :
+ 	'BIN-' [01]+
+ ;
+
+ DEL
+ :
+ 	'~DEL'
+ ;
+
+ POS
+ :
+ 	'--POS--'
+ ;
+
+ NAME
+ :
+ 	[a-zA-Z\-_] [a-zA-Z\-_0-9]*
+ ;
+
+ CONSTANT
+ :
+ 	'#' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
+ ;
+
+ LABEL_DECLARATION
+ :
+ 	'@' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
+ ;
+
+ CONSTANT_POOL
+ :
+ 	':'
+ 	(
+ 		(
+ 			BLOCK_COMMENT
+ 		)
+ 		|
+ 		(
+ 			LINE_COMMENT
+ 		)
+ 		|
+ 		(
+ 			'\''
+ 			(
+ 				(
+ 					~[\r\n'\\]
+ 				)
+ 				|
+ 				(
+ 					'\\' .
+ 				)
+ 			)* '\''
+ 		)
+ 		|
+ 		(
+ 			'"'
+ 			(
+ 				(
+ 					~[\r\n"\\]
+ 				)
+ 				|
+ 				(
+ 					'\\' .
+ 				)
+ 			)* '"'
+ 		)
+ 		|
+ 		(
+ 			(
+ 				~( '>' )
+ 			)+
+ 		)
+ 	)* '>'
+ ;
+
+ LINE_COMMENT
+ :
+ 	(
+ 		'|>'
+ 		(
+ 			~( [\r\n] )
+ 		)*
+ 	) -> skip
+ ;
+
+ BLOCK_COMMENT
+ :
+ 	(
+ 		'|:'
+ 		(
+ 			(
+ 				(
+ 					~( ':' )
+ 				)
+ 				|
+ 				(
+ 					':'
+ 					(
+ 						~( '>' )
+ 					)
+ 				)
+ 			)*
+ 		) ':>'
+ 	) -> skip
+ ;
+
+ WS
+ :
+ 	[ \t\r\n]+ -> skip
+ ;

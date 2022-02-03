@@ -6,27 +6,17 @@ public class CVariable implements NameUse {
 	
 	public final String name;
 	public final CType type;
-	public final long initValue;
-	public final boolean hasInitValue;
+	public final CExpression init;
 	
 	public CVariable(String name, CType type) {
-		this(name, type, 0L, false);
+		this(name, type, null);
 		
 	}
 	
-	public CVariable(String name, CType type, double initValue) {
-		this(name, type, Double.doubleToRawLongBits(initValue), true);
-	}
-	
-	public CVariable(String name, CType type, long initValue) {
-		this(name, type, initValue, true);
-	}
-	
-	public CVariable(String name, CType type, long initValue, boolean hasInitValue) {
+	public CVariable(String name, CType type, CExpression init) {
 		this.name = name;
 		this.type = type;
-		this.initValue = initValue;
-		this.hasInitValue = hasInitValue;
+		this.init = init;
 	}
 	
 }

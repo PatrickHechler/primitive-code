@@ -170,9 +170,9 @@ public class CType implements NameUse {
 		pdct_long_int, pdct_long_long_int,
 		
 		
-		pdct_float_int,
+		pdct_float,
 		
-		pdct_double_int, pdct_double_long_int,;
+		pdct_double, pdct_double_long,;
 		
 		public final CType type = new CType(this, name().substring(5).replace('_', ' '), null, null, null, 0, PREDEFINED);
 		

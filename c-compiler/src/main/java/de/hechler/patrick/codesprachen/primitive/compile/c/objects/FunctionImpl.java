@@ -9,6 +9,10 @@ public class FunctionImpl extends FunctionHead {
 	
 	public final CBlock block;
 	
+	public FunctionImpl(FunctionHead head, CBlock block) {
+		this(head.name, head.paramTypes, head.returnType, block);
+	}
+	
 	public FunctionImpl(String name, List <CType> paramTypes, CType returnType, CBlock block) {
 		super(name, paramTypes, returnType);
 		this.block = block;
