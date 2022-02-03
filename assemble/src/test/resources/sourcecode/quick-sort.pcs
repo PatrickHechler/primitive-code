@@ -34,37 +34,37 @@
 	JMPEQ error
 |> like @sort-quick_sort, but AX is already (and will be unchanged) set to an array with the size #SIZE
 @sort-quick_sort-allocated
+	|> init [AX + ...]
 	MOV [AX], CX
 	MOV [AX + #HIGH_I], CX
 	MOV [AX + #LOW_I], 0
-|>	set BX to the mid-index
-	MOV BX, CX
-	RASH BX
-	AND BX, HEX-FFFFFFFFFFFFFFF8 |> BX := BX % 8
-|>	BX: mid-i, CX: last-i
-|>	set pivot (zero, mid or last) to CX
-	CMP [DX], [DX + BX] |> compare zero, mid
-	JMPGT sort-quick_sort-zero_gt_mid
-	CMP [DX + CX], [DX + BX] |> compare last, mid
-	JMPGT sort-quick_sort-pivot_mid
-|>	zero <= mid >= last
-	CMP [DX + CX], [DX]
-	JMPGT sort-quick_sort-pivot_last
-|> @sort-quick_sort-pivot_zero
-	MOV CX, 0
-	JMP sort-quick_sort-sort-start
-@sort-quick_sort-zero_gt_mid
-	CMP [DX], [DX + CX] |> compare zero, last
-	JMPGT sort-quick_sort-zero_great
-	CMP [DX + CX], [DX + BX] |> compare last, mid
-	JMPGT sort-quick_sort-pivot_last |> zero > last > mid
-	JMP sort-quick_sort-pivot_mid
-@sort-quick_sort-zero_great
-	CMP [DX + BX], [DX + CX]
-	JMPGT sort-quick_sort-pivot_last
-@sort-quick_sort-pivot_mid
-	MOV CX, BX
-@sort-quick_sort-pivot_last |> the pivot is CX, which was the last
+|>	set pivot ((zero + mid + last= / 3) to CX
+	RASH CX
+	AND CX, HEX-FFFFFFFFFFFFFFF8 |> BX := BX % 8
+|:	
+		CMP [DX], [DX + BX] |> compare zero, mid
+		JMPGT sort-quick_sort-zero_gt_mid
+		CMP [DX + CX], [DX + BX] |> compare last, mid
+		JMPGT sort-quick_sort-pivot_mid
+	|>	zero <= mid >= last
+		CMP [DX + CX], [DX]
+		JMPGT sort-quick_sort-pivot_last
+	|> @sort-quick_sort-pivot_zero
+		MOV CX, 0
+		JMP sort-quick_sort-sort-start
+	@sort-quick_sort-zero_gt_mid
+		CMP [DX], [DX + CX] |> compare zero, last
+		JMPGT sort-quick_sort-zero_great
+		CMP [DX + CX], [DX + BX] |> compare last, mid
+		JMPGT sort-quick_sort-pivot_last |> zero > last > mid
+		JMP sort-quick_sort-pivot_mid
+	@sort-quick_sort-zero_great
+		CMP [DX + BX], [DX + CX]
+		JMPGT sort-quick_sort-pivot_last
+	@sort-quick_sort-pivot_mid
+		MOV CX, BX
+	@sort-quick_sort-pivot_last |> the pivot is CX, which was the last
+:>
 @sort-quick_sort-sort-start |> just start with the left (the direction does not matter)
 @sort-quick_sort-sort-left
 |:
