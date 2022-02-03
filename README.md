@@ -24,31 +24,37 @@ this is the assembler for the Primitive-Virtual-Machine
 except for the `--POS--` constant all other constants can be overwritten and removed
 
 * `--POS--` :                           the position from the begin of the next command
-* `#INT_ERRORS_UNKNOWN_COMMAND` :        0
-* `#INT_ERRORS_ILLEGAL_INTERRUPT` :      1
-* `#INT_ERRORS_ILLEGAL_MEMORY` :         2
-* `#INT_ERRORS_ARITHMETIC_ERROR` :       3
-* `#INT_EXIT` :                          4
-* `#INT_MEMORY_ALLOC` :                  5
-* `#INT_MEMORY_REALLOC` :                6
-* `#INT_MEMORY_FREE` :                   7
-* `#INT_STREAMS_GET_STD_OUT` :           8
-* `#INT_STREAMS_GET_STD_LOG` :           9
-* `#INT_STREAMS_GET_STD_IN` :           10
-* `#INT_STREAMS_NEW_IN` :               11
-* `#INT_STREAMS_NEW_OUT` :              12
-* `#INT_STREAMS_WRITE` :                13
-* `#INT_STREAMS_READ` :                 14
-* `#INT_STREAMS_CLOSE_STREAM` :         15
-* `#INT_STREAMS_GET_POS` :              16
-* `#INT_STREAMS_SET_POS` :              17
-* `#INT_STREAMS_SET_POS_TO_END` :       18
-* `#INT_FS_REM` :                       19
-* `#INT_FS_MK_DIR` :                    20
-* `#INT_FS_REM_DIR` :                   21
-* `#INT_TIME_GET` :                     22
-* `#INT_TIME_WAIT` :                    23
-* `#INT_RANDOM` :                       24
+* `#INT-ERRORS-UNKNOWN_COMMAND`         0
+* `#INT-ERRORS_ILLEGAL_INTERRUPT`       1
+* `#INT-ERRORS_ILLEGAL_MEMORY`          2
+* `#INT-ERRORS_ARITHMETIC_ERROR`        3
+* `#INT-EXIT`                           4
+* `#INT-MEMORY-ALLOC`                   5
+* `#INT-MEMORY-REALLOC`                 6
+* `#INT-MEMORY-FREE`                    7
+* `#INT-STREAMS-NEW_IN`                 8
+* `#INT-STREAMS-NEW_OUT`                9
+* `#INT-STREAMS-NEW_APPEND`             10
+* `#INT_STREAMS-NEW_IN_OUT`             11
+* `#INT-STREAMS-NEW_APPEND_IN_OUT       12
+* `#INT-STREAMS-WRITE`                  13
+* `#INT-STREAMS-READ`                   14
+* `#INT-STREAMS-CLOSE_STREAM`           15
+* `#INT-STREAMS-GET_POS`                16
+* `#INT-STREAMS-SET_POS`                17
+* `#INT-STREAMS-SET_POS_TO_END`         18
+* `#INT-STREAMS-REM`                    19
+* `#INT-STREAMS-MK_DIR`                 20
+* `#INT-STREAMS-REM_DIR`                21
+* `#INT-TIME-GET`                       22
+* `#INT-TIME-WAIT`                      23
+* `#INT-RANDOM`                         24
+* `#INT-SOCKET-CLIENT-CREATE`           25
+* `#INT-SOCKET-CLIENT-CONNECT`          26
+* `#INT-SOCKET-SERVER-CREATE`           27
+* `#INT-SOCKET-SERVER-LISTEN`           28
+* `#INT-SOCKET-SERVER-ACCEPT`           29
+* `#INTERRUPT_COUNT`                    30
 * `#MAX-VALUE` :                    HEX-7FFFFFFFFFFFFFFF
 * `#MIN-VALUE` :                   NHEX-8000000000000000
 * `#STD-IN` :                            0
