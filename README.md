@@ -547,6 +547,6 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `p <- p - 1`
     * `IP <- IP + CMD_LEN`
 
-## TODO
+## not (yet) there/supported
 * execute other programs
 * Multi-threading/-progressing
