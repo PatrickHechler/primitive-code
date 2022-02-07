@@ -80,14 +80,14 @@ public class PVMSnapshot {
 			first = false;
 		}
 		if ((status & PVM_SNAPSHOT_STATUS_GREATHER) != 0) {
-			if (first) {
+			if (!first) {
 				build.append(" | ");
 			}
-			build.append("lower");
+			build.append("greather");
 			first = false;
 		}
 		if ((status & PVM_SNAPSHOT_STATUS_CARRY) != 0) {
-			if (first) {
+			if (!first) {
 				build.append(" | ");
 			}
 			build.append("carry");

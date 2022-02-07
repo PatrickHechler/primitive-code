@@ -19,6 +19,7 @@ public class PrimitiveCodeAssembleMain {
 		setup(args);
 		try {
 			asm.assemble(input);
+			System.out.println("assembled successful");
 		} catch (IOException e) {
 			e.printStackTrace();
 			System.exit(1);
@@ -58,9 +59,6 @@ public class PrimitiveCodeAssembleMain {
 					break;
 				case "-sw":
 				case "-suppress-warns":
-					if (sw) {
-						crash(args, i, "suppress-wars is already set");
-					}
 					sw = true;
 					break;
 				default:

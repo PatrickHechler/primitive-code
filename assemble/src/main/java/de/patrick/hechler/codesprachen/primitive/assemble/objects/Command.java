@@ -1,9 +1,5 @@
 package de.patrick.hechler.codesprachen.primitive.assemble.objects;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
@@ -26,42 +22,13 @@ public class Command {
 		this.p2 = p2;
 	}
 	
-	public static class ConstantPoolCommand extends Command {
-		
-		private List <byte[]> values;
-		private long len;
-		
-		public ConstantPoolCommand() {
-			super(null, null, null);
-			values = new ArrayList <>();
-			len = 0;
-		}
-		
-		public void addBytes(byte[] bytes) {
-			len += bytes.length;
-			values.add(bytes);
-		}
-		
-		@Override
-		public long length() {
-			return len;
-		}
-		
-		public void write(OutputStream out) throws IOException {
-			for (int i = 0; i < values.size(); i ++ ) {
-				out.write(values.get(i));
-			}
-		}
-		
-	}
-	
-	public static ConstantPoolCommand parseCP(String cp, Map <String, Long> constants, Map <String, Long> labels, long pos) {
+	public static ConstsContext parseCP(String cp, Map <String, Long> constants, Map <String, Long> labels, long pos, boolean align) {
 		ANTLRInputStream in = new ANTLRInputStream(cp);
 		ConstantPoolGrammarLexer lexer = new ConstantPoolGrammarLexer(in);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		ConstantPoolGrammarParser parser = new ConstantPoolGrammarParser(tokens);
-		ConstsContext parsed = parser.consts(constants, labels, pos);
-		return parsed.pool;
+		ConstsContext parsed = parser.consts(constants, labels, pos, align);
+		return parsed;
 	}
 	
 	public long length() {
@@ -124,9 +91,11 @@ public class Command {
 		case CMD_SET_IP:
 		case CMD_SET_SP:
 		case CMD_SET_INTS:
+		case CMD_SET_INTCNT:
 		case CMD_GET_IP:
 		case CMD_GET_SP:
 		case CMD_GET_INTS:
+		case CMD_GET_INTCNT:
 		case CMD_INT:
 		case CMD_NEG:
 		case CMD_NOT:
@@ -163,11 +132,15 @@ public class Command {
 		case CMD_JMPLE:
 		case CMD_JMPLT:
 		case CMD_JMPNE:
-			return 24;
+			return 16;
 		default:
 			throw new AssertionError("unknown enum constant of my Command: " + cmd.name());
 		}
 	}
-	
+
+	public boolean alignable() {
+		return false;
+	}
+
 }
 

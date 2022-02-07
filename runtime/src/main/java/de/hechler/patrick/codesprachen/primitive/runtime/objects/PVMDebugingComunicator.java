@@ -162,13 +162,17 @@ public class PVMDebugingComunicator {
 	
 	public void exit() throws IOException, RuntimeException {
 		out.write(PVM_DEBUG_EXIT);
-		try {
-			int exitVal = pvm.waitFor();
-			if (exitVal != 0) {
-				throw new RuntimeException("pvm did not terminated with exit-code 0");
+		if (pvm == null) {
+			checkedRead( -1);// socket automatically closed on exit
+		} else {
+			try {
+				int exitVal = pvm.waitFor();
+				if (exitVal != 0) {
+					throw new RuntimeException("pvm did not terminated with exit-code 0");
+				}
+			} catch (InterruptedException e) {
+				e.printStackTrace();
 			}
-		} catch (InterruptedException e) {
-			e.printStackTrace();
 		}
 	}
 	
@@ -225,7 +229,7 @@ public class PVMDebugingComunicator {
 		convertLongToByteArr(zw, 8, (long) len);
 		out.write(zw);
 		out.write(bytes, off, len);
-		if (checkedRead(1,0) == 0) {
+		if (checkedRead(1, 0) == 0) {
 			throw new IOException("the pvm had an error by setting the memory (PNTR=" + PNTR + " len=" + len + ")");
 		}
 	}
@@ -350,6 +354,14 @@ public class PVMDebugingComunicator {
 			executeUntilErrorOrExitCall();
 		} else {
 			executeUntilExit();
+		}
+	}
+	
+	public void detach() {
+		try {
+			out.close();
+			in.close();
+		} catch (IOException e) {
 		}
 	}
 	

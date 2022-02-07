@@ -9,15 +9,15 @@ import de.hechler.patrick.zeugs.check.Checker;
 
 public class PrimitiveCodeAssembleMainTest {
 	
-//	public void testname() throws Exception {
-//		main(new String[0]);
-//	}
+	public void testname() throws Exception {
+		main(new String[0]);
+	}
 	
 	public static void main(String[] args) {
 		System.out.println(
 				"[J-LOG]: '" + ".\\src\\test\\resources\\readfiles\\helloworld.txt" + "' exists: " + Files.exists(Paths.get(".\\src\\test\\resources\\readfiles\\helloworld.txt")));
 		System.out.println("----- start checks -----");
-		BigCheckResult checked = Checker.checkAll(true, PrimitiveAssemblerChecker.class);
+		BigCheckResult checked = Checker.checkAll(true, PrimitiveAssemblerChecker.class, QuickSort.class);
 		System.out.println("----- finished checks -----");
 		checked.print();
 		checked.forAllUnexpectedCheckResults((cls, cr) -> {

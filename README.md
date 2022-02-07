@@ -241,7 +241,7 @@ except for the `--POS--` constant all other constants can be overwritten and rem
         * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
-`JMPLO <LABEL>`
+`JMPLT <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was lower
     * `if LOWER`
         * `IP <- IP - --POS-- + LABEL`
@@ -319,20 +319,20 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 	* `[DX + 16] <- BX`
 	* `[DX + 24] <- AX`
 	* `CX        <- IP`
-	* `IP        <- [INT_TABLE + (PARAM * 8)]`
+	* `IP        <- [INTS + (PARAM * 8)]`
 * calls the interrupt specified by the parameter
 	* `0`: unknown command
 		* `AX` contains the illegal command
-		* calls the exit interrupt with `-2`
+		* calls the exit interrupt with `9`
 	* `1`: illegal interrupt
 		* `AX` contains the number of the illegal interrupt
-		* calls the exit interrupt with `-2`
-		* if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `-3`
-		* if the forbidden interrupt is the exit input, the program exits with `-3`
+		* calls the exit interrupt with `7`
+		* if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `8`
+		* if the forbidden interrupt is the exit input, the program exits with `8`
 	* `2`: illegal memory
-		* calls the exit interrupt with `-2`
+		* calls the exit interrupt with `6`
 	* `3`: arithmetic error
-		* calls the exit interrupt with `-2`
+		* calls the exit interrupt with `5`
 	* `4`: exit
 		* use `AX` to specify the exit number of the progress
 	* `5`: allocate a memory-block
@@ -377,12 +377,12 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 		* `AX` contains the STREAM-ID
 		* `BX` contains the number of elements to write
 		* `CX` points to the elements to write
-		* after execution `AX` will contain the number of written elements
+		* after execution `BX` will contain the number of written elements
 	* `14`: read
 		* `AX` contains the STREAM-ID
 		* `BX` contains the number of elements to read
 		* `CX` points to the elements to read
-		* after execution `AX` will contain the number of elements, which has been completely read.
+		* after execution `BX` will contain the number of elements, which has been read.
 	* `15`: close stream
 		* `AX` contains the STREAM-ID
 		* if the stream was closed successfully `AX` will contain `1`, if not `0`

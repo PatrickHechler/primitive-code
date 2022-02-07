@@ -6,25 +6,37 @@
  */
  grammar PrimitiveFileGrammar;
 
- @header {
+ @parser::header {
 import java.util.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.enums.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.Param.*;
-import de.patrick.hechler.codesprachen.primitive.assemble.objects.Command.ConstantPoolCommand;
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
 }
 
- parse [long startpos] returns
+ @parser::members {
+	private int getAlign(boolean align, long pos) {
+		if (align) {
+			int mod = (int) (pos % 8);
+			if (mod != 0) {
+				return 8 - mod;
+			}
+		}
+		return 0;
+	}
+ }
+
+ parse [long startpos, boolean align] returns
  [List<Command> commands, Map<String,Long> labels, long pos] @init {
- 	$pos = startpos;  
- 	Map<String,Long> constants = new HashMap<>();
+ 	$pos = startpos;
  	$labels = new HashMap<>();
  	$commands = new ArrayList<>();
+ 	$commands.add(new CompilerDirectiveCommand(align ? CompilerDirective.align : CompilerDirective.notAlign));
+ 	Map<String,Long> constants = new HashMap<>();
 	constants.put("INT-ERRORS-UNKNOWN_COMMAND", (Long) 0L);
-	constants.put("INT_ERRORS_ILLEGAL_INTERRUPT", (Long) 1L);
-	constants.put("INT_ERRORS_ILLEGAL_MEMORY", (Long) 2L);
-	constants.put("INT_ERRORS_ARITHMETIC_ERROR", (Long) 3L);
+	constants.put("INT-ERRORS-ILLEGAL_INTERRUPT", (Long) 1L);
+	constants.put("INT-ERRORS-ILLEGAL_MEMORY", (Long) 2L);
+	constants.put("INT-ERRORS-ARITHMETIC_ERROR", (Long) 3L);
 	constants.put("INT-EXIT", (Long) 4L);
 	constants.put("INT-MEMORY-ALLOC", (Long) 5L);
 	constants.put("INT-MEMORY-REALLOC", (Long) 6L);
@@ -51,6 +63,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 	constants.put("INT-SOCKET-SERVER-CREATE", (Long) 27L);
 	constants.put("INT-SOCKET-SERVER-LISTEN", (Long) 28L);
 	constants.put("INT-SOCKET-SERVER-ACCEPT", (Long) 29L);
+	constants.put("INTERRUPT_COUNT", (Long) 30L);
 	constants.put("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
 	constants.put("MIN-VALUE", (Long) (-0x8000000000000000L));
 	constants.put("STD-IN", (Long) 0L);
@@ -60,7 +73,22 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  :
  	(
  		(
- 			command [$pos, constants, $labels]
+ 			{$pos += getAlign(align, $pos);}
+
+ 			CONSTANT_POOL
+ 			{
+				ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), constants, $labels, $pos, align);
+				align = cc.align;
+				$pos += cc.pool.length();
+				$commands.add(cc.pool);
+			}
+
+ 		)
+ 		|
+ 		(
+ 			{$pos += getAlign(align, $pos);}
+
+ 			command [$pos, constants, $labels, align]
  			{
  				if ($command.c != null) {
  					$commands.add($command.c);
@@ -84,6 +112,26 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  					{constants.remove($CONSTANT.getText().substring(1));}
 
  				)
+ 			)
+ 		)
+ 		|
+ 		(
+ 			(
+ 				CD_ALIGN
+ 				{
+					$commands.add(new CompilerDirectiveCommand(CompilerDirective.align));
+					align = true;
+				}
+
+ 			)
+ 			|
+ 			(
+ 				CD_NOT_ALIGN
+ 				{
+					$commands.add(new CompilerDirectiveCommand(CompilerDirective.notAlign));
+					align = false;
+				}
+
  			)
  		)
  	)* EOF
@@ -308,7 +356,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	)
  ;
 
- command [long pos, Map<String,Long> constants, Map<String,Long> labels]
+ command
+ [long pos, Map<String,Long> constants, Map<String,Long> labels, boolean align]
  returns [Command c] @init {Commands cmd = null;}
  :
  	(
@@ -410,14 +459,17 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  		|
  		(
  			(
- 				RET
- 				{cmd = Commands.CMD_RET;}
+ 				(
+ 					RET
+ 					{cmd = Commands.CMD_RET;}
 
- 			)
- 			(
- 				IRET
- 				{cmd = Commands.CMD_IRET;}
+ 				)
+ 				|
+ 				(
+ 					IRET
+ 					{cmd = Commands.CMD_IRET;}
 
+ 				)
  			)
  			{$c = new Command(cmd, null, null);}
 
@@ -616,12 +668,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			labels.put($LABEL_DECLARATION.getText().substring(1), (Long) pos);
 	 		$c = null;
 	 	}
-
- 	)
- 	|
- 	(
- 		CONSTANT_POOL
- 		{$c = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos);}
 
  	)
  ;
@@ -974,6 +1020,20 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  LABEL_DECLARATION
  :
  	'@' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
+ ;
+
+ CD_NOT_ALIGN
+ :
+ 	'$NOT_ALIGN'
+ 	| '$NOT-ALIGN'
+ 	| '$not_align'
+ 	| '$not-align'
+ ;
+
+ CD_ALIGN
+ :
+ 	'$ALIGN'
+ 	| '$align'
  ;
 
  CONSTANT_POOL

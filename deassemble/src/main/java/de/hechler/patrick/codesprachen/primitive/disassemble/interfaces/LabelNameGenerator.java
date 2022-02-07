@@ -1,36 +1,26 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.interfaces;
 
-import java.util.List;
-
-import de.hechler.patrick.codesprachen.primitive.disassemble.objects.Command;
-
 public interface LabelNameGenerator {
 	
-	LabelNameGenerator SIMPLE_GEN = (t, c, d) -> ("L-" + Long.toHexString(t));
+	LabelNameGenerator SIMPLE_GEN = t -> ("L-" + Long.toHexString(t));
 	
 	/**
 	 * the {@link LabelNameGenerator} generates the name for labels.<br>
-	 * 
 	 * the returned value can not be <code>null</code>.<br>
-	 * 
-	 * the returned value has to be a {@link #checkName(String) valid} label-name (without the '@' at the begin).<br>
-	 * 
+	 * the returned value has to be a {@link #checkName(String) valid} label-name (without the '@' at
+	 * the begin).<br>
 	 * if called twice with the same arguments the generator has to return the same value.<br>
-	 * 
 	 * if called with the different arguments the generator has to return a different value.
 	 * 
 	 * @param targetPos
 	 *            the position of the target
-	 * @param commands
-	 *            all commands in the order of the program-code
-	 * @param destenyCommandIndex
-	 *            the index of the target-command in the {@code commands} {@link List}
 	 * @return the name of the label
 	 */
-	String generateName(long targetPos, List <Command> commands, int destenyCommandIndex);
+	String generateName(long targetPos);
 	
 	/**
-	 * a valid name is not empty ({@code length > 0}) and contains only the chars a-z, A-Z, 0-9, '-' and '_'
+	 * a valid name is not empty ({@code length > 0}) and contains only the chars <code>a-z</code>,
+	 * <code>A-Z</code>, <code>0-9</code>, <code>'-'</code> and <code>'_'</code>
 	 * 
 	 * @param check
 	 */

@@ -26,7 +26,7 @@ public enum Commands {
 	CMD_GET_IP(ParamArt.oneParamNoConst, CmdNums.GET_IP), CMD_GET_SP(ParamArt.oneParamNoConst, CmdNums.GET_SP),
 	CMD_GET_INTS(ParamArt.oneParamNoConst, CmdNums.GET_INTS),
 	CMD_SET_INTS(ParamArt.oneParamAllowConst, CmdNums.SET_INTS),
-	CMD_IRET(ParamArt.oneParamAllowConst, CmdNums.IRET),
+	CMD_IRET(ParamArt.noParams, CmdNums.IRET),
 	CMD_GET_INTCNT(ParamArt.oneParamNoConst, CmdNums.GET_INTCNT), CMD_SET_INTCNT(ParamArt.oneParamAllowConst, CmdNums.SET_INTCNT),
 	
 	
@@ -93,12 +93,13 @@ public enum Commands {
 			return CMD_RLSH;
 		case CmdNums.RASH:
 			return CMD_RASH;
+		case CmdNums.DEC:
+			return CMD_DEC;
+		case CmdNums.INC:
+			return CMD_INC;
+		
 		case CmdNums.JMP:
 			return CMD_JMP;
-		case CmdNums.JMPCS:
-			return CMD_JMPCS;
-		case CmdNums.JMPCC:
-			return CMD_JMPCC;
 		case CmdNums.JMPEQ:
 			return CMD_JMPEQ;
 		case CmdNums.JMPNE:
@@ -111,8 +112,14 @@ public enum Commands {
 			return CMD_JMPLT;
 		case CmdNums.JMPLE:
 			return CMD_JMPLE;
+		case CmdNums.JMPCS:
+			return CMD_JMPCS;
+		case CmdNums.JMPCC:
+			return CMD_JMPCC;
+		
 		case CmdNums.CALL:
 			return CMD_CALL;
+		
 		case CmdNums.CMP:
 			return CMD_CMP;
 		case CmdNums.RET:
@@ -127,14 +134,37 @@ public enum Commands {
 			return CMD_SET_IP;
 		case CmdNums.SET_SP:
 			return CMD_SET_SP;
+		case CmdNums.GET_IP:
+			return CMD_GET_IP;
+		case CmdNums.GET_SP:
+			return CMD_GET_SP;
+		case CmdNums.GET_INTS:
+			return CMD_GET_INTS;
+		case CmdNums.SET_INTS:
+			return CMD_SET_INTS;
+		case CmdNums.IRET:
+			return CMD_IRET;
+		case CmdNums.GET_INTCNT:
+			return CMD_GET_INTCNT;
+		case CmdNums.SET_INTCNT:
+			return CMD_SET_INTCNT;
+		
 		case CmdNums.ADDC:
 			return CMD_ADDC;
 		case CmdNums.SUBC:
 			return CMD_SUBC;
-		case CmdNums.DEC:
-			return CMD_DEC;
-		case CmdNums.INC:
-			return CMD_INC;
+		case CmdNums.ADDFP:
+			return CMD_ADDDP;
+		case CmdNums.SUBFP:
+			return CMD_SUBFP;
+		case CmdNums.MULFP:
+			return CMD_MULFP;
+		case CmdNums.DIVFP:
+			return CMD_DIVFP;
+		case CmdNums.NTFP:
+			return CMD_NTFP;
+		case CmdNums.FPTN:
+			return CMD_FPTN;
 		default:
 			throw new NoCommandException("this byte does not show a command!");
 		}

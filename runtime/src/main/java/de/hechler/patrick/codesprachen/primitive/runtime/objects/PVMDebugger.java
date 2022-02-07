@@ -1,5 +1,6 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
@@ -31,7 +32,16 @@ public class PVMDebugger implements Runnable {
 	@Override
 	public void run() {
 		help();
-		while (pvm.isAlive()) {
+		try {
+			PVMSnapshot sn = comunicate.getSnapshot();
+			sn.print(out);
+			byte[] bytes = new byte[24];
+			comunicate.getMem(sn.ip, bytes, 0, bytes.length);
+			disasm.deassemble(sn.ip, bytes);
+		} catch (IOException e) {
+			e.printStackTrace(out);
+		}
+		RETURN: while (pvm == null || pvm.isAlive()) {
 			try {
 				out.print("(pvmdb): ");
 				String str = in.next();
@@ -40,13 +50,20 @@ public class PVMDebugger implements Runnable {
 					help();
 					break;
 				case "terminate":
+					if (pvm == null) {
+						throw new UnsupportedOperationException("I can terminate the pvm only when I started it, use exit instead");
+					}
 					kill(pvm, true);
 					out.println("exit-code: " + pvm.exitValue());
 					break;
+				case "detach":
+					comunicate.detach();
+					out.println("detached from the pvm");
+					break RETURN;
 				case "exit":
 					comunicate.exit();
-					out.println("pvm exited (with 0), will now end");
-					return;
+					out.println("pvm exited, will now end");
+					break RETURN;
 				case "exec-until":
 				case "exec_until":
 				case "execuntil":
@@ -88,6 +105,9 @@ public class PVMDebugger implements Runnable {
 					break;
 				}
 				case "tell":
+					if (pvm == null) {
+						throw new UnsupportedOperationException("I can acess the stdin-stream of pvm only when I started it");
+					}
 					str = in.nextLine().substring(1) + '\n';
 					pvm.getOutputStream().write(str.getBytes(StandardCharsets.UTF_8));
 					break;
@@ -134,9 +154,11 @@ public class PVMDebugger implements Runnable {
 				case "get":
 					str = in.next();
 					switch (str.toLowerCase()) {
-					case "snapshot":
-						comunicate.getSnapshot().print(out);
+					case "snapshot": {
+						PVMSnapshot sn = comunicate.getSnapshot();
+						sn.print(out);
 						break;
+					}
 					case "memory": {
 						long PNTR = in.nextLong(16);
 						int len = in.nextInt();
@@ -152,7 +174,7 @@ public class PVMDebugger implements Runnable {
 						int len = in.nextInt();
 						byte[] bytes = new byte[len];
 						comunicate.getMem(PNTR, bytes, 0, len);
-						out.print(new String(bytes, cs));
+						out.println(new String(bytes, cs));
 						break;
 					}
 					case "chars": {
@@ -160,7 +182,7 @@ public class PVMDebugger implements Runnable {
 						int len = in.nextInt();
 						byte[] bytes = new byte[len];
 						comunicate.getMem(PNTR, bytes, 0, len);
-						out.print(new String(bytes, StandardCharsets.US_ASCII));
+						out.println(new String(bytes, StandardCharsets.US_ASCII));
 						break;
 					}
 					case "breakpoints":
@@ -279,11 +301,17 @@ public class PVMDebugger implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		out.println("the pvm terminated with exie-code " + pvm.exitValue());
+		if (pvm != null) {
+			if (pvm.isAlive()) {
+				out.println("the pvm is still alive");
+			} else {
+				out.println("the pvm terminated with exie-code " + pvm.exitValue());
+			}
+		}
 		out.println("thanks for using me.");
 		out.println("goodbye, have a nice day.");
 	}
-
+	
 	private byte[] formattString(String str, Charset cs) {
 		char[] carr = str.toCharArray();
 		int start = -1, len = -1;
@@ -350,8 +378,11 @@ public class PVMDebugger implements Runnable {
 		System.out.println("  to print this message");
 		System.out.println("terminate");
 		System.out.println("  to terminate the pvm forcefully");
+		System.out.println("  this command only works, when the pvm was started by this debugger");
 		System.out.println("exit");
 		System.out.println("  to send the pvm the exit signal");
+		System.out.println("detach");
+		System.out.println("  detach the debugger from the pvm (without stopping the pvm)");
 		System.out.println("execute-until");
 		System.out.println("  error");
 		System.out.println("    to let the pvm execute until an error happanes, the exit interrupt gets called or a breakpoint triggers (if enabled)");
@@ -363,6 +394,7 @@ public class PVMDebugger implements Runnable {
 		System.out.println("  to execute the next command");
 		System.out.println("tell [MESSAGE]");
 		System.out.println("  to delegate the message to the pvms stdin");
+		System.out.println("  this command only works, when the pvm was started by this debugger");
 		System.out.println("break [ADDRESS]");
 		System.out.println("  to add a breakpoint");
 		System.out.println("rembr [ADDRESS]");
@@ -437,9 +469,9 @@ public class PVMDebugger implements Runnable {
 		return ("0000000000000000".substring(str.length())) + str;
 	}
 	
-	public static void kill(Process p, boolean force) {
+	public static void kill(Process p, boolean directforce) {
 		if (p.isAlive()) {
-			if ( !force) {
+			if ( !directforce) {
 				p.destroy();
 				try {
 					p.waitFor(1000L, TimeUnit.MILLISECONDS);

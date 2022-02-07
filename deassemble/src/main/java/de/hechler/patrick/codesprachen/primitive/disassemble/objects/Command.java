@@ -1,8 +1,6 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
 
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands.ParamArt;
@@ -15,7 +13,7 @@ public class Command {
 	public final Param p1;
 	public final Param p2;
 	public final long relativeLabel;
-	private LabelNameGenerator lng;
+	private final LabelNameGenerator lng;
 	
 	
 	
@@ -27,20 +25,20 @@ public class Command {
 		this.lng = lng;
 	}
 	
-	public Command(Commands cmd, Param p1, Param p2) {
-		this(cmd, p1, p2, -1, null);
-	}
-	
 	public Command(Commands cmd) {
-		this(cmd, null, null, -1, null);
+		this(cmd, null, null, -1L, null);
 	}
 	
 	public Command(Commands cmd, Param p1) {
-		this(cmd, p1, null, -1, null);
+		this(cmd, p1, null, -1L, null);
+	}
+	
+	public Command(Commands cmd, Param p1, Param p2) {
+		this(cmd, p1, p2, -1L, null);
 	}
 	
 	public Command(Commands cmd, long relativeLabel, LabelNameGenerator lng) {
-		this(cmd, null, null, relativeLabel, lng);
+		this(cmd, null, null, relativeLabel, lng == null ? LabelNameGenerator.SIMPLE_GEN : lng);
 	}
 	
 	@Override
@@ -48,7 +46,7 @@ public class Command {
 		StringBuilder build = new StringBuilder(cmd.toString());
 		switch (cmd.art) {
 		case label:
-			build.append(' ').append("DEST-POS=" + relativeLabel);
+			build.append(" RELATIVE: ").append(relativeLabel);
 			break;
 		case noParams:
 			break;
@@ -67,11 +65,11 @@ public class Command {
 		return build.toString();
 	}
 	
-	public String toString(List <Command> cmds, Map <Long, Integer> indices) {
+	public String toString(long pos) {
 		StringBuilder build = new StringBuilder(cmd.toString());
 		switch (cmd.art) {
 		case label:
-			build.append(' ').append(lng.generateName(relativeLabel, cmds, (int) indices.get((Long) relativeLabel)));
+			build.append(' ').append(lng.generateName(pos + relativeLabel));
 			break;
 		case noParams:
 			break;
@@ -113,9 +111,9 @@ public class Command {
 		}
 		
 		public void add(byte[] vals) {
-			final int off = bytes.length;
-			bytes = Arrays.copyOf(bytes, off + vals.length);
-			System.arraycopy(vals, 0, bytes, off, vals.length);
+			final int oldlen = bytes.length;
+			bytes = Arrays.copyOf(bytes, oldlen + vals.length);
+			System.arraycopy(vals, 0, bytes, oldlen, vals.length);
 		}
 		
 		@Override
@@ -124,15 +122,15 @@ public class Command {
 			String hexStr;
 			int off;
 			for (off = 0; off < bytes.length - 8; off += 8) {
-				hexStr = PrimitiveDisassembler.bytesToHexString(bytes, off, 8);
+				hexStr = PrimitiveDisassembler.byteArrToHexString(bytes, off, 8);
 				build.append(hexStr).append('\n').append("    ");
 			}
-			hexStr = PrimitiveDisassembler.bytesToHexString(bytes, off, bytes.length - off);
+			hexStr = PrimitiveDisassembler.byteArrToHexString(bytes, off, bytes.length - off);
 			return build.append(hexStr).append('\n').append('>').toString();
 		}
 		
 		@Override
-		public String toString(List <Command> cmds, Map <Long, Integer> indices) {
+		public String toString(long pos) {
 			return toString();
 		}
 		

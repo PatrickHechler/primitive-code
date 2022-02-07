@@ -1,8 +1,5 @@
 package de.patrick.hechler.codesprachen.primitive.disassemble.objects;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoCommandException;
 import de.hechler.patrick.codesprachen.primitive.disassemble.interfaces.LabelNameGenerator;
@@ -50,7 +47,8 @@ public class CommandChecker extends Checker {
 		assertEquals("CMP 0, [7 + 1]", cmd.toString());
 		pb = new ParamBuilder();
 		pb.art = Param.ART_ASR;
-		pb.v1 = Param.SR_DX;;
+		pb.v1 = Param.SR_DX;
+		;
 		p = pb.build();
 		pb.art = Param.ART_ANUM_BREG;
 		pb.v1 = 5;
@@ -58,7 +56,8 @@ public class CommandChecker extends Checker {
 		assertEquals("ADD DX, [5]", cmd.toString());
 		pb = new ParamBuilder();
 		pb.art = Param.ART_ASR;
-		pb.v1 = Param.SR_DX;;
+		pb.v1 = Param.SR_DX;
+		;
 		p = pb.build();
 		pb.art = Param.ART_ANUM;
 		pb.v1 = 0;
@@ -84,20 +83,18 @@ public class CommandChecker extends Checker {
 	private void checkOtherCmds() {
 		cmd = new Command(Commands.CMD_RET);
 		assertEquals("RET", cmd.toString());
-		cmd = new Command(Commands.CMD_CALL, 50, lng);
-		Map<Long,Integer> map = new HashMap<>();
-		map.put((Long) 50L, (Integer) 4);
-		assertEquals("CALL L-E", cmd.toString(null, map));
-		cmd = new Command(Commands.CMD_JMP, 50, lng);
-		assertEquals("JMP L-E", cmd.toString(null, map));
-		cmd = new Command(Commands.CMD_JMPEQ, 50, lng);
-		assertEquals("JMPEQ L-E", cmd.toString(null, map));
-		cmd = new Command(Commands.CMD_JMPNE, 50, lng);
-		assertEquals("JMPNE L-E", cmd.toString(null, map));
-		cmd = new Command(Commands.CMD_JMPCS, 50, lng);
-		assertEquals("JMPCS L-E", cmd.toString(null, map));
-		cmd = new Command(Commands.CMD_JMPCC, 50, lng);
-		assertEquals("JMPCC L-E", cmd.toString(null, map));
+		cmd = new Command(Commands.CMD_CALL, 0x32, lng);
+		assertEquals("CALL L-32", cmd.toString(0));
+		cmd = new Command(Commands.CMD_JMP, 0x32, lng);
+		assertEquals("JMP L-32", cmd.toString(0));
+		cmd = new Command(Commands.CMD_JMPEQ, 0x32, lng);
+		assertEquals("JMPEQ L-32", cmd.toString(0));
+		cmd = new Command(Commands.CMD_JMPNE, 0x32, lng);
+		assertEquals("JMPNE L-32", cmd.toString(0));
+		cmd = new Command(Commands.CMD_JMPCS, 0x32, lng);
+		assertEquals("JMPCS L-32", cmd.toString(0));
+		cmd = new Command(Commands.CMD_JMPCC, 0x32, lng);
+		assertEquals("JMPCC L-32", cmd.toString(0));
 	}
 	
 }
