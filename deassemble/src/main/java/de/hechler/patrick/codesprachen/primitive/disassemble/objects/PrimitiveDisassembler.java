@@ -101,7 +101,12 @@ public class PrimitiveDisassembler {
 						}
 						pos += 8;
 					}
-					//TODO print last part of constant pool
+					if (off < cp.length()) {
+						String minus = "----------------";
+						out.println(longToHexString(prefix, pos, " -> "));
+						int len = cp.length() - off;
+						out.println(byteArrToHexString(minus.substring(len * 2), bytes, 0, len, ": unknown"));
+					}
 					break;
 				}
 				case executable: {
@@ -501,13 +506,27 @@ public class PrimitiveDisassembler {
 		return val;
 	}
 	
-	private static String longToHexString(String postfix, long val, String suffix) {
+	public static String longToHexString(String postfix, long val, String suffix) {
 		String str = "0000000000000000";
 		String hex = Long.toHexString(val);
 		return postfix + str.substring(hex.length()) + hex + suffix;
 	}
 	
-	private static String byteArrToHexString(String postfix, byte[] bytes, String suffix) {
+	public static String byteArrToHexString(String postfix, byte[] bytes, int off, int len, String suffix) {
+		StringBuilder build = new StringBuilder( (len * 2) + postfix.length() + suffix.length());
+		build.append(postfix);
+		String str;
+		for (int i = len; i >= 0; i -- ) {
+			str = Integer.toHexString(bytes[off + i] & 0xFF);
+			if (str.length() == 1) {
+				build.append('0');
+			}
+			build.append(str);
+		}
+		return build.append(suffix).toString();
+	}
+	
+	public static String byteArrToHexString(String postfix, byte[] bytes, String suffix) {
 		StringBuilder build = new StringBuilder(18 + postfix.length() + suffix.length());
 		build.append(postfix);
 		String str;
@@ -521,14 +540,13 @@ public class PrimitiveDisassembler {
 		return build.append(suffix).toString();
 	}
 	
-	private static String longToHexString(String postfix, long val) {
+	public static String longToHexString(String postfix, long val) {
 		String str = "0000000000000000";
 		String hex = Long.toHexString(val);
 		return postfix + str.substring(hex.length()) + hex;
 	}
 	
-	@SuppressWarnings("unused")
-	private static String byteArrToHexString(String postfix, byte[] bytes) {
+	public static String byteArrToHexString(String postfix, byte[] bytes) {
 		StringBuilder build = new StringBuilder(18 + postfix.length());
 		build.append(postfix);
 		String str;
@@ -542,15 +560,13 @@ public class PrimitiveDisassembler {
 		return build.toString();
 	}
 	
-	@SuppressWarnings("unused")
-	private static String longToHexString(long val) {
+	public static String longToHexString(long val) {
 		String str = "0000000000000000";
 		String hex = Long.toHexString(val);
 		return str.substring(hex.length()) + hex;
 	}
 	
-	@SuppressWarnings("unused")
-	private static String byteArrToHexString(byte[] bytes) {
+	public static String byteArrToHexString(byte[] bytes) {
 		StringBuilder build = new StringBuilder(16);
 		String str;
 		for (int i = bytes.length - 1; i >= 0; i -- ) {
@@ -563,14 +579,13 @@ public class PrimitiveDisassembler {
 		return build.toString();
 	}
 	
-	private static String longToHexString(long val, String suffix) {
+	public static String longToHexString(long val, String suffix) {
 		String str = "0000000000000000";
 		String hex = Long.toHexString(val);
 		return str.substring(hex.length()) + hex + suffix;
 	}
 	
-	@SuppressWarnings("unused")
-	private static String byteArrToHexString(byte[] bytes, String suffix) {
+	public static String byteArrToHexString(byte[] bytes, String suffix) {
 		StringBuilder build = new StringBuilder(16 + suffix.length());
 		String str;
 		for (int i = bytes.length - 1; i >= 0; i -- ) {

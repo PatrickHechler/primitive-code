@@ -121,12 +121,19 @@ public class Command {
 			StringBuilder build = new StringBuilder(":").append('\n').append("HEX:");
 			String hexStr;
 			int off;
-			for (off = 0; off < bytes.length - 8; off += 8) {
+			for (off = 0; off <= bytes.length - 8; off += 8) {
 				hexStr = PrimitiveDisassembler.byteArrToHexString(bytes, off, 8);
 				build.append(hexStr).append('\n').append("    ");
 			}
-			hexStr = PrimitiveDisassembler.byteArrToHexString(bytes, off, bytes.length - off);
-			return build.append(hexStr).append('\n').append('>').toString();
+			if (bytes.length - off == 8) {
+				int len = bytes.length - off;
+				build.append(PrimitiveDisassembler.byteArrToHexString("", bytes, off, len, "\n>"));
+			} else {
+				for (; off < bytes.length; off ++ ) {
+					build.append(PrimitiveDisassembler.byteArrToHexString("B-HEX-", bytes, off, 1, "\n>"));
+				}
+			}
+			return build.toString();
 		}
 		
 		@Override

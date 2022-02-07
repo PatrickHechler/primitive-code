@@ -27,8 +27,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 
 consts
 [Map<String,Long> constants, Map<String, Long> labels, long pos, boolean alignParam]
-returns [ConstantPoolCommand pool, boolean align]
-@init {
+returns [ConstantPoolCommand pool, boolean align] @init {
  	$pool = new ConstantPoolCommand();
  	$align = alignParam;
  }
@@ -249,80 +248,97 @@ string [ConstantPoolCommand pool]
 numconst [ConstantPoolCommand pool] @init {int radix;}
 :
 	(
-		{long num;}
+	{
+			boolean b = false;
+			long num;
+		}
 
 		(
 			(
-				HEX_NUM
-				{num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
+				BYTE
+				{b = true;}
 
-			)
-			|
+			)?
 			(
-				DEC_NUM
-				{num = Long.parseLong($DEC_NUM.getText(), 10);}
+				(
+					HEX_NUM
+					{num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
 
-			)
-			|
-			(
-				DEC_NUM0
-				{num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
+				)
+				|
+				(
+					DEC_NUM
+					{num = Long.parseLong($DEC_NUM.getText(), 10);}
 
-			)
-			|
-			(
-				OCT_NUM
-				{num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
+				)
+				|
+				(
+					DEC_NUM0
+					{num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
 
-			)
-			|
-			(
-				BIN_NUM
-				{num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
+				)
+				|
+				(
+					OCT_NUM
+					{num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
 
-			)
-			|
-			(
-				NEG_HEX_NUM
-				{num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
+				)
+				|
+				(
+					BIN_NUM
+					{num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
 
-			)
-			|
-			(
-				NEG_DEC_NUM
-				{num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
+				)
+				|
+				(
+					NEG_HEX_NUM
+					{num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
 
-			)
-			|
-			(
-				NEG_DEC_NUM0
-				{num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
+				)
+				|
+				(
+					NEG_DEC_NUM
+					{num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
 
-			)
-			|
-			(
-				NEG_OCT_NUM
-				{num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
+				)
+				|
+				(
+					NEG_DEC_NUM0
+					{num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
 
-			)
-			|
-			(
-				NEG_BIN_NUM
-				{num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
+				)
+				|
+				(
+					NEG_OCT_NUM
+					{num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
 
+				)
+				|
+				(
+					NEG_BIN_NUM
+					{num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
+
+				)
 			)
 		)
 		{
-	 		pool.addBytes(new byte[]{
-	 		(byte) num,
-	 		(byte) (num << 8),
-	 		(byte) (num << 16),
-	 		(byte) (num << 24),
-	 		(byte) (num << 32),
-	 		(byte) (num << 40),
-	 		(byte) (num << 48),
-	 		(byte) (num << 56),
-	 		});
+			if (b) {
+				if ((num & 0xFFL) != num) {
+					throw new RuntimeException("byte num not inside of byte bounds: 0..255 : 0x00..0xFF");
+				}
+		 		pool.addBytes(new byte[]{(byte)num});
+			}else {
+		 		pool.addBytes(new byte[]{
+		 		(byte) num,
+		 		(byte) (num << 8),
+		 		(byte) (num << 16),
+		 		(byte) (num << 24),
+		 		(byte) (num << 32),
+		 		(byte) (num << 40),
+		 		(byte) (num << 48),
+		 		(byte) (num << 56),
+		 		});
+			}
 	 	}
 
 	)+
@@ -374,6 +390,11 @@ START
 ENDE
 :
 	'>'
+;
+
+BYTE
+:
+	'B-'
 ;
 
 NEG_HEX_NUM
