@@ -1,6 +1,8 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
-import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.*;
+import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.convertByteArrToLong;
+import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.convertLongToByteArr;
+import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.convertLongToHexString;
 
 import java.io.PrintStream;
 
@@ -12,7 +14,7 @@ public class PVMSnapshot {
 	public static final long PVM_SNAPSHOT_STATUS_LOWER = 0x0000000000000001L;
 	public static final long PVM_SNAPSHOT_STATUS_GREATHER = 0x0000000000000002L;
 	public static final long PVM_SNAPSHOT_STATUS_CARRY = 0x0000000000000004L;
-
+	
 	public long ax;
 	public long bx;
 	public long cx;
@@ -20,8 +22,8 @@ public class PVMSnapshot {
 	public long sp;
 	public long ip;
 	public long status;
-	public long intp;
 	public long intcnt;
+	public long intp;
 	
 	public static PVMSnapshot create(byte[] bytes) throws AssertionError {
 		if (bytes.length != PVM_SNAPSHOT_LENGH) {
@@ -32,7 +34,7 @@ public class PVMSnapshot {
 				convertByteArrToLong(bytes, 64));
 	}
 	
-	public PVMSnapshot(long ax, long bx, long cx, long dx, long sp, long ip, long status, long intp, long intcnt) {
+	public PVMSnapshot(long ax, long bx, long cx, long dx, long sp, long ip, long status, long intcnt, long intp) {
 		this.ax = ax;
 		this.bx = bx;
 		this.cx = cx;
@@ -40,8 +42,8 @@ public class PVMSnapshot {
 		this.sp = sp;
 		this.ip = ip;
 		this.status = status;
-		this.intp = intp;
 		this.intcnt = intcnt;
+		this.intp = intp;
 	}
 	
 	public byte[] toBytes() {
@@ -53,52 +55,62 @@ public class PVMSnapshot {
 		convertLongToByteArr(bytes, 32, this.sp);
 		convertLongToByteArr(bytes, 40, this.ip);
 		convertLongToByteArr(bytes, 48, this.status);
-		convertLongToByteArr(bytes, 56, this.intp);
-		convertLongToByteArr(bytes, 64, this.intcnt);
+		convertLongToByteArr(bytes, 56, this.intcnt);
+		convertLongToByteArr(bytes, 64, this.intp);
 		return bytes;
 	}
 	
 	
 	public void print(PrintStream out) {
-		out.println("PVMSnapshot:");
-		out.println("  ax=" + PVMDebugger.toFullHexStr(ax));
-		out.println("  bx=" + PVMDebugger.toFullHexStr(bx));
-		out.println("  cx=" + PVMDebugger.toFullHexStr(cx));
-		out.println("  dx=" + PVMDebugger.toFullHexStr(dx));
-		out.println("  sp=" + PVMDebugger.toFullHexStr(sp));
-		out.println("  ip=" + PVMDebugger.toFullHexStr(ip));
-		out.println("  status=" + PVMDebugger.toFullHexStr(status)+ " : " + statusToString(status));
-		out.println("  intp=" + PVMDebugger.toFullHexStr(intp));
-		out.println("  intcnt=" + PVMDebugger.toFullHexStr(intcnt));
+		out.print(toString());
 	}
 	
+	@SuppressWarnings("unused")
 	private String statusToString(long status) {
-		StringBuilder build = new StringBuilder("[");
+		StringBuilder build = new StringBuilder();
+		statusToString(build, status);
+		return build.toString();
+	}
+	
+	private void statusToString(StringBuilder build, long status) {
+		build.append("[");
 		boolean first = true;
-		if ((status & PVM_SNAPSHOT_STATUS_LOWER) != 0) {
+		if ( (status & PVM_SNAPSHOT_STATUS_LOWER) != 0) {
 			build.append("lower");
 			first = false;
 		}
-		if ((status & PVM_SNAPSHOT_STATUS_GREATHER) != 0) {
-			if (!first) {
+		if ( (status & PVM_SNAPSHOT_STATUS_GREATHER) != 0) {
+			if ( !first) {
 				build.append(" | ");
 			}
 			build.append("greather");
 			first = false;
 		}
-		if ((status & PVM_SNAPSHOT_STATUS_CARRY) != 0) {
-			if (!first) {
+		if ( (status & PVM_SNAPSHOT_STATUS_CARRY) != 0) {
+			if ( !first) {
 				build.append(" | ");
 			}
 			build.append("carry");
 			first = false;
 		}
-		return build.append(']').toString();
+		build.append(']');
 	}
 	
 	@Override
 	public String toString() {
-		return "PVMSnapshot:\n  ax=" + ax + "\n  bx=" + bx + ", cx=" + cx + ", dx=" + dx + ", ip=" + ip + ", sp=" + sp + ", intp=" + intp + ", status=" + status + "]";
+		StringBuilder build = new StringBuilder("PVMSnapshot:");
+		build.append("  ax=").append(convertLongToHexString(ax)).append('\n');
+		build.append("  bx=").append(convertLongToHexString(bx)).append('\n');
+		build.append("  cx=").append(convertLongToHexString(cx)).append('\n');
+		build.append("  dx=").append(convertLongToHexString(dx)).append('\n');
+		build.append("  sp=").append(convertLongToHexString(sp)).append('\n');
+		build.append("  ip=").append(convertLongToHexString(ip)).append('\n');
+		build.append("  status=").append(convertLongToHexString(status)).append(" : ");
+		statusToString(build, status);
+		build.append('\n');
+		build.append("  intcnt=").append(convertLongToHexString(intcnt)).append('\n');
+		build.append("  intp=").append(convertLongToHexString(intp)).append('\n');
+		return build.toString();
 	}
 	
 }

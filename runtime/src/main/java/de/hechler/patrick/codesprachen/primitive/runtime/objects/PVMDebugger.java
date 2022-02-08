@@ -194,7 +194,7 @@ public class PVMDebugger implements Runnable {
 						long[] breakpoints = comunicate.getBreakpoints();
 						System.out.println(breakpoints.length + " breakpoints:");
 						for (int i = 0; i < breakpoints.length; i ++ ) {
-							System.out.println("  " + toFullHexStr(breakpoints[i]));
+							System.out.println(Convert.convertLongToHexString("  ", breakpoints[i]));
 						}
 						break;
 					default:
@@ -462,11 +462,6 @@ public class PVMDebugger implements Runnable {
 	
 	public OutputStream getPVMOut() {
 		return pvm.getOutputStream();
-	}
-	
-	public static String toFullHexStr(long PNTR) {
-		String str = Long.toHexString(PNTR);
-		return ("0000000000000000".substring(str.length())) + str;
 	}
 	
 	public static void kill(Process p, boolean directforce) {

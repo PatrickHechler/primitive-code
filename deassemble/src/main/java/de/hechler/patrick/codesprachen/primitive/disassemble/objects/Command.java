@@ -5,7 +5,8 @@ import java.util.Arrays;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands.ParamArt;
 import de.hechler.patrick.codesprachen.primitive.disassemble.interfaces.LabelNameGenerator;
-import de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert;
+
+import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.*;
 
 public class Command {
 	
@@ -99,14 +100,14 @@ public class Command {
 		public void add(long val) {
 			final int oldlen = bytes.length;
 			bytes = Arrays.copyOf(bytes, oldlen + 8);
-			Convert.convertLongToByteArr(bytes, oldlen, val);
+			convertLongToByteArr(bytes, oldlen, val);
 		}
 		
 		public void add(long[] vals) {
 			int off = bytes.length;
 			bytes = Arrays.copyOf(bytes, off + (vals.length * 8));
 			for (int i = 0; i < vals.length; i ++ , off += 8) {
-				Convert.convertLongToByteArr(bytes, off, vals[i]);
+				convertLongToByteArr(bytes, off, vals[i]);
 			}
 		}
 		
@@ -122,15 +123,15 @@ public class Command {
 			String hexStr;
 			int off;
 			for (off = 0; off <= bytes.length - 8; off += 8) {
-				hexStr = PrimitiveDisassembler.byteArrToHexString(bytes, off, 8);
+				hexStr = convertByteArrToHexString(bytes, off, 8);
 				build.append(hexStr).append('\n').append("    ");
 			}
 			if (bytes.length - off == 8) {
 				int len = bytes.length - off;
-				build.append(PrimitiveDisassembler.byteArrToHexString("", bytes, off, len, "\n>"));
+				build.append(convertByteArrToHexString("", bytes, off, len, "\n>"));
 			} else {
 				for (; off < bytes.length; off ++ ) {
-					build.append(PrimitiveDisassembler.byteArrToHexString("B-HEX-", bytes, off, 1, "\n>"));
+					build.append(convertByteArrToHexString("B-HEX-", bytes, off, 1, "\n>"));
 				}
 			}
 			return build.toString();
@@ -175,18 +176,18 @@ public class Command {
 			switch (p1.art) {
 			case Param.ART_ANUM:
 			case Param.ART_ANUM_BREG:
-				Convert.convertLongToByteArr(bytes, 8, p1.num);
+				convertLongToByteArr(bytes, 8, p1.num);
 				firstI = 7;
 				retI = 16;
 				break;
 			case Param.ART_ANUM_BNUM:
-				Convert.convertLongToByteArr(bytes, 8, p1.num);
-				Convert.convertLongToByteArr(bytes, 16, p1.off);
+				convertLongToByteArr(bytes, 8, p1.num);
+				convertLongToByteArr(bytes, 16, p1.off);
 				firstI = 7;
 				retI = 24;
 				break;
 			case Param.ART_ANUM_BSR:
-				Convert.convertLongToByteArr(bytes, 8, p1.num);
+				convertLongToByteArr(bytes, 8, p1.num);
 				bytes[7] = (byte) p1.off;
 				firstI = 6;
 				retI = 16;
@@ -199,7 +200,7 @@ public class Command {
 				break;
 			case Param.ART_ASR_BNUM:
 				bytes[7] = (byte) p1.num;
-				Convert.convertLongToByteArr(bytes, 8, p1.off);
+				convertLongToByteArr(bytes, 8, p1.off);
 				firstI = 6;
 				retI = 2;
 				break;
@@ -217,14 +218,14 @@ public class Command {
 				switch (p2.art) {
 				case Param.ART_ANUM:
 				case Param.ART_ANUM_BREG:
-					Convert.convertLongToByteArr(bytes, retI, p2.num);
+					convertLongToByteArr(bytes, retI, p2.num);
 					break;
 				case Param.ART_ANUM_BNUM:
-					Convert.convertLongToByteArr(bytes, retI, p2.num);
-					Convert.convertLongToByteArr(bytes, retI + 8, p2.off);
+					convertLongToByteArr(bytes, retI, p2.num);
+					convertLongToByteArr(bytes, retI + 8, p2.off);
 					break;
 				case Param.ART_ANUM_BSR:
-					Convert.convertLongToByteArr(bytes, retI, p2.num);
+					convertLongToByteArr(bytes, retI, p2.num);
 					bytes[firstI] = (byte) p2.off;
 					break;
 				case Param.ART_ASR:
@@ -233,7 +234,7 @@ public class Command {
 					break;
 				case Param.ART_ASR_BNUM:
 					bytes[firstI] = (byte) p2.num;
-					Convert.convertLongToByteArr(bytes, retI, p2.off);
+					convertLongToByteArr(bytes, retI, p2.off);
 					break;
 				case Param.ART_ASR_BSR:
 					bytes[firstI] = (byte) p2.num;
@@ -246,7 +247,7 @@ public class Command {
 		} else {
 			assert p2 == null;
 			if (cmd.art == ParamArt.label) {
-				Convert.convertLongToByteArr(bytes, 8, relativeLabel);
+				convertLongToByteArr(bytes, 8, relativeLabel);
 			}
 		}
 		return bytes;

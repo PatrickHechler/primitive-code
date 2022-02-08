@@ -18,6 +18,8 @@ import de.hechler.patrick.codesprachen.primitive.disassemble.objects.Command.Con
 import de.hechler.patrick.codesprachen.primitive.disassemble.objects.Param.ParamBuilder;
 import de.hechler.patrick.codesprachen.primitive.disassemble.utils.LongArrayInputStream;
 
+import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.*;
+
 public class PrimitiveDisassembler {
 	
 	private final PrintStream out;
@@ -25,7 +27,7 @@ public class PrimitiveDisassembler {
 	private final DisasmMode mode;
 	
 	public PrimitiveDisassembler(PrintStream out) {
-		this(DisasmMode.analysable, t -> longToHexString("L-", t), out);
+		this(DisasmMode.analysable, t -> convertLongToHexString("L-", t), out);
 	}
 	
 	public PrimitiveDisassembler(LabelNameGenerator lng, PrintStream out) {
@@ -33,7 +35,7 @@ public class PrimitiveDisassembler {
 	}
 	
 	public PrimitiveDisassembler(DisasmMode mode, PrintStream out) {
-		this(mode, mode == DisasmMode.analysable ? t -> longToHexString("L-", t) : LabelNameGenerator.SIMPLE_GEN, out);
+		this(mode, mode == DisasmMode.analysable ? t -> convertLongToHexString("L-", t) : LabelNameGenerator.SIMPLE_GEN, out);
 	}
 	
 	public PrimitiveDisassembler(DisasmMode mode, LabelNameGenerator lng, PrintStream out) {
@@ -94,7 +96,7 @@ public class PrimitiveDisassembler {
 					int off;
 					for (off = 0; off <= cp.length() - 8; off += 8) {
 						cp.get(bytes, 0, off, 8);
-						out.println(longToHexString(prefix, pos, byteArrToHexString(" -> ", bytes, ": unknown")));
+						out.println(convertLongToHexString(prefix, pos, convertByteArrToHexString(" -> ", bytes, ": unknown")));
 						if (first) {
 							first = false;
 							prefix = "   ";
@@ -102,10 +104,10 @@ public class PrimitiveDisassembler {
 						pos += 8;
 					}
 					if (off < cp.length()) {
-						String minus = "----------------";
-						out.println(longToHexString(prefix, pos, " -> "));
 						int len = cp.length() - off;
-						out.println(byteArrToHexString(minus.substring(len * 2), bytes, 0, len, ": unknown"));
+						int strlen = (len * 2) + 4;
+						out.println(convertLongToHexString(prefix, pos,
+								convertByteArrToHexString(" -> ----------------".substring(0, strlen /* - 0 (length = endIndex - beginIndex) */), bytes, 0, len, ": unknown")));
 					}
 					break;
 				}
@@ -125,12 +127,12 @@ public class PrimitiveDisassembler {
 				bytes[0] = (byte) cmd.cmd.num;
 				switch (cmd.cmd.art) {
 				case label: {
-					out.println(longToHexString(pos, byteArrToHexString(" -> ", bytes, ": ")) + cmd.toString(pos));
-					out.println(longToHexString("   ", pos + 8, longToHexString(" -> ", cmd.relativeLabel, " | [relative-label]")));
+					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, ": ")) + cmd.toString(pos));
+					out.println(convertLongToHexString("   ", pos + 8, convertLongToHexString(" -> ", cmd.relativeLabel, " | [relative-label]")));
 					break;
 				}
 				case noParams: {
-					out.println(longToHexString(pos, byteArrToHexString(" -> ", bytes, ": " + cmd.toString())));
+					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, ": " + cmd.toString())));
 					break;
 				}
 				case oneParamAllowConst:
@@ -143,14 +145,14 @@ public class PrimitiveDisassembler {
 					if ( (cmd.p1.art & Param.PARAM_B_SR) == Param.PARAM_B_SR) {
 						bytes[off -- ] = (byte) cmd.p1.off;
 					}
-					out.println(longToHexString(pos, byteArrToHexString(" -> ", bytes, ": " + cmd.toString())));
+					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, ": " + cmd.toString())));
 					long ipos = pos + 8;
 					if ( (cmd.p1.art & Param.PARAM_A_SR) == 0) {
-						out.println(longToHexString("   ", ipos, longToHexString(" -> ", cmd.p1.num, ": | [p-num]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, ": | [p-num]")));
 						ipos += 8;
 					}
 					if ( (cmd.p1.art & Param.PARAM_B_SR) == Param.PARAM_B_NUM) {
-						out.println(longToHexString("   ", ipos, longToHexString(" -> ", cmd.p1.off, ": | [p-offset]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, ": | [p-offset]")));
 					}
 					break;
 				}
@@ -171,23 +173,23 @@ public class PrimitiveDisassembler {
 					if ( (cmd.p2.art & Param.PARAM_B_SR) == Param.PARAM_B_SR) {
 						bytes[off -- ] = (byte) cmd.p2.off;
 					}
-					out.println(longToHexString(pos, byteArrToHexString(" -> ", bytes, ": " + cmd.toString())));
+					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, ": " + cmd.toString())));
 					long ipos = pos;
 					if ( (cmd.p1.art & Param.PARAM_A_SR) == 0) {
 						ipos += 8;
-						out.println(longToHexString("   ", ipos, longToHexString(" -> ", cmd.p1.num, ": | [p1-num]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, ": | [p1-num]")));
 					}
 					if ( (cmd.p1.art & Param.PARAM_B_SR) == Param.PARAM_B_NUM) {
 						ipos += 8;
-						out.println(longToHexString("   ", ipos, longToHexString(" -> ", cmd.p1.off, ": | [p1-offset]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, ": | [p1-offset]")));
 					}
 					if ( (cmd.p2.art & Param.PARAM_A_SR) == 0) {
 						ipos += 8;
-						out.println(longToHexString("   ", ipos, longToHexString(" -> ", cmd.p2.num, ": | [p2-num]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.num, ": | [p2-num]")));
 					}
 					if ( (cmd.p2.art & Param.PARAM_B_SR) == Param.PARAM_B_NUM) {
 						ipos += 8;
-						out.println(longToHexString("   ", ipos, longToHexString(" -> ", cmd.p2.off, ": | [p2-offset]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.off, ": | [p2-offset]")));
 					}
 					break;
 				}
@@ -241,7 +243,7 @@ public class PrimitiveDisassembler {
 						cp = null;
 					}
 					checkedReadBytes(in, bytes);
-					long val = convertLong(bytes);
+					long val = convertByteArrToLong(bytes);
 					command = new Command(cmd, val, lng);
 					labels.add((Long) (pos + command.relativeLabel));
 					break;
@@ -330,20 +332,20 @@ public class PrimitiveDisassembler {
 		case Param.ART_ANUM_BREG:
 		case Param.ART_ANUM:
 			checkedRead(bytes, in);
-			pb.v1 = convertLong(bytes);
+			pb.v1 = convertByteArrToLong(bytes);
 			index = 7;
 			break;
 		case Param.ART_ANUM_BNUM:
 			checkedRead(bytes, in);
-			pb.v1 = convertLong(bytes);
+			pb.v1 = convertByteArrToLong(bytes);
 			checkedRead(bytes, in);
-			pb.v2 = convertLong(bytes);
+			pb.v2 = convertByteArrToLong(bytes);
 			index = 7;
 			break;
 		case Param.ART_ANUM_BSR:
 			pb.v2 = bytes[7];
 			checkedRead(bytes, in);
-			pb.v1 = convertLong(bytes);
+			pb.v1 = convertByteArrToLong(bytes);
 			index = 6;
 			break;
 		case Param.ART_ASR:
@@ -354,7 +356,7 @@ public class PrimitiveDisassembler {
 		case Param.ART_ASR_BNUM:
 			pb.v1 = bytes[7];
 			checkedRead(bytes, in);
-			pb.v2 = convertLong(bytes);
+			pb.v2 = convertByteArrToLong(bytes);
 			index = 6;
 			break;
 		case Param.ART_ASR_BSR:
@@ -375,20 +377,20 @@ public class PrimitiveDisassembler {
 				Param.zeroCheck(orig[i]);
 			}
 			checkedRead(bytes, in);
-			pb.v1 = convertLong(bytes);
+			pb.v1 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ANUM_BNUM:
 			for (int i = 3; i < index; i ++ ) {
 				Param.zeroCheck(orig[i]);
 			}
 			checkedRead(bytes, in);
-			pb.v1 = convertLong(bytes);
+			pb.v1 = convertByteArrToLong(bytes);
 			checkedRead(bytes, in);
-			pb.v2 = convertLong(bytes);
+			pb.v2 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ANUM_BSR:
 			checkedRead(bytes, in);
-			pb.v1 = convertLong(bytes);
+			pb.v1 = convertByteArrToLong(bytes);
 			pb.v2 = orig[index -- ];
 			for (int i = 3; i < index; i ++ ) {
 				Param.zeroCheck(orig[i]);
@@ -404,7 +406,7 @@ public class PrimitiveDisassembler {
 		case Param.ART_ASR_BNUM:
 			pb.v1 = orig[index -- ];
 			checkedRead(bytes, in);
-			pb.v2 = convertLong(bytes);
+			pb.v2 = convertByteArrToLong(bytes);
 			for (int i = 3; i < index; i ++ ) {
 				Param.zeroCheck(orig[i]);
 			}
@@ -446,16 +448,16 @@ public class PrimitiveDisassembler {
 				Param.zeroCheck(bytes[i]);
 			}
 			checkedReadBytes(in, bytes);
-			pb.v1 = convertLong(bytes);
+			pb.v1 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ANUM_BNUM:
 			for (int i = 2; i < 8; i ++ ) {
 				Param.zeroCheck(bytes[i]);
 			}
 			checkedReadBytes(in, bytes);
-			pb.v1 = convertLong(bytes);
+			pb.v1 = convertByteArrToLong(bytes);
 			checkedReadBytes(in, bytes);
-			pb.v2 = convertLong(bytes);
+			pb.v2 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ANUM_BSR:
 			for (int i = 2; i < 7; i ++ ) {
@@ -463,7 +465,7 @@ public class PrimitiveDisassembler {
 			}
 			pb.v2 = bytes[7];
 			checkedReadBytes(in, bytes);
-			pb.v1 = convertLong(bytes);
+			pb.v1 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ASR:
 		case Param.ART_ASR_BREG:
@@ -478,7 +480,7 @@ public class PrimitiveDisassembler {
 			}
 			pb.v1 = bytes[7];
 			checkedReadBytes(in, bytes);
-			pb.v2 = convertLong(bytes);
+			pb.v2 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ASR_BSR:
 			for (int i = 2; i < 6; i ++ ) {
@@ -491,123 +493,6 @@ public class PrimitiveDisassembler {
 			throw new NoCommandException("the command has no valid art");
 		}
 		return new Command(cmd, pb.build());
-	}
-	
-	public static long convertLong(byte[] bytes) {
-		long val;
-		val = 0xFFL & bytes[0];
-		val |= (0xFFL & bytes[1]) << 8;
-		val |= (0xFFL & bytes[2]) << 16;
-		val |= (0xFFL & bytes[3]) << 24;
-		val |= (0xFFL & bytes[4]) << 32;
-		val |= (0xFFL & bytes[5]) << 40;
-		val |= (0xFFL & bytes[6]) << 48;
-		val |= (0xFFL & bytes[7]) << 56;
-		return val;
-	}
-	
-	public static String longToHexString(String postfix, long val, String suffix) {
-		String str = "0000000000000000";
-		String hex = Long.toHexString(val);
-		return postfix + str.substring(hex.length()) + hex + suffix;
-	}
-	
-	public static String byteArrToHexString(String postfix, byte[] bytes, int off, int len, String suffix) {
-		StringBuilder build = new StringBuilder( (len * 2) + postfix.length() + suffix.length());
-		build.append(postfix);
-		String str;
-		for (int i = len; i >= 0; i -- ) {
-			str = Integer.toHexString(bytes[off + i] & 0xFF);
-			if (str.length() == 1) {
-				build.append('0');
-			}
-			build.append(str);
-		}
-		return build.append(suffix).toString();
-	}
-	
-	public static String byteArrToHexString(String postfix, byte[] bytes, String suffix) {
-		StringBuilder build = new StringBuilder(18 + postfix.length() + suffix.length());
-		build.append(postfix);
-		String str;
-		for (int i = bytes.length - 1; i >= 0; i -- ) {
-			str = Integer.toHexString(bytes[i] & 0xFF);
-			if (str.length() == 1) {
-				build.append('0');
-			}
-			build.append(str);
-		}
-		return build.append(suffix).toString();
-	}
-	
-	public static String longToHexString(String postfix, long val) {
-		String str = "0000000000000000";
-		String hex = Long.toHexString(val);
-		return postfix + str.substring(hex.length()) + hex;
-	}
-	
-	public static String byteArrToHexString(String postfix, byte[] bytes) {
-		StringBuilder build = new StringBuilder(18 + postfix.length());
-		build.append(postfix);
-		String str;
-		for (int i = bytes.length - 1; i >= 0; i -- ) {
-			str = Integer.toHexString(bytes[i] & 0xFF);
-			if (str.length() == 1) {
-				build.append('0');
-			}
-			build.append(str);
-		}
-		return build.toString();
-	}
-	
-	public static String longToHexString(long val) {
-		String str = "0000000000000000";
-		String hex = Long.toHexString(val);
-		return str.substring(hex.length()) + hex;
-	}
-	
-	public static String byteArrToHexString(byte[] bytes) {
-		StringBuilder build = new StringBuilder(16);
-		String str;
-		for (int i = bytes.length - 1; i >= 0; i -- ) {
-			str = Integer.toHexString(bytes[i] & 0xFF);
-			if (str.length() == 1) {
-				build.append('0');
-			}
-			build.append(str);
-		}
-		return build.toString();
-	}
-	
-	public static String longToHexString(long val, String suffix) {
-		String str = "0000000000000000";
-		String hex = Long.toHexString(val);
-		return str.substring(hex.length()) + hex + suffix;
-	}
-	
-	public static String byteArrToHexString(byte[] bytes, String suffix) {
-		StringBuilder build = new StringBuilder(16 + suffix.length());
-		String str;
-		for (int i = bytes.length - 1; i >= 0; i -- ) {
-			str = Integer.toHexString(bytes[i] & 0xFF);
-			if (str.length() == 1) {
-				build.append('0');
-			}
-			build.append(str);
-		}
-		return build.append(suffix).toString();
-	}
-	
-	public static String byteArrToHexString(byte[] bytes, int offset, int len) {
-		StringBuilder res = new StringBuilder(len * 2);
-		for (int i = len - 1; i >= 0; i -- ) {
-			String str = Integer.toHexString(0xFF & bytes[offset + i]);
-			if (str.length() == 1) {
-				res.append('0');
-			}
-			res.append(str);
-		}
-		return res.toString();
 	}
 	
 }
