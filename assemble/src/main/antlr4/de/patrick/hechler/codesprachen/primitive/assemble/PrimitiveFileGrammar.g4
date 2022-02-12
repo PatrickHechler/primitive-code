@@ -282,6 +282,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  nummer [long pos, Map<String, Long> constants] returns [long num]
  :
  	(
+ 		DEC_FP_NUM
+ 		{$num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
+
+ 	)
+ 	|
+ 	(
  		HEX_NUM
  		{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
 
@@ -1022,6 +1028,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  DEC_NUM
  :
  	[0-9]+
+ ;
+
+ DEC_FP_NUM
+ :
+ 	'-'? [0-9]* '.' [0-9]*
  ;
 
  OCT_NUM
