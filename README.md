@@ -499,7 +499,9 @@ except for the `--POS--` constant all other constants can be overwritten and rem
         * `AX` contains the STREAM-ID
         * `BX` contains the number of elements to read
         * `CX` points to the elements to read
-        * after execution `BX` will contain the number of elements, which has been read.
+        * after execution `BX` will contain the number of elements, which has been read or -1 if an error occurred.
+		* if `BX` is `0` the end of the stream has reached
+		* reading less bytes than expected does not mead that the stream has reached it's end
     * `15`: close stream
         * `AX` contains the STREAM-ID
         * if the stream was closed successfully `AX` will contain `1`, if not `0`

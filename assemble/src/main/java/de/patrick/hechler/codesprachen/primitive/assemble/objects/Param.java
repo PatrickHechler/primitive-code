@@ -47,7 +47,6 @@ public class Param {
 	
 	/**
 	 * can Build all non Label {@link Param}s.
-	 * 
 	 */
 	public static class ParamBuilder {
 		
@@ -216,11 +215,42 @@ public class Param {
 			return "<INVALID[" + art + "]>";
 		}
 	}
-
+	
 	public static void checkSR(long num) {
-		if ((num & 0xFFFFFFFFFFFFFFFCL) != 0) {
+		if ( (num & 0xFFFFFFFFFFFFFFFCL) != 0) {
 			throw new IllegalStateException("this num is no SR: num=" + num + " AX=0 BX=1 CX=2 DX=3");
 		}
+	}
+	
+	@Override
+	public String toString() {
+		if (label != null) {
+			return '@' + label;
+		}
+		switch (art) {
+		case ART_ANUM:
+			return Long.toString(this.num);
+		case ART_ASR:
+			return toSRString(this.num);
+		case ART_ANUM_BREG:
+			return "[" + Long.toString(this.num) + "]";
+		case ART_ASR_BREG:
+			return "[" + toSRString(this.num) + "]";
+		case ART_ANUM_BNUM:
+			return "[" + Long.toString(this.num) + "+" + Long.toString(this.off) + "]";
+		case ART_ASR_BNUM:
+			return "[" + toSRString(this.num) + "+" + Long.toString(this.off) + "]";
+		case ART_ANUM_BSR:
+			return "[" + Long.toString(this.num) + "+" + toSRString(this.off) + "]";
+		case ART_ASR_BSR:
+			return "[" + toSRString(this.num) + "+" + toSRString(this.off) + "]";
+		default:
+			throw new InternalError("unknown param art: " + art);
+		}
+	}
+	
+	private String toSRString(long sr) {
+		return ((char) (sr + 'A')) + "X";
 	}
 	
 }

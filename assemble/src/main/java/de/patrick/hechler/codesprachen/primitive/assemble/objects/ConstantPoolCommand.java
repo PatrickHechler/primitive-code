@@ -37,4 +37,9 @@ public class ConstantPoolCommand extends Command {
 		return true;
 	}
 	
+	@Override
+	public String toString() {
+		return "ConstantPool[len="+len+"]";
+	}
+	
 }

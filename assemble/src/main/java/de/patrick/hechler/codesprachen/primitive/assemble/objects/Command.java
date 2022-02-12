@@ -65,7 +65,7 @@ public class Command {
 				len = 8;
 				break;
 			default:
-				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
+				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art) + " " + this);
 			}
 			switch (p2.art) {
 			case Param.ART_ANUM_BNUM:
@@ -81,7 +81,7 @@ public class Command {
 			case Param.ART_ASR_BSR:
 				break;
 			default:
-				throw new IllegalStateException("unknown art: " + Param.artToString(p2.art));
+				throw new IllegalStateException("unknown art: " + Param.artToString(p2.art) + " " + this);
 			}
 			return len;
 		case CMD_POP:
@@ -132,15 +132,34 @@ public class Command {
 		case CMD_JMPLE:
 		case CMD_JMPLT:
 		case CMD_JMPNE:
+		case CMD_JMPZS:
+		case CMD_JMPZC:
 			return 16;
 		default:
 			throw new AssertionError("unknown enum constant of my Command: " + cmd.name());
 		}
 	}
-
+	
 	public boolean alignable() {
 		return false;
 	}
-
+	
+	@Override
+	public String toString() {
+		StringBuilder builder = new StringBuilder();
+		builder.append("Cmd[");
+		builder.append(cmd);
+		if (p1 != null) {
+			builder.append(", p1=");
+			builder.append(p1);
+			if (p2 != null) {
+				builder.append(", p2=");
+				builder.append(p2);
+			}
+		}
+		builder.append("]");
+		return builder.toString();
+	}
+	
 }
 

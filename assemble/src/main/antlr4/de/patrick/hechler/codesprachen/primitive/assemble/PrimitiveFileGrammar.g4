@@ -260,7 +260,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  							nummer [pos,constants]
  							{
 								build.art |= ParamBuilder.B_NUM;
-								build.v1 = $nummer.num;
+								build.v2 = $nummer.num;
 							}
 
  						)

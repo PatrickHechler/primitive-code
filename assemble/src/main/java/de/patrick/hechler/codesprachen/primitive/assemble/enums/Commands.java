@@ -36,4 +36,9 @@ public enum Commands {
 		this.num = num;
 	}
 	
+	@Override
+	public String toString() {
+		return name().substring(4);
+	}
+	
 }
