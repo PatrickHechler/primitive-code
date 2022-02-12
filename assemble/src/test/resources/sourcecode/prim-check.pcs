@@ -1,0 +1,65 @@
+|:
+|    AX <- AX
+|    BX <- wurzel(AX)
+|    AX has a natural number wurzel:
+|        CX <- BX * BX
+|    AX has no natural number wurzel:
+|        CX <- (BX + 1) * (BX + 1)
+|:>
+@wurzel
+    MOV BX , 0
+@wurzel-loop
+    MOV CX , BX
+    MUL CX , CX
+    CMP AX , CX
+    JMPEQ return
+    JMPLT wurzel-ret-sub_1
+    INC BX
+    JMP wurzel-loop
+@wurzel-ret-sub_1
+    DEC BX
+@return
+    RET
+|:
+|    AX: potential prim num
+|    if prim:
+|        BX <- -1
+|    if no prim:
+|        BX <- mod 0 number |> does not have to be a prim
+|:>
+@is_prim
+    CALL wurzel
+    CMP AX , CX
+    JMPEQ return |> BX is already set to the mod zero num
+    MOV CX , AX
+    AND CX , 1
+    JMPZS is_prim-check_2
+    MOV CX , AX
+    MOV AX , 16
+    INT #INT-MEMORY-ALLOC
+    CMP AX , -1
+    JMPEQ error
+    MOV CX , BX
+    MOV BX , 3
+    |: [AX]:     DIV
+    |  [AX + 8]: potential-prim
+    |  BX:       check
+    |  CX:       wurzel
+    |  DX:       MOD
+    |:>
+@is_prim-loop
+    MOV [AX], [AX + 8]
+    MOV DX , BX
+    DIV [AX], DX
+    CMP DX , 0
+    JMPEQ return |> BX is already set to the mod zero num
+    INC BX
+    JMP is_prim-loop
+@is_prim-check_2
+    CMP AX , 2
+    JMPEQ is_prim-ret-N1
+    MOV BX , 2
+    RET
+@is_prim-ret-N1
+    MOV BX , -1
+    RET

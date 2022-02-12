@@ -1,12 +1,12 @@
 package de.patrick.hechler.codesprachen.primitive.assemble.objects;
 
-import de.patrick.hechler.codesprachen.primitive.assemble.enums.CompilerDirective;
+import de.patrick.hechler.codesprachen.primitive.assemble.enums.CompilerCommand;
 
-public class CompilerDirectiveCommand extends Command {
+public class CompilerCommandCommand extends Command {
 	
-	public final CompilerDirective directive;
+	public final CompilerCommand directive;
 	
-	public CompilerDirectiveCommand(CompilerDirective directive) {
+	public CompilerCommandCommand(CompilerCommand directive) {
 		super(null, null, null);
 		this.directive = directive;
 	}

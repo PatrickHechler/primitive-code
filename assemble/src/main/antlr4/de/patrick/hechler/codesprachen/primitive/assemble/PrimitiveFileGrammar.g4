@@ -26,49 +26,53 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 	}
  }
 
- parse [long startpos, boolean align] returns
+ parse [long startpos, boolean align, Map<String,Long> constants] returns
  [List<Command> commands, Map<String,Long> labels, long pos] @init {
  	$pos = startpos;
  	$labels = new HashMap<>();
  	$commands = new ArrayList<>();
- 	$commands.add(new CompilerDirectiveCommand(align ? CompilerDirective.align : CompilerDirective.notAlign));
- 	Map<String,Long> constants = new HashMap<>();
-	constants.put("INT-ERRORS-UNKNOWN_COMMAND", (Long) 0L);
-	constants.put("INT-ERRORS-ILLEGAL_INTERRUPT", (Long) 1L);
-	constants.put("INT-ERRORS-ILLEGAL_MEMORY", (Long) 2L);
-	constants.put("INT-ERRORS-ARITHMETIC_ERROR", (Long) 3L);
-	constants.put("INT-EXIT", (Long) 4L);
-	constants.put("INT-MEMORY-ALLOC", (Long) 5L);
-	constants.put("INT-MEMORY-REALLOC", (Long) 6L);
-	constants.put("INT-MEMORY-FREE", (Long) 7L);
-	constants.put("INT-STREAMS-NEW_IN", (Long) 8L);
-	constants.put("INT-STREAMS-NEW_OUT", (Long) 9L);
-	constants.put("INT-STREAMS-NEW_APPEND", (Long) 10L);
-	constants.put("INT_STREAMS-NEW_IN_OUT", (Long) 11L);
-	constants.put("INT-STREAMS-NEW_APPEND_IN_OUT", (Long) 12L);
-	constants.put("INT-STREAMS-WRITE", (Long) 13L);
-	constants.put("INT-STREAMS-READ", (Long) 14L);
-	constants.put("INT-STREAMS-CLOSE_STREAM", (Long) 15L);
-	constants.put("INT-STREAMS-GET_POS", (Long) 16L);
-	constants.put("INT-STREAMS-SET_POS", (Long) 17L);
-	constants.put("INT-STREAMS-SET_POS_TO_END", (Long) 18L);
-	constants.put("INT-STREAMS-REM", (Long) 19L);
-	constants.put("INT-STREAMS-MK_DIR", (Long) 20L);
-	constants.put("INT-STREAMS-REM_DIR", (Long) 21L);
-	constants.put("INT-TIME-GET", (Long) 22L);
-	constants.put("INT-TIME-WAIT", (Long) 23L);
-	constants.put("INT-RANDOM", (Long) 24L);
-	constants.put("INT-SOCKET-CLIENT-CREATE", (Long) 25L);
-	constants.put("INT-SOCKET-CLIENT-CONNECT", (Long) 26L);
-	constants.put("INT-SOCKET-SERVER-CREATE", (Long) 27L);
-	constants.put("INT-SOCKET-SERVER-LISTEN", (Long) 28L);
-	constants.put("INT-SOCKET-SERVER-ACCEPT", (Long) 29L);
-	constants.put("INTERRUPT_COUNT", (Long) 30L);
-	constants.put("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
-	constants.put("MIN-VALUE", (Long) (-0x8000000000000000L));
-	constants.put("STD-IN", (Long) 0L);
-	constants.put("STD-OUT", (Long) 1L);
-	constants.put("STD-LOG", (Long) 2L);
+ 	$commands.add(new CompilerCommandCommand(align ? CompilerCommand.align : CompilerCommand.notAlign));
+	constants.putIfAbsent("INT-ERRORS-UNKNOWN_COMMAND", (Long) 0L);
+	constants.putIfAbsent("INT-ERRORS-ILLEGAL_INTERRUPT", (Long) 1L);
+	constants.putIfAbsent("INT-ERRORS-ILLEGAL_MEMORY", (Long) 2L);
+	constants.putIfAbsent("INT-ERRORS-ARITHMETIC_ERROR", (Long) 3L);
+	constants.putIfAbsent("INT-EXIT", (Long) 4L);
+	constants.putIfAbsent("INT-MEMORY-ALLOC", (Long) 5L);
+	constants.putIfAbsent("INT-MEMORY-REALLOC", (Long) 6L);
+	constants.putIfAbsent("INT-MEMORY-FREE", (Long) 7L);
+	constants.putIfAbsent("INT-STREAMS-NEW_IN", (Long) 8L);
+	constants.putIfAbsent("INT-STREAMS-NEW_OUT", (Long) 9L);
+	constants.putIfAbsent("INT-STREAMS-NEW_APPEND", (Long) 10L);
+	constants.putIfAbsent("INT_STREAMS-NEW_IN_OUT", (Long) 11L);
+	constants.putIfAbsent("INT-STREAMS-NEW_APPEND_IN_OUT", (Long) 12L);
+	constants.putIfAbsent("INT-STREAMS-WRITE", (Long) 13L);
+	constants.putIfAbsent("INT-STREAMS-READ", (Long) 14L);
+	constants.putIfAbsent("INT-STREAMS-CLOSE_STREAM", (Long) 15L);
+	constants.putIfAbsent("INT-STREAMS-GET_POS", (Long) 16L);
+	constants.putIfAbsent("INT-STREAMS-SET_POS", (Long) 17L);
+	constants.putIfAbsent("INT-STREAMS-SET_POS_TO_END", (Long) 18L);
+	constants.putIfAbsent("INT-STREAMS-REM", (Long) 19L);
+	constants.putIfAbsent("INT-STREAMS-MK_DIR", (Long) 20L);
+	constants.putIfAbsent("INT-STREAMS-REM_DIR", (Long) 21L);
+	constants.putIfAbsent("INT-TIME-GET", (Long) 22L);
+	constants.putIfAbsent("INT-TIME-WAIT", (Long) 23L);
+	constants.putIfAbsent("INT-RANDOM", (Long) 24L);
+	constants.putIfAbsent("INT-SOCKET-CLIENT-CREATE", (Long) 25L);
+	constants.putIfAbsent("INT-SOCKET-CLIENT-CONNECT", (Long) 26L);
+	constants.putIfAbsent("INT-SOCKET-SERVER-CREATE", (Long) 27L);
+	constants.putIfAbsent("INT-SOCKET-SERVER-LISTEN", (Long) 28L);
+	constants.putIfAbsent("INT-SOCKET-SERVER-ACCEPT", (Long) 29L);
+	constants.putIfAbsent("INTERRUPT_COUNT", (Long) 30L);
+	constants.putIfAbsent("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
+	constants.putIfAbsent("MIN-VALUE", (Long) (-0x8000000000000000L));
+	constants.putIfAbsent("STD-IN", (Long) 0L);
+	constants.putIfAbsent("STD-OUT", (Long) 1L);
+	constants.putIfAbsent("STD-LOG", (Long) 2L);
+	constants.putIfAbsent("FP-NAN", (Long) 0x7FFE000000000000L);
+	constants.putIfAbsent("FP-MAX-VALUE", (Long) 0x7FEFFFFFFFFFFFFFL);
+	constants.putIfAbsent("FP-MIN-VALUE", (Long) 0x0000000000000001L);
+	constants.putIfAbsent("FP-POS-INFINITY", (Long) 0x7FF0000000000000L);
+	constants.putIfAbsent("FP-NEG-INFINITY", (Long) (-0x7FF0000000000000L));
  }
  :
  	(
@@ -119,7 +123,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			(
  				CD_ALIGN
  				{
-					$commands.add(new CompilerDirectiveCommand(CompilerDirective.align));
+					$commands.add(new CompilerCommandCommand(CompilerCommand.align));
 					align = true;
 				}
 
@@ -128,7 +132,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			(
  				CD_NOT_ALIGN
  				{
-					$commands.add(new CompilerDirectiveCommand(CompilerDirective.notAlign));
+					$commands.add(new CompilerCommandCommand(CompilerCommand.notAlign));
 					align = false;
 				}
 
@@ -628,6 +632,18 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				)
  				|
  				(
+ 					JMPZS
+ 					{cmd = Commands.CMD_JMPZS;}
+
+ 				)
+ 				|
+ 				(
+ 					JMPZC
+ 					{cmd = Commands.CMD_JMPZC;}
+
+ 				)
+ 				|
+ 				(
  					CALL
  					{cmd = Commands.CMD_CALL;}
 
@@ -695,6 +711,16 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  CALL
  :
  	'CALL'
+ ;
+
+ JMPZC
+ :
+ 	'JMPZC'
+ ;
+
+ JMPZS
+ :
+ 	'JMPZS'
  ;
 
  JMPCC

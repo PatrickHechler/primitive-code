@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -49,14 +50,30 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(Reader in) throws IOException {
-		return preassemble(new ANTLRInputStream(in));
+		return preassemble(in, new HashMap <>());
+	}
+	
+	public ParseContext preassemble(InputStream in, Map <String, Long> predefinedConstants) throws IOException {
+		return preassemble(new InputStreamReader(in), predefinedConstants);
+	}
+	
+	public ParseContext preassemble(InputStream in, Charset cs, Map <String, Long> predefinedConstants) throws IOException {
+		return preassemble(new InputStreamReader(in, cs), predefinedConstants);
+	}
+	
+	public ParseContext preassemble(Reader in, Map <String, Long> predefinedConstants) throws IOException {
+		return preassemble(new ANTLRInputStream(in), predefinedConstants);
 	}
 	
 	public ParseContext preassemble(ANTLRInputStream antlrin) throws IOException {
+		return preassemble(antlrin, new HashMap <>());
+	}
+	
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
-		return parser.parse(0L, defaultAlign);
+		return parser.parse(0L, defaultAlign, predefinedConstants);
 	}
 	
 	public void assemble(InputStream in) throws IOException {
@@ -73,6 +90,10 @@ public class PrimitiveAssembler {
 	
 	public void assemble(ANTLRInputStream antlrin) throws IOException {
 		assemble(preassemble(antlrin));
+	}
+	
+	public void assemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException {
+		assemble(preassemble(antlrin, predefinedConstants));
 	}
 	
 	public void assemble(PrimitiveFileGrammarParser.ParseContext parsed) throws IOException {
@@ -164,7 +185,9 @@ public class PrimitiveAssembler {
 				case CMD_JMPGT:
 				case CMD_JMPLE:
 				case CMD_JMPLT:
-				case CMD_JMPNE: {
+				case CMD_JMPNE:
+				case CMD_JMPZS:
+				case CMD_JMPZC: {
 					assert cmd.p1 != null : "I need a first param!";
 					assert cmd.p2 == null : "my command can not have a second param";
 					out.write(bytes, 0, bytes.length);
@@ -194,8 +217,8 @@ public class PrimitiveAssembler {
 					throw new IllegalStateException("unknown command enum: " + cmd.cmd.name());
 				}
 				out.write(bytes, 0, bytes.length);
-			} else if (cmd instanceof CompilerDirectiveCommand) {
-				CompilerDirectiveCommand cdc = (CompilerDirectiveCommand) cmd;
+			} else if (cmd instanceof CompilerCommandCommand) {
+				CompilerCommandCommand cdc = (CompilerCommandCommand) cmd;
 				assert 0 == cdc.length();
 				switch (cdc.directive) {
 				case align:

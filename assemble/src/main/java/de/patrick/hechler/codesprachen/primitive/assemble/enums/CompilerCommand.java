@@ -1,7 +1,7 @@
 package de.patrick.hechler.codesprachen.primitive.assemble.enums;
 
 
-public enum CompilerDirective {
+public enum CompilerCommand {
 	
 	align, notAlign,
 

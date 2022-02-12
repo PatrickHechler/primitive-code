@@ -15,7 +15,8 @@ public enum Commands {
 	
 	
 	CMD_JMP(ParamArt.label, CmdNums.JMP), CMD_JMPEQ(ParamArt.label, CmdNums.JMPEQ), CMD_JMPNE(ParamArt.label, CmdNums.JMPNE), CMD_JMPGT(ParamArt.label, CmdNums.JMPGT),
-	CMD_JMPGE(ParamArt.label, CmdNums.JMPGE), CMD_JMPLT(ParamArt.label, CmdNums.JMPLT), CMD_JMPLE(ParamArt.label, CmdNums.JMPLE), CMD_JMPCS(ParamArt.label, CmdNums.JMPCS), CMD_JMPCC(ParamArt.label, CmdNums.JMPCC),
+	CMD_JMPGE(ParamArt.label, CmdNums.JMPGE), CMD_JMPLT(ParamArt.label, CmdNums.JMPLT), CMD_JMPLE(ParamArt.label, CmdNums.JMPLE),
+	CMD_JMPCS(ParamArt.label, CmdNums.JMPCS), CMD_JMPCC(ParamArt.label, CmdNums.JMPCC), CMD_JMPZS(ParamArt.label, CmdNums.JMPZS), CMD_JMPZC(ParamArt.label, CmdNums.JMPZC),
 	
 	CMD_CALL(ParamArt.label, CmdNums.CALL),
 	
@@ -196,6 +197,8 @@ public enum Commands {
 		private static final int JMPLE = 0x16;
 		private static final int JMPCS = 0x17;
 		private static final int JMPCC = 0x18;
+		private static final int JMPZS = 0x19;
+		private static final int JMPZC = 0x1A;
 		private static final int CALL = 0x20;
 		private static final int CMP = 0x21;
 		private static final int RET = 0x22;

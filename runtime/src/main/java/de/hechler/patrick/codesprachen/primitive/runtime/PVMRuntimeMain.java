@@ -151,7 +151,7 @@ public class PVMRuntimeMain {
 					try {
 						pvmp = Runtime.getRuntime().exec(args2);
 					} catch (IOException e2) {
-						throw e1;
+						e1.addSuppressed(e2); throw e1;
 					}
 				}
 				try {
@@ -159,8 +159,6 @@ public class PVMRuntimeMain {
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
-				final Process _pvmp = pvmp;
-				Runtime.getRuntime().addShutdownHook(new Thread(() -> PVMDebugger.kill(_pvmp, false)));
 				debug = new PVMDebugger(new Scanner(System.in), System.out, new PVMDebugingComunicator(pvmp, new Socket("localhost", port)), pvmp);
 			} catch (IOException e) {
 				if (pvmp != null) {

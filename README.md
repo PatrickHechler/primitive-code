@@ -1,23 +1,24 @@
 # primitive-code
-a register based coding language with primitive operations
 
-this is the assembler for the Primitive-Virtual-Machine
+a register based assembler language
+
+this is the assembler-language for the Primitive-Virtual-Machine
 
 ## Start
 
 * A primitive-assembler-code file can be assembled to a primitive-machine-code file.
 * A primitive-machine-code file can be executed with a primitive-virtual-machine.
-    * the `AX` register will contain the number of arguments
+    * the `AX` register will be set to the number of arguments
     * the `BX` register will point to the arguments
     * the arguments will point to STRINGs
         * the first argument will be the program itself, all beyond will be the arguments of the program
         * example:
             * `my_program.pmc --example    value --other=val`
             * `AX          <- 4`
-            * `[[BX]]      <- "my_program.pmc\0"`
-            * `[[BX + 8]]  <- "--example\0"`
-            * `[[BX + 16]] <- "value\0"`
-            * `[[BX + 24]] <- "--other=val\0"`
+            * `[BX]        <- ADDRESS_OF "my_program.pmc\0"`
+            * `[BX + 8]    <- ADDRESS_OF "--example\0"`
+            * `[BX + 16]   <- ADDRESS_OF "value\0"`
+            * `[BX + 24]   <- ADDRESS_OF "--other=val\0"`
     * the `INTCNT` register will be set to `#INTERRUPT_COUNT`
     * the interrupt-table of `INTP` will be initialized and every entry will be set to `-1`
         * so by default the default interrupts will be called, but they can be easily overwritten
@@ -34,12 +35,13 @@ this is the assembler for the Primitive-Virtual-Machine
     * `STATUS`
         * `64-bit`
         * saves some results of operations
-        * `HEX-0000000000000001` : `LOWER`: if on the las `CMP A, B` A was lower than B
-        * `HEX-0000000000000002` : `GREATHER`: if on the las `CMP A, B` A was greater than B
+        * `HEX-0000000000000001` : `LOWER`: if on the last `CMP A, B` A was lower than B
+        * `HEX-0000000000000002` : `GREATHER`: if on the last `CMP A, B` A was greater than B
         * `HEX-0000000000000004` : `CARRY`: if an overflow was detected
+        * `HEX-0000000000000008` : `ZERO`: if the last arithmetic or logical operation leaded to zero (`HEX-0000000000000000`)
     * `INTCNT`
         * `64-bit`
-        * saves the number of allowed interrupts (`0..(INTCNT-1)` are allowed
+        * saves the number of allowed interrupts (`0..(INTCNT-1)` are allowed)
             * all other will call the `INT-ERRORS_ILLEGAL_INTERRUPT` interrupt
     * `INTP`
         * `64-bit`
@@ -48,50 +50,7 @@ this is the assembler for the Primitive-Virtual-Machine
 ## CONSTANTS:
 
 except for the `--POS--` constant all other constants can be overwritten and removed
-
-* `--POS--` :                           the position from the begin of the next command
-* `#INT-ERRORS-UNKNOWN_COMMAND`         0
-* `#INT-ERRORS_ILLEGAL_INTERRUPT`       1
-* `#INT-ERRORS_ILLEGAL_MEMORY`          2
-* `#INT-ERRORS_ARITHMETIC_ERROR`        3
-* `#INT-EXIT`                           4
-* `#INT-MEMORY-ALLOC`                   5
-* `#INT-MEMORY-REALLOC`                 6
-* `#INT-MEMORY-FREE`                    7
-* `#INT-STREAMS-NEW_IN`                 8
-* `#INT-STREAMS-NEW_OUT`                9
-* `#INT-STREAMS-NEW_APPEND`             10
-* `#INT_STREAMS-NEW_IN_OUT`             11
-* `#INT-STREAMS-NEW_APPEND_IN_OUT       12
-* `#INT-STREAMS-WRITE`                  13
-* `#INT-STREAMS-READ`                   14
-* `#INT-STREAMS-CLOSE_STREAM`           15
-* `#INT-STREAMS-GET_POS`                16
-* `#INT-STREAMS-SET_POS`                17
-* `#INT-STREAMS-SET_POS_TO_END`         18
-* `#INT-STREAMS-REM`                    19
-* `#INT-STREAMS-MK_DIR`                 20
-* `#INT-STREAMS-REM_DIR`                21
-* `#INT-TIME-GET`                       22
-* `#INT-TIME-WAIT`                      23
-* `#INT-RANDOM`                         24
-* `#INT-SOCKET-CLIENT-CREATE`           25
-* `#INT-SOCKET-CLIENT-CONNECT`          26
-* `#INT-SOCKET-SERVER-CREATE`           27
-* `#INT-SOCKET-SERVER-LISTEN`           28
-* `#INT-SOCKET-SERVER-ACCEPT`           29
-* `#INTERRUPT_COUNT`                    30
-* `#MAX-VALUE` :                    HEX-7FFFFFFFFFFFFFFF
-* `#MIN-VALUE` :                   NHEX-8000000000000000
-* `#STD-IN` :                            0
-* `#STD-OUT` :                           1
-* `#STD-LOG` :                           2
-
-## STATUS:
-* the status register has some flags which are initialized with random values
-    * `LOWER`
-    * `GREATHER`
-    * `CARRY`
+<pre><ui><li><code>--POS-- :                           </code>the position from the begin of the next command</li><li><code>#INT-ERRORS-UNKNOWN_COMMAND :       0</code></li><li><code>#INT-ERRORS-ILLEGAL_INTERRUPT :     1</code></li><li><code>#INT-ERRORS-ILLEGAL_MEMORY :        2</code></li><li><code>#INT-ERRORS-ARITHMETIC_ERROR :      3</code></li><li><code>#INT-EXIT :                         4</code></li><li><code>#INT-MEMORY-ALLOC :                 5</code></li><li><code>#INT-MEMORY-REALLOC :               6</code></li><li><code>#INT-MEMORY-FREE :                  7</code></li><li><code>#INT-STREAMS-NEW_IN :               8</code></li><li><code>#INT-STREAMS-NEW_OUT :              9</code></li><li><code>#INT-STREAMS-NEW_APPEND :           10</code></li><li><code>#INT_STREAMS-NEW_IN_OUT :           11</code></li><li><code>#INT-STREAMS-NEW_APPEND_IN_OUT :    12</code></li><li><code>#INT-STREAMS-WRITE :                13</code></li><li><code>#INT-STREAMS-READ :                 14</code></li><li><code>#INT-STREAMS-CLOSE_STREAM :         15</code></li><li><code>#INT-STREAMS-GET_POS :              16</code></li><li><code>#INT-STREAMS-SET_POS :              17</code></li><li><code>#INT-STREAMS-SET_POS_TO_END :       18</code></li><li><code>#INT-STREAMS-REM :                  19</code></li><li><code>#INT-STREAMS-MK_DIR :               20</code></li><li><code>#INT-STREAMS-REM_DIR :              21</code></li><li><code>#INT-TIME-GET :                     22</code></li><li><code>#INT-TIME-WAIT :                    23</code></li><li><code>#INT-RANDOM :                       24</code></li><li><code>#INT-SOCKET-CLIENT-CREATE :         25</code></li><li><code>#INT-SOCKET-CLIENT-CONNECT :        26</code></li><li><code>#INT-SOCKET-SERVER-CREATE :         27</code></li><li><code>#INT-SOCKET-SERVER-LISTEN :         28</code></li><li><code>#INT-SOCKET-SERVER-ACCEPT :         29</code></li><li><code>#INTERRUPT_COUNT :                  30</code></li><li><code>#MAX-VALUE :                    HEX-7FFFFFFFFFFFFFFF</code></li><li><code>#MIN-VALUE :                   NHEX-8000000000000000</code></li><li><code>#STD-IN :                           0</code></li><li><code>#STD-OUT :                          1</code></li><li><code>#STD-LOG :                          2</code></li><li><code>#FP-NAN :                       HEX-7FFE000000000000</code></li><li><code>#FP-MAX-VALUE :                 HEX-7FEFFFFFFFFFFFFF</code></li><li><code>#FP-MIN-VALUE :                 HEX-0000000000000001</code></li><li><code>#FP-POS-INFINITY :              HEX-7FF0000000000000</code></li><li><code>#FP-NEG-INFINITY :             NHEX-7FF0000000000000</code></li></ui></pre>
 
 ## STRINGS:
 * if any command, function or whatever of primitive-code refers to STRING(s) this definition is used
@@ -109,125 +68,212 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * adds the values of both parameters and stores the sum in the first parameter
     * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR <- 1`
     * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR <- 0`
     * `p1 <- p1 + p2`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `ADDC <NO_CONST_PARAM> , <PARAM>`
 * adds the values of both parameters and the carry flag and stores the sum in the first parameter
     * `if ((p1 > 0) & ((p2 + CARRY) > 0) & ((p1 + p2 + CARRY) < 0)) | ((p1 < 0) & ((p2 + CARRY) < 0) & ((p1 + (p2 + CARRY)) > 0))`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR <- 1`
     * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR <- 0`
     * `p1 <- p1 + (p2 + CARRY)`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
+
+`ADDFP <NO_CONST_PARAM> , <PARAM>`
+* adds the floating point values of both parameters and stores the floating point sum in the first parameter
+    * `if ((p1 > 0.0) & (p2 > 0.0) & ((p1 + p2) < 0.0)) | ((p1 < 0.0) & (p2 < 0.0) & ((p1 + p2) > 0.0))`
+        * `CARRY <- 1`
+    * `else`
+        * `CARRY <- 0`
+    * `p1 <- p1 fp-add p2`
+	* `if p1 = 0.0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `SUB <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second parameter from the first parameter and stores the result in the first parameter
     * `if ((p1 > 0) & (p2 < 0) & ((p1 - p2) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - p2) > 0))`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR <- 1`
     * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR <- 0`
     * `p1 <- p1 - p2`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `SUBC <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second parameter with the carry flag from the first parameter and stores the result in the first parameter
     * `if (p1 > 0) & ((p2 + CARRY) < 0) & ((p1 - (p2 + CARRY)) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - (p2 + CARRY)) > 0))`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR <- 1`
     * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR <- 0`
     * `p1 <- p1 - (p2 + CARRY)`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
+
+`SUBFP <NO_CONST_PARAM> , <PARAM>`
+* subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
+    * `if ((p1 > 0) & (p2 < 0) & ((p1 fp-sub p2) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 fp-sub p2) > 0))`
+        * `CARRY <- 1`
+    * `else`
+        * `CARRY <- 0`
+    * `p1 <- p1 fp-sub p2`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `MUL <NO_CONST_PARAM> , <PARAM>`
 * multiplies the first parameter with the second and stores the result in the first parameter
-    * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
+    * `if (((p1 > 0) & (p2 > 0) | (p1 < 0) & (p2 < 0)) & ((p1 * p2) < 0)) | (((p1 > 0) & (p2 < 0) | (p1 < 0) & (p2 > 0)) & ((p1 * p2) > 0))`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR <- 1`
     * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR <- 0`
     * `p1 <- p1 * p2`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
+
+`MULFP <NO_CONST_PARAM> , <PARAM>`
+* multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
+    * `if (((p1 > 0.0) & (p2 > 0.0) | (p1 < 0.0) & (p2 < 0.0)) & ((p1 fp-mul p2) < 0.0)) | (((p1 > 0.0) & (p2 < 0.0) | (p1 < 0.0) & (p2 > 0.0)) & ((p1 fp-mul p2) > 0.0))`
+        * `CARRY <- 1`
+    * `else`
+        * `CARRY <- 0`
+    * `p1 <- p1 fp-mul p2`
+	* `if p1 = 0.0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `DIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
 * divides the first parameter with the second and stores the result in the first parameter and the reminder in the second parameter
-    * `if p2 = 0`
-        * `ARITMETHIC_ERR <- 1`
-    * `else`
-        * `ARITMETHIC_ERR <- 0`
-        * `p1 <- p1 / p2`
-        * `p2 <- p1 % p2`
+	* `p1 <- p1 / p2`
+	* `p2 <- p1 mod p2`
+    * `IP <- IP + CMD_LEN`
+
+`DIVFP <NO_CONST_PARAM> , <PARAM>`
+* divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
+    * `p1 <- p1 fp-div p2`
+	* `if p1 = 0.0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `AND <NO_CONST_PARAM> , <PARAM>`
 * uses the logical AND operator with the first and the second parameter and stores the result in the first parameter
     * `p1 <- p1 & p2`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `OR <NO_CONST_PARAM> , <PARAM>`
 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
     * `p1 <- p1 | p2`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `XOR <NO_CONST_PARAM> , <PARAM>`
 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
     * `p1 <- p1 ^ p2`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `LSH <NO_CONST_PARAM>`
 * shifts bits of the parameter logically left
 * this effectively multiplies the parameter with two
-    * `if p1 = HEX-8000000000000000`
+    * `if (p1 | NHEX-8000000000000000) = p1`
         * `CARRY <- 1`
     * `else`
         * `CARRY <- 0`
     * `p1 <- p1 * 2`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `RLSH <NO_CONST_PARAM>`
 * shifts bits of the parameter logically right
-    * `if p1 = HEX-0000000000000001`
+    * `if (p1 | HEX-0000000000000001) = p1`
         * `CARRY <- 1`
     * `else`
         * `CARRY <- 0`
     * `p1 <- p1 >> 1`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `RASH <NO_CONST_PARAM>`
 * shifts bits of the parameter arithmetic right
 * this effectively divides the parameter with two
-    * `if p1 = HEX-0000000000000001`
+    * `if (p1 | HEX-0000000000000001) = p1`
         * `CARRY <- 1`
     * `else`
         * `CARRY <- 0`
     * `p1 <- p1 / 2`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `NOT <NO_CONST_PARAM>`
 * uses the logical NOT operator with every bit of the parameter and stores the result in the parameter
 * this instruction works like `XOR p1, -1` 
     * `p1 <- ~ p1`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `NEG <NO_CONST_PARAM>`
 * uses the arithmetic negation operation with the parameter and stores the result in the parameter 
 * this instruction works like `MUL p1, -1`
     * `if p1 = #MIN-VALUE`
-        * `ARITMETHIC_ERR <- 1`
+        * `CARRY <- 1`
+		* `ZERO <- 0`
     * `else`
-        * `ARITMETHIC_ERR <- 0`
+        * `CARRY <- 0`
         * `p1 <- 0 - p1`
+		* `if p1 = 0`
+			* `ZERO <- 1`
+		* `else`
+			* `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
 `JMP <LABEL>`
@@ -291,9 +337,25 @@ except for the `--POS--` constant all other constants can be overwritten and rem
         * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
-`JMPCS <LABEL>`
+`JMPCC <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last carry flag is cleared
     * `if ! CARRY`
+        * `IP <- IP - --POS-- + LABEL`
+    * `else`
+        * `IP <- IP + CMD_LEN`
+    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
+
+`JMPZS <LABEL>`
+* sets the instruction pointer to position of the command after the label if the last zero flag is set
+    * `if ZERO`
+        * `IP <- IP - --POS-- + LABEL`
+    * `else`
+        * `IP <- IP + CMD_LEN`
+    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
+
+`JMPZC <LABEL>`
+* sets the instruction pointer to position of the command after the label if the last zero flag is cleared
+    * `if ! ZERO`
         * `IP <- IP - --POS-- + LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
@@ -326,28 +388,35 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 
 `IRET`
 * returns from an interrupt
-    * `IP <- CX
-    * `AX <- [DX]`
-    * `BX <- [DX + 8]`
-    * `CX <- [DX + 16]`
-    * `DX <- [DX + 24]`
+    * `STATUS <- BX`
+    * `IP     <- CX`
+    * `AX     <- [DX]`
+    * `BX     <- [DX + 8]`
+    * `CX     <- [DX + 16]`
+    * `DX     <- [DX + 24]`
     * `FREE DX`
         * this does not call the interrupt, which is used to free allocated memory, but is compatible to the interrupt, which is used for allocating memory
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-    * `[MEM-ALLOC{size=32, TARGET=DX} + 24] <- DX`
-        * allocate memory and save the `DX` register in the new allocated memory-block
-        * this does not call the interrupt, which is used to allocate memory, but is compatible to the interrupt, which is used to free allocated memory
-        * then let the `DX` point to the new allocated memory-block
-            * but save the old value of the `DX` register in the new memory-block (+ 24)
+    * `ZW <- MEM-ALLOC{size=32}`
+    * `[ZW + 24] <- DX`
+    * `DX <- ZW`
     * `[DX + 16] <- CX`
     * `[DX + 8]  <- BX`
     * `[DX]      <- AX`
     * `CX        <- IP + CMD_LEN`
-        * if the interrupt is automatically called, `CX` is set to the `IP` (`CX <- IP`)
-            * so the program can retry its operation
-            * (for example because of a division with zero or an illegal memory access)
+    * `BX        <- STATUS`
+        * if the interrupt is automatically called:
+            * `CX` is set to the `IP` (`CX <- IP`)
+                * so the program does not think the operation succeeded
+                * (for example because of a division with zero or an illegal memory access)
+            * the registers are saved before the 'params' were set
+                * so after the `IRET` the program has its original state
+                * interrupts with more than one 'param' are not called automatically
+                    * error interrupts can be called automatically (from `0` to `3` (both inclusive))
+                    * the exit interrupt´can be called automatically (when an default error interrupt is called) (`4`)
+                        * if automatically called the return value 'param' is never `0`
     * `IP <- [INTS + (PARAM * 8)]`
 * an interrupt can be overwritten:
     * with `GET_INTS` the interrupt-table can be received
@@ -527,23 +596,25 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `p <- SP`
     * `IP <- IP + CMD_LEN`
 
-* `INC <NO_CONST_PARAM>`
+`INC <NO_CONST_PARAM>`
+* increments the param by one
     * `if p = MAX-VALUE`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR <- 1`
+        * `ZERO <- 1`
     * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR <- 0`
+        * `ZERO <- 0`
     * `p <- p + 1`
     * `IP <- IP + CMD_LEN`
 
-* `DEC <NO_CONST_PARAM>`
+`DEC <NO_CONST_PARAM>`
+* decrements the param by one
     * `if p = MIN-VALUE`
         * `CARRY <- 1`
-        * `ARITMETHIC_ERR <- 1`
+        * `ZERO <- 1`
     * `else`
         * `CARRY <- 0`
-        * `ARITMETHIC_ERR <- 0`
+        * `ZREO <- 0`
     * `p <- p - 1`
     * `IP <- IP + CMD_LEN`
 
