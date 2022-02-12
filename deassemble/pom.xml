@@ -6,7 +6,7 @@
 
 	<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
 	<artifactId>disassemble</artifactId>
-	<version>3.1.2</version>
+	<version>3.2.0</version>
 	<packaging>jar</packaging>
 
 	<properties>
