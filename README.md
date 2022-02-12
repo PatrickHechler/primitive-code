@@ -1,6 +1,6 @@
 # primitive-code
 
-a register based assembler language 
+a register based assembler language
 
 this is the assembler-language for the Primitive-Virtual-Machine
 
@@ -14,11 +14,11 @@ this is the assembler-language for the Primitive-Virtual-Machine
         * the first argument will be the program itself, all beyond will be the arguments of the program
         * example:
             * `my_program.pmc --example    value --other=val`
-            * `AX          &lt;- 4`
-            * `[BX]        &lt;- ADDRESS_OF "my_program.pmc\0"`
-            * `[BX + 8]    &lt;- ADDRESS_OF "--example\0"`
-            * `[BX + 16]   &lt;- ADDRESS_OF "value\0"`
-            * `[BX + 24]   &lt;- ADDRESS_OF "--other=val\0"`
+            * `AX          <- 4`
+            * `[BX]        <- ADDRESS_OF "my_program.pmc\0"`
+            * `[BX + 8]    <- ADDRESS_OF "--example\0"`
+            * `[BX + 16]   <- ADDRESS_OF "value\0"`
+            * `[BX + 24]   <- ADDRESS_OF "--other=val\0"`
     * the `INTCNT` register will be set to `#INTERRUPT_COUNT`
     * the interrupt-table of `INTP` will be initialized and every entry will be set to `-1`
         * so by default the default interrupts will be called, but they can be easily overwritten
@@ -61,354 +61,354 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 
 `MOV <NO_CONST_PARAM> , <PARAM>`
 * copies the value of the second parameter to the first parameter
-    * `p1 &lt;- p2`
-    * `IP &lt;- IP + CMD_LEN`
+    * `p1 <- p2`
+    * `IP <- IP + CMD_LEN`
 
 `ADD <NO_CONST_PARAM> , <PARAM>`
 * adds the values of both parameters and stores the sum in the first parameter
-    * `if ((p1 &gt; 0) & (p2 &gt; 0) & ((p1 + p2) &lt; 0)) | ((p1 &lt; 0) & (p2 &lt; 0) & ((p1 + p2) &gt; 0))`
-        * `CARRY &lt;- 1`
+    * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 + p2`
+        * `CARRY <- 0`
+    * `p1 <- p1 + p2`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `ADDC <NO_CONST_PARAM> , <PARAM>`
 * adds the values of both parameters and the carry flag and stores the sum in the first parameter
-    * `if ((p1 &gt; 0) & ((p2 + CARRY) &gt; 0) & ((p1 + p2 + CARRY) &lt; 0)) | ((p1 &lt; 0) & ((p2 + CARRY) &lt; 0) & ((p1 + (p2 + CARRY)) &gt; 0))`
-        * `CARRY &lt;- 1`
+    * `if ((p1 > 0) & ((p2 + CARRY) > 0) & ((p1 + p2 + CARRY) < 0)) | ((p1 < 0) & ((p2 + CARRY) < 0) & ((p1 + (p2 + CARRY)) > 0))`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 + (p2 + CARRY)`
+        * `CARRY <- 0`
+    * `p1 <- p1 + (p2 + CARRY)`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `ADDFP <NO_CONST_PARAM> , <PARAM>`
 * adds the floating point values of both parameters and stores the floating point sum in the first parameter
-    * `if ((p1 &gt; 0.0) & (p2 &gt; 0.0) & ((p1 + p2) &lt; 0.0)) | ((p1 &lt; 0.0) & (p2 &lt; 0.0) & ((p1 + p2) &gt; 0.0))`
-        * `CARRY &lt;- 1`
+    * `if ((p1 > 0.0) & (p2 > 0.0) & ((p1 + p2) < 0.0)) | ((p1 < 0.0) & (p2 < 0.0) & ((p1 + p2) > 0.0))`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 fp-add p2`
+        * `CARRY <- 0`
+    * `p1 <- p1 fp-add p2`
 	* `if p1 = 0.0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `SUB <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second parameter from the first parameter and stores the result in the first parameter
-    * `if ((p1 &gt; 0) & (p2 &lt; 0) & ((p1 - p2) &lt; 0)) | ((p1 &lt; 0) & (p2 &gt; 0) & ((p1 - p2) &gt; 0))`
-        * `CARRY &lt;- 1`
+    * `if ((p1 > 0) & (p2 < 0) & ((p1 - p2) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - p2) > 0))`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 - p2`
+        * `CARRY <- 0`
+    * `p1 <- p1 - p2`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `SUBC <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second parameter with the carry flag from the first parameter and stores the result in the first parameter
-    * `if (p1 &gt; 0) & ((p2 + CARRY) &lt; 0) & ((p1 - (p2 + CARRY)) &lt; 0)) | ((p1 &lt; 0) & (p2 &gt; 0) & ((p1 - (p2 + CARRY)) &gt; 0))`
-        * `CARRY &lt;- 1`
+    * `if (p1 > 0) & ((p2 + CARRY) < 0) & ((p1 - (p2 + CARRY)) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - (p2 + CARRY)) > 0))`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 - (p2 + CARRY)`
+        * `CARRY <- 0`
+    * `p1 <- p1 - (p2 + CARRY)`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `SUBFP <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
-    * `if ((p1 &gt; 0) & (p2 &lt; 0) & ((p1 fp-sub p2) &lt; 0)) | ((p1 &lt; 0) & (p2 &gt; 0) & ((p1 fp-sub p2) &gt; 0))`
-        * `CARRY &lt;- 1`
+    * `if ((p1 > 0) & (p2 < 0) & ((p1 fp-sub p2) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 fp-sub p2) > 0))`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 fp-sub p2`
+        * `CARRY <- 0`
+    * `p1 <- p1 fp-sub p2`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `MUL <NO_CONST_PARAM> , <PARAM>`
 * multiplies the first parameter with the second and stores the result in the first parameter
-    * `if (((p1 &gt; 0) & (p2 &gt; 0) | (p1 &lt; 0) & (p2 &lt; 0)) & ((p1 * p2) &lt; 0)) | (((p1 &gt; 0) & (p2 &lt; 0) | (p1 &lt; 0) & (p2 &gt; 0)) & ((p1 * p2) &gt; 0))`
-        * `CARRY &lt;- 1`
+    * `if (((p1 > 0) & (p2 > 0) | (p1 < 0) & (p2 < 0)) & ((p1 * p2) < 0)) | (((p1 > 0) & (p2 < 0) | (p1 < 0) & (p2 > 0)) & ((p1 * p2) > 0))`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 * p2`
+        * `CARRY <- 0`
+    * `p1 <- p1 * p2`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `MULFP <NO_CONST_PARAM> , <PARAM>`
 * multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
-    * `if (((p1 &gt; 0.0) & (p2 &gt; 0.0) | (p1 &lt; 0.0) & (p2 &lt; 0.0)) & ((p1 fp-mul p2) &lt; 0.0)) | (((p1 &gt; 0.0) & (p2 &lt; 0.0) | (p1 &lt; 0.0) & (p2 &gt; 0.0)) & ((p1 fp-mul p2) &gt; 0.0))`
-        * `CARRY &lt;- 1`
+    * `if (((p1 > 0.0) & (p2 > 0.0) | (p1 < 0.0) & (p2 < 0.0)) & ((p1 fp-mul p2) < 0.0)) | (((p1 > 0.0) & (p2 < 0.0) | (p1 < 0.0) & (p2 > 0.0)) & ((p1 fp-mul p2) > 0.0))`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 fp-mul p2`
+        * `CARRY <- 0`
+    * `p1 <- p1 fp-mul p2`
 	* `if p1 = 0.0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `DIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
 * divides the first parameter with the second and stores the result in the first parameter and the reminder in the second parameter
-	* `p1 &lt;- p1 / p2`
-	* `p2 &lt;- p1 mod p2`
-    * `IP &lt;- IP + CMD_LEN`
+	* `p1 <- p1 / p2`
+	* `p2 <- p1 mod p2`
+    * `IP <- IP + CMD_LEN`
 
 `DIVFP <NO_CONST_PARAM> , <PARAM>`
 * divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
-    * `p1 &lt;- p1 fp-div p2`
+    * `p1 <- p1 fp-div p2`
 	* `if p1 = 0.0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `AND <NO_CONST_PARAM> , <PARAM>`
 * uses the logical AND operator with the first and the second parameter and stores the result in the first parameter
-    * `p1 &lt;- p1 & p2`
+    * `p1 <- p1 & p2`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `OR <NO_CONST_PARAM> , <PARAM>`
 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
-    * `p1 &lt;- p1 | p2`
+    * `p1 <- p1 | p2`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `XOR <NO_CONST_PARAM> , <PARAM>`
 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
-    * `p1 &lt;- p1 ^ p2`
+    * `p1 <- p1 ^ p2`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `LSH <NO_CONST_PARAM>`
 * shifts bits of the parameter logically left
 * this effectively multiplies the parameter with two
     * `if (p1 | NHEX-8000000000000000) = p1`
-        * `CARRY &lt;- 1`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 * 2`
+        * `CARRY <- 0`
+    * `p1 <- p1 * 2`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `RLSH <NO_CONST_PARAM>`
 * shifts bits of the parameter logically right
     * `if (p1 | HEX-0000000000000001) = p1`
-        * `CARRY &lt;- 1`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 >> 1`
+        * `CARRY <- 0`
+    * `p1 <- p1 >> 1`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `RASH <NO_CONST_PARAM>`
 * shifts bits of the parameter arithmetic right
 * this effectively divides the parameter with two
     * `if (p1 | HEX-0000000000000001) = p1`
-        * `CARRY &lt;- 1`
+        * `CARRY <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-    * `p1 &lt;- p1 / 2`
+        * `CARRY <- 0`
+    * `p1 <- p1 / 2`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `NOT <NO_CONST_PARAM>`
 * uses the logical NOT operator with every bit of the parameter and stores the result in the parameter
 * this instruction works like `XOR p1, -1` 
-    * `p1 &lt;- ~ p1`
+    * `p1 <- ~ p1`
 	* `if p1 = 0`
-        * `ZERO &lt;- 1`
+        * `ZERO <- 1`
 	* `else`
-        * `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `NEG <NO_CONST_PARAM>`
 * uses the arithmetic negation operation with the parameter and stores the result in the parameter 
 * this instruction works like `MUL p1, -1`
     * `if p1 = #MIN-VALUE`
-        * `CARRY &lt;- 1`
-		* `ZERO &lt;- 0`
+        * `CARRY <- 1`
+		* `ZERO <- 0`
     * `else`
-        * `CARRY &lt;- 0`
-        * `p1 &lt;- 0 - p1`
+        * `CARRY <- 0`
+        * `p1 <- 0 - p1`
 		* `if p1 = 0`
-			* `ZERO &lt;- 1`
+			* `ZERO <- 1`
 		* `else`
-			* `ZERO &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+			* `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `JMP <LABEL>`
 * sets the instruction pointer to position of the command after the label
-    * `IP &lt;- IP - --POS-- + LABEL`
+    * `IP <- IP - --POS-- + LABEL`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `JMPEQ <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare operation compared two equal values
     * `if ( ! GREATHER) & ( ! LOWER)`
-        * `IP &lt;- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
-        * `IP &lt;- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `JMPNE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare operation compared two different values
     * `if GREATHER | LOWER`
-        * `IP &lt;- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
-        * `IP &lt;- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `JMPGT <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was greater
     * `if GREATHER`
-        * `IP &lt;- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
-        * `IP &lt;- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `JMPGE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not lower
     * `if ! LOWER`
-        * `IP &lt;- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
-        * `IP &lt;- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `JMPLT <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was lower
     * `if LOWER`
-        * `IP &lt;- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
-        * `IP &lt;- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `JMPLE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
     * `if ! GREATHER`
-        * `IP &lt;- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
-        * `IP &lt;- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `JMPCS <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last carry flag is set
     * `if CARRY`
-        * `IP &lt;- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
-        * `IP &lt;- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `JMPCC <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last carry flag is cleared
     * `if ! CARRY`
-        * `IP &lt;- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
-        * `IP &lt;- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `JMPZS <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last zero flag is set
     * `if ZERO`
-        * `IP &lt;- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
-        * `IP &lt;- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `JMPZC <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last zero flag is cleared
     * `if ! ZERO`
-        * `IP &lt;- IP - --POS-- + LABEL`
+        * `IP <- IP - --POS-- + LABEL`
     * `else`
-        * `IP &lt;- IP + CMD_LEN`
+        * `IP <- IP + CMD_LEN`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `CALL <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
-    * `[SP] &lt;- IP`
-    * `SP &lt;- SP + 1`
-    * `IP &lt;- IP - --POS-- + LABEL`
+    * `[SP] <- IP`
+    * `SP <- SP + 1`
+    * `IP <- IP - --POS-- + LABEL`
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 
 `CMP <PARAM> , <PARAM>`
 * compares the two values and stores the result in the status register
-    * `if p1 &lt; p2`
-        * `LOWER &lt;- 1`
-        * `GREATHER &lt;- 0`
-    * `if p1 &gt; p2`
-        * `LOWER &lt;- 0`
-        * `GREATHER &lt;- 1`
+    * `if p1 < p2`
+        * `LOWER <- 1`
+        * `GREATHER <- 0`
+    * `if p1 > p2`
+        * `LOWER <- 0`
+        * `GREATHER <- 1`
     * `if p1 = p2`
-        * `LOWER &lt;- 0`
-        * `GREATHER &lt;- 0`
-    * `IP &lt;- IP + CMD_LEN`
+        * `LOWER <- 0`
+        * `GREATHER <- 0`
+    * `IP <- IP + CMD_LEN`
 
 `RET`
 * sets the instruction pointer to the position which was secured in the stack
-    * `IP &lt;- [SP]`
-    * `SP &lt;- SP - 1`
+    * `IP <- [SP]`
+    * `SP <- SP - 1`
 
 `IRET`
 * returns from an interrupt
-    * `STATUS &lt;- BX`
-    * `IP     &lt;- CX`
-    * `AX     &lt;- [DX]`
-    * `BX     &lt;- [DX + 8]`
-    * `CX     &lt;- [DX + 16]`
-    * `DX     &lt;- [DX + 24]`
+    * `STATUS <- BX`
+    * `IP     <- CX`
+    * `AX     <- [DX]`
+    * `BX     <- [DX + 8]`
+    * `CX     <- [DX + 16]`
+    * `DX     <- [DX + 24]`
     * `FREE DX`
         * this does not call the interrupt, which is used to free allocated memory, but is compatible to the interrupt, which is used for allocating memory
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-    * `ZW &lt;- MEM-ALLOC{size=32}`
-    * `[ZW + 24] &lt;- DX`
-    * `DX &lt;- ZW`
-    * `[DX + 16] &lt;- CX`
-    * `[DX + 8]  &lt;- BX`
-    * `[DX]      &lt;- AX`
-    * `CX        &lt;- IP + CMD_LEN`
-    * `BX        &lt;- STATUS`
+    * `ZW <- MEM-ALLOC{size=32}`
+    * `[ZW + 24] <- DX`
+    * `DX <- ZW`
+    * `[DX + 16] <- CX`
+    * `[DX + 8]  <- BX`
+    * `[DX]      <- AX`
+    * `CX        <- IP + CMD_LEN`
+    * `BX        <- STATUS`
         * if the interrupt is automatically called:
-            * `CX` is set to the `IP` (`CX &lt;- IP`)
+            * `CX` is set to the `IP` (`CX <- IP`)
                 * so the program does not think the operation succeeded
                 * (for example because of a division with zero or an illegal memory access)
             * the registers are saved before the 'params' were set
@@ -417,7 +417,7 @@ except for the `--POS--` constant all other constants can be overwritten and rem
                     * error interrupts can be called automatically (from `0` to `3` (both inclusive))
                     * the exit interrupt´can be called automatically (when an default error interrupt is called) (`4`)
                         * if automatically called the return value 'param' is never `0`
-    * `IP &lt;- [INTS + (PARAM * 8)]`
+    * `IP <- [INTS + (PARAM * 8)]`
 * an interrupt can be overwritten:
     * with `GET_INTS` the interrupt-table can be received
     * to overwrite the interrupt `N`, write to `N * 8` the absolute position of address
@@ -555,68 +555,68 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack
-    * `SP &lt;- SP + 1`
-    * `[SP] &lt;- p`
-    * `IP &lt;- IP + CMD_LEN`
+    * `SP <- SP + 1`
+    * `[SP] <- p`
+    * `IP <- IP + CMD_LEN`
 
 `POP <NO_CONST_PARAM>`
 * pops the highest value from the stack to the parameter
-    * `p &lt;- [SP]`
-    * `SP &lt;- SP - 1`
-    * `IP &lt;- IP + CMD_LEN`
+    * `p <- [SP]`
+    * `SP <- SP - 1`
+    * `IP <- IP + CMD_LEN`
 
 `SET_INTS <PARAM>`
 * sets the interrupt pointer to the parameter
-    * `INTS &lt;- p`
+    * `INTS <- p`
 
 `SET_IP <PARAM>`
 * sets the instruction pointer to the parameter
-    * `IP &lt;- p`
+    * `IP <- p`
 
 `SET_SP <PARAM>`
 * sets the stack pointer to the parameter
-    * `SP &lt;- p`
-    * `IP &lt;- IP + CMD_LEN`
+    * `SP <- p`
+    * `IP <- IP + CMD_LEN`
 
 `GET_INTS <NO_CONST_PARAM>`
 * copies the interrupt pointer to the parameter
-    * `p &lt;- INTS`
-    * `IP &lt;- IP + CMD_LEN`
+    * `p <- INTS`
+    * `IP <- IP + CMD_LEN`
 
 `GET_IP <NO_CONST_PARAM>`
 * copies the instruction pointer to the parameter
-    * `p &lt;- IP`
-    * `IP &lt;- IP + CMD_LEN`
+    * `p <- IP`
+    * `IP <- IP + CMD_LEN`
 * note, that the instruction pointer will modify as result of this command
     * the written value will be the instruction pointer directly before this command
     * so you can use `SET_IP` to land at this command (`GET_IP`)
 
 `GET_SP <NO_CONST_PARAM>`
 * copies the stack pointer to the parameter
-    * `p &lt;- SP`
-    * `IP &lt;- IP + CMD_LEN`
+    * `p <- SP`
+    * `IP <- IP + CMD_LEN`
 
 `INC <NO_CONST_PARAM>`
 * increments the param by one
     * `if p = MAX-VALUE`
-        * `CARRY &lt;- 1`
-        * `ZERO &lt;- 1`
+        * `CARRY <- 1`
+        * `ZERO <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-        * `ZERO &lt;- 0`
-    * `p &lt;- p + 1`
-    * `IP &lt;- IP + CMD_LEN`
+        * `CARRY <- 0`
+        * `ZERO <- 0`
+    * `p <- p + 1`
+    * `IP <- IP + CMD_LEN`
 
 `DEC <NO_CONST_PARAM>`
 * decrements the param by one
     * `if p = MIN-VALUE`
-        * `CARRY &lt;- 1`
-        * `ZERO &lt;- 1`
+        * `CARRY <- 1`
+        * `ZERO <- 1`
     * `else`
-        * `CARRY &lt;- 0`
-        * `ZREO &lt;- 0`
-    * `p &lt;- p - 1`
-    * `IP &lt;- IP + CMD_LEN`
+        * `CARRY <- 0`
+        * `ZREO <- 0`
+    * `p <- p - 1`
+    * `IP <- IP + CMD_LEN`
 
 ## not (yet) there/supported
 * execute other programs
