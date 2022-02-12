@@ -29,10 +29,11 @@ public enum Commands {
 	CMD_SET_INTS(ParamArt.oneParamAllowConst, CmdNums.SET_INTS),
 	CMD_IRET(ParamArt.noParams, CmdNums.IRET),
 	CMD_GET_INTCNT(ParamArt.oneParamNoConst, CmdNums.GET_INTCNT), CMD_SET_INTCNT(ParamArt.oneParamAllowConst, CmdNums.SET_INTCNT),
+	CMD_SWAP(ParamArt.twoParamsNoConsts, CmdNums.SWAP),
 	
 	
 	CMD_ADDC(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.ADDC), CMD_SUBC(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.SUBC),
-	CMD_ADDDP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.ADDFP), CMD_SUBFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.SUBFP),
+	CMD_ADDFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.ADDFP), CMD_SUBFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.SUBFP),
 	CMD_MULFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.MULFP), CMD_DIVFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.DIVFP),
 	CMD_NTFP(ParamArt.oneParamNoConst, CmdNums.NTFP), CMD_FPTN(ParamArt.oneParamNoConst, CmdNums.FPTN),
 	
@@ -67,113 +68,114 @@ public enum Commands {
 	}
 	
 	public static Commands get(byte b) throws NoCommandException {
-		switch (b & 0xFF) {
+		switch (0xFF & b) {
 		case CmdNums.MOV:
-			return CMD_MOV;
+			return Commands.CMD_MOV;
 		case CmdNums.ADD:
-			return CMD_ADD;
+			return Commands.CMD_ADD;
 		case CmdNums.SUB:
-			return CMD_SUB;
+			return Commands.CMD_SUB;
 		case CmdNums.MUL:
-			return CMD_MUL;
+			return Commands.CMD_MUL;
 		case CmdNums.DIV:
-			return CMD_DIV;
+			return Commands.CMD_DIV;
 		case CmdNums.AND:
-			return CMD_AND;
+			return Commands.CMD_AND;
 		case CmdNums.OR:
-			return CMD_OR;
+			return Commands.CMD_OR;
 		case CmdNums.XOR:
-			return CMD_XOR;
+			return Commands.CMD_XOR;
 		case CmdNums.NOT:
-			return CMD_NOT;
+			return Commands.CMD_NOT;
 		case CmdNums.NEG:
-			return CMD_NEG;
+			return Commands.CMD_NEG;
 		case CmdNums.LSH:
-			return CMD_LSH;
+			return Commands.CMD_LSH;
 		case CmdNums.RLSH:
-			return CMD_RLSH;
+			return Commands.CMD_RLSH;
 		case CmdNums.RASH:
-			return CMD_RASH;
+			return Commands.CMD_RASH;
 		case CmdNums.DEC:
-			return CMD_DEC;
+			return Commands.CMD_DEC;
 		case CmdNums.INC:
-			return CMD_INC;
-		
+			return Commands.CMD_INC;
 		case CmdNums.JMP:
-			return CMD_JMP;
+			return Commands.CMD_JMP;
 		case CmdNums.JMPEQ:
-			return CMD_JMPEQ;
+			return Commands.CMD_JMPEQ;
 		case CmdNums.JMPNE:
-			return CMD_JMPNE;
+			return Commands.CMD_JMPNE;
 		case CmdNums.JMPGT:
-			return CMD_JMPGT;
+			return Commands.CMD_JMPGT;
 		case CmdNums.JMPGE:
-			return CMD_JMPGE;
+			return Commands.CMD_JMPGE;
 		case CmdNums.JMPLT:
-			return CMD_JMPLT;
+			return Commands.CMD_JMPLT;
 		case CmdNums.JMPLE:
-			return CMD_JMPLE;
+			return Commands.CMD_JMPLE;
 		case CmdNums.JMPCS:
-			return CMD_JMPCS;
+			return Commands.CMD_JMPCS;
 		case CmdNums.JMPCC:
-			return CMD_JMPCC;
-		
+			return Commands.CMD_JMPCC;
+		case CmdNums.JMPZS:
+			return Commands.CMD_JMPZS;
+		case CmdNums.JMPZC:
+			return Commands.CMD_JMPZC;
 		case CmdNums.CALL:
-			return CMD_CALL;
-		
+			return Commands.CMD_CALL;
 		case CmdNums.CMP:
-			return CMD_CMP;
+			return Commands.CMD_CMP;
 		case CmdNums.RET:
-			return CMD_RET;
+			return Commands.CMD_RET;
 		case CmdNums.INT:
-			return CMD_INT;
+			return Commands.CMD_INT;
 		case CmdNums.PUSH:
-			return CMD_PUSH;
+			return Commands.CMD_PUSH;
 		case CmdNums.POP:
-			return CMD_POP;
+			return Commands.CMD_POP;
 		case CmdNums.SET_IP:
-			return CMD_SET_IP;
+			return Commands.CMD_SET_IP;
 		case CmdNums.SET_SP:
-			return CMD_SET_SP;
+			return Commands.CMD_SET_SP;
 		case CmdNums.GET_IP:
-			return CMD_GET_IP;
+			return Commands.CMD_GET_IP;
 		case CmdNums.GET_SP:
-			return CMD_GET_SP;
+			return Commands.CMD_GET_SP;
 		case CmdNums.GET_INTS:
-			return CMD_GET_INTS;
+			return Commands.CMD_GET_INTS;
 		case CmdNums.SET_INTS:
-			return CMD_SET_INTS;
+			return Commands.CMD_SET_INTS;
 		case CmdNums.IRET:
-			return CMD_IRET;
+			return Commands.CMD_IRET;
 		case CmdNums.GET_INTCNT:
-			return CMD_GET_INTCNT;
+			return Commands.CMD_GET_INTCNT;
 		case CmdNums.SET_INTCNT:
-			return CMD_SET_INTCNT;
-		
+			return Commands.CMD_SET_INTCNT;
+		case CmdNums.SWAP:
+			return Commands.CMD_SWAP;
 		case CmdNums.ADDC:
-			return CMD_ADDC;
+			return Commands.CMD_ADDC;
 		case CmdNums.SUBC:
-			return CMD_SUBC;
+			return Commands.CMD_SUBC;
 		case CmdNums.ADDFP:
-			return CMD_ADDDP;
+			return Commands.CMD_ADDFP;
 		case CmdNums.SUBFP:
-			return CMD_SUBFP;
+			return Commands.CMD_SUBFP;
 		case CmdNums.MULFP:
-			return CMD_MULFP;
+			return Commands.CMD_MULFP;
 		case CmdNums.DIVFP:
-			return CMD_DIVFP;
+			return Commands.CMD_DIVFP;
 		case CmdNums.NTFP:
-			return CMD_NTFP;
+			return Commands.CMD_NTFP;
 		case CmdNums.FPTN:
-			return CMD_FPTN;
-		default:
-			throw new NoCommandException("this byte does not show a command!");
+			return Commands.CMD_FPTN;
 		}
+		throw new NoCommandException("this byte does not show a command! byte=0x" + Integer.toHexString(0xFF & b));
 	}
 	
 	private static class CmdNums {
 		
-		private final static int MOV = 0x01;
+		private static final int MOV = 0x01;
 		private static final int ADD = 0x02;
 		private static final int SUB = 0x03;
 		private static final int MUL = 0x04;
@@ -214,6 +216,7 @@ public enum Commands {
 		private static final int IRET = 0x2C;
 		private static final int GET_INTCNT = 0x2D;
 		private static final int SET_INTCNT = 0x2E;
+		private static final int SWAP = 0x2F;
 		private static final int ADDC = 0x30;
 		private static final int SUBC = 0x31;
 		private static final int ADDFP = 0x32;

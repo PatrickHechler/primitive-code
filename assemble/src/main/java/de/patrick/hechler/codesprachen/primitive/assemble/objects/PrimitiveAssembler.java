@@ -151,6 +151,7 @@ public class PrimitiveAssembler {
 					writeOneParam(cmd, bytes);
 					break;
 				case CMD_DIV:
+				case CMD_SWAP:
 					if (cmd.p2.art == Param.ART_ANUM) {
 						throw new IllegalStateException("no constants allowed on any param!");
 					}

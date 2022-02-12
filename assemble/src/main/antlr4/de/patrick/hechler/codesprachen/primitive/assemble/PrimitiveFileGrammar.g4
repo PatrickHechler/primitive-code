@@ -374,6 +374,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  				)
  				|
  				(
+ 					SWAP
+ 					{cmd = Commands.CMD_SWAP;}
+
+ 				)
+ 				|
+ 				(
  					ADD
  					{cmd = Commands.CMD_ADD;}
 
@@ -856,6 +862,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  MOV
  :
  	'MOV'
+ ;
+
+ SWAP
+ :
+ 	'SWAP'
  ;
 
  RET

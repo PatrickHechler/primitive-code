@@ -64,6 +64,13 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `p1 <- p2`
     * `IP <- IP + CMD_LEN`
 
+`SWAP <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* swaps the value of the first and the second parameter
+    * `ZW <- p1`
+    * `p1 <- p2`
+    * `p2 <- ZW`
+    * `IP <- IP + CMD_LEN`
+
 `ADD <NO_CONST_PARAM> , <PARAM>`
 * adds the values of both parameters and stores the sum in the first parameter
     * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
