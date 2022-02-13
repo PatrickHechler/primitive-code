@@ -383,6 +383,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  [long num]
  :
  	c1 = constBerechnungPunkt [pos, constants]
+  	{$num = $c1.num;}
  	(
  		{boolean add = false;}
 
@@ -418,9 +419,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 
  	(
  		{
-		final int type_mal = 1, type_geteilt = 2, type_modulo = 3;
-		int type = -1;
-	}
+			final int type_mal = 1, type_geteilt = 2, type_modulo = 3;
+			int type = -1;
+		}
 
  		(
  			(

@@ -476,6 +476,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  [long num]
  :
  	c1 = constBerechnungPunkt [pos, constants]
+ 	{$num = $c1.num;}
  	(
  		{boolean add = false;}
 

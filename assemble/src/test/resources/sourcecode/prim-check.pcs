@@ -10,8 +10,8 @@
 	CALL main
 	INT #INT-EXIT
 :
-#file-length 128
-#file-numbers 16
+#file-length 8
+#file-numbers #file-length / 8
 #file-POS --POS--
 	CHARS 'UTF-8' "./input/in2.data\0"
 #file-out-POS --POS--
