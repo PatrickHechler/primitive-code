@@ -33,9 +33,24 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
  	$labels = new HashMap<>();
  	$commands = new ArrayList<>();
  	$commands.add(new CompilerCommandCommand(align ? CompilerCommand.align : CompilerCommand.notAlign));
- 	List<Boolean>enabledStack = new ArrayList<>();
  	boolean enabled = true;
  	int disabledSince = -1;
+ 	/* 
+ 	 * use alll three states of the Boolean class (true, false, null)
+ 	 * true: enabled
+ 	 * false: disabled
+ 	 * null: was enabled, but is now disabled
+ 	 * 
+ 	 * null is used for elseif structures
+ 	 * example: 
+ 	 * 	(~IF 0 ~ELSE-IF 1 ~ELSE-IF 1 ~ELSE ~ENDIF)
+ 	 * 		then it is at first false (~IF 0)
+ 	 * 		then it becomes true (~ELSE-IF 1)
+ 	 * 		then if becomes null (~ELSE-IF 1), because it is true
+ 	 * 		then it stays null (~ELSE)
+ 	 * 		then the stack removes the frame (~ENDIF)
+ 	 */
+ 	List<Boolean> stack = new ArrayList();
 	constants.putIfAbsent("INT-ERRORS-UNKNOWN_COMMAND", (Long) 0L);
 	constants.putIfAbsent("INT-ERRORS-ILLEGAL_INTERRUPT", (Long) 1L);
 	constants.putIfAbsent("INT-ERRORS-ILLEGAL_MEMORY", (Long) 2L);
@@ -161,10 +176,13 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 			(
 				IF constBerechnungDirekt [$pos, constants]
 				{
-	 				boolean top = $constBerechnungDirekt.num != 0;
-	 				enabledStack.add(top);
-	 				if (enabled && !top) {
-	 					disabledSince = enabledStack.size();
+					{
+		 				boolean top = $constBerechnungDirekt.num != 0;
+		 				stack.add(top);
+		 				if (enabled && !top) {
+		 					disabledSince = stack.size();
+		 					enabled = false;
+		 				}
 	 				}
 	 			}
 
@@ -173,16 +191,16 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 			(
 				ELSE_IF constBerechnungDirekt [$pos, constants]
 				{
-	 				int essize = enabledStack.size();
-	 				boolean top = $constBerechnungDirekt.num != 0;
-	 				top = top && !enabledStack.get(essize - 1);
-	 				enabledStack.set(essize - 1, top);
 	 				if (enabled) {
+	 					disabledSince = stack.size();
 	 					enabled = false;
-	 					disabledSince = essize;
-	 				} else if (top && disabledSince == essize) {
-	 					enabled = true;
-	 					disabledSince = -1;
+	 				}
+	 				if (stack.get(stack.size()-1) != null) {
+	 					if (stack.get(stack.size()-1)) {
+	 						stack.set(stack.size()-1, null);
+	 					} else if ($constBerechnungDirekt.num != 0L) {
+	 						stack.set(stack.size()-1, true);
+	 					}
 	 				}
 	 			}
 
@@ -191,24 +209,28 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 			(
 				ELSE
 				{
-	 				int essize = enabledStack.size();
-	 				boolean top = !enabledStack.get(essize - 1);
-	 				enabledStack.set(essize - 1, top);
 	 				if (enabled) {
+	 					disabledSince = stack.size();
 	 					enabled = false;
-	 					disabledSince = essize;
-	 				} else if (disabledSince == essize) {
-	 					assert top;//if on this layer disabled, top must be true
-	 					enabled = true;
-	 					disabledSince = -1;
 	 				}
-	 			}
+					{
+		 				Boolean top = stack.get(stack.size()-1);
+		 				if (top != null && !top) {
+		 					stack.set(stack.size()-1,true);
+		 				}
+	 				}
+ 	 			}
 
 			)
 			|
 			(
 				ERROR
-				{StringBuilder msg = new StringBuilder("error at line: ").append($ERROR.getLine());}
+				{
+					StringBuilder msg = null;
+					if (enabled) {
+						msg = new StringBuilder("error at line: ").append($ERROR.getLine());
+					}
+				}
 
 				(
 					(
@@ -220,57 +242,71 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 						|
 						(
 							ERROR_MESSAGE_START
-							{msg.append('\n');}
+							{
+								if (enabled) {
+									msg.append('\n');
+								}
+							}
 
 							(
 								(
 									STR_STR
 									{
-									String str = $STR_STR.getText();
-									str = str.substring(1, str.length() - 1);
-									char[] chars = new char[str.length()];
-									char[] strchars = str.toCharArray();
-									int ci, si;
-									for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
-										if (strchars[si] == '\\') {
-											si ++;
-											switch(strchars[si]){
-											case 'r':
-												chars[ci] = '\r';
-												break;
-											case 'n':
-												chars[ci] = '\n';
-												break;
-											case 't':
-												chars[ci] = '\t';
-												break;
-											case '0':
-												chars[ci] = '\0';
-												break;
-											case '\\':
-												chars[ci] = '\\';
-												break;
-											default:
-												throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+										if (enabled) {
+											String str = $STR_STR.getText();
+											str = str.substring(1, str.length() - 1);
+											char[] chars = new char[str.length()];
+											char[] strchars = str.toCharArray();
+											int ci, si;
+											for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
+												if (strchars[si] == '\\') {
+													si ++;
+													switch(strchars[si]){
+													case 'r':
+														chars[ci] = '\r';
+														break;
+													case 'n':
+														chars[ci] = '\n';
+														break;
+													case 't':
+														chars[ci] = '\t';
+														break;
+													case '0':
+														chars[ci] = '\0';
+														break;
+													case '\\':
+														chars[ci] = '\\';
+														break;
+													default:
+														throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+													}
+												} else {
+													chars[ci] = strchars[si];
+												}
 											}
-										} else {
-											chars[ci] = strchars[si];
+											msg.append(chars, 0, ci);
 										}
 									}
-									msg.append(chars, 0, ci);
-								}
 
 								)
 								|
 								(
 									constBerechnungDirekt [$pos, constants]
-									{msg.append($constBerechnungDirekt.num);}
+									{
+										if (enabled) {
+											msg.append($constBerechnungDirekt.num);
+										}
+									}
 
 								)
 								|
 								(
 									ERROR_HEX constBerechnungDirekt [$pos, constants]
-									{msg.append(Long.toHexString($constBerechnungDirekt.num));}
+									{
+										if (enabled) {
+											msg.append(Long.toHexString($constBerechnungDirekt.num));
+										}
+									}
 
 								)
 							)* ERROR_MESSAGE_END
@@ -284,6 +320,16 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 				}
 
 			)
+		)
+		|
+		(
+			ANY
+			{
+				if (enabled) {
+					throw new AssembleError("illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
+				}
+			}
+
 		)
 	)* EOF
 ;
@@ -1774,4 +1820,9 @@ BLOCK_COMMENT
 WS
 :
 	[ \t\r\n]+ -> skip
+;
+
+ANY
+:
+	.
 ;

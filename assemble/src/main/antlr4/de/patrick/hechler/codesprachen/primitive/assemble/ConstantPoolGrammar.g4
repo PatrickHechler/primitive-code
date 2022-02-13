@@ -1,9 +1,9 @@
 /**
  * Define a grammar called Hello
  */
- grammar ConstantPoolGrammar;
+grammar ConstantPoolGrammar;
 
- @parser::header {
+@parser::header {
 import java.util.*;
 import java.math.*;
 import java.nio.charset.*;
@@ -12,7 +12,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
 }
 
- @parser::members {
+@parser::members {
 	
 	private void makeAlign(boolean align, long pos, ConstantPoolCommand cpc) {
 		if (align && cpc.length() > 0) {//on the start the compiler will align (if active)
@@ -26,52 +26,67 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 	
 }
 
- consts
- [Map<String,Long> constants, Map<String, Long> labels, long pos, boolean alignParam]
- returns [ConstantPoolCommand pool, boolean align]
- @init {
- 	List<Boolean>enabledStack = new ArrayList<>();
+consts
+[Map<String,Long> constants, Map<String, Long> labels, long pos, boolean alignParam]
+returns [ConstantPoolCommand pool, boolean align]
+@init {
  	boolean enabled = true;
  	int disabledSince = -1;
+ 	/* 
+ 	 * use alll three states of the Boolean class (true, false, null)
+ 	 * true: enabled
+ 	 * false: disabled
+ 	 * null: was enabled, but is now disabled
+ 	 * 
+ 	 * null is used for elseif structures
+ 	 * example: 
+ 	 * 	(~IF 0 ~ELSE-IF 1 ~ELSE-IF 1 ~ELSE ~ENDIF)
+ 	 * 		then it is at first false (~IF 0)
+ 	 * 		then it becomes true (~ELSE-IF 1)
+ 	 * 		then if becomes null (~ELSE-IF 1), because it is true
+ 	 * 		then it stays null (~ELSE)
+ 	 * 		then the stack removes the frame (~ENDIF)
+ 	 */
+ 	List<Boolean> stack = new ArrayList();
  	$pool = new ConstantPoolCommand();
  	$align = alignParam;
  }
- :
- 	START
- 	(
- 		(
- 			{makeAlign($align, pos, $pool);}
+:
+	START
+	(
+		(
+			{makeAlign($align, pos, $pool);}
 
- 			string [$pool]
- 		)
- 		|
- 		(
- 			{makeAlign($align, pos, $pool);}
+			string [$pool]
+		)
+		|
+		(
+			{makeAlign($align, pos, $pool);}
 
- 			numconst [$pool]
- 		)
- 		|
- 		(
- 			CONSTANT
- 			(
- 				{boolean simpleAdd = true;}
+			numconst [$pool]
+		)
+		|
+		(
+			CONSTANT
+			(
+				{boolean simpleAdd = true;}
 
- 				(
- 					(
- 						(
- 							constBerechnungDirekt [pos + $pool.length(), constants]
- 							{constants.put($CONSTANT.getText().substring(1), (Long) $constBerechnungDirekt.num);}
+				(
+					(
+						(
+							constBerechnungDirekt [pos + $pool.length(), constants]
+							{constants.put($CONSTANT.getText().substring(1), (Long) $constBerechnungDirekt.num);}
 
- 						)
- 						{simpleAdd = false;}
+						)
+						{simpleAdd = false;}
 
- 					)
- 					|
- 					(
- 						WRITE
- 					)
- 				)?
- 				{
+					)
+					|
+					(
+						WRITE
+					)
+				)?
+				{
 				if (simpleAdd) {
 					makeAlign($align, pos, $pool);
 					Long szw = constants.get($CONSTANT.getText().substring(1));
@@ -83,163 +98,212 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 				}
 			}
 
- 			)
- 			|
- 			(
- 				DEL
- 				{constants.remove($CONSTANT.getText().substring(1));}
+			)
+			|
+			(
+				DEL
+				{constants.remove($CONSTANT.getText().substring(1));}
 
- 			)
- 		)
- 		|
- 		(
- 			CD_ALIGN
- 			{$align = true;}
+			)
+		)
+		|
+		(
+			CD_ALIGN
+			{$align = true;}
 
- 		)
- 		|
- 		(
- 			CD_NOT_ALIGN
- 			{$align = false;}
+		)
+		|
+		(
+			CD_NOT_ALIGN
+			{$align = false;}
 
- 		)
- 		|
- 		(
- 			IF constBerechnungDirekt [pos + $pool.length(), constants]
- 			{
+		)
+		|
+		(
+			IF constBerechnungDirekt [pos + $pool.length(), constants]
+			{
+				{
 	 				boolean top = $constBerechnungDirekt.num != 0;
-	 				enabledStack.add(top);
+	 				stack.add(top);
 	 				if (enabled && !top) {
-	 					disabledSince = enabledStack.size();
-	 				}
-	 			}
-
- 		)
- 		|
- 		(
- 			ELSE_IF constBerechnungDirekt [pos + $pool.length(), constants]
- 			{
-	 				int essize = enabledStack.size();
-	 				boolean top = $constBerechnungDirekt.num != 0;
-	 				top = top && !enabledStack.get(essize - 1);
-	 				enabledStack.set(essize - 1, top);
-	 				if (enabled) {
+	 					disabledSince = stack.size();
 	 					enabled = false;
-	 					disabledSince = essize;
-	 				} else if (top && disabledSince == essize) {
-	 					enabled = true;
-	 					disabledSince = -1;
 	 				}
-	 			}
+ 				}
+ 			}
 
- 		)
- 		|
- 		(
- 			ELSE
- 			{
-	 				int essize = enabledStack.size();
-	 				boolean top = !enabledStack.get(essize - 1);
-	 				enabledStack.set(essize - 1, top);
-	 				if (enabled) {
-	 					enabled = false;
-	 					disabledSince = essize;
-	 				} else if (disabledSince == essize) {
-	 					assert top;//if on this layer disabled, top must be true
-	 					enabled = true;
-	 					disabledSince = -1;
+		)
+		|
+		(
+			ELSE_IF constBerechnungDirekt [pos + $pool.length(), constants]
+			{
+ 				if (enabled) {
+ 					disabledSince = stack.size();
+ 					enabled = false;
+ 				}
+ 				if (stack.get(stack.size()-1) != null) {
+ 					if (stack.get(stack.size()-1)) {
+ 						stack.set(stack.size()-1, null);
+ 					} else if ($constBerechnungDirekt.num != 0L) {
+ 						stack.set(stack.size()-1, true);
+ 					}
+ 				}
+ 			}
+
+		)
+		|
+		(
+			ELSE
+			{
+ 				if (enabled) {
+ 					disabledSince = stack.size();
+ 					enabled = false;
+ 				}
+				{
+	 				Boolean top = stack.get(stack.size()-1);
+	 				if (top != null && !top) {
+	 					stack.set(stack.size()-1,true);
 	 				}
-	 			}
+ 				}
+ 			}
 
- 		)
- 		|
- 		(
- 			ERROR
- 			{StringBuilder msg = new StringBuilder("error at line: ").append($ERROR.getLine());}
+		)
+		|
+		(
+			ENDIF
+			{
+				if (disabledSince == stack.size()) {
+					enabled = true;
+					disabledSince = -1;
+				}
+				stack.remove(stack.size()-1);
+ 			}
 
- 			(
- 				(
- 					(
- 						constBerechnungDirekt [$pos, constants]
-						{msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($constBerechnungDirekt.num);}
+		)
+		|
+		(
+			ERROR
+			{
+ 				StringBuilder msg = null;
+ 				if (enabled) {
+	 				msg = new StringBuilder("error at line: ").append($ERROR.getLine());
+ 				}
+ 			}
 
- 					)
- 					|
- 					(
- 						ERROR_MESSAGE_START
- 						{msg.append('\n');}
+			(
+				(
+					(
+						constBerechnungDirekt [$pos, constants]
+						{
+ 							if (enabled) {
+	 							msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($constBerechnungDirekt.num);
+ 							}
+ 						}
 
- 						(
- 							(
- 								STR_STR
- 								{
-									String str = $STR_STR.getText();
-									str = str.substring(1, str.length() - 1);
-									char[] chars = new char[str.length()];
-									char[] strchars = str.toCharArray();
-									int ci, si;
-									for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
-										if (strchars[si] == '\\') {
-											si ++;
-											switch(strchars[si]){
-											case 'r':
-												chars[ci] = '\r';
-												break;
-											case 'n':
-												chars[ci] = '\n';
-												break;
-											case 't':
-												chars[ci] = '\t';
-												break;
-											case '0':
-												chars[ci] = '\0';
-												break;
-											case '\\':
-												chars[ci] = '\\';
-												break;
-											default:
-												throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+					)
+					|
+					(
+						ERROR_MESSAGE_START
+						{
+ 							if (enabled) {
+	 							msg.append('\n');
+ 							}
+ 						}
+
+						(
+							(
+								STR_STR
+								{
+ 									if (enabled) {
+										String str = $STR_STR.getText();
+										str = str.substring(1, str.length() - 1);
+										char[] chars = new char[str.length()];
+										char[] strchars = str.toCharArray();
+										int ci, si;
+										for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
+											if (strchars[si] == '\\') {
+												si ++;
+												switch(strchars[si]){
+												case 'r':
+													chars[ci] = '\r';
+													break;
+												case 'n':
+													chars[ci] = '\n';
+													break;
+												case 't':
+													chars[ci] = '\t';
+													break;
+												case '0':
+													chars[ci] = '\0';
+													break;
+												case '\\':
+													chars[ci] = '\\';
+													break;
+												default:
+													throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+												}
+											} else {
+												chars[ci] = strchars[si];
 											}
-										} else {
-											chars[ci] = strchars[si];
 										}
-									}
-									msg.append(chars, 0, ci);
+										msg.append(chars, 0, ci);
+ 									}
 								}
 
- 							)
- 							|
- 							(
- 								constBerechnungDirekt [pos, constants]
- 								{msg.append($constBerechnungDirekt.num);}
+							)
+							|
+							(
+								constBerechnungDirekt [pos, constants]
+								{
+ 									if (enabled) {
+	 									msg.append($constBerechnungDirekt.num);
+ 									} 
+ 								}
 
- 							)
- 							|
- 							(
- 								ERROR_HEX constBerechnungDirekt [pos, constants]
- 								{msg.append(Long.toHexString($constBerechnungDirekt.num));}
+							)
+							|
+							(
+								ERROR_HEX constBerechnungDirekt [pos, constants]
+								{
+ 									if (enabled) {
+	 									msg.append(Long.toHexString($constBerechnungDirekt.num));
+ 									}
+ 								}
 
- 							)
- 						)* ERROR_MESSAGE_END
- 					)
- 				)?
- 			)
- 			{
-					if (enabled) {
-						throw new AssembleError(msg.toString());
-					}
+							)
+						)* ERROR_MESSAGE_END
+					)
+				)?
+			)
+			{
+				if (enabled) {
+					throw new AssembleError(msg.toString());
 				}
+			}
 
- 		)
- 	)* ENDE EOF
- ;
+		)
+		|
+		(
+			ANY
+			{
+				if (enabled) {
+					throw new AssembleError("illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
+				} else {
+					
+				}
+			}
 
- string [ConstantPoolCommand pool]
- @init {Charset cs = Charset.defaultCharset();}
- :
- 	(
- 		(
- 			CHARS CHAR_STR
- 			{
+		)
+	)* ENDE EOF
+;
+
+string [ConstantPoolCommand pool]
+@init {Charset cs = Charset.defaultCharset();}
+:
+	(
+		(
+			CHARS CHAR_STR
+			{
 	 			String name = $CHAR_STR.getText();
 				name = name.substring(1, name.length() - 1);
 				char[] chars = new char[name.length()];
@@ -274,9 +338,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 	 			cs = Charset.forName(new String(chars, 0 ,ci));
 	 		}
 
- 		)?
- 	) STR_STR
- 	{
+		)?
+	) STR_STR
+	{
 		String str = $STR_STR.getText();
 		str = str.substring(1, str.length() - 1);
 		char[] chars = new char[str.length()];
@@ -311,91 +375,91 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 		byte[] bytes = new String(chars, 0, ci).getBytes(cs);
 		pool.addBytes(bytes);
 	}
- 	//		System.out.println("[J-LOG]: string='"+new String(bytes,cs)+"'");
+	//		System.out.println("[J-LOG]: string='"+new String(bytes,cs)+"'");
 
- 	//		System.out.println("[J-LOG]: string='"+new String(bytes,StandardCharsets.UTF_16LE)+"'");
+	//		System.out.println("[J-LOG]: string='"+new String(bytes,StandardCharsets.UTF_16LE)+"'");
 
- 	//		for(int i = 0; i < bytes.length; i ++) {
+	//		for(int i = 0; i < bytes.length; i ++) {
 
- 	//			System.out.println("[J-LOG]: bytes[" + i + "]=" + (0xFF & (int) bytes[i]));
+	//			System.out.println("[J-LOG]: bytes[" + i + "]=" + (0xFF & (int) bytes[i]));
  //		}
 
- ;
+;
 
- constBerechnung [long pos, Map<String, Long> constants] returns [long num]
- :
- 	c1 = constBerechnungInclusivoder [pos, constants]
- 	{$num = $c1.num;}
+constBerechnung [long pos, Map<String, Long> constants] returns [long num]
+:
+	c1 = constBerechnungInclusivoder [pos, constants]
+	{$num = $c1.num;}
 
- 	(
- 		FRAGEZEICHEN c2 = constBerechnung [pos, constants] DOPPELPUNKT c3 =
- 		constBerechnungInclusivoder [pos, constants]
- 		{$num = ($num != 0L) ? $c2.num : $c3.num;}
+	(
+		FRAGEZEICHEN c2 = constBerechnung [pos, constants] DOPPELPUNKT c3 =
+		constBerechnungInclusivoder [pos, constants]
+		{$num = ($num != 0L) ? $c2.num : $c3.num;}
 
- 	)?
- ;
+	)?
+;
 
- constBerechnungInclusivoder [long pos, Map<String, Long> constants] returns
- [long num]
- :
- 	c1 = constBerechnungExclusivoder [pos, constants]
- 	{$num = $c1.num;}
+constBerechnungInclusivoder [long pos, Map<String, Long> constants] returns
+[long num]
+:
+	c1 = constBerechnungExclusivoder [pos, constants]
+	{$num = $c1.num;}
 
- 	(
- 		INCLUSIVODER c2 = constBerechnungExclusivoder [pos, constants]
- 		{$num |= $c2.num;}
+	(
+		INCLUSIVODER c2 = constBerechnungExclusivoder [pos, constants]
+		{$num |= $c2.num;}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungExclusivoder [long pos, Map<String, Long> constants] returns
- [long num]
- :
- 	c1 = constBerechnungUnd [pos, constants]
- 	{$num = $c1.num;}
+constBerechnungExclusivoder [long pos, Map<String, Long> constants] returns
+[long num]
+:
+	c1 = constBerechnungUnd [pos, constants]
+	{$num = $c1.num;}
 
- 	(
- 		EXCLUSIVPDER c2 = constBerechnungUnd [pos, constants]
- 		{$num ^= $c2.num;}
+	(
+		EXCLUSIVPDER c2 = constBerechnungUnd [pos, constants]
+		{$num ^= $c2.num;}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungUnd [long pos, Map<String, Long> constants] returns [long num]
- :
- 	c1 = constBerechnungGleichheit [pos, constants]
- 	{$num = $c1.num;}
+constBerechnungUnd [long pos, Map<String, Long> constants] returns [long num]
+:
+	c1 = constBerechnungGleichheit [pos, constants]
+	{$num = $c1.num;}
 
- 	(
- 		UND c2 = constBerechnungGleichheit [pos, constants]
- 		{$num &= $c2.num;}
+	(
+		UND c2 = constBerechnungGleichheit [pos, constants]
+		{$num &= $c2.num;}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungGleichheit [long pos, Map<String, Long> constants] returns
- [long num]
- :
- 	c1 = constBerechnungRelativeTests [pos, constants]
- 	{$num = $c1.num;}
+constBerechnungGleichheit [long pos, Map<String, Long> constants] returns
+[long num]
+:
+	c1 = constBerechnungRelativeTests [pos, constants]
+	{$num = $c1.num;}
 
- 	(
- 		{boolean gleich = false;}
+	(
+		{boolean gleich = false;}
 
- 		(
- 			(
- 				GLEICH_GLEICH
- 				{gleich = true;}
+		(
+			(
+				GLEICH_GLEICH
+				{gleich = true;}
 
- 			)
- 			|
- 			(
- 				UNGLEICH
- 				{gleich = false;}
+			)
+			|
+			(
+				UNGLEICH
+				{gleich = false;}
 
- 			)
- 		) c2 = constBerechnungRelativeTests [pos, constants]
- 		{
+			)
+		) c2 = constBerechnungRelativeTests [pos, constants]
+		{
  			if (gleich) {
  				$num = ($num == $c1.num) ? 1L : 0L;
  			} else {
@@ -403,47 +467,47 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
- [long num]
- :
- 	c1 = constBerechnungSchub [pos, constants]
- 	{$num = $c1.num;}
+constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
+[long num]
+:
+	c1 = constBerechnungSchub [pos, constants]
+	{$num = $c1.num;}
 
- 	(
- 		{
+	(
+		{
 		final int type_gr = 1, type_gr_gl = 2, type_kl_gl = 3, type_kl = 4;
 		int type = -1;
 	}
 
- 		(
- 			(
- 				GROESSER
- 				{type = type_gr;}
+		(
+			(
+				GROESSER
+				{type = type_gr;}
 
- 			)
- 			|
- 			(
- 				GROESSER_GLEICH
- 				{type = type_gr_gl;}
+			)
+			|
+			(
+				GROESSER_GLEICH
+				{type = type_gr_gl;}
 
- 			)
- 			|
- 			(
- 				KLEINER_GLEICH
- 				{type = type_kl_gl;}
+			)
+			|
+			(
+				KLEINER_GLEICH
+				{type = type_kl_gl;}
 
- 			)
- 			|
- 			(
- 				KLEINER
- 				{type = type_kl;}
+			)
+			|
+			(
+				KLEINER
+				{type = type_kl;}
 
- 			)
- 		) c2 = constBerechnungSchub [pos, constants]
- 		{
+			)
+		) c2 = constBerechnungSchub [pos, constants]
+		{
 			switch(type) {
 			case type_gr:
 				$num = ($num > $c1.num) ? 1L : 0L;
@@ -462,41 +526,41 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 			}
 		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungSchub [long pos, Map<String, Long> constants] returns
- [long num]
- :
- 	c1 = constBerechnungStrich [pos, constants]
- 	{$num = $c1.num;}
+constBerechnungSchub [long pos, Map<String, Long> constants] returns
+[long num]
+:
+	c1 = constBerechnungStrich [pos, constants]
+	{$num = $c1.num;}
 
- 	(
- 		{
+	(
+		{
 		final int type_ls = 1, type_lrs = 2, type_ars = 3;
 		int type = -1;
 	}
 
- 		(
- 			(
- 				LINKS_SCHUB
- 				{type = type_ls;}
+		(
+			(
+				LINKS_SCHUB
+				{type = type_ls;}
 
- 			)
- 			|
- 			(
- 				LOGISCHER_RECHTS_SCHUB
- 				{type = type_lrs;}
+			)
+			|
+			(
+				LOGISCHER_RECHTS_SCHUB
+				{type = type_lrs;}
 
- 			)
- 			|
- 			(
- 				ARITMETISCHER_RECHTS_SCHUB
- 				{type = type_ars;}
+			)
+			|
+			(
+				ARITMETISCHER_RECHTS_SCHUB
+				{type = type_ars;}
 
- 			)
- 		) c2 = constBerechnungStrich [pos, constants]
- 		{
+			)
+		) c2 = constBerechnungStrich [pos, constants]
+		{
  			switch(type) {
 			case type_ls:
 				$num <<= $c2.num;
@@ -512,32 +576,32 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungStrich [long pos, Map<String, Long> constants] returns
- [long num]
- :
- 	c1 = constBerechnungPunkt [pos, constants]
- 	{$num = $c1.num;}
+constBerechnungStrich [long pos, Map<String, Long> constants] returns
+[long num]
+:
+	c1 = constBerechnungPunkt [pos, constants]
+	{$num = $c1.num;}
 
- 	(
- 		{boolean add = false;}
+	(
+		{boolean add = false;}
 
- 		(
- 			(
- 				PLUS
- 				{add = true;}
+		(
+			(
+				PLUS
+				{add = true;}
 
- 			)
- 			|
- 			(
- 				MINUS
- 				{add = false;}
+			)
+			|
+			(
+				MINUS
+				{add = false;}
 
- 			)
- 		) c2 = constBerechnungPunkt [pos, constants]
- 		{
+			)
+		) c2 = constBerechnungPunkt [pos, constants]
+		{
  			if (add) {
  				$num += $c2.num;
  			} else {
@@ -545,41 +609,41 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungPunkt [long pos, Map<String, Long> constants] returns
- [long num]
- :
- 	c1 = constBerechnungDirekt [pos, constants]
- 	{$num = $c1.num;}
+constBerechnungPunkt [long pos, Map<String, Long> constants] returns
+[long num]
+:
+	c1 = constBerechnungDirekt [pos, constants]
+	{$num = $c1.num;}
 
- 	(
- 		{
+	(
+		{
 			final int type_mal = 1, type_geteilt = 2, type_modulo = 3;
 			int type = -1;
 		}
 
- 		(
- 			(
- 				MAL
- 				{type = type_mal;}
+		(
+			(
+				MAL
+				{type = type_mal;}
 
- 			)
- 			|
- 			(
- 				GETEILT
- 				{type = type_geteilt;}
+			)
+			|
+			(
+				GETEILT
+				{type = type_geteilt;}
 
- 			)
- 			|
- 			(
- 				MODULO
- 				{type = type_modulo;}
+			)
+			|
+			(
+				MODULO
+				{type = type_modulo;}
 
- 			)
- 		) c2 = constBerechnungDirekt [pos, constants]
- 		{
+			)
+		) c2 = constBerechnungDirekt [pos, constants]
+		{
  			switch(type) {
 			case type_mal:
 				$num *= $c2.num; 
@@ -595,126 +659,126 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungDirekt [long pos, Map<String, Long> constants] returns
- [long num]
- :
- 	(
- 		numconst [null]
- 		{
+constBerechnungDirekt [long pos, Map<String, Long> constants] returns
+[long num]
+:
+	(
+		numconst [null]
+		{
  			if ($numconst.b) {
  				throw new RuntimeException("byte values are not allowed for conastants");
  			}
  			$num = $numconst.num;
  		}
 
- 	)
- 	|
- 	(
- 		POS
- 		{$num = pos;}
+	)
+	|
+	(
+		POS
+		{$num = pos;}
 
- 	)
- 	|
- 	(
- 		EXIST_CONSTANT
- 		{$num = constants.containsKey($EXIST_CONSTANT.getText().substring(2)) ? 1L : 0L;}
+	)
+	|
+	(
+		EXIST_CONSTANT
+		{$num = constants.containsKey($EXIST_CONSTANT.getText().substring(2)) ? 1L : 0L;}
 
- 	)
- 	|
- 	(
- 		RND_KL_AUF constBerechnung [pos, constants] RND_KL_ZU
- 		{$num = $constBerechnung.num;}
+	)
+	|
+	(
+		RND_KL_AUF constBerechnung [pos, constants] RND_KL_ZU
+		{$num = $constBerechnung.num;}
 
- 	)
- ;
+	)
+;
 
- numconst [ConstantPoolCommand pool] returns [long num, boolean b]
- @init {int radix;}
- :
- 	(
- 		(
- 			BYTE
- 			{$b = true;}
+numconst [ConstantPoolCommand pool] returns [long num, boolean b]
+@init {int radix;}
+:
+	(
+		(
+			BYTE
+			{$b = true;}
 
- 		)?
- 		(
- 			(
- 				DEC_FP_NUM
- 				{$num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
+		)?
+		(
+			(
+				DEC_FP_NUM
+				{$num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
 
- 			)
- 			|
- 			(
- 				UNSIGNED_HEX_NUM
- 				{$num = Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16);}
+			)
+			|
+			(
+				UNSIGNED_HEX_NUM
+				{$num = Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16);}
 
- 			)
- 			|
- 			(
- 				HEX_NUM
- 				{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
+			)
+			|
+			(
+				HEX_NUM
+				{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
 
- 			)
- 			|
- 			(
- 				DEC_NUM
- 				{$num = Long.parseLong($DEC_NUM.getText(), 10);}
+			)
+			|
+			(
+				DEC_NUM
+				{$num = Long.parseLong($DEC_NUM.getText(), 10);}
 
- 			)
- 			|
- 			(
- 				DEC_NUM0
- 				{$num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
+			)
+			|
+			(
+				DEC_NUM0
+				{$num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
 
- 			)
- 			|
- 			(
- 				OCT_NUM
- 				{$num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
+			)
+			|
+			(
+				OCT_NUM
+				{$num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
 
- 			)
- 			|
- 			(
- 				BIN_NUM
- 				{$num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
+			)
+			|
+			(
+				BIN_NUM
+				{$num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
 
- 			)
- 			|
- 			(
- 				NEG_HEX_NUM
- 				{$num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
+			)
+			|
+			(
+				NEG_HEX_NUM
+				{$num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
 
- 			)
- 			|
- 			(
- 				NEG_DEC_NUM
- 				{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
+			)
+			|
+			(
+				NEG_DEC_NUM
+				{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
 
- 			)
- 			|
- 			(
- 				NEG_DEC_NUM0
- 				{$num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
+			)
+			|
+			(
+				NEG_DEC_NUM0
+				{$num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
 
- 			)
- 			|
- 			(
- 				NEG_OCT_NUM
- 				{$num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
+			)
+			|
+			(
+				NEG_OCT_NUM
+				{$num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
 
- 			)
- 			|
- 			(
- 				NEG_BIN_NUM
- 				{$num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
+			)
+			|
+			(
+				NEG_BIN_NUM
+				{$num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
 
- 			)
- 		)
- 	)
- 	{
+			)
+		)
+	)
+	{
 			if (pool != null) {
 				if ($b) {
 					if (($num & 0xFFL) != $num) {
@@ -736,342 +800,350 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 			}
 	 	}
 
- ;
+;
 
- WRITE
- :
- 	'WRITE'
- ;
+WRITE
+:
+	'WRITE'
+;
 
- CHARS
- :
- 	'CHARS'
- ;
+CHARS
+:
+	'CHARS'
+;
 
- CHAR_STR
- :
- 	'\''
- 	(
- 		(
- 			~'\''
- 		)
- 		|
- 		(
- 			'\\' ~( '\r' | '\n' )
- 		)
- 	)* '\''
- ;
+CHAR_STR
+:
+	'\''
+	(
+		(
+			~'\''
+		)
+		|
+		(
+			'\\' ~( '\r' | '\n' )
+		)
+	)* '\''
+;
 
- STR_STR
- :
- 	'"'
- 	(
- 		(
- 			~'"'
- 		)
- 		|
- 		(
- 			'\\' ~( '\r' | '\n' )
- 		)
- 	)* '"'
- ;
+STR_STR
+:
+	'"'
+	(
+		(
+			~'"'
+		)
+		|
+		(
+			'\\' ~( '\r' | '\n' )
+		)
+	)* '"'
+;
 
- START
- :
- 	':'
- ;
+START
+:
+	':'
+;
 
- ENDE
- :
- 	'>'
- ;
+ENDE
+:
+	'>'
+;
 
- RND_KL_AUF
- :
- 	'('
- ;
+RND_KL_AUF
+:
+	'('
+;
 
- RND_KL_ZU
- :
- 	')'
- ;
+RND_KL_ZU
+:
+	')'
+;
 
- PLUS
- :
- 	'+'
- ;
+PLUS
+:
+	'+'
+;
 
- MINUS
- :
- 	'-'
- ;
+MINUS
+:
+	'-'
+;
 
- MAL
- :
- 	'*'
- ;
+MAL
+:
+	'*'
+;
 
- GETEILT
- :
- 	'/'
- ;
+GETEILT
+:
+	'/'
+;
 
- MODULO
- :
- 	'%'
- ;
+MODULO
+:
+	'%'
+;
 
- LINKS_SCHUB
- :
- 	'<<'
- ;
+LINKS_SCHUB
+:
+	'<<'
+;
 
- LOGISCHER_RECHTS_SCHUB
- :
- 	'>>'
- ;
+LOGISCHER_RECHTS_SCHUB
+:
+	'>>'
+;
 
- ARITMETISCHER_RECHTS_SCHUB
- :
- 	'>>>'
- ;
+ARITMETISCHER_RECHTS_SCHUB
+:
+	'>>>'
+;
 
- GROESSER
- :
- 	'>'
- ;
+GROESSER
+:
+	'>'
+;
 
- GROESSER_GLEICH
- :
- 	'>='
- ;
+GROESSER_GLEICH
+:
+	'>='
+;
 
- KLEINER_GLEICH
- :
- 	'<='
- ;
+KLEINER_GLEICH
+:
+	'<='
+;
 
- KLEINER
- :
- 	'<'
- ;
+KLEINER
+:
+	'<'
+;
 
- GLEICH_GLEICH
- :
- 	'=='
- ;
+GLEICH_GLEICH
+:
+	'=='
+;
 
- UNGLEICH
- :
- 	'!='
- ;
+UNGLEICH
+:
+	'!='
+;
 
- UND
- :
- 	'&'
- ;
+UND
+:
+	'&'
+;
 
- EXCLUSIVPDER
- :
- 	'^'
- ;
+EXCLUSIVPDER
+:
+	'^'
+;
 
- INCLUSIVODER
- :
- 	'|'
- ;
+INCLUSIVODER
+:
+	'|'
+;
 
- DOPPELPUNKT
- :
- 	':'
- ;
+DOPPELPUNKT
+:
+	':'
+;
 
- FRAGEZEICHEN
- :
- 	'?'
- ;
+FRAGEZEICHEN
+:
+	'?'
+;
 
- BYTE
- :
- 	'B-'
- ;
+BYTE
+:
+	'B-'
+;
 
- UNSIGNED_HEX_NUM
- :
- 	'UHEX-' [0-9a-fA-F]+
- ;
+UNSIGNED_HEX_NUM
+:
+	'UHEX-' [0-9a-fA-F]+
+;
 
- NEG_HEX_NUM
- :
- 	'NHEX-' [0-9a-fA-F]+
- ;
+NEG_HEX_NUM
+:
+	'NHEX-' [0-9a-fA-F]+
+;
 
- NEG_DEC_NUM
- :
- 	'NDEC-' [0-9]+
- ;
+NEG_DEC_NUM
+:
+	'NDEC-' [0-9]+
+;
 
- NEG_DEC_NUM0
- :
- 	'-' [0-9]+
- ;
+NEG_DEC_NUM0
+:
+	'-' [0-9]+
+;
 
- NEG_OCT_NUM
- :
- 	'NOCT-' [0-7]+
- ;
+NEG_OCT_NUM
+:
+	'NOCT-' [0-7]+
+;
 
- NEG_BIN_NUM
- :
- 	'NBIN-' [01]+
- ;
+NEG_BIN_NUM
+:
+	'NBIN-' [01]+
+;
 
- HEX_NUM
- :
- 	'HEX-' [0-9a-fA-F]+
- ;
+HEX_NUM
+:
+	'HEX-' [0-9a-fA-F]+
+;
 
- DEC_NUM0
- :
- 	'DEC-' [0-9]+
- ;
+DEC_NUM0
+:
+	'DEC-' [0-9]+
+;
 
- DEC_NUM
- :
- 	[0-9]+
- ;
+DEC_NUM
+:
+	[0-9]+
+;
 
- DEC_FP_NUM
- :
- 	'-'? [0-9]* '.' [0-9]*
- ;
+DEC_FP_NUM
+:
+	'-'? [0-9]* '.' [0-9]*
+;
 
- OCT_NUM
- :
- 	'OCT-' [0-7]+
- ;
+OCT_NUM
+:
+	'OCT-' [0-7]+
+;
 
- BIN_NUM
- :
- 	'BIN-' [01]+
- ;
+BIN_NUM
+:
+	'BIN-' [01]+
+;
 
- DEL
- :
- 	'~DEL'
- ;
+DEL
+:
+	'~DEL'
+;
 
- IF
- :
- 	'~IF'
- ;
+IF
+:
+	'~IF'
+;
 
- ELSE
- :
- 	'~ELSE'
- ;
+ELSE
+:
+	'~ELSE'
+;
 
- ELSE_IF
- :
- 	'~ELSE-IF'
- ;
+ELSE_IF
+:
+	'~ELSE-IF'
+;
 
- ERROR
- :
- 	'~ERROR'
- ;
+ENDIF
+:
+	'~ENDIF'
+;
 
- ERROR_HEX
- :
- 	[hH] ':'
- ;
+ERROR
+:
+	'~ERROR'
+;
 
- ERROR_MESSAGE_START
- :
- 	'{'
- ;
+ERROR_HEX
+:
+	[hH] ':'
+;
 
- ERROR_MESSAGE_END
- :
- 	'}'
- ;
+ERROR_MESSAGE_START
+:
+	'{'
+;
 
- POS
- :
- 	'--POS--'
- ;
+ERROR_MESSAGE_END
+:
+	'}'
+;
 
- ANY_NUM
- :
- 	[0-9a-fA-f]+
- ;
+POS
+:
+	'--POS--'
+;
 
- EXIST_CONSTANT
- :
- 	'#~' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
- ;
+ANY_NUM
+:
+	[0-9a-fA-f]+
+;
 
- CONSTANT
- :
- 	'#' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
- ;
+EXIST_CONSTANT
+:
+	'#~' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
+;
 
- LABEL_DECLARATION
- :
- 	'@' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
- ;
+CONSTANT
+:
+	'#' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
+;
 
- CD_NOT_ALIGN
- :
- 	'$NOT_ALIGN'
- 	| '$NOT-ALIGN'
- 	| '$not_align'
- 	| '$not-align'
- ;
+LABEL_DECLARATION
+:
+	'@' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
+;
 
- CD_ALIGN
- :
- 	'$ALIGN'
- 	| '$align'
- ;
+CD_NOT_ALIGN
+:
+	'$NOT_ALIGN'
+	| '$NOT-ALIGN'
+	| '$not_align'
+	| '$not-align'
+;
 
- ERROR_MESSAGE
- :
- 	'{'
- 	(
- 		(
- 			~( '}' | '\\' )
- 		)
- 		|
- 		(
- 			'\\' .
- 		)
- 	)* '}'
- ;
+CD_ALIGN
+:
+	'$ALIGN'
+	| '$align'
+;
 
- LINE_COMMENT
- :
- 	'|>'
- 	(
- 		~( [\r\n] )
- 	)* -> skip
- ;
+ERROR_MESSAGE
+:
+	'{'
+	(
+		(
+			~( '}' | '\\' )
+		)
+		|
+		(
+			'\\' .
+		)
+	)* '}'
+;
 
- BLOCK_COMMENT
- :
- 	'|:'
- 	(
- 		~'|'
- 		|
- 		(
- 			'|' ~'>'
- 		)
- 	)* ':>' -> skip
- ;
+LINE_COMMENT
+:
+	'|>'
+	(
+		~( [\r\n] )
+	)* -> skip
+;
 
- WS
- :
- 	[ \t\r\n]+ -> skip
- ;
+BLOCK_COMMENT
+:
+	'|:'
+	(
+		~'|'
+		|
+		(
+			'|' ~'>'
+		)
+	)* ':>' -> skip
+;
 
- 
+WS
+:
+	[ \t\r\n]+ -> skip
+;
+
+ANY
+:
+	.
+;
