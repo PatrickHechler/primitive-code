@@ -106,8 +106,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			CONSTANT
  			(
  				(
- 					nummer [$pos, constants]
- 					{constants.put($CONSTANT.getText().substring(1), $nummer.num);}
+ 					constBerechnung [$pos, constants]
+ 					{constants.put($CONSTANT.getText().substring(1), $constBerechnung.num);}
 
  				)
  				|
@@ -275,6 +275,296 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	(
  		NAME
  		{$p = Param.createLabel($NAME.getText());}
+
+ 	)
+ ;
+
+ constBerechnung [long pos, Map<String, Long> constants] returns [long num]
+ :
+ 	c1 = constBerechnungInclusivoder [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 		FRAGEZEICHEN c2 = constBerechnung [pos, constants] DOPPELPUNKT c3 =
+ 		constBerechnungInclusivoder [pos, constants]
+ 		{$num = ($num != 0L) ? $c2.num : $c3.num;}
+
+ 	)?
+ ;
+
+ constBerechnungInclusivoder [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungExclusivoder [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 		INCLUSIVODER c2 = constBerechnungExclusivoder [pos, constants]
+ 		{$num |= $c2.num;}
+
+ 	)*
+ ;
+
+ constBerechnungExclusivoder [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungUnd [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 		EXCLUSIVPDER c2 = constBerechnungUnd [pos, constants]
+ 		{$num ^= $c2.num;}
+
+ 	)*
+ ;
+
+ constBerechnungUnd [long pos, Map<String, Long> constants] returns [long num]
+ :
+ 	c1 = constBerechnungGleichheit [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 		UND c2 = constBerechnungGleichheit [pos, constants]
+ 		{$num &= $c2.num;}
+
+ 	)*
+ ;
+
+ constBerechnungGleichheit [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungRelativeTests [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 		{boolean gleich = false;}
+
+ 		(
+ 			(
+ 				GLEICH_GLEICH
+ 				{gleich = true;}
+
+ 			)
+ 			|
+ 			(
+ 				UNGLEICH
+ 				{gleich = false;}
+
+ 			)
+ 		) c2 = constBerechnungRelativeTests [pos, constants]
+ 		{
+ 			if (gleich) {
+ 				$num = ($num == $c1.num) ? 1L : 0L;
+ 			} else {
+ 				$num = ($num == $c1.num) ? 0L : 1L;
+ 			}
+ 		}
+
+ 	)*
+ ;
+
+ constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungSchub [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 	{
+		final int type_gr = 1, type_gr_gl = 2, type_kl_gl = 3, type_kl = 4;
+		int type = -1;
+	}
+
+ 		(
+ 			(
+ 				GROESSER
+ 				{type = type_gr;}
+
+ 			)
+ 			|
+ 			(
+ 				GROESSER_GLEICH
+ 				{type = type_gr_gl;}
+
+ 			)
+ 			|
+ 			(
+ 				KLEINER_GLEICH
+ 				{type = type_kl_gl;}
+
+ 			)
+ 			|
+ 			(
+ 				KLEINER
+ 				{type = type_kl;}
+
+ 			)
+ 		) c2 = constBerechnungSchub [pos, constants]
+ 		{
+			switch(type) {
+			case type_gr:
+				$num = ($num > $c1.num) ? 1L : 0L;
+				break;
+			case type_gr_gl:
+				$num = ($num >= $c1.num) ? 1L : 0L;
+				break;
+			case type_kl_gl:
+				$num = ($num <= $c1.num) ? 1L : 0L;
+				break;
+			case type_kl:
+				$num = ($num < $c1.num) ? 1L : 0L;
+				break;
+			default:
+				throw new InternalError("unknown type=" + type);
+			}
+		}
+
+ 	)*
+ ;
+
+ constBerechnungSchub [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungStrich [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 	{
+		final int type_ls = 1, type_lrs = 2, type_ars = 3;
+		int type = -1;
+	}
+
+ 		(
+ 			(
+ 				LINKS_SCHUB
+ 				{type = type_ls;}
+
+ 			)
+ 			|
+ 			(
+ 				LOGISCHER_RECHTS_SCHUB
+ 				{type = type_lrs;}
+
+ 			)
+ 			|
+ 			(
+ 				ARITMETISCHER_RECHTS_SCHUB
+ 				{type = type_ars;}
+
+ 			)
+ 		) c2 = constBerechnungStrich [pos, constants]
+ 		{
+ 			switch(type) {
+			case type_ls:
+				$num <<= $c2.num;
+				break;
+			case type_lrs:
+				$num >>= $c2.num;
+				break;
+			case type_ars:
+				$num >>>= $c2.num;
+				break;
+			default:
+				throw new InternalError("unknown type=" + type);
+ 			}
+ 		}
+
+ 	)*
+ ;
+
+ constBerechnungStrich [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungPunkt [pos, constants]
+ 	(
+ 		{boolean add = false;}
+
+ 		(
+ 			(
+ 				PLUS
+ 				{add = true;}
+
+ 			)
+ 			|
+ 			(
+ 				MINUS
+ 				{add = false;}
+
+ 			)
+ 		) c2 = constBerechnungPunkt [pos, constants]
+ 		{
+ 			if (add) {
+ 				$num += $c2.num;
+ 			} else {
+ 				$num -= $c2.num;
+ 			}
+ 		}
+
+ 	)*
+ ;
+
+ constBerechnungPunkt [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungDirekt [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 	{
+		final int type_mal = 1, type_geteilt = 2, type_modulo = 3;
+		int type = -1;
+	}
+
+ 		(
+ 			(
+ 				MAL
+ 				{type = type_mal;}
+
+ 			)
+ 			|
+ 			(
+ 				GETEILT
+ 				{type = type_geteilt;}
+
+ 			)
+ 			|
+ 			(
+ 				MODULO
+ 				{type = type_modulo;}
+
+ 			)
+ 		) c2 = constBerechnungDirekt [pos, constants]
+ 		{
+ 			switch(type) {
+			case type_mal:
+				$num *= $c2.num; 
+				break;
+			case type_geteilt:
+				$num /= $c2.num; 
+				break;
+			case type_modulo:
+				$num %= $c2.num; 
+				break;
+			default:
+				throw new InternalError("unknown type=" + type);
+ 			}
+ 		}
+
+ 	)*
+ ;
+
+ constBerechnungDirekt [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	(
+ 		nummer [pos, constants]
+ 		{$num = $nummer.num;}
+
+ 	)
+ 	|
+ 	(
+ 		RND_KL_AUF constBerechnung [pos, constants] RND_KL_ZU
+ 		{$num = $constBerechnung.num;}
 
  	)
  ;
@@ -985,15 +1275,114 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  :
  	']'
  ;
-
  PLUS
  :
  	'+'
  ;
-
  COMMA
  :
  	','
+ ;
+
+
+ RND_KL_AUF
+ :
+ 	'('
+ ;
+
+ RND_KL_ZU
+ :
+ 	')'
+ ;
+
+ MINUS
+ :
+ 	'-'
+ ;
+
+ MAL
+ :
+ 	'*'
+ ;
+
+ GETEILT
+ :
+ 	'/'
+ ;
+
+ MODULO
+ :
+ 	'%'
+ ;
+
+ LINKS_SCHUB
+ :
+ 	'<<'
+ ;
+
+ LOGISCHER_RECHTS_SCHUB
+ :
+ 	'>>'
+ ;
+
+ ARITMETISCHER_RECHTS_SCHUB
+ :
+ 	'>>>'
+ ;
+
+ GROESSER
+ :
+ 	'>'
+ ;
+
+ GROESSER_GLEICH
+ :
+ 	'>='
+ ;
+
+ KLEINER_GLEICH
+ :
+ 	'<='
+ ;
+
+ KLEINER
+ :
+ 	'<'
+ ;
+
+ GLEICH_GLEICH
+ :
+ 	'=='
+ ;
+
+ UNGLEICH
+ :
+ 	'!='
+ ;
+
+ UND
+ :
+ 	'&'
+ ;
+
+ EXCLUSIVPDER
+ :
+ 	'^'
+ ;
+
+ INCLUSIVODER
+ :
+ 	'|'
+ ;
+
+ DOPPELPUNKT
+ :
+ 	':'
+ ;
+
+ FRAGEZEICHEN
+ :
+ 	'?'
  ;
 
  UNSIGNED_HEX_NUM

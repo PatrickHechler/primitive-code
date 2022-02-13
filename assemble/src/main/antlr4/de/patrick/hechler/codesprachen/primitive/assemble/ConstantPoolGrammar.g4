@@ -55,80 +55,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  				(
  					(
  						(
- 							DEC_FP_NUM
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText())));}
-
- 						)
- 						|
- 						(
- 							UNSIGNED_HEX_NUM
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16));}
-
- 						)
- 						|
- 						(
- 							HEX_NUM
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($HEX_NUM.getText(), 16));}
-
- 						)
- 						|
- 						(
- 							DEC_NUM
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($DEC_NUM.getText(), 10));}
-
- 						)
- 						|
- 						(
- 							DEC_NUM0
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($DEC_NUM0.getText(), 10));}
-
- 						)
- 						|
- 						(
- 							OCT_NUM
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($OCT_NUM.getText(), 8));}
-
- 						)
- 						|
- 						(
- 							BIN_NUM
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong($BIN_NUM.getText(), 2));}
-
- 						)
- 						|
- 						(
- 							NEG_HEX_NUM
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_HEX_NUM.getText(), 16));}
-
- 						)
- 						|
- 						(
- 							NEG_DEC_NUM
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_DEC_NUM.getText(), 10));}
-
- 						)
- 						|
- 						(
- 							NEG_DEC_NUM0
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_DEC_NUM0.getText(), 10));}
-
- 						)
- 						|
- 						(
- 							NEG_OCT_NUM
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_OCT_NUM.getText(), 8));}
-
- 						)
- 						|
- 						(
- 							NEG_BIN_NUM
- 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseLong("-" + $NEG_BIN_NUM.getText(), 2));}
-
- 						)
- 						|
- 						(
- 							POS
- 							{constants.put($CONSTANT.getText().substring(1), (Long) (pos + $pool.length()));}
+ 							constBerechnung[pos + $pool.length(), constants]
+ 							{constants.put($CONSTANT.getText().substring(1), (Long) $constBerechnung.num);}
 
  						)
  						{simpleAdd = false;}
@@ -258,115 +186,411 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 
  ;
 
- numconst [ConstantPoolCommand pool] @init {int radix;}
+ constBerechnung [long pos, Map<String, Long> constants] returns [long num]
  :
+ 	c1 = constBerechnungInclusivoder [pos, constants]
+ 	{$num = $c1.num;}
+
  	(
- 		{
-			boolean b = false;
-			long num;
-		}
+ 		FRAGEZEICHEN c2 = constBerechnung [pos, constants] DOPPELPUNKT c3 =
+ 		constBerechnungInclusivoder [pos, constants]
+ 		{$num = ($num != 0L) ? $c2.num : $c3.num;}
+
+ 	)?
+ ;
+
+ constBerechnungInclusivoder [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungExclusivoder [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 		INCLUSIVODER c2 = constBerechnungExclusivoder [pos, constants]
+ 		{$num |= $c2.num;}
+
+ 	)*
+ ;
+
+ constBerechnungExclusivoder [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungUnd [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 		EXCLUSIVPDER c2 = constBerechnungUnd [pos, constants]
+ 		{$num ^= $c2.num;}
+
+ 	)*
+ ;
+
+ constBerechnungUnd [long pos, Map<String, Long> constants] returns [long num]
+ :
+ 	c1 = constBerechnungGleichheit [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 		UND c2 = constBerechnungGleichheit [pos, constants]
+ 		{$num &= $c2.num;}
+
+ 	)*
+ ;
+
+ constBerechnungGleichheit [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungRelativeTests [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 		{boolean gleich = false;}
 
  		(
  			(
- 				BYTE
- 				{b = true;}
+ 				GLEICH_GLEICH
+ 				{gleich = true;}
 
- 			)?
+ 			)
+ 			|
  			(
- 				(
- 					DEC_FP_NUM
- 					{num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
+ 				UNGLEICH
+ 				{gleich = false;}
 
- 				)
- 				|
- 				(
- 					UNSIGNED_HEX_NUM
- 					{num = Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16);}
+ 			)
+ 		) c2 = constBerechnungRelativeTests [pos, constants]
+ 		{
+ 			if (gleich) {
+ 				$num = ($num == $c1.num) ? 1L : 0L;
+ 			} else {
+ 				$num = ($num == $c1.num) ? 0L : 1L;
+ 			}
+ 		}
 
- 				)
- 				|
- 				(
- 					HEX_NUM
- 					{num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
+ 	)*
+ ;
 
- 				)
- 				|
- 				(
- 					DEC_NUM
- 					{num = Long.parseLong($DEC_NUM.getText(), 10);}
+ constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungSchub [pos, constants]
+ 	{$num = $c1.num;}
 
- 				)
- 				|
- 				(
- 					DEC_NUM0
- 					{num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
+ 	(
+ 		{
+		final int type_gr = 1, type_gr_gl = 2, type_kl_gl = 3, type_kl = 4;
+		int type = -1;
+	}
 
- 				)
- 				|
- 				(
- 					OCT_NUM
- 					{num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
+ 		(
+ 			(
+ 				GROESSER
+ 				{type = type_gr;}
 
- 				)
- 				|
- 				(
- 					BIN_NUM
- 					{num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
+ 			)
+ 			|
+ 			(
+ 				GROESSER_GLEICH
+ 				{type = type_gr_gl;}
 
- 				)
- 				|
- 				(
- 					NEG_HEX_NUM
- 					{num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
+ 			)
+ 			|
+ 			(
+ 				KLEINER_GLEICH
+ 				{type = type_kl_gl;}
 
- 				)
- 				|
- 				(
- 					NEG_DEC_NUM
- 					{num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
+ 			)
+ 			|
+ 			(
+ 				KLEINER
+ 				{type = type_kl;}
 
- 				)
- 				|
- 				(
- 					NEG_DEC_NUM0
- 					{num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
+ 			)
+ 		) c2 = constBerechnungSchub [pos, constants]
+ 		{
+			switch(type) {
+			case type_gr:
+				$num = ($num > $c1.num) ? 1L : 0L;
+				break;
+			case type_gr_gl:
+				$num = ($num >= $c1.num) ? 1L : 0L;
+				break;
+			case type_kl_gl:
+				$num = ($num <= $c1.num) ? 1L : 0L;
+				break;
+			case type_kl:
+				$num = ($num < $c1.num) ? 1L : 0L;
+				break;
+			default:
+				throw new InternalError("unknown type=" + type);
+			}
+		}
 
- 				)
- 				|
- 				(
- 					NEG_OCT_NUM
- 					{num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
+ 	)*
+ ;
 
- 				)
- 				|
- 				(
- 					NEG_BIN_NUM
- 					{num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
+ constBerechnungSchub [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungStrich [pos, constants]
+ 	{$num = $c1.num;}
 
- 				)
+ 	(
+ 		{
+		final int type_ls = 1, type_lrs = 2, type_ars = 3;
+		int type = -1;
+	}
+
+ 		(
+ 			(
+ 				LINKS_SCHUB
+ 				{type = type_ls;}
+
+ 			)
+ 			|
+ 			(
+ 				LOGISCHER_RECHTS_SCHUB
+ 				{type = type_lrs;}
+
+ 			)
+ 			|
+ 			(
+ 				ARITMETISCHER_RECHTS_SCHUB
+ 				{type = type_ars;}
+
+ 			)
+ 		) c2 = constBerechnungStrich [pos, constants]
+ 		{
+ 			switch(type) {
+			case type_ls:
+				$num <<= $c2.num;
+				break;
+			case type_lrs:
+				$num >>= $c2.num;
+				break;
+			case type_ars:
+				$num >>>= $c2.num;
+				break;
+			default:
+				throw new InternalError("unknown type=" + type);
+ 			}
+ 		}
+
+ 	)*
+ ;
+
+ constBerechnungStrich [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungPunkt [pos, constants]
+ 	(
+ 		{boolean add = false;}
+
+ 		(
+ 			(
+ 				PLUS
+ 				{add = true;}
+
+ 			)
+ 			|
+ 			(
+ 				MINUS
+ 				{add = false;}
+
+ 			)
+ 		) c2 = constBerechnungPunkt [pos, constants]
+ 		{
+ 			if (add) {
+ 				$num += $c2.num;
+ 			} else {
+ 				$num -= $c2.num;
+ 			}
+ 		}
+
+ 	)*
+ ;
+
+ constBerechnungPunkt [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungDirekt [pos, constants]
+ 	{$num = $c1.num;}
+
+ 	(
+ 		{
+		final int type_mal = 1, type_geteilt = 2, type_modulo = 3;
+		int type = -1;
+	}
+
+ 		(
+ 			(
+ 				MAL
+ 				{type = type_mal;}
+
+ 			)
+ 			|
+ 			(
+ 				GETEILT
+ 				{type = type_geteilt;}
+
+ 			)
+ 			|
+ 			(
+ 				MODULO
+ 				{type = type_modulo;}
+
+ 			)
+ 		) c2 = constBerechnungDirekt [pos, constants]
+ 		{
+ 			switch(type) {
+			case type_mal:
+				$num *= $c2.num; 
+				break;
+			case type_geteilt:
+				$num /= $c2.num; 
+				break;
+			case type_modulo:
+				$num %= $c2.num; 
+				break;
+			default:
+				throw new InternalError("unknown type=" + type);
+ 			}
+ 		}
+
+ 	)*
+ ;
+
+ constBerechnungDirekt [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	(
+ 		numconst [null]
+ 		{
+ 			if ($numconst.b) {
+ 				throw new RuntimeException("byte values are not allowed for conastants");
+ 			}
+ 			$num = $numconst.num;
+ 		}
+
+ 	)
+ 	|
+ 	(
+ 		POS
+ 		{$num = pos;}
+
+ 	)
+ 	|
+ 	(
+ 		RND_KL_AUF constBerechnung [pos, constants] RND_KL_ZU
+ 		{$num = $constBerechnung.num;}
+
+ 	)
+ ;
+
+ numconst [ConstantPoolCommand pool] returns [long num, boolean b] @init {int radix;}
+ :
+ 	(
+ 		(
+ 			BYTE
+ 			{$b = true;}
+
+ 		)?
+ 		(
+ 			(
+ 				DEC_FP_NUM
+ 				{$num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
+
+ 			)
+ 			|
+ 			(
+ 				UNSIGNED_HEX_NUM
+ 				{$num = Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16);}
+
+ 			)
+ 			|
+ 			(
+ 				HEX_NUM
+ 				{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
+
+ 			)
+ 			|
+ 			(
+ 				DEC_NUM
+ 				{$num = Long.parseLong($DEC_NUM.getText(), 10);}
+
+ 			)
+ 			|
+ 			(
+ 				DEC_NUM0
+ 				{$num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
+
+ 			)
+ 			|
+ 			(
+ 				OCT_NUM
+ 				{$num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
+
+ 			)
+ 			|
+ 			(
+ 				BIN_NUM
+ 				{$num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
+
+ 			)
+ 			|
+ 			(
+ 				NEG_HEX_NUM
+ 				{$num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
+
+ 			)
+ 			|
+ 			(
+ 				NEG_DEC_NUM
+ 				{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
+
+ 			)
+ 			|
+ 			(
+ 				NEG_DEC_NUM0
+ 				{$num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
+
+ 			)
+ 			|
+ 			(
+ 				NEG_OCT_NUM
+ 				{$num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
+
+ 			)
+ 			|
+ 			(
+ 				NEG_BIN_NUM
+ 				{$num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
+
  			)
  		)
- 		{
-			if (b) {
-				if ((num & 0xFFL) != num) {
-					throw new RuntimeException("byte num not inside of byte bounds: 0..255 : 0x00..0xFF");
+ 	)
+ 	{
+			if (pool != null) {
+				if ($b) {
+					if (($num & 0xFFL) != $num) {
+						throw new RuntimeException("byte num not inside of byte bounds: 0..255 : 0x00..0xFF");
+					}
+			 		pool.addBytes(new byte[]{(byte)$num});
+				}else {
+			 		pool.addBytes(new byte[]{
+			 		(byte) $num,
+			 		(byte) ($num >> 8),
+			 		(byte) ($num >> 16),
+			 		(byte) ($num >> 24),
+			 		(byte) ($num >> 32),
+			 		(byte) ($num >> 40),
+			 		(byte) ($num >> 48),
+			 		(byte) ($num >> 56),
+			 		});
 				}
-		 		pool.addBytes(new byte[]{(byte)num});
-			}else {
-		 		pool.addBytes(new byte[]{
-		 		(byte) num,
-		 		(byte) (num >> 8),
-		 		(byte) (num >> 16),
-		 		(byte) (num >> 24),
-		 		(byte) (num >> 32),
-		 		(byte) (num >> 40),
-		 		(byte) (num >> 48),
-		 		(byte) (num >> 56),
-		 		});
 			}
 	 	}
 
- 	)+
  ;
 
  WRITE
@@ -415,6 +639,111 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  ENDE
  :
  	'>'
+ ;
+
+ RND_KL_AUF
+ :
+ 	'('
+ ;
+
+ RND_KL_ZU
+ :
+ 	')'
+ ;
+
+ PLUS
+ :
+ 	'+'
+ ;
+
+ MINUS
+ :
+ 	'-'
+ ;
+
+ MAL
+ :
+ 	'*'
+ ;
+
+ GETEILT
+ :
+ 	'/'
+ ;
+
+ MODULO
+ :
+ 	'%'
+ ;
+
+ LINKS_SCHUB
+ :
+ 	'<<'
+ ;
+
+ LOGISCHER_RECHTS_SCHUB
+ :
+ 	'>>'
+ ;
+
+ ARITMETISCHER_RECHTS_SCHUB
+ :
+ 	'>>>'
+ ;
+
+ GROESSER
+ :
+ 	'>'
+ ;
+
+ GROESSER_GLEICH
+ :
+ 	'>='
+ ;
+
+ KLEINER_GLEICH
+ :
+ 	'<='
+ ;
+
+ KLEINER
+ :
+ 	'<'
+ ;
+
+ GLEICH_GLEICH
+ :
+ 	'=='
+ ;
+
+ UNGLEICH
+ :
+ 	'!='
+ ;
+
+ UND
+ :
+ 	'&'
+ ;
+
+ EXCLUSIVPDER
+ :
+ 	'^'
+ ;
+
+ INCLUSIVODER
+ :
+ 	'|'
+ ;
+
+ DOPPELPUNKT
+ :
+ 	':'
+ ;
+
+ FRAGEZEICHEN
+ :
+ 	'?'
  ;
 
  BYTE

@@ -97,9 +97,7 @@ public class PrimitiveAssembler {
 	}
 	
 	public void assemble(PrimitiveFileGrammarParser.ParseContext parsed) throws IOException {
-		List <Command> cmds = parsed.commands;
-		Map <String, Long> labels = parsed.labels;
-		assemble(cmds, labels);
+		assemble(parsed.commands, parsed.labels);
 	}
 	
 	public void assemble(List <Command> cmds, Map <String, Long> labels) throws IOException {
@@ -316,10 +314,11 @@ public class PrimitiveAssembler {
 		assert cmd.p2 != null : "I need a second Param!";
 		assert cmd.p1.label == null : "I don't need a label in my params!";
 		assert cmd.p2.label == null : "I don't need a label in my params!";
-		bytes[1] = (byte) cmd.p1.art;
-		bytes[2] = (byte) cmd.p2.art;
-		long p1num = cmd.p1.num, p1off = cmd.p1.off, p2num = cmd.p2.num, p2off = cmd.p2.off;
-		int p1art = cmd.p1.art, p2art = cmd.p2.art, index = 7;
+		final long p1num = cmd.p1.num, p1off = cmd.p1.off, p2num = cmd.p2.num, p2off = cmd.p2.off;
+		final int p1art = cmd.p1.art, p2art = cmd.p2.art;
+		int index = 7;
+		bytes[1] = (byte) p1art;
+		bytes[2] = (byte) p2art;
 		{
 			switch (p1art) {
 			case Param.ART_ANUM:
@@ -460,7 +459,7 @@ public class PrimitiveAssembler {
 				break;
 			case Param.ART_ASR_BNUM:
 				out.write(bytes, 0, bytes.length);
-				convertLong(bytes, p2num);
+				convertLong(bytes, p2off);
 				break;
 			case Param.ART_ASR_BREG:
 				break;
