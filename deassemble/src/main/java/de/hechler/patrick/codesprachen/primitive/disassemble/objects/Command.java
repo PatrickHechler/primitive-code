@@ -119,29 +119,20 @@ public class Command {
 		
 		@Override
 		public String toString() {
-			StringBuilder build = new StringBuilder(":\nHEX:");
+			StringBuilder build = new StringBuilder(":");
 			int off;
-			boolean first = true;
 			for (off = 0; off < bytes.length - 8; off += 8) {
-				String prefix = "\n    ";
-				if (first) {
-					prefix = "";
-					first = false;
-				}
+				String prefix = "\n    UHEX-";
 				build.append(convertByteArrToHexString(prefix, bytes, off, 8, ""));
 			}
 			if (bytes.length - off == 8) {
-				String prefix = "\n    ";
-				if (first) {
-					prefix = "";
-				}
+				String prefix = "\n    UHEX-";
 				build.append(convertByteArrToHexString(prefix, bytes, off, 8, "\n>"));
 			} else {
-				build.append('\n');
 				for (; off < bytes.length; off ++ ) {
-					build.append(convertByteArrToHexString("B-HEX-", bytes, off, 1, "\n"));
+					build.append(convertByteArrToHexString("\n    B-HEX-", bytes, off, 1, ""));
 				}
-				build.append('>');
+				build.append("\n>");
 			}
 			return build.toString();
 		}

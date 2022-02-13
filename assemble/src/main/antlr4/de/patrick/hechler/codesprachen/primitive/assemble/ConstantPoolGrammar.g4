@@ -54,11 +54,17 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 
  				(
  					(
-					 	(
-					 		DEC_FP_NUM
-					 		{constants.put($CONSTANT.getText().substring(1), (Long) Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText())));}
-					
-					 	)
+ 						(
+ 							DEC_FP_NUM
+ 							{constants.put($CONSTANT.getText().substring(1), (Long) Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText())));}
+
+ 						)
+ 						|
+ 						(
+ 							UNSIGNED_HEX_NUM
+ 							{constants.put($CONSTANT.getText().substring(1), (Long) Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16));}
+
+ 						)
  						|
  						(
  							HEX_NUM
@@ -267,11 +273,17 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 
  			)?
  			(
-			 	(
-			 		DEC_FP_NUM
-			 		{num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
-			
-			 	)
+ 				(
+ 					DEC_FP_NUM
+ 					{num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
+
+ 				)
+ 				|
+ 				(
+ 					UNSIGNED_HEX_NUM
+ 					{num = Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16);}
+
+ 				)
  				|
  				(
  					HEX_NUM
@@ -343,13 +355,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 			}else {
 		 		pool.addBytes(new byte[]{
 		 		(byte) num,
-		 		(byte) (num << 8),
-		 		(byte) (num << 16),
-		 		(byte) (num << 24),
-		 		(byte) (num << 32),
-		 		(byte) (num << 40),
-		 		(byte) (num << 48),
-		 		(byte) (num << 56),
+		 		(byte) (num >> 8),
+		 		(byte) (num >> 16),
+		 		(byte) (num >> 24),
+		 		(byte) (num >> 32),
+		 		(byte) (num >> 40),
+		 		(byte) (num >> 48),
+		 		(byte) (num >> 56),
 		 		});
 			}
 	 	}
@@ -408,6 +420,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  BYTE
  :
  	'B-'
+ ;
+
+ UNSIGNED_HEX_NUM
+ :
+ 	'UHEX-' [0-9a-fA-F]+
  ;
 
  NEG_HEX_NUM

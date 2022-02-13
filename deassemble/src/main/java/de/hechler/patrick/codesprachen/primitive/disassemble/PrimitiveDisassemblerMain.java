@@ -77,7 +77,7 @@ public class PrimitiveDisassemblerMain {
 				}
 				dmode = DisasmMode.executable;
 				break;
-			case "-out":
+			case "--out":
 				if (out != null) {
 					crash(i, args, "output is already set");
 				}

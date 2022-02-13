@@ -288,6 +288,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  	)
  	|
  	(
+ 		UNSIGNED_HEX_NUM
+ 		{$num = Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16);}
+
+ 	)
+ 	|
+ 	(
  		HEX_NUM
  		{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
 
@@ -988,6 +994,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  COMMA
  :
  	','
+ ;
+
+ UNSIGNED_HEX_NUM
+ :
+ 	'UHEX-' [0-9a-fA-F]+
  ;
 
  NEG_HEX_NUM
