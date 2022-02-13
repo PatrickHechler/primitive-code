@@ -9,6 +9,7 @@ import java.math.*;
 import java.nio.charset.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.enums.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
+import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
 }
 
  @parser::members {
@@ -29,6 +30,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  [Map<String,Long> constants, Map<String, Long> labels, long pos, boolean alignParam]
  returns [ConstantPoolCommand pool, boolean align]
  @init {
+ 	List<Boolean>enabledStack = new ArrayList<>();
+ 	boolean enabled = true;
+ 	int disabledSince = -1;
  	$pool = new ConstantPoolCommand();
  	$align = alignParam;
  }
@@ -55,7 +59,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  				(
  					(
  						(
- 							constBerechnungDirekt[pos + $pool.length(), constants]
+ 							constBerechnungDirekt [pos + $pool.length(), constants]
  							{constants.put($CONSTANT.getText().substring(1), (Long) $constBerechnungDirekt.num);}
 
  						)
@@ -99,6 +103,133 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  			{$align = false;}
 
  		)
+ 		|
+ 		(
+ 			IF constBerechnungDirekt [pos + $pool.length(), constants]
+ 			{
+	 				boolean top = $constBerechnungDirekt.num != 0;
+	 				enabledStack.add(top);
+	 				if (enabled && !top) {
+	 					disabledSince = enabledStack.size();
+	 				}
+	 			}
+
+ 		)
+ 		|
+ 		(
+ 			ELSE_IF constBerechnungDirekt [pos + $pool.length(), constants]
+ 			{
+	 				int essize = enabledStack.size();
+	 				boolean top = $constBerechnungDirekt.num != 0;
+	 				top = top && !enabledStack.get(essize - 1);
+	 				enabledStack.set(essize - 1, top);
+	 				if (enabled) {
+	 					enabled = false;
+	 					disabledSince = essize;
+	 				} else if (top && disabledSince == essize) {
+	 					enabled = true;
+	 					disabledSince = -1;
+	 				}
+	 			}
+
+ 		)
+ 		|
+ 		(
+ 			ELSE
+ 			{
+	 				int essize = enabledStack.size();
+	 				boolean top = !enabledStack.get(essize - 1);
+	 				enabledStack.set(essize - 1, top);
+	 				if (enabled) {
+	 					enabled = false;
+	 					disabledSince = essize;
+	 				} else if (disabledSince == essize) {
+	 					assert top;//if on this layer disabled, top must be true
+	 					enabled = true;
+	 					disabledSince = -1;
+	 				}
+	 			}
+
+ 		)
+ 		|
+ 		(
+ 			ERROR
+ 			{StringBuilder msg = new StringBuilder("error at line: ").append($ERROR.getLine());}
+
+ 			(
+ 				(
+ 					(
+ 						constBerechnungDirekt [$pos, constants]
+						{msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($constBerechnungDirekt.num);}
+
+ 					)
+ 					|
+ 					(
+ 						ERROR_MESSAGE_START
+ 						{msg.append('\n');}
+
+ 						(
+ 							(
+ 								STR_STR
+ 								{
+									String str = $STR_STR.getText();
+									str = str.substring(1, str.length() - 1);
+									char[] chars = new char[str.length()];
+									char[] strchars = str.toCharArray();
+									int ci, si;
+									for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
+										if (strchars[si] == '\\') {
+											si ++;
+											switch(strchars[si]){
+											case 'r':
+												chars[ci] = '\r';
+												break;
+											case 'n':
+												chars[ci] = '\n';
+												break;
+											case 't':
+												chars[ci] = '\t';
+												break;
+											case '0':
+												chars[ci] = '\0';
+												break;
+											case '\\':
+												chars[ci] = '\\';
+												break;
+											default:
+												throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+											}
+										} else {
+											chars[ci] = strchars[si];
+										}
+									}
+									msg.append(chars, 0, ci);
+								}
+
+ 							)
+ 							|
+ 							(
+ 								constBerechnungDirekt [pos, constants]
+ 								{msg.append($constBerechnungDirekt.num);}
+
+ 							)
+ 							|
+ 							(
+ 								ERROR_HEX constBerechnungDirekt [pos, constants]
+ 								{msg.append(Long.toHexString($constBerechnungDirekt.num));}
+
+ 							)
+ 						)* ERROR_MESSAGE_END
+ 					)
+ 				)?
+ 			)
+ 			{
+					if (enabled) {
+						throw new AssembleError(msg.toString());
+					}
+				}
+
+ 		)
  	)* ENDE EOF
  ;
 
@@ -113,7 +244,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 				name = name.substring(1, name.length() - 1);
 				char[] chars = new char[name.length()];
 				char[] strchars = name.toCharArray();
-				for (int ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
+				int ci, si;
+				for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
 					if (strchars[si] == '\\') {
 						si ++;
 						switch(strchars[si]){
@@ -133,13 +265,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 							chars[ci] = '\\';
 							break;
 						default:
-							throw new RuntimeException("illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
+							throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
 						}
 					} else {
 						chars[ci] = strchars[si];
 					}
 				}
-	 			cs = Charset.forName(new String(chars));
+	 			cs = Charset.forName(new String(chars, 0 ,ci));
 	 		}
 
  		)?
@@ -149,7 +281,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 		str = str.substring(1, str.length() - 1);
 		char[] chars = new char[str.length()];
 		char[] strchars = str.toCharArray();
-		for (int ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
+		int ci, si;
+		for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
 			if (strchars[si] == '\\') {
 				si ++;
 				switch(strchars[si]){
@@ -169,20 +302,23 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 					chars[ci] = '\\';
 					break;
 				default:
-					throw new RuntimeException("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+					throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
 				}
 			} else {
 				chars[ci] = strchars[si];
 			}
 		}
-		byte[] bytes = new String(chars).getBytes(cs);
+		byte[] bytes = new String(chars, 0, ci).getBytes(cs);
 		pool.addBytes(bytes);
-//		System.out.println("[J-LOG]: string='"+new String(bytes,cs)+"'");
-//		System.out.println("[J-LOG]: string='"+new String(bytes,StandardCharsets.UTF_16LE)+"'");
-//		for(int i = 0; i < bytes.length; i ++) {
-//			System.out.println("[J-LOG]: bytes[" + i + "]=" + (0xFF & (int) bytes[i]));
-//		}
 	}
+ 	//		System.out.println("[J-LOG]: string='"+new String(bytes,cs)+"'");
+
+ 	//		System.out.println("[J-LOG]: string='"+new String(bytes,StandardCharsets.UTF_16LE)+"'");
+
+ 	//		for(int i = 0; i < bytes.length; i ++) {
+
+ 	//			System.out.println("[J-LOG]: bytes[" + i + "]=" + (0xFF & (int) bytes[i]));
+ //		}
 
  ;
 
@@ -322,7 +458,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 				$num = ($num < $c1.num) ? 1L : 0L;
 				break;
 			default:
-				throw new InternalError("unknown type=" + type);
+				throw new AssembleError("unknown type=" + type);
 			}
 		}
 
@@ -372,7 +508,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 				$num >>>= $c2.num;
 				break;
 			default:
-				throw new InternalError("unknown type=" + type);
+				throw new AssembleError("unknown type=" + type);
  			}
  		}
 
@@ -383,7 +519,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  [long num]
  :
  	c1 = constBerechnungPunkt [pos, constants]
-  	{$num = $c1.num;}
+ 	{$num = $c1.num;}
+
  	(
  		{boolean add = false;}
 
@@ -482,13 +619,20 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  	)
  	|
  	(
+ 		EXIST_CONSTANT
+ 		{$num = constants.containsKey($EXIST_CONSTANT.getText().substring(2)) ? 1L : 0L;}
+
+ 	)
+ 	|
+ 	(
  		RND_KL_AUF constBerechnung [pos, constants] RND_KL_ZU
  		{$num = $constBerechnung.num;}
 
  	)
  ;
 
- numconst [ConstantPoolCommand pool] returns [long num, boolean b] @init {int radix;}
+ numconst [ConstantPoolCommand pool] returns [long num, boolean b]
+ @init {int radix;}
  :
  	(
  		(
@@ -613,7 +757,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  		)
  		|
  		(
- 			'\\' .
+ 			'\\' ~( '\r' | '\n' )
  		)
  	)* '\''
  ;
@@ -627,7 +771,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  		)
  		|
  		(
- 			'\\' .
+ 			'\\' ~( '\r' | '\n' )
  		)
  	)* '"'
  ;
@@ -817,6 +961,41 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  	'~DEL'
  ;
 
+ IF
+ :
+ 	'~IF'
+ ;
+
+ ELSE
+ :
+ 	'~ELSE'
+ ;
+
+ ELSE_IF
+ :
+ 	'~ELSE-IF'
+ ;
+
+ ERROR
+ :
+ 	'~ERROR'
+ ;
+
+ ERROR_HEX
+ :
+ 	[hH] ':'
+ ;
+
+ ERROR_MESSAGE_START
+ :
+ 	'{'
+ ;
+
+ ERROR_MESSAGE_END
+ :
+ 	'}'
+ ;
+
  POS
  :
  	'--POS--'
@@ -827,14 +1006,19 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  	[0-9a-fA-f]+
  ;
 
+ EXIST_CONSTANT
+ :
+ 	'#~' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
+ ;
+
  CONSTANT
  :
- 	'#' [a-zA-Z\-_]+
+ 	'#' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
  ;
 
  LABEL_DECLARATION
  :
- 	'@' [a-zA-Z\-_]+
+ 	'@' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
  ;
 
  CD_NOT_ALIGN
@@ -849,6 +1033,20 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  :
  	'$ALIGN'
  	| '$align'
+ ;
+
+ ERROR_MESSAGE
+ :
+ 	'{'
+ 	(
+ 		(
+ 			~( '}' | '\\' )
+ 		)
+ 		|
+ 		(
+ 			'\\' .
+ 		)
+ 	)* '}'
  ;
 
  LINE_COMMENT
@@ -875,4 +1073,5 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  :
  	[ \t\r\n]+ -> skip
  ;
+
  

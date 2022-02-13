@@ -1,9 +1,9 @@
 	GET_SP AX
-	CMP AX , -1
+	CMP AX, -1
 	JMPNE skip_stack-init
-	MOV AX , 1024
+	MOV AX, 1024
 	INT #INT-MEMORY-ALLOC
-	CMP AX , -1
+	CMP AX, -1
 	JMPEQ error_1
 	SET_SP AX
 @skip_stack-init
@@ -11,7 +11,7 @@
 	INT #INT-EXIT
 :
 #file-length 8
-#file-numbers #file-length / 8
+#file-numbers (#file-length / 8)
 #file-POS --POS--
 	CHARS 'UTF-8' "./input/in2.data\0"
 #file-out-POS --POS--
@@ -19,27 +19,27 @@
 >
 @main
 	#main-GET_IP-POS ~DEL
-	MOV AX , #file-length
+	MOV AX, #file-length
 	INT #INT-MEMORY-ALLOC
-	CMP AX , -1
+	CMP AX, -1
 	JMPEQ error_2
-	MOV CX , AX
+	MOV CX, AX
 	#main-GET_IP-POS --POS--
 	GET_IP AX
-	SUB AX , #main-GET_IP-POS
-	ADD AX , #file-POS
+	SUB AX, #main-GET_IP-POS
+	ADD AX, #file-POS
 	INT #INT-STREAMS-NEW_IN
-	CMP AX , -1
+	CMP AX, -1
 	JMPEQ error_3
-	MOV BX , #file-length
+	MOV BX, #file-length
 	INT #INT-STREAMS-READ
-	CMP BX , #file-length
+	CMP BX, #file-length
 	JMPNE error_4
-	MOV AX , 32
+	MOV AX, 32
 	INT #INT-MEMORY-ALLOC
-	CMP AX , -1
+	CMP AX, -1
 	JMPEQ error_5
-	MOV DX , AX
+	MOV DX, AX
 	MOV [DX + 16], CX
 	MOV [DX + 24], 0
 	|:	AX: for is_prim: potential-prim
@@ -51,8 +51,8 @@
 	|		[DX+24]: loop counter
 	|:>
 @main-find_prims-loop
-	MOV AX , [DX + 16]
-	MOV AX , [AX]
+	MOV AX, [DX + 16]
+	MOV AX, [AX]
 	|:	AX: potential prim num
 	|	DX: points to 16 bytes memory for free use
 	|
@@ -65,70 +65,68 @@
 	|	DX <- unchanged
 	|:>
 	CALL is_prim
-	MOV AX , [DX + 16]
+	MOV AX, [DX + 16]
 	MOV [AX], BX
 	ADD [DX + 16], 8
 	INC [DX + 24]
 	CMP [DX + 24], #file-numbers
 	JMPLT main-find_prims-loop
-	MOV DX , [DX + 16]
-	SUB DX , #file-length
+	MOV DX, [DX + 16]
+	SUB DX, #file-length
 	#main-GET_IP-POS --POS--
 	GET_IP AX
-	SUB AX , #main-GET_IP-POS
-	ADD AX , #file-out-POS
+	SUB AX, #main-GET_IP-POS
+	ADD AX, #file-out-POS
 	#main-GET_IP-POS ~DEL
 	INT #INT-STREAMS-NEW_OUT
-	CMP AX , -1
+	CMP AX, -1
 	JMPEQ error_6
-	MOV CX , DX
-	MOV BX , #file-length
+	MOV CX, DX
+	MOV BX, #file-length
 	INT #INT-STREAMS-WRITE
 	CMP BX, #file-length
 	JMPNE error_7
-	MOV AX , 0
+	MOV AX, 0
 	RET
 
 :
 	#error-msg-POS --POS--
 	CHARS 'UTF-8' "An error occurred\nI will exit the program now (with exit code 1) (@error_"
 	|> the rest of the message is saved in the first three bytes of DX [num, ')', '\n']
-	#error-msg-end-POS --POS--
+	#error-msg-length (--POS-- - #error-msg-POS)
 >
 @error_1
-	MOV DX , HEX-0A2931
+	MOV DX, HEX-0A2931
 	JMP error
 @error_2
-	MOV DX , HEX-0A2932
+	MOV DX, HEX-0A2932
 	JMP error
 @error_3
-	MOV DX , HEX-0A2933
+	MOV DX, HEX-0A2933
 	JMP error
 @error_4
-	MOV DX , HEX-0A2934
+	MOV DX, HEX-0A2934
 	JMP error
 @error_5
-	MOV DX , HEX-0A2935
+	MOV DX, HEX-0A2935
 	JMP error
 @error_6
-	MOV DX , HEX-0A2936
+	MOV DX, HEX-0A2936
 	JMP error
 @error_7
-	MOV DX , HEX-0A2936
+	MOV DX, HEX-0A2936
 @error
-	#GET_IP-POS --POS--
+	#GET_IP-POS-dif (#error-msg-POS - --POS--)
 	GET_IP CX
-	SUB CX , #GET_IP-POS
-	ADD CX , #error-msg-POS
+	ADD CX, #error-msg-POS-dif
 	#GET_IP-POS ~DEL
-	MOV BX , #error-msg-end-POS
-	SUB BX , #error-msg-POS
-	MOV AX , #STD-LOG
+	MOV BX, #error-msg-length
+	MOV AX, #STD-LOG
 	INT #INT-STREAMS-WRITE
 	MOV [CX], DX
-	MOV BX , 3
+	MOV BX, 3
 	INT #INT-STREAMS-WRITE
-	MOV AX , 1
+	MOV AX, 1
 	INT #INT-EXIT
 
 |:
@@ -140,11 +138,11 @@
 |		CX <- (BX + 1) * (BX + 1)
 |:>
 @wurzel
-	MOV BX , 0
+	MOV BX, 0
 @wurzel-loop
-	MOV CX , BX
-	MUL CX , CX
-	CMP AX , CX
+	MOV CX, BX
+	MUL CX, CX
+	CMP AX, CX
 	JMPEQ return
 	JMPLT wurzel-ret-sub_1
 	INC BX
@@ -168,14 +166,14 @@
 |:>
 @is_prim
 	CALL wurzel
-	CMP AX , CX
+	CMP AX, CX
 	JMPEQ return |> BX is already set to the mod zero num
-	MOV CX , AX
-	AND CX , 1
+	MOV CX, AX
+	AND CX, 1
 	JMPZS is_prim-check_2
-	MOV CX , AX
-	MOV CX , BX
-	MOV BX , 3
+	MOV CX, AX
+	MOV CX, BX
+	MOV BX, 3
 	|:	AX:			MOD
 	|	BX:			check
 	|	CX:			wurzel
@@ -183,20 +181,20 @@
 	|	[DX + 8]:	potential-prim
 	|:>
 @is_prim-loop
-	CMP BX , CX
+	CMP BX, CX
 	JMPGE is_prim-ret-N1
 	MOV [DX], [DX + 8]
-	MOV AX , BX
+	MOV AX, BX
 	DIV [DX], AX
-	CMP AX , 0
+	CMP AX, 0
 	JMPEQ return |> BX is already set to the mod zero num
-	ADD BX , 2
+	ADD BX, 2
 	JMP is_prim-loop
 @is_prim-check_2
-	CMP AX , 2
+	CMP AX, 2
 	JMPEQ is_prim-ret-N1
-	MOV BX , 2
+	MOV BX, 2
 	RET
 @is_prim-ret-N1
-	MOV BX , -1
+	MOV BX, -1
 	RET
