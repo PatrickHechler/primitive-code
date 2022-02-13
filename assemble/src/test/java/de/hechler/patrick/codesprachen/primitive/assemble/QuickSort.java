@@ -17,13 +17,31 @@ import java.util.Scanner;
 import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.anotations.Check;
 import de.hechler.patrick.zeugs.check.anotations.CheckClass;
+import de.hechler.patrick.zeugs.check.anotations.Start;
 
 @CheckClass
 public class QuickSort {
 	
-	private static final int BINARY_LENGTH = 1 << 30;
+	private static final int BINARY_LENGTH = 1 << 28;
 	private static final String INPUT_FILE = "./input/longnumbers_BIG.txt";
 	private static final String BINARY_INPUT_FILE = "./input/in.data";
+	
+	@Start(onlyOnce = true)
+	private void init() {
+		if ( !Files.exists(Paths.get("./input/in.data"))) {
+			long start = System.currentTimeMillis();
+			System.out.println("create new random numbers");
+			try (OutputStream out = new FileOutputStream("./input/in.data")) {
+				Random rnd = new Random();
+				byte[] bytes = new byte[1 << 30];
+				rnd.nextBytes(bytes);
+				out.write(bytes);
+			} catch (IOException e) {
+				throw new IOError(e);
+			}
+			System.out.println("created new random numbers, needed: " + (System.currentTimeMillis() - start));
+		}
+	}
 	
 	@Check
 	private void sorttest() throws IOException {
@@ -122,19 +140,6 @@ public class QuickSort {
 	}
 	
 	public static void main(String[] args) {
-		if ( !Files.exists(Paths.get("./input/in.data"))) {
-			long start = System.currentTimeMillis();
-			System.out.println("create new random numbers");
-			try (OutputStream out = new FileOutputStream("./input/in.data")) {
-				Random rnd = new Random();
-				byte[] bytes = new byte[1 << 30];
-				rnd.nextBytes(bytes);
-				out.write(bytes);
-			} catch (IOException e) {
-				throw new IOError(e);
-			}
-			System.out.println("created new random numbers, needed: " + (System.currentTimeMillis() - start));
-		}
 		Checker.check(QuickSort.class).detailedPrint(System.out, 2);
 	}
 	
