@@ -119,20 +119,29 @@ public class Command {
 		
 		@Override
 		public String toString() {
-			StringBuilder build = new StringBuilder(":").append('\n').append("HEX:");
-			String hexStr;
+			StringBuilder build = new StringBuilder(":\nHEX:");
 			int off;
-			for (off = 0; off <= bytes.length - 8; off += 8) {
-				hexStr = convertByteArrToHexString(bytes, off, 8);
-				build.append(hexStr).append('\n').append("    ");
+			boolean first = true;
+			for (off = 0; off < bytes.length - 8; off += 8) {
+				String prefix = "\n    ";
+				if (first) {
+					prefix = "";
+					first = false;
+				}
+				build.append(convertByteArrToHexString(prefix, bytes, off, 8, ""));
 			}
 			if (bytes.length - off == 8) {
-				int len = bytes.length - off;
-				build.append(convertByteArrToHexString("", bytes, off, len, "\n>"));
-			} else {
-				for (; off < bytes.length; off ++ ) {
-					build.append(convertByteArrToHexString("B-HEX-", bytes, off, 1, "\n>"));
+				String prefix = "\n    ";
+				if (first) {
+					prefix = "";
 				}
+				build.append(convertByteArrToHexString(prefix, bytes, off, 8, "\n>"));
+			} else {
+				build.append('\n');
+				for (; off < bytes.length; off ++ ) {
+					build.append(convertByteArrToHexString("B-HEX-", bytes, off, 1, "\n"));
+				}
+				build.append('>');
 			}
 			return build.toString();
 		}

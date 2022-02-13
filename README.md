@@ -395,7 +395,6 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 
 `IRET`
 * returns from an interrupt
-    * `STATUS <- BX`
     * `IP     <- CX`
     * `AX     <- [DX]`
     * `BX     <- [DX + 8]`
@@ -413,7 +412,6 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `[DX + 8]  <- BX`
     * `[DX]      <- AX`
     * `CX        <- IP + CMD_LEN`
-    * `BX        <- STATUS`
         * if the interrupt is automatically called:
             * `CX` is set to the `IP` (`CX <- IP`)
                 * so the program does not think the operation succeeded
@@ -443,13 +441,13 @@ except for the `--POS--` constant all other constants can be overwritten and rem
         * calls the exit interrupt with `9`
     * `1`: illegal interrupt
         * `AX` contains the number of the illegal interrupt
-        * calls the exit interrupt with `7`
-        * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `8`
-        * if the forbidden interrupt is the exit input, the program exits with `8`
-    * `2`: illegal memory
         * calls the exit interrupt with `6`
-    * `3`: arithmetic error
+        * if the forbidden interrupt is the exit input, the program exits with `7`
+        * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `8`
+    * `2`: illegal memory
         * calls the exit interrupt with `5`
+    * `3`: arithmetic error
+        * calls the exit interrupt with `4`
     * `4`: exit
         * use `AX` to specify the exit number of the progress
     * `5`: allocate a memory-block
@@ -494,12 +492,12 @@ except for the `--POS--` constant all other constants can be overwritten and rem
         * `AX` contains the STREAM-ID
         * `BX` contains the number of elements to write
         * `CX` points to the elements to write
-        * after execution `BX` will contain the number of written elements
+        * after execution `BX` will contain the number of written elements or `-1` if an error occurred
     * `14`: read
         * `AX` contains the STREAM-ID
         * `BX` contains the number of elements to read
         * `CX` points to the elements to read
-        * after execution `BX` will contain the number of elements, which has been read or -1 if an error occurred.
+        * after execution `BX` will contain the number of elements, which has been read or `-1` if an error occurred.
 		* if `BX` is `0` the end of the stream has reached
 		* reading less bytes than expected does not mead that the stream has reached it's end
     * `15`: close stream
@@ -508,7 +506,6 @@ except for the `--POS--` constant all other constants can be overwritten and rem
     * `16`: get stream pos
         * `AX` contains the STREAM-ID
         * `BX` will contain the position of the stream or `-1` if something went wrong.
-        * if the stream-ID is the ID of a default or input stream the behavior is undefined.
     * `17`: set stream pos
         * `AX` contains the STREAM-ID
         * `BX` contains the position to be set.
@@ -518,7 +515,6 @@ except for the `--POS--` constant all other constants can be overwritten and rem
         * `AX` contains the STREAM-ID
         * this will set the stream position to the end
         * `BX` will the new file pos or `-1` if something went wrong
-        * if the stream-ID is the ID of a default or input stream the behavior is undefined.
     * `19`: remove file
         * `AX` contains a pointer of a STRING with the file
         * if the file was successfully removed `AX` will contain `1`, if not `0`
@@ -529,38 +525,44 @@ except for the `--POS--` constant all other constants can be overwritten and rem
         * `AX` contains a pointer of a STRING with the dictionary
         * if the dictionary was successfully removed `AX` will contain `1`, if not `0`
         * if the dictionary is not empty this call will fail (and set `AX` to `0`)
-    * `22`: to get the time in nanoseconds
-        * `AX` will contain the time in nanoseconds or `-1` if not available
+    * `22`: to get the time in milliseconds
+        * `AX` will contain the time in milliseconds or `-1` if not available
     * `23`: to wait the given time in nanoseconds
-        * `AX` contain the number of nanoseconds to wait
-        * `AX` will contain the number of remaining nanoseconds (or `0` if it finished waiting) or `-1` on an error
+        * `AX` contain the number of nanoseconds to wait (only values from `0` to `999999999` are allowed)
+        * `BX` contain the number of seconds to wait
+        * `AX` and `BX` will contain the remaining time (`0` if it finished waiting)
+        * `CX` will be `1` if the call was successfully and `0` if something went wrong
+			* if `CX` is `1` the remaining time will always be `0`
+			* if `CX` is `0` the remaining time will be greater `0`
         * `AX` will not be negative if the progress waited too long
-    * `24`: random
-        * `AX` will be filled with random bits
-    * `25`: socket client create
+    * `24`: socket client create
         * makes a new client socket
         * `AX` will be set to the SOCKET-ID or `-1` if the operation failed
-    * `26`: socket client connect
+    * `25`: socket client connect
         * `AX` points to the SOCKET-ID
         * `BX` points to a STRING, which names the host
         * `CX` contains the port
+			* the port will be the normal number with the normal byte order
         * connects an client socket to the host on the port
         * `BX` will be set to the `1` on success and `0` on a fail
         * on success, the SOCKET-ID, can be used as a STREAM-ID
-    * `27`: socket server create
+    * `26`: socket server create
         * `AX` contains the port
+			* the port will be the normal number with the normal byte order
         * makes a new server socket
         * `AX` will be set to the SOCKET-ID or `-1` when the operation fails
-    * `28`: socket server listens
+    * `27`: socket server listens
         * `AX` contains the SOCKET-ID
         * `BX` contains the MAX_QUEUE length
         * let a server socket listen
         * `BX` will be set to `1` or `0` when the operation fails
-    * `29`: socket server accept
+    * `28`: socket server accept
         * `AX` contains the SOCKET-ID
         * let a server socket accept a client
         * this operation will block, until a client connects
         * `BX` will be set a new SOCKET-ID, which can be used as STREAM-ID, or `-1`
+    * `29`: random
+        * `AX` will be filled with random bits
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack

@@ -62,7 +62,7 @@ public class Convert {
 		StringBuilder build = new StringBuilder( (len * 2) + postfix.length() + suffix.length());
 		build.append(postfix);
 		String str;
-		for (int i = len; i >= 0; i -- ) {
+		for (int i = len - 1; i >= 0; i -- ) {
 			str = Integer.toHexString(bytes[off + i] & 0xFF);
 			if (str.length() == 1) {
 				build.append('0');

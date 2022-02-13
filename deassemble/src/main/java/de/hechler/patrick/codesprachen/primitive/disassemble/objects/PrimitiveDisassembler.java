@@ -62,6 +62,15 @@ public class PrimitiveDisassembler {
 	}
 	
 	private void write(long pos, List <Command> cmds, Set <Long> labels) {
+		switch(mode) {
+		case analysable:
+			break;
+		case executable:
+			out.println("$not-align");
+			break;
+		default:
+			throw new InternalError("unknown mode: " + mode.name());
+		}
 		for (int i = 0; i < cmds.size(); i ++ ) {
 			if (labels.contains((Long) pos)) {
 				switch (mode) {
@@ -69,7 +78,7 @@ public class PrimitiveDisassembler {
 					out.print("@L-");
 					break;
 				case executable:
-					out.print("@" + lng.generateName(pos) + " ");
+					out.println("@" + lng.generateName(pos));
 					break;
 				default:
 					throw new InternalError("unknown mode: " + mode.name());
@@ -199,7 +208,7 @@ public class PrimitiveDisassembler {
 				break;
 			}
 			case executable:
-				out.println(cmd.toString(pos));
+				out.println("    " + cmd.toString(pos));
 				break;
 			default:
 				throw new InternalError("unknown DisasmMode: " + mode.name());

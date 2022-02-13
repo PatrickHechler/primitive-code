@@ -56,12 +56,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 	constants.putIfAbsent("INT-STREAMS-REM_DIR", (Long) 21L);
 	constants.putIfAbsent("INT-TIME-GET", (Long) 22L);
 	constants.putIfAbsent("INT-TIME-WAIT", (Long) 23L);
-	constants.putIfAbsent("INT-RANDOM", (Long) 24L);
-	constants.putIfAbsent("INT-SOCKET-CLIENT-CREATE", (Long) 25L);
-	constants.putIfAbsent("INT-SOCKET-CLIENT-CONNECT", (Long) 26L);
-	constants.putIfAbsent("INT-SOCKET-SERVER-CREATE", (Long) 27L);
-	constants.putIfAbsent("INT-SOCKET-SERVER-LISTEN", (Long) 28L);
-	constants.putIfAbsent("INT-SOCKET-SERVER-ACCEPT", (Long) 29L);
+	constants.putIfAbsent("INT-SOCKET-CLIENT-CREATE", (Long) 24L);
+	constants.putIfAbsent("INT-SOCKET-CLIENT-CONNECT", (Long) 25L);
+	constants.putIfAbsent("INT-SOCKET-SERVER-CREATE", (Long) 26L);
+	constants.putIfAbsent("INT-SOCKET-SERVER-LISTEN", (Long) 27L);
+	constants.putIfAbsent("INT-SOCKET-SERVER-ACCEPT", (Long) 28L);
+	constants.putIfAbsent("INT-RANDOM", (Long) 29L);
 	constants.putIfAbsent("INTERRUPT_COUNT", (Long) 30L);
 	constants.putIfAbsent("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
 	constants.putIfAbsent("MIN-VALUE", (Long) (-0x8000000000000000L));

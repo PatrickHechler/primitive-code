@@ -42,9 +42,28 @@
 	MOV DX , AX
 	MOV [DX + 16], CX
 	MOV [DX + 24], 0
+	|:	AX: for is_prim: potential-prim
+	|	BX: for is_prim: result
+	|	CX: for is_prim: free use/?
+	|	DX:	[DX]: for is_prim: free use/?
+	|		[DX+8]: for is_prim: free use/?
+	|		[DX+16]: memory pointer
+	|		[DX+24]: loop counter
+	|:>
 @main-find_prims-loop
 	MOV AX , [DX + 16]
 	MOV AX , [AX]
+	|:	AX: potential prim num
+	|	DX: points to 16 bytes memory for free use
+	|
+	|	AX <- ?
+	|	if prim:
+	|		BX <- NDEC-1
+	|	if no prim:
+	|		BX <- mod 0 number |> does not have to be a prim
+	|	CX <- ?
+	|	DX <- unchanged
+	|:>
 	CALL is_prim
 	MOV AX , [DX + 16]
 	MOV [AX], BX
