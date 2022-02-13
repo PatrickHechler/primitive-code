@@ -224,6 +224,18 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 			)
 			|
 			(
+				ENDIF
+				{
+					if (disabledSince == stack.size()) {
+						enabled = true;
+						disabledSince = -1;
+					}
+					stack.remove(stack.size()-1);
+	 			}
+
+			)
+			|
+			(
 				ERROR
 				{
 					StringBuilder msg = null;
@@ -1657,14 +1669,19 @@ IF
 	'~IF'
 ;
 
+ELSE_IF
+:
+	'~ELSE-IF'
+;
+
 ELSE
 :
 	'~ELSE'
 ;
 
-ELSE_IF
+ENDIF
 :
-	'~ELSE-IF'
+	'~ENDIF'
 ;
 
 ERROR
