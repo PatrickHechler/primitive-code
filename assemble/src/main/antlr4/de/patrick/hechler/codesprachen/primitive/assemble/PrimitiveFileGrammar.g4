@@ -106,8 +106,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
  			CONSTANT
  			(
  				(
- 					constBerechnung [$pos, constants]
- 					{constants.put($CONSTANT.getText().substring(1), $constBerechnung.num);}
+ 					constBerechnungDirekt [$pos, constants]
+ 					{constants.put($CONSTANT.getText().substring(1), $constBerechnungDirekt.num);}
 
  				)
  				|

@@ -55,8 +55,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
  				(
  					(
  						(
- 							constBerechnung[pos + $pool.length(), constants]
- 							{constants.put($CONSTANT.getText().substring(1), (Long) $constBerechnung.num);}
+ 							constBerechnungDirekt[pos + $pool.length(), constants]
+ 							{constants.put($CONSTANT.getText().substring(1), (Long) $constBerechnungDirekt.num);}
 
  						)
  						{simpleAdd = false;}
