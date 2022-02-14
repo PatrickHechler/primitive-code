@@ -3,12 +3,18 @@ package de.patrick.hechler.codesprachen.primitive.assemble.objects;
 import java.util.Map;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.NoViableAltException;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.IntervalSet;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarLexer;
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser;
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
 import de.patrick.hechler.codesprachen.primitive.assemble.enums.Commands;
+import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
 
 public class Command {
 	
@@ -22,13 +28,41 @@ public class Command {
 		this.p2 = p2;
 	}
 	
-	public static ConstsContext parseCP(String cp, Map <String, Long> constants, Map <String, Long> labels, long pos, boolean align) {
+	public static ConstsContext parseCP(String cp, Map <String, Long> constants, Map <String, Long> labels, long pos, boolean align, int line, int posInLine) {
 		ANTLRInputStream in = new ANTLRInputStream(cp);
 		ConstantPoolGrammarLexer lexer = new ConstantPoolGrammarLexer(in);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		ConstantPoolGrammarParser parser = new ConstantPoolGrammarParser(tokens);
-		ConstsContext parsed = parser.consts(constants, labels, pos, align);
-		return parsed;
+		parser.setErrorHandler(new BailErrorStrategy());
+		try {
+			ConstsContext constantPool = parser.consts(constants, labels, pos, align);
+			return constantPool;
+		} catch (ParseCancellationException e) {
+			Throwable cause = e.getCause();
+			if (cause instanceof AssembleError) {
+				AssembleError ae = (AssembleError) cause;
+				AssembleError err = new AssembleError(line, posInLine, ae.getMessage());
+				err.setStackTrace(ae.getStackTrace());
+				throw err;
+			} else if (cause instanceof NoViableAltException) {
+				NoViableAltException nvae = (NoViableAltException) cause;
+				Token ot = nvae.getOffendingToken();
+				String[] names = parser.getTokenNames();
+				StringBuilder msg = new StringBuilder("illegal token: ").append(ot).append("\nexpected: [");
+				IntervalSet ets = nvae.getExpectedTokens();
+				for (int i = 0; i < ets.size(); i ++ ) {
+					if (i > 0) {
+						msg.append(", ");
+					}
+					int t = ets.get(i);
+					msg.append('<').append(names[t]).append('>');
+				}
+				int lineAdd = ot.getLine();
+				throw new AssembleError(line + lineAdd, lineAdd == 0 ? posInLine + ot.getCharPositionInLine() : ot.getCharPositionInLine(), msg.append(']').toString());
+			} else {
+				throw new AssembleError( -line, -posInLine, "ParseCancelationException: " + e.getMessage());
+			}
+		}
 	}
 	
 	public long length() {

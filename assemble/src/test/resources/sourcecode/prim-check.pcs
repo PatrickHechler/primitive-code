@@ -10,12 +10,15 @@
 	CALL main
 	INT #INT-EXIT
 :
-#file-length 8
-#file-numbers (#file-length / 8)
 #file-POS --POS--
 	CHARS 'UTF-8' "./input/in2.data\0"
 #file-out-POS --POS--
 	CHARS 'UTF-8' "./output/out2-pc.data\0"
+#file-length 8
+#file-numbers (#file-length / 8)
+~IF (#file-length % 8 != 0)
+	~ERROR {"file-length is not dividable with 8! #file-length=" #file-length }
+~ENDIF
 >
 @main
 	#main-GET_IP-POS ~DEL
@@ -116,7 +119,7 @@
 @error_7
 	MOV DX, HEX-0A2936
 @error
-	#GET_IP-POS-dif (#error-msg-POS - --POS--)
+	#error-msg-POS-dif (#error-msg-POS - --POS--)
 	GET_IP CX
 	ADD CX, #error-msg-POS-dif
 	#GET_IP-POS ~DEL

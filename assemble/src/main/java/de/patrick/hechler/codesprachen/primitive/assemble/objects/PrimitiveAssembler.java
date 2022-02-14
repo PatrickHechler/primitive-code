@@ -12,20 +12,27 @@ import java.util.Map;
 import java.util.Objects;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.NoViableAltException;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.misc.IntervalSet;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarLexer;
 import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarParser;
 import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ParseContext;
+import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
 
 public class PrimitiveAssembler {
 	
 	private final OutputStream out;
 	private final boolean supressWarn;
 	private final boolean defaultAlign;
+	private final boolean exitOnError;
 	
 	public PrimitiveAssembler(OutputStream out) {
-		this(out, false, true);
+		this(out, false);
 	}
 	
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings) {
@@ -34,65 +41,187 @@ public class PrimitiveAssembler {
 	}
 	
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings, boolean defaultAlign) {
+		this(out, supressWarnings, defaultAlign, true);
+	}
+	
+	public PrimitiveAssembler(OutputStream out, boolean supressWarnings, boolean defaultAlign, boolean exitOnError) {
 		this.out = out;
 		this.supressWarn = supressWarnings;
 		this.defaultAlign = defaultAlign;
+		this.exitOnError = exitOnError;
 	}
 	
 	
 	
-	public ParseContext preassemble(InputStream in) throws IOException {
+	public ParseContext preassemble(InputStream in) throws IOException, AssembleError {
 		return preassemble(new InputStreamReader(in));
 	}
 	
-	public ParseContext preassemble(InputStream in, Charset cs) throws IOException {
+	public ParseContext preassemble(InputStream in, Charset cs) throws IOException, AssembleError {
 		return preassemble(new InputStreamReader(in, cs));
 	}
 	
-	public ParseContext preassemble(Reader in) throws IOException {
+	public ParseContext preassemble(Reader in) throws IOException, AssembleError {
 		return preassemble(in, new HashMap <>());
 	}
 	
-	public ParseContext preassemble(InputStream in, Map <String, Long> predefinedConstants) throws IOException {
+	public ParseContext preassemble(InputStream in, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
 		return preassemble(new InputStreamReader(in), predefinedConstants);
 	}
 	
-	public ParseContext preassemble(InputStream in, Charset cs, Map <String, Long> predefinedConstants) throws IOException {
+	public ParseContext preassemble(InputStream in, Charset cs, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
 		return preassemble(new InputStreamReader(in, cs), predefinedConstants);
 	}
 	
-	public ParseContext preassemble(Reader in, Map <String, Long> predefinedConstants) throws IOException {
+	public ParseContext preassemble(Reader in, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
 		return preassemble(new ANTLRInputStream(in), predefinedConstants);
 	}
 	
-	public ParseContext preassemble(ANTLRInputStream antlrin) throws IOException {
+	public ParseContext preassemble(ANTLRInputStream antlrin) throws IOException, AssembleError {
 		return preassemble(antlrin, new HashMap <>());
 	}
 	
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException {
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
-		return parser.parse(0L, defaultAlign, predefinedConstants);
+		parser.setErrorHandler(new BailErrorStrategy());
+		try {
+			return parser.parse(0L, defaultAlign, predefinedConstants);
+		} catch (ParseCancellationException e) {
+			Throwable cause = e.getCause();
+			if (cause == null) {
+				throw e;
+			}
+			if (cause instanceof AssembleError) {
+				AssembleError ae = (AssembleError) cause;
+				handle(ae);
+			} else if (cause instanceof NoViableAltException) {
+				NoViableAltException nvae = (NoViableAltException) cause;
+				handle(nvae);
+			} else {
+				throw e;
+			}
+		} catch (AssembleError ae) {
+			handle(ae);
+		}
+		throw new InternalError("handle returned");
 	}
 	
-	public void assemble(InputStream in) throws IOException {
+	/*
+	 * the handle methods will never return normally
+	 * 
+	 * they either throw an error or call System.exit(1)
+	 */
+	private void handle(NoViableAltException nvae) {
+		Token ot = nvae.getOffendingToken();
+		IntervalSet ets = nvae.getExpectedTokens();
+		if (exitOnError) {
+			System.err.println("at line: " + ot.getLine() + ':' + ot.getCharPositionInLine());
+			System.err.println("illegal input: " + ot.getText());
+			System.err.println("  token: " + tokenToString(ot, PrimitiveFileGrammarLexer.ruleNames));
+			System.err.println("expected: ");
+			for (int i = 0; i < ets.size(); i ++ ) {
+				System.err.println("  " + tokenToString(ot, PrimitiveFileGrammarLexer.ruleNames));
+			}
+			System.err.flush();
+			System.exit(1);
+		} else {
+			StringBuilder build = new StringBuilder("at line ").append(ot.getLine()).append(':').append(ot.getCharPositionInLine()).append(" token.text='").append(ot.getText());
+			build.append("' token.id=").append(tokenToString(ot, PrimitiveFileGrammarLexer.ruleNames)).append('\n').append("expected: ");
+			for (int i = 0; i < ets.size(); i ++ ) {
+				if (i > 0) {
+					build.append(", ");
+				}
+				build.append(' ').append(tokenToString(ot, PrimitiveFileGrammarLexer.ruleNames));
+			}
+			throw new AssembleError(ot.getLine(), ot.getCharPositionInLine(), build.toString());
+		}
+	}
+	
+	private String tokenToString(Token ot, String[] names) {
+		String token;
+		if (ot.getType() > 0) {
+			token = "<" + names[ot.getType()] + '>';
+		} else if (ot.getType() == PrimitiveFileGrammarLexer.EOF) {
+			token = "<EOF>";
+		} else {
+			token = "<UNKNOWN=" + ot.getType() + ">";
+		}
+		return token;
+	}
+	
+	// private void handle(AssembleError ae) {
+	// Throwable cause = ae.getCause();
+	// try {
+	// if (cause == null) {
+	// throw new InternalError("cause is null", ae);
+	// }
+	// if ( ! (cause instanceof ParseCancellationException)) {
+	// throw new InternalError("unknown cause class: " + cause.getClass().getName(), ae);
+	// }
+	// ParseCancellationException pce = (ParseCancellationException) cause;
+	// cause = pce.getCause();
+	// if (cause instanceof NoViableAltException) {
+	// NoViableAltException nvae = (NoViableAltException) cause;
+	// Token ot = nvae.getOffendingToken();
+	// int line = ot.getLine();
+	// int posInLine = ot.getCharPositionInLine();
+	// if (line == 0) {
+	// posInLine += ae.posInLine;
+	// }
+	// line += ae.line;
+	// if (exitOnError) {
+	// System.err.println("at " + line + ":" + posInLine + " was illegal input: " + ot.getText());
+	// System.err.flush();
+	// System.exit(1);
+	// } else {
+	// throw new Error("at line: " + line + " at char: " + posInLine + " was illegal input: " +
+	// ot.getText(), nvae);
+	// }
+	// } else if (cause instanceof AssembleException) {
+	// handle(ae.line, ae.posInLine, (AssembleException) cause);
+	// } else {
+	// throw new InternalError("unknown cause cause class: " + cause.getClass().getName(), cause);
+	// }
+	// } catch (Throwable t) {
+	// if (exitOnError) {
+	// t.printStackTrace(System.err);
+	// System.err.flush();
+	// System.exit(1);
+	// }
+	// throw t;
+	// }
+	// }
+	//
+	private void handle(AssembleError ae) {
+		if (exitOnError) {
+			System.out.println("an error occured at line: " + ae.line + ':' + ae.posInLine);
+			System.out.println(ae.getMessage());
+			System.out.flush();
+			System.exit(1);
+		} else {
+			throw new AssembleError(ae.line, ae.posInLine, "at line: " + ae.line + ":" + ae.posInLine + " occured an error: " + ae.getMessage());
+		}
+	}
+	
+	public void assemble(InputStream in) throws IOException, AssembleError {
 		assemble(preassemble(in));
 	}
 	
-	public void assemble(InputStream in, Charset cs) throws IOException {
+	public void assemble(InputStream in, Charset cs) throws IOException, AssembleError {
 		assemble(preassemble(in, cs));
 	}
 	
-	public void assemble(Reader in) throws IOException {
+	public void assemble(Reader in) throws IOException, AssembleError {
 		assemble(preassemble(in));
 	}
 	
-	public void assemble(ANTLRInputStream antlrin) throws IOException {
+	public void assemble(ANTLRInputStream antlrin) throws IOException, AssembleError {
 		assemble(preassemble(antlrin));
 	}
 	
-	public void assemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException {
+	public void assemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
 		assemble(preassemble(antlrin, predefinedConstants));
 	}
 	
@@ -295,6 +424,8 @@ public class PrimitiveAssembler {
 			bytes[6] = (byte) off;
 			bytes[7] = (byte) num;
 			break;
+		default:
+			throw new InternalError("unknown art: " + art);
 		}
 	}
 	
@@ -355,6 +486,8 @@ public class PrimitiveAssembler {
 				bytes[index -- ] = (byte) p1num;
 				bytes[index -- ] = (byte) p1off;
 				break;
+			default:
+				throw new InternalError("unknown art: " + p1art);
 			}
 			switch (p2art) {
 			case Param.ART_ANUM:
@@ -391,6 +524,8 @@ public class PrimitiveAssembler {
 				bytes[index -- ] = (byte) p2num;
 				bytes[index -- ] = (byte) p2off;
 				break;
+			default:
+				throw new InternalError("unknown art: " + p2art);
 			}
 		}
 		{
@@ -429,6 +564,8 @@ public class PrimitiveAssembler {
 				break;
 			case Param.ART_ASR_BSR:
 				break;
+			default:
+				throw new InternalError("unknown art: " + p1art);
 			}
 			switch (p2art) {
 			case Param.ART_ANUM:
@@ -465,6 +602,8 @@ public class PrimitiveAssembler {
 				break;
 			case Param.ART_ASR_BSR:
 				break;
+			default:
+				throw new InternalError("unknown art: " + p2art);
 			}
 		}
 	}

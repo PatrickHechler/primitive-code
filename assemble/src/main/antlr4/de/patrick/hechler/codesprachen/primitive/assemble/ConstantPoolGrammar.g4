@@ -91,7 +91,7 @@ returns [ConstantPoolCommand pool, boolean align]
 					makeAlign($align, pos, $pool);
 					Long szw = constants.get($CONSTANT.getText().substring(1));
 					if (szw == null) {
-						throw new RuntimeException("unknown constant: '" + $CONSTANT.getText().substring(1) + "' (I know: '" + constants + "')");
+						throw new AssembleError($CONSTANT.getLine(), $CONSTANT.getCharPositionInLine(),"unknown constant: '" + $CONSTANT.getText().substring(1) + "' (I know: '" + constants + "')");
 					}
 					long zw = (long) szw;
 					$pool.addBytes(new byte[]{(byte) (zw >> 56), (byte) (zw >> 48), (byte) (zw >> 40), (byte) (zw >> 32), (byte) (zw >> 24), (byte) (zw >> 16), (byte) (zw >> 8), (byte) zw});
@@ -240,7 +240,7 @@ returns [ConstantPoolCommand pool, boolean align]
 													chars[ci] = '\\';
 													break;
 												default:
-													throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+													throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
 												}
 											} else {
 												chars[ci] = strchars[si];
@@ -277,7 +277,7 @@ returns [ConstantPoolCommand pool, boolean align]
 			)
 			{
 				if (enabled) {
-					throw new AssembleError(msg.toString());
+					throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(),msg.toString());
 				}
 			}
 
@@ -287,7 +287,7 @@ returns [ConstantPoolCommand pool, boolean align]
 			ANY
 			{
 				if (enabled) {
-					throw new AssembleError("illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
+					throw new AssembleError($ANY.getLine(), $ANY.getCharPositionInLine(),"illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
 				} else {
 					
 				}
@@ -329,7 +329,7 @@ string [ConstantPoolCommand pool]
 							chars[ci] = '\\';
 							break;
 						default:
-							throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
+							throw new AssembleError($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
 						}
 					} else {
 						chars[ci] = strchars[si];
@@ -366,7 +366,7 @@ string [ConstantPoolCommand pool]
 					chars[ci] = '\\';
 					break;
 				default:
-					throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+					throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
 				}
 			} else {
 				chars[ci] = strchars[si];
@@ -522,7 +522,7 @@ constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
 				$num = ($num < $c1.num) ? 1L : 0L;
 				break;
 			default:
-				throw new AssembleError("unknown type=" + type);
+				throw new InternalError("unknown type=" + type);
 			}
 		}
 
@@ -572,7 +572,7 @@ constBerechnungSchub [long pos, Map<String, Long> constants] returns
 				$num >>>= $c2.num;
 				break;
 			default:
-				throw new AssembleError("unknown type=" + type);
+				throw new InternalError("unknown type=" + type);
  			}
  		}
 
@@ -669,7 +669,7 @@ constBerechnungDirekt [long pos, Map<String, Long> constants] returns
 		numconst [null]
 		{
  			if ($numconst.b) {
- 				throw new RuntimeException("byte values are not allowed for conastants");
+ 				throw new AssembleError(_localctx.numconst.t.getLine(), _localctx.numconst.t.getCharPositionInLine(), "byte values are not allowed for conastants");
  			}
  			$num = $numconst.num;
  		}
@@ -706,74 +706,74 @@ numconst [ConstantPoolCommand pool] returns [long num, boolean b]
 		)?
 		(
 			(
-				DEC_FP_NUM
-				{$num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
+				t = DEC_FP_NUM
+				{$num = Double.doubleToRawLongBits(Double.parseDouble($t.getText()));}
 
 			)
 			|
 			(
-				UNSIGNED_HEX_NUM
-				{$num = Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16);}
+				t = UNSIGNED_HEX_NUM
+				{$num = Long.parseUnsignedLong($t.getText().substring(5), 16);}
 
 			)
 			|
 			(
-				HEX_NUM
-				{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
+				t = HEX_NUM
+				{$num = Long.parseLong($t.getText().substring(4), 16);}
 
 			)
 			|
 			(
-				DEC_NUM
-				{$num = Long.parseLong($DEC_NUM.getText(), 10);}
+				t = DEC_NUM
+				{$num = Long.parseLong($t.getText(), 10);}
 
 			)
 			|
 			(
-				DEC_NUM0
-				{$num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
+				t = DEC_NUM0
+				{$num = Long.parseLong($t.getText().substring(4), 10);}
 
 			)
 			|
 			(
-				OCT_NUM
-				{$num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
+				t = OCT_NUM
+				{$num = Long.parseLong($t.getText().substring(4), 8);}
 
 			)
 			|
 			(
-				BIN_NUM
-				{$num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
+				t = BIN_NUM
+				{$num = Long.parseLong($t.getText().substring(4), 2);}
 
 			)
 			|
 			(
-				NEG_HEX_NUM
-				{$num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
+				t = NEG_HEX_NUM
+				{$num = Long.parseLong($t.getText().substring(4), 16);}
 
 			)
 			|
 			(
-				NEG_DEC_NUM
-				{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
+				t = NEG_DEC_NUM
+				{$num = Long.parseLong($t.getText().substring(4), 10);}
 
 			)
 			|
 			(
-				NEG_DEC_NUM0
-				{$num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
+				t = NEG_DEC_NUM0
+				{$num = Long.parseLong($t.getText(), 10);}
 
 			)
 			|
 			(
-				NEG_OCT_NUM
-				{$num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
+				t = NEG_OCT_NUM
+				{$num = Long.parseLong($t.getText().substring(4), 8);}
 
 			)
 			|
 			(
-				NEG_BIN_NUM
-				{$num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
+				t = NEG_BIN_NUM
+				{$num = Long.parseLong($t.getText().substring(4), 2);}
 
 			)
 		)
@@ -782,7 +782,7 @@ numconst [ConstantPoolCommand pool] returns [long num, boolean b]
 			if (pool != null) {
 				if ($b) {
 					if (($num & 0xFFL) != $num) {
-						throw new RuntimeException("byte num not inside of byte bounds: 0..255 : 0x00..0xFF");
+						throw new AssembleError($t.getLine(), $t.getCharPositionInLine(),"byte num not inside of byte bounds: 0..255 : 0x00..0xFF");
 					}
 			 		pool.addBytes(new byte[]{(byte)$num});
 				}else {

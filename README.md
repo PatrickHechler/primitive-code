@@ -47,10 +47,27 @@ this is the assembler-language for the Primitive-Virtual-Machine
         * `64-bit`
         * points to the interrupt-table
 
+## NUMBERS:
+
+* numbers can be assigned to constants, used as a parameter or inside of a parameter as offset
+* to write a decimal number it is possible to write just the number.
+	* to write a negative decimal number put a `-` before the number
+* it is possible to specify the number system, by putting the correct keyword before the number:
+	* for binary (base 2): `BIN-`
+	* for octal (base 8): `OCT-`
+	* for decimal (base 10): `DEC-`
+	* for hexadecimal (base 16): `HEX-`
+		* to use a unsigned hexadecimal number, put a `U` before the prefix
+* to use negative numbers, put a `N` before the prefix of the number system
+
 ## CONSTANTS:
 
-except for the `--POS--` constant all other constants can be overwritten and removed
-<pre><ui><li><code>--POS-- :                           </code>the position from the begin of the next command</li><li><code>#INT-ERRORS-UNKNOWN_COMMAND :       0</code></li><li><code>#INT-ERRORS-ILLEGAL_INTERRUPT :     1</code></li><li><code>#INT-ERRORS-ILLEGAL_MEMORY :        2</code></li><li><code>#INT-ERRORS-ARITHMETIC_ERROR :      3</code></li><li><code>#INT-EXIT :                         4</code></li><li><code>#INT-MEMORY-ALLOC :                 5</code></li><li><code>#INT-MEMORY-REALLOC :               6</code></li><li><code>#INT-MEMORY-FREE :                  7</code></li><li><code>#INT-STREAMS-NEW_IN :               8</code></li><li><code>#INT-STREAMS-NEW_OUT :              9</code></li><li><code>#INT-STREAMS-NEW_APPEND :           10</code></li><li><code>#INT_STREAMS-NEW_IN_OUT :           11</code></li><li><code>#INT-STREAMS-NEW_APPEND_IN_OUT :    12</code></li><li><code>#INT-STREAMS-WRITE :                13</code></li><li><code>#INT-STREAMS-READ :                 14</code></li><li><code>#INT-STREAMS-CLOSE_STREAM :         15</code></li><li><code>#INT-STREAMS-GET_POS :              16</code></li><li><code>#INT-STREAMS-SET_POS :              17</code></li><li><code>#INT-STREAMS-SET_POS_TO_END :       18</code></li><li><code>#INT-STREAMS-REM :                  19</code></li><li><code>#INT-STREAMS-MK_DIR :               20</code></li><li><code>#INT-STREAMS-REM_DIR :              21</code></li><li><code>#INT-TIME-GET :                     22</code></li><li><code>#INT-TIME-WAIT :                    23</code></li><li><code>#INT-RANDOM :                       24</code></li><li><code>#INT-SOCKET-CLIENT-CREATE :         25</code></li><li><code>#INT-SOCKET-CLIENT-CONNECT :        26</code></li><li><code>#INT-SOCKET-SERVER-CREATE :         27</code></li><li><code>#INT-SOCKET-SERVER-LISTEN :         28</code></li><li><code>#INT-SOCKET-SERVER-ACCEPT :         29</code></li><li><code>#INTERRUPT_COUNT :                  30</code></li><li><code>#MAX-VALUE :                    HEX-7FFFFFFFFFFFFFFF</code></li><li><code>#MIN-VALUE :                   NHEX-8000000000000000</code></li><li><code>#STD-IN :                           0</code></li><li><code>#STD-OUT :                          1</code></li><li><code>#STD-LOG :                          2</code></li><li><code>#FP-NAN :                       HEX-7FFE000000000000</code></li><li><code>#FP-MAX-VALUE :                 HEX-7FEFFFFFFFFFFFFF</code></li><li><code>#FP-MIN-VALUE :                 HEX-0000000000000001</code></li><li><code>#FP-POS-INFINITY :              HEX-7FF0000000000000</code></li><li><code>#FP-NEG-INFINITY :             NHEX-7FF0000000000000</code></li></ui></pre>
+* except for the `--POS--` constant all other constants can be overwritten and removed
+* all constants starts with a '#'
+* the coder can define constants 
+* predefined constants:
+
+<pre><code>        --POS-- :                           </code>the position from the begin of the next command<code><br>        #INT-ERRORS-UNKNOWN_COMMAND :       0<br>        #INT-ERRORS-ILLEGAL_INTERRUPT :     1<br>        #INT-ERRORS-ILLEGAL_MEMORY :        2<br>        #INT-ERRORS-ARITHMETIC_ERROR :      3<br>        #INT-EXIT :                         4<br>        #INT-MEMORY-ALLOC :                 5<br>        #INT-MEMORY-REALLOC :               6<br>        #INT-MEMORY-FREE :                  7<br>        #INT-STREAMS-NEW_IN :               8<br>        #INT-STREAMS-NEW_OUT :              9<br>        #INT-STREAMS-NEW_APPEND :           10<br>        #INT_STREAMS-NEW_IN_OUT :           11<br>        #INT-STREAMS-NEW_APPEND_IN_OUT :    12<br>        #INT-STREAMS-WRITE :                13<br>        #INT-STREAMS-READ :                 14<br>        #INT-STREAMS-CLOSE_STREAM :         15<br>        #INT-STREAMS-GET_POS :              16<br>        #INT-STREAMS-SET_POS :              17<br>        #INT-STREAMS-SET_POS_TO_END :       18<br>        #INT-STREAMS-REM :                  19<br>        #INT-STREAMS-MK_DIR :               20<br>        #INT-STREAMS-REM_DIR :              21<br>        #INT-TIME-GET :                     22<br>        #INT-TIME-WAIT :                    23<br>        #INT-RANDOM :                       24<br>        #INT-SOCKET-CLIENT-CREATE :         25<br>        #INT-SOCKET-CLIENT-CONNECT :        26<br>        #INT-SOCKET-SERVER-CREATE :         27<br>        #INT-SOCKET-SERVER-LISTEN :         28<br>        #INT-SOCKET-SERVER-ACCEPT :         29<br>        #INTERRUPT_COUNT :                  30<br>        #MAX-VALUE :                    HEX-7FFFFFFFFFFFFFFF<br>        #MIN-VALUE :                   NHEX-8000000000000000<br>        #STD-IN :                           0<br>        #STD-OUT :                          1<br>        #STD-LOG :                          2<br>        #FP-NAN :                      UHEX-7FFE000000000000<br>        #FP-MAX-VALUE :                UHEX-7FEFFFFFFFFFFFFF<br>        #FP-MIN-VALUE :                UHEX-0000000000000001<br>        #FP-POS-INFINITY :             UHEX-7FF0000000000000<br>        #FP-NEG-INFINITY :             UHEX-FFF0000000000000</code></pre>
 
 ## STRINGS:
 * if any command, function or whatever of primitive-code refers to STRING(s) this definition is used
@@ -58,6 +75,14 @@ except for the `--POS--` constant all other constants can be overwritten and rem
 * a string ends with a '\0' character
 
 ## COMMANDS:
+
+`: [...] >`
+* a constant pool contains a constant sequence of bytes
+	* to write an constant, write the constant and than `WRITE`
+	* to write an number, just write the number
+	* to write single bytes put a `B-` before the number
+		* then only values from `0` to `255` can be written.
+		* values out of this range will cause an error
 
 `MOV <NO_CONST_PARAM> , <PARAM>`
 * copies the value of the second parameter to the first parameter

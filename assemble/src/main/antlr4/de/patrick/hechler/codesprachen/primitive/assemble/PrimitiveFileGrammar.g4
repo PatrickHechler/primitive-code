@@ -91,7 +91,7 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 	constants.putIfAbsent("FP-MAX-VALUE", (Long) 0x7FEFFFFFFFFFFFFFL);
 	constants.putIfAbsent("FP-MIN-VALUE", (Long) 0x0000000000000001L);
 	constants.putIfAbsent("FP-POS-INFINITY", (Long) 0x7FF0000000000000L);
-	constants.putIfAbsent("FP-NEG-INFINITY", (Long) (-0x7FF0000000000000L));
+	constants.putIfAbsent("FP-NEG-INFINITY", (Long) 0xFFF0000000000000L);
  }
 :
 	(
@@ -100,8 +100,8 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 
 			CONSTANT_POOL
 			{
-				ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), constants, $labels, $pos, align);
  				if (enabled) {
+					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), constants, $labels, $pos, align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine());
 					align = cc.align;
 					$pos += cc.pool.length();
 					$commands.add(cc.pool);
@@ -290,7 +290,7 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 														chars[ci] = '\\';
 														break;
 													default:
-														throw new AssembleError("illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+														throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(), "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
 													}
 												} else {
 													chars[ci] = strchars[si];
@@ -327,7 +327,7 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 				)
 				{
 					if (enabled) {
-						throw new AssembleError(msg.toString());
+						throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), msg.toString());
 					}
 				}
 
@@ -338,7 +338,7 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 			ANY
 			{
 				if (enabled) {
-					throw new AssembleError("illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
+					throw new AssembleError($ANY.getLine(), $ANY.getCharPositionInLine(),"illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
 				}
 			}
 
@@ -867,7 +867,7 @@ nummer [long pos, Map<String, Long> constants] returns [long num]
 		{
  			Long zw = constants.get($CONSTANT.getText().substring(1));
  			if (zw == null) {
- 				throw new AssembleError("unknown constant: '" + $CONSTANT.getText() + "', known constants: '" + constants + "'");
+ 				throw new AssembleError($CONSTANT.getLine(), $CONSTANT.getCharPositionInLine(), "unknown constant: '" + $CONSTANT.getText() + "', known constants: '" + constants + "'");
  			}
  			$num = (long) zw;
  		}
