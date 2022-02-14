@@ -28,6 +28,7 @@
 	#main-GET_IP-POS (--POS-- - ##file-POS)
 	GET_IP AX
 	SUB AX, ##main-GET_IP-POS
+	#main-GET_IP-POS ~DEL
 	INT ##INT-STREAMS-NEW_IN
 	CMP AX, -1
 	JMPEQ error_3
@@ -77,7 +78,7 @@
 	GET_IP AX
 	SUB AX, ##main-GET_IP-POS
 	#main-GET_IP-POS ~DEL
-	INT #INT-STREAMS-NEW_OUT
+	INT ##INT-STREAMS-NEW_OUT
 	CMP AX, -1
 	JMPEQ error_6
 	MOV CX, DX
@@ -88,12 +89,11 @@
 	MOV AX, 0
 	RET
 
-:
-	#error-msg-POS --POS--
-	CHARS 'UTF-8' "An error occurred\nI will exit the program now (with exit code 1) (@error_"
+#error-msg-POS --POS--
+	: CHARS 'UTF-8' "An error occurred\nI will exit the program now (with exit code 1) (@error_" >
 	|> the rest of the message is saved in the first three bytes of DX [num, ')', '\n']
-	#error-msg-length (--POS-- - #error-msg-POS)
->
+#error-msg-length (--POS-- - #error-msg-POS)
+
 @error_1
 	MOV DX, HEX-0A2931
 	JMP error
@@ -117,8 +117,8 @@
 @error
 	#error-msg-POS-dif (--POS-- - ##error-msg-POS)
 	GET_IP CX
-	ADD CX, ##error-msg-POS-dif
-	#GET_IP-POS ~DEL
+	SUB CX, ##error-msg-POS-dif
+	#error-msg-POS-dif ~DEL
 	MOV BX, ##error-msg-length
 	MOV AX, ##STD-LOG
 	INT ##INT-STREAMS-WRITE
