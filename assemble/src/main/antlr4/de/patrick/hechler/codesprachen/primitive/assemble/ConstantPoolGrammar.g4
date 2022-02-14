@@ -44,7 +44,7 @@ returns [ConstantPoolCommand pool, boolean align] @init {
 		(
 			{makeAlign($align, pos, $pool);}
 
-			numconst [$pool]
+			numconst [$pool, constants]
 		)
 		|
 		(
@@ -55,9 +55,23 @@ returns [ConstantPoolCommand pool, boolean align] @init {
 				(
 					(
 						(
-							numconst [pos + $pool.length(), constants]
-							{constants.put($CONSTANT.getText().substring(1), (Long) $numconst.num);}
+							(
+								numconst [null, constants]
+								{constants.put($CONSTANT.getText().substring(1), (Long) $numconst.num);}
 
+							)
+							|
+							(
+								CONSTANT_
+								{
+									Long l = constants.get($CONSTANT_.getText().substring(2));
+									if (l == null) {
+										throw new AssembleError($CONSTANT_.getLine(), $CONSTANT_.getCharPositionInLine(), "unknown constant: " + $CONSTANT_.getText().substring(2));
+									}
+									constants.put($CONSTANT.getText().substring(1), (Long) $numconst.num);
+								}
+
+							)
 						)
 						{simpleAdd = false;}
 
@@ -102,15 +116,13 @@ returns [ConstantPoolCommand pool, boolean align] @init {
 		|
 		(
 			ERROR
-			{
- 				StringBuilder msg = new StringBuilder("error at line: ").append($ERROR.getLine());
- 			}
+			{StringBuilder msg = new StringBuilder("error at line: ").append($ERROR.getLine());}
 
 			(
 				(
 					(
-						numconst [$pos, constants]
-						{msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($numconst.num);}
+						numconst [null, constants]
+						{msg.append(" error: ").append(_localctx.numconst.getText()).append('=').append($numconst.num);}
 
 					)
 					|
@@ -159,13 +171,13 @@ returns [ConstantPoolCommand pool, boolean align] @init {
 							)
 							|
 							(
-								numconst [pos, constants]
+								numconst [null, constants]
 								{msg.append($numconst.num);}
 
 							)
 							|
 							(
-								ERROR_HEX numconst [pos, constants]
+								ERROR_HEX numconst [null, constants]
 								{msg.append(Long.toHexString($numconst.num));}
 
 							)
@@ -173,7 +185,11 @@ returns [ConstantPoolCommand pool, boolean align] @init {
 					)
 				)?
 			)
-			{throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), msg.toString());}
+			{
+				if (true) {//just for the compiler (antlr puts code after that and the compiler throws an error because of unreachable code)
+					throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), msg.toString());
+				}
+			}
 
 		)
 	)* ENDE EOF
@@ -268,87 +284,103 @@ string [ConstantPoolCommand pool]
 
 ;
 
-numconst [ConstantPoolCommand pool] returns [long num, boolean b]
-@init {int radix;}
+numconst [ConstantPoolCommand pool, Map<String, Long> constants] returns
+[long num, boolean b] @init {
+	int radix;
+	$b = false;
+}
 :
 	(
 		(
-			BYTE
-			{$b = true;}
+			(
+				BYTE
+				{$b = true;}
 
-		)?
+			)?
+			(
+				(
+					t = DEC_FP_NUM
+					{$num = Double.doubleToRawLongBits(Double.parseDouble($t.getText()));}
+
+				)
+				|
+				(
+					t = UNSIGNED_HEX_NUM
+					{$num = Long.parseUnsignedLong($t.getText().substring(5), 16);}
+
+				)
+				|
+				(
+					t = HEX_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 16);}
+
+				)
+				|
+				(
+					t = DEC_NUM
+					{$num = Long.parseLong($t.getText(), 10);}
+
+				)
+				|
+				(
+					t = DEC_NUM0
+					{$num = Long.parseLong($t.getText().substring(4), 10);}
+
+				)
+				|
+				(
+					t = OCT_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 8);}
+
+				)
+				|
+				(
+					t = BIN_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 2);}
+
+				)
+				|
+				(
+					t = NEG_HEX_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 16);}
+
+				)
+				|
+				(
+					t = NEG_DEC_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 10);}
+
+				)
+				|
+				(
+					t = NEG_DEC_NUM0
+					{$num = Long.parseLong($t.getText(), 10);}
+
+				)
+				|
+				(
+					t = NEG_OCT_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 8);}
+
+				)
+				|
+				(
+					t = NEG_BIN_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 2);}
+
+				)
+			)
+		)
+		|
 		(
-			(
-				t = DEC_FP_NUM
-				{$num = Double.doubleToRawLongBits(Double.parseDouble($t.getText()));}
-
-			)
-			|
-			(
-				t = UNSIGNED_HEX_NUM
-				{$num = Long.parseUnsignedLong($t.getText().substring(5), 16);}
-
-			)
-			|
-			(
-				t = HEX_NUM
-				{$num = Long.parseLong($t.getText().substring(4), 16);}
-
-			)
-			|
-			(
-				t = DEC_NUM
-				{$num = Long.parseLong($t.getText(), 10);}
-
-			)
-			|
-			(
-				t = DEC_NUM0
-				{$num = Long.parseLong($t.getText().substring(4), 10);}
-
-			)
-			|
-			(
-				t = OCT_NUM
-				{$num = Long.parseLong($t.getText().substring(4), 8);}
-
-			)
-			|
-			(
-				t = BIN_NUM
-				{$num = Long.parseLong($t.getText().substring(4), 2);}
-
-			)
-			|
-			(
-				t = NEG_HEX_NUM
-				{$num = Long.parseLong($t.getText().substring(4), 16);}
-
-			)
-			|
-			(
-				t = NEG_DEC_NUM
-				{$num = Long.parseLong($t.getText().substring(4), 10);}
-
-			)
-			|
-			(
-				t = NEG_DEC_NUM0
-				{$num = Long.parseLong($t.getText(), 10);}
-
-			)
-			|
-			(
-				t = NEG_OCT_NUM
-				{$num = Long.parseLong($t.getText().substring(4), 8);}
-
-			)
-			|
-			(
-				t = NEG_BIN_NUM
-				{$num = Long.parseLong($t.getText().substring(4), 2);}
-
-			)
+			CONSTANT_
+			{
+				Long l = constants.get($CONSTANT_.getText().substring(2));
+				if (l == null) {
+					throw new AssembleError($CONSTANT_.getLine(), $CONSTANT_.getCharPositionInLine(), "unknown constant: " + $CONSTANT_.getText().substring(2));
+				}
+				$num = l;
+			}
 		)
 	)
 	{
@@ -518,11 +550,6 @@ ERROR_MESSAGE_END
 	'}'
 ;
 
-POS
-:
-	'--POS--'
-;
-
 ANY_NUM
 :
 	[0-9a-fA-f]+
@@ -531,6 +558,11 @@ ANY_NUM
 EXIST_CONSTANT
 :
 	'#~' [a-zA-Z\-_] [a-zA-Z\-_0-9]*
+;
+
+CONSTANT_
+:
+	'#' CONSTANT
 ;
 
 CONSTANT
