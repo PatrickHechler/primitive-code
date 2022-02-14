@@ -2,44 +2,41 @@
 	CMP AX, -1
 	JMPNE skip_stack-init
 	MOV AX, 1024
-	INT #INT-MEMORY-ALLOC
+	INT ##INT-MEMORY-ALLOC
 	CMP AX, -1
 	JMPEQ error_1
 	SET_SP AX
 @skip_stack-init
 	CALL main
-	INT #INT-EXIT
-:
+	INT ##INT-EXIT
 #file-POS --POS--
-	CHARS 'UTF-8' "./input/in2.data\0"
+	: CHARS 'UTF-8' "./input/in2.data\0" >
 #file-out-POS --POS--
-	CHARS 'UTF-8' "./output/out2-pc.data\0"
+	: CHARS 'UTF-8' "./output/out2-pc.data\0" >
 #file-length 8
-#file-numbers (#file-length / 8)
-~IF (#file-length % 8 != 0)
+#file-numbers (##file-length / 8)
+~IF (##file-length % 8 != 0)
 	~ERROR {"file-length is not dividable with 8! #file-length=" #file-length }
 ~ENDIF
 >
 @main
-	#main-GET_IP-POS ~DEL
 	MOV AX, #file-length
-	INT #INT-MEMORY-ALLOC
+	INT ##INT-MEMORY-ALLOC
 	CMP AX, -1
 	JMPEQ error_2
 	MOV CX, AX
-	#main-GET_IP-POS --POS--
+	#main-GET_IP-POS (--POS-- - ##file-POS)
 	GET_IP AX
-	SUB AX, #main-GET_IP-POS
-	ADD AX, #file-POS
-	INT #INT-STREAMS-NEW_IN
+	SUB AX, ##main-GET_IP-POS
+	INT ##INT-STREAMS-NEW_IN
 	CMP AX, -1
 	JMPEQ error_3
-	MOV BX, #file-length
-	INT #INT-STREAMS-READ
-	CMP BX, #file-length
+	MOV BX, ##file-length
+	INT ##INT-STREAMS-READ
+	CMP BX, ##file-length
 	JMPNE error_4
 	MOV AX, 32
-	INT #INT-MEMORY-ALLOC
+	INT ##INT-MEMORY-ALLOC
 	CMP AX, -1
 	JMPEQ error_5
 	MOV DX, AX
@@ -72,22 +69,21 @@
 	MOV [AX], BX
 	ADD [DX + 16], 8
 	INC [DX + 24]
-	CMP [DX + 24], #file-numbers
+	CMP [DX + 24], ##file-numbers
 	JMPLT main-find_prims-loop
 	MOV DX, [DX + 16]
-	SUB DX, #file-length
-	#main-GET_IP-POS --POS--
+	SUB DX, ##file-length
+	#main-GET_IP-POS (--POS-- - ##file-out-POS)
 	GET_IP AX
-	SUB AX, #main-GET_IP-POS
-	ADD AX, #file-out-POS
+	SUB AX, ##main-GET_IP-POS
 	#main-GET_IP-POS ~DEL
 	INT #INT-STREAMS-NEW_OUT
 	CMP AX, -1
 	JMPEQ error_6
 	MOV CX, DX
-	MOV BX, #file-length
-	INT #INT-STREAMS-WRITE
-	CMP BX, #file-length
+	MOV BX, ##file-length
+	INT ##INT-STREAMS-WRITE
+	CMP BX, ##file-length
 	JMPNE error_7
 	MOV AX, 0
 	RET
@@ -119,18 +115,18 @@
 @error_7
 	MOV DX, HEX-0A2936
 @error
-	#error-msg-POS-dif (#error-msg-POS - --POS--)
+	#error-msg-POS-dif (--POS-- - ##error-msg-POS)
 	GET_IP CX
-	ADD CX, #error-msg-POS-dif
+	ADD CX, ##error-msg-POS-dif
 	#GET_IP-POS ~DEL
-	MOV BX, #error-msg-length
-	MOV AX, #STD-LOG
-	INT #INT-STREAMS-WRITE
+	MOV BX, ##error-msg-length
+	MOV AX, ##STD-LOG
+	INT ##INT-STREAMS-WRITE
 	MOV [CX], DX
 	MOV BX, 3
-	INT #INT-STREAMS-WRITE
+	INT ##INT-STREAMS-WRITE
 	MOV AX, 1
-	INT #INT-EXIT
+	INT ##INT-EXIT
 
 |:
 |	AX <- AX
