@@ -50,53 +50,29 @@ public class Param {
 	 */
 	public static class ParamBuilder {
 		
-		public static final int A_NUM = 0x00000001;
-		public static final int A_AX = 0x00000002;
-		public static final int A_BX = 0x00000004;
-		public static final int A_CX = 0x00000008;
-		public static final int A_DX = 0x00000010;
-		public static final int B_REG = 0x00000020;
-		public static final int B_NUM = 0x00000040;
-		public static final int B_AX = 0x00000080;
-		public static final int B_BX = 0x00000100;
-		public static final int B_CX = 0x00000200;
-		public static final int B_DX = 0x00000400;
+		//@formatter:off
+		public static final int SR_IP     = 0;
+		public static final int SR_SP     = 1;
+		public static final int SR_STATUS = 2;
+		public static final int SR_INTCNT = 3;
+		public static final int SR_INTP   = 4;
+		public static final int SR_X_ADD  = 5;
 		
-		private static final int BUILD_ANUM = A_NUM;
+		public static final int A_NUM = 0x00000001;
+		public static final int A_SR  = 0x00000002;
+		public static final int B_REG = 0x00000010;
+		public static final int B_NUM = 0x00000020;
+		public static final int B_SR  = 0x00000040;
+		
+		private static final int BUILD_ANUM      = A_NUM;
+		private static final int BUILD_ASR       = A_SR;
 		private static final int BUILD_ANUM_BREG = A_NUM | B_REG;
-		private static final int BUILD_AAX = A_AX;
-		private static final int BUILD_ABX = A_BX;
-		private static final int BUILD_ACX = A_CX;
-		private static final int BUILD_ADX = A_DX;
-		private static final int BUILD_AAX_BREG = A_AX | B_REG;
-		private static final int BUILD_ABX_BREG = A_BX | B_REG;
-		private static final int BUILD_ACX_BREG = A_CX | B_REG;
-		private static final int BUILD_ADX_BREG = A_DX | B_REG;
+		private static final int BUILD_ASR_BREG  = A_SR  | B_REG;
 		private static final int BUILD_ANUM_BNUM = A_NUM | B_NUM;
-		private static final int BUILD_AAX_BNUM = A_AX | B_NUM;
-		private static final int BUILD_ABX_BNUM = A_BX | B_NUM;
-		private static final int BUILD_ACX_BNUM = A_CX | B_NUM;
-		private static final int BUILD_ADX_BNUM = A_DX | B_NUM;
-		private static final int BUILD_ANUM_BAX = A_NUM | B_AX;
-		private static final int BUILD_ANUM_BBX = A_NUM | B_BX;
-		private static final int BUILD_ANUM_BCX = A_NUM | B_CX;
-		private static final int BUILD_ANUM_BDX = A_NUM | B_DX;
-		private static final int BUILD_AAX_BAX = A_AX | B_AX;
-		private static final int BUILD_AAX_BBX = A_AX | B_BX;
-		private static final int BUILD_AAX_BCX = A_AX | B_CX;
-		private static final int BUILD_AAX_BDX = A_AX | B_DX;
-		private static final int BUILD_ABX_BAX = A_BX | B_AX;
-		private static final int BUILD_ABX_BBX = A_BX | B_BX;
-		private static final int BUILD_ABX_BCX = A_BX | B_CX;
-		private static final int BUILD_ABX_BDX = A_BX | B_DX;
-		private static final int BUILD_ACX_BAX = A_CX | B_AX;
-		private static final int BUILD_ACX_BBX = A_CX | B_BX;
-		private static final int BUILD_ACX_BCX = A_CX | B_CX;
-		private static final int BUILD_ACX_BDX = A_CX | B_DX;
-		private static final int BUILD_ADX_BAX = A_DX | B_AX;
-		private static final int BUILD_ADX_BBX = A_DX | B_BX;
-		private static final int BUILD_ADX_BCX = A_DX | B_CX;
-		private static final int BUILD_ADX_BDX = A_DX | B_DX;
+		private static final int BUILD_ASR_BNUM  = A_SR  | B_NUM;
+		private static final int BUILD_ANUM_BAX  = A_NUM | B_SR;
+		private static final int BUILD_AAX_BAX   = A_SR  | B_SR;
+		//@formatter:on
 		
 		
 		
@@ -119,74 +95,26 @@ public class Param {
 				return new Param(null, v1, 0, Param.ART_ANUM);
 			case BUILD_ANUM_BREG:
 				return new Param(null, v1, 0, Param.ART_ANUM_BREG);
-			case BUILD_AAX:
-				return new Param(null, Param.SR_AX, 0, Param.ART_ASR);
-			case BUILD_ABX:
-				return new Param(null, Param.SR_BX, 0, Param.ART_ASR);
-			case BUILD_ACX:
-				return new Param(null, Param.SR_CX, 0, Param.ART_ASR);
-			case BUILD_ADX:
-				return new Param(null, Param.SR_DX, 0, Param.ART_ASR);
-			case BUILD_AAX_BREG:
+			case BUILD_ASR:
+				Param.checkSR(v1);
+				return new Param(null, v1, 0, Param.ART_ASR);
+			case BUILD_ASR_BREG:
+				Param.checkSR(v1);
 				return new Param(null, Param.SR_AX, 0, Param.ART_ASR_BREG);
-			case BUILD_ABX_BREG:
-				return new Param(null, Param.SR_BX, 0, Param.ART_ASR_BREG);
-			case BUILD_ACX_BREG:
-				return new Param(null, Param.SR_CX, 0, Param.ART_ASR_BREG);
-			case BUILD_ADX_BREG:
-				return new Param(null, Param.SR_DX, 0, Param.ART_ASR_BREG);
 			case BUILD_ANUM_BNUM:
 				return new Param(null, v1, v2, Param.ART_ANUM_BNUM);
-			case BUILD_AAX_BNUM:
-				return new Param(null, Param.SR_AX, v2, Param.ART_ASR_BNUM);
-			case BUILD_ABX_BNUM:
-				return new Param(null, Param.SR_BX, v2, Param.ART_ASR_BNUM);
-			case BUILD_ACX_BNUM:
-				return new Param(null, Param.SR_CX, v2, Param.ART_ASR_BNUM);
-			case BUILD_ADX_BNUM:
-				return new Param(null, Param.SR_DX, v2, Param.ART_ASR_BNUM);
+			case BUILD_ASR_BNUM:
+				Param.checkSR(v1);
+				return new Param(null, v1, v2, Param.ART_ASR_BNUM);
 			case BUILD_ANUM_BAX:
-				return new Param(null, v1, Param.SR_AX, Param.ART_ANUM_BSR);
-			case BUILD_ANUM_BBX:
-				return new Param(null, v1, Param.SR_BX, Param.ART_ANUM_BSR);
-			case BUILD_ANUM_BCX:
-				return new Param(null, v1, Param.SR_CX, Param.ART_ANUM_BSR);
-			case BUILD_ANUM_BDX:
-				return new Param(null, v1, Param.SR_DX, Param.ART_ANUM_BSR);
+				Param.checkSR(v2);
+				return new Param(null, v1, v2, Param.ART_ANUM_BSR);
 			case BUILD_AAX_BAX:
-				return new Param(null, Param.SR_AX, Param.SR_AX, Param.ART_ASR_BSR);
-			case BUILD_AAX_BBX:
-				return new Param(null, Param.SR_AX, Param.SR_BX, Param.ART_ASR_BSR);
-			case BUILD_AAX_BCX:
-				return new Param(null, Param.SR_AX, Param.SR_CX, Param.ART_ASR_BSR);
-			case BUILD_AAX_BDX:
-				return new Param(null, Param.SR_AX, Param.SR_DX, Param.ART_ASR_BSR);
-			case BUILD_ABX_BAX:
-				return new Param(null, Param.SR_BX, Param.SR_AX, Param.ART_ASR_BSR);
-			case BUILD_ABX_BBX:
-				return new Param(null, Param.SR_BX, Param.SR_BX, Param.ART_ASR_BSR);
-			case BUILD_ABX_BCX:
-				return new Param(null, Param.SR_BX, Param.SR_CX, Param.ART_ASR_BSR);
-			case BUILD_ABX_BDX:
-				return new Param(null, Param.SR_BX, Param.SR_DX, Param.ART_ASR_BSR);
-			case BUILD_ACX_BAX:
-				return new Param(null, Param.SR_CX, Param.SR_AX, Param.ART_ASR_BSR);
-			case BUILD_ACX_BBX:
-				return new Param(null, Param.SR_CX, Param.SR_BX, Param.ART_ASR_BSR);
-			case BUILD_ACX_BCX:
-				return new Param(null, Param.SR_CX, Param.SR_CX, Param.ART_ASR_BSR);
-			case BUILD_ACX_BDX:
-				return new Param(null, Param.SR_CX, Param.SR_DX, Param.ART_ASR_BSR);
-			case BUILD_ADX_BAX:
-				return new Param(null, Param.SR_DX, Param.SR_AX, Param.ART_ASR_BSR);
-			case BUILD_ADX_BBX:
-				return new Param(null, Param.SR_DX, Param.SR_BX, Param.ART_ASR_BSR);
-			case BUILD_ADX_BCX:
-				return new Param(null, Param.SR_DX, Param.SR_CX, Param.ART_ASR_BSR);
-			case BUILD_ADX_BDX:
-				return new Param(null, Param.SR_DX, Param.SR_DX, Param.ART_ASR_BSR);
+				Param.checkSR(v1);
+				Param.checkSR(v2);
+				return new Param(null, v1, v2, Param.ART_ASR_BSR);
 			default:
-				throw new IllegalStateException();
+				throw new IllegalStateException("art=" + Integer.toHexString(art));
 			}
 		}
 		
@@ -217,8 +145,8 @@ public class Param {
 	}
 	
 	public static void checkSR(long num) {
-		if ( (num & 0xFFFFFFFFFFFFFFFCL) != 0) {
-			throw new IllegalStateException("this num is no SR: num=" + num + " AX=0 BX=1 CX=2 DX=3");
+		if (num > 0xFF) {
+			throw new IllegalStateException("this num is no SR: num=0x" + Long.toHexString(num));
 		}
 	}
 	
@@ -250,7 +178,22 @@ public class Param {
 	}
 	
 	private String toSRString(long sr) {
-		return ((char) (sr + 'A')) + "X";
+		assert sr < 0xFF;
+		int reg = (int) sr;
+		switch (reg) {
+		case ParamBuilder.SR_IP:
+			return "IP";
+		case ParamBuilder.SR_SP:
+			return "SP";
+		case ParamBuilder.SR_STATUS:
+			return "STATUS";
+		case ParamBuilder.SR_INTCNT:
+			return "INTCNT";
+		case ParamBuilder.SR_INTP:
+			return "INTP";
+		default:
+			return "X" + ( (sr < 0x10) ? ("0" + Integer.toHexString(reg)) : Integer.toHexString(reg));
+		}
 	}
 	
 }
