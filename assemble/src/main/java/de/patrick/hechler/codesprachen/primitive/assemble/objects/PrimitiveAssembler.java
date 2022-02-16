@@ -7,6 +7,7 @@ import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -25,6 +26,61 @@ import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarPa
 import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
 
 public class PrimitiveAssembler {
+	
+	private static final Map<String, Long> START_CONSTANTS;
+	
+	static {
+		START_CONSTANTS = new LinkedHashMap<>();//faster iteration
+		START_CONSTANTS.put("INT-ERRORS-UNKNOWN_COMMAND", (Long) 0L);
+		START_CONSTANTS.put("INT-ERRORS-ILLEGAL_INTERRUPT", (Long) 1L);
+		START_CONSTANTS.put("INT-ERRORS-ILLEGAL_MEMORY", (Long) 2L);
+		START_CONSTANTS.put("INT-ERRORS-ARITHMETIC_ERROR", (Long) 3L);
+		START_CONSTANTS.put("INT-EXIT", (Long) 4L);
+		START_CONSTANTS.put("INT-MEMORY-ALLOC", (Long) 5L);
+		START_CONSTANTS.put("INT-MEMORY-REALLOC", (Long) 6L);
+		START_CONSTANTS.put("INT-MEMORY-FREE", (Long) 7L);
+		START_CONSTANTS.put("INT-STREAMS-NEW_IN", (Long) 8L);
+		START_CONSTANTS.put("INT-STREAMS-NEW_OUT", (Long) 9L);
+		START_CONSTANTS.put("INT-STREAMS-NEW_APPEND", (Long) 10L);
+		START_CONSTANTS.put("INT_STREAMS-NEW_IN_OUT", (Long) 11L);
+		START_CONSTANTS.put("INT-STREAMS-NEW_APPEND_IN_OUT", (Long) 12L);
+		START_CONSTANTS.put("INT-STREAMS-WRITE", (Long) 13L);
+		START_CONSTANTS.put("INT-STREAMS-READ", (Long) 14L);
+		START_CONSTANTS.put("INT-STREAMS-CLOSE_STREAM", (Long) 15L);
+		START_CONSTANTS.put("INT-STREAMS-GET_POS", (Long) 16L);
+		START_CONSTANTS.put("INT-STREAMS-SET_POS", (Long) 17L);
+		START_CONSTANTS.put("INT-STREAMS-SET_POS_TO_END", (Long) 18L);
+		START_CONSTANTS.put("INT-STREAMS-REM", (Long) 19L);
+		START_CONSTANTS.put("INT-STREAMS-MK_DIR", (Long) 20L);
+		START_CONSTANTS.put("INT-STREAMS-REM_DIR", (Long) 21L);
+		START_CONSTANTS.put("INT-TIME-GET", (Long) 22L);
+		START_CONSTANTS.put("INT-TIME-WAIT", (Long) 23L);
+		START_CONSTANTS.put("INT-SOCKET-CLIENT-CREATE", (Long) 24L);
+		START_CONSTANTS.put("INT-SOCKET-CLIENT-CONNECT", (Long) 25L);
+		START_CONSTANTS.put("INT-SOCKET-SERVER-CREATE", (Long) 26L);
+		START_CONSTANTS.put("INT-SOCKET-SERVER-LISTEN", (Long) 27L);
+		START_CONSTANTS.put("INT-SOCKET-SERVER-ACCEPT", (Long) 28L);
+		START_CONSTANTS.put("INT-RANDOM", (Long) 29L);
+		START_CONSTANTS.put("INTERRUPT_COUNT", (Long) 30L);
+		START_CONSTANTS.put("INT-FUNC-MEMORY_COPY", (Long) 30L);
+		START_CONSTANTS.put("INT-FUNC-MEMORY_MOVE", (Long) 31L);
+		START_CONSTANTS.put("INT-FUNC-MEMORY_SET", (Long) 32L);
+		START_CONSTANTS.put("INT-FUNC-MEMORY_BSET", (Long) 33L);
+		START_CONSTANTS.put("INT-FUNC-STRING_TO_NUMBER", (Long) 34L);
+		START_CONSTANTS.put("INT-FUNC-NUMBER_TO_STRING", (Long) 35L);
+		START_CONSTANTS.put("INT-FUNC-STRING_FORMAT", (Long) 36L);
+		START_CONSTANTS.put("COMPLETE_INTERRUPT_COUNT", (Long) 37L);
+		START_CONSTANTS.put("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
+		START_CONSTANTS.put("MIN-VALUE", (Long) (-0x8000000000000000L));
+		START_CONSTANTS.put("STD-IN", (Long) 0L);
+		START_CONSTANTS.put("STD-OUT", (Long) 1L);
+		START_CONSTANTS.put("STD-LOG", (Long) 2L);
+		START_CONSTANTS.put("FP-NAN", (Long) 0x7FFE000000000000L);
+		START_CONSTANTS.put("FP-MAX-VALUE", (Long) 0x7FEFFFFFFFFFFFFFL);
+		START_CONSTANTS.put("FP-MIN-VALUE", (Long) 0x0000000000000001L);
+		START_CONSTANTS.put("FP-POS-INFINITY", (Long) 0x7FF0000000000000L);
+		START_CONSTANTS.put("FP-NEG-INFINITY", (Long) 0xFFF0000000000000L);
+	}
 	
 	private final OutputStream out;
 	private final boolean supressWarn;
@@ -62,7 +118,8 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(Reader in) throws IOException, AssembleError {
-		return preassemble(in, new HashMap <>());
+		HashMap <String, Long> constants = new HashMap <>();
+		return preassemble(in, constants);
 	}
 	
 	public ParseContext preassemble(InputStream in, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
@@ -78,7 +135,7 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(ANTLRInputStream antlrin) throws IOException, AssembleError {
-		return preassemble(antlrin, new HashMap <>());
+		return preassemble(antlrin, new HashMap <>(START_CONSTANTS));
 	}
 	
 	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException, AssembleError {

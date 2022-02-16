@@ -51,47 +51,6 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
  	 * 		then the stack removes the frame (~ENDIF)
  	 */
  	List<Boolean> stack = new ArrayList();
-	constants.putIfAbsent("INT-ERRORS-UNKNOWN_COMMAND", (Long) 0L);
-	constants.putIfAbsent("INT-ERRORS-ILLEGAL_INTERRUPT", (Long) 1L);
-	constants.putIfAbsent("INT-ERRORS-ILLEGAL_MEMORY", (Long) 2L);
-	constants.putIfAbsent("INT-ERRORS-ARITHMETIC_ERROR", (Long) 3L);
-	constants.putIfAbsent("INT-EXIT", (Long) 4L);
-	constants.putIfAbsent("INT-MEMORY-ALLOC", (Long) 5L);
-	constants.putIfAbsent("INT-MEMORY-REALLOC", (Long) 6L);
-	constants.putIfAbsent("INT-MEMORY-FREE", (Long) 7L);
-	constants.putIfAbsent("INT-STREAMS-NEW_IN", (Long) 8L);
-	constants.putIfAbsent("INT-STREAMS-NEW_OUT", (Long) 9L);
-	constants.putIfAbsent("INT-STREAMS-NEW_APPEND", (Long) 10L);
-	constants.putIfAbsent("INT_STREAMS-NEW_IN_OUT", (Long) 11L);
-	constants.putIfAbsent("INT-STREAMS-NEW_APPEND_IN_OUT", (Long) 12L);
-	constants.putIfAbsent("INT-STREAMS-WRITE", (Long) 13L);
-	constants.putIfAbsent("INT-STREAMS-READ", (Long) 14L);
-	constants.putIfAbsent("INT-STREAMS-CLOSE_STREAM", (Long) 15L);
-	constants.putIfAbsent("INT-STREAMS-GET_POS", (Long) 16L);
-	constants.putIfAbsent("INT-STREAMS-SET_POS", (Long) 17L);
-	constants.putIfAbsent("INT-STREAMS-SET_POS_TO_END", (Long) 18L);
-	constants.putIfAbsent("INT-STREAMS-REM", (Long) 19L);
-	constants.putIfAbsent("INT-STREAMS-MK_DIR", (Long) 20L);
-	constants.putIfAbsent("INT-STREAMS-REM_DIR", (Long) 21L);
-	constants.putIfAbsent("INT-TIME-GET", (Long) 22L);
-	constants.putIfAbsent("INT-TIME-WAIT", (Long) 23L);
-	constants.putIfAbsent("INT-SOCKET-CLIENT-CREATE", (Long) 24L);
-	constants.putIfAbsent("INT-SOCKET-CLIENT-CONNECT", (Long) 25L);
-	constants.putIfAbsent("INT-SOCKET-SERVER-CREATE", (Long) 26L);
-	constants.putIfAbsent("INT-SOCKET-SERVER-LISTEN", (Long) 27L);
-	constants.putIfAbsent("INT-SOCKET-SERVER-ACCEPT", (Long) 28L);
-	constants.putIfAbsent("INT-RANDOM", (Long) 29L);
-	constants.putIfAbsent("INTERRUPT_COUNT", (Long) 30L);
-	constants.putIfAbsent("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
-	constants.putIfAbsent("MIN-VALUE", (Long) (-0x8000000000000000L));
-	constants.putIfAbsent("STD-IN", (Long) 0L);
-	constants.putIfAbsent("STD-OUT", (Long) 1L);
-	constants.putIfAbsent("STD-LOG", (Long) 2L);
-	constants.putIfAbsent("FP-NAN", (Long) 0x7FFE000000000000L);
-	constants.putIfAbsent("FP-MAX-VALUE", (Long) 0x7FEFFFFFFFFFFFFFL);
-	constants.putIfAbsent("FP-MIN-VALUE", (Long) 0x0000000000000001L);
-	constants.putIfAbsent("FP-POS-INFINITY", (Long) 0x7FF0000000000000L);
-	constants.putIfAbsent("FP-NEG-INFINITY", (Long) 0xFFF0000000000000L);
  }
 :
 	(
@@ -857,11 +816,11 @@ nummer [long pos, Map<String, Long> constants] returns [long num]
 	)
 	|
 	(
-		CONSTANT_
+		NAME
 		{
- 			Long zw = constants.get($CONSTANT_.getText().substring(2));
+ 			Long zw = constants.get($NAME.getText());
  			if (zw == null) {
- 				throw new AssembleError($CONSTANT_.getLine(), $CONSTANT_.getCharPositionInLine(), "unknown constant: '" + $CONSTANT_.getText() + "', known constants: '" + constants + "'");
+ 				throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
  			}
  			$num = (long) zw;
  		}
@@ -1714,12 +1673,7 @@ EXIST_CONSTANT
 
 NAME
 :
-	[a-zA-Z\-_] [a-zA-Z\-_0-9]*
-;
-
-CONSTANT_
-:
-	'#' CONSTANT
+	[a-zA-Z_] [a-zA-Z_0-9]*
 ;
 
 CONSTANT

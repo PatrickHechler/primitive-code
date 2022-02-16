@@ -115,8 +115,7 @@ public class PrimitiveDisassembler {
 					if (off < cp.length()) {
 						int len = cp.length() - off;
 						int strlen = (len * 2) + 4;
-						out.println(convertLongToHexString(prefix, pos,
-								convertByteArrToHexString(" -> ----------------".substring(0, strlen /* - 0 (length = endIndex - beginIndex) */), bytes, 0, len, ": unknown")));
+						out.println(convertLongToHexString(prefix, pos, convertByteArrToHexString(" -> ----------------".substring(0, strlen), bytes, 0, len, ": unknown")));
 					}
 					break;
 				}

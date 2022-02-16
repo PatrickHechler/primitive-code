@@ -8,17 +8,17 @@ this is the assembler-language for the Primitive-Virtual-Machine
 
 * A primitive-assembler-code file can be assembled to a primitive-machine-code file.
 * A primitive-machine-code file can be executed with a primitive-virtual-machine.
-    * the `AX` register will be set to the number of arguments
-    * the `BX` register will point to the arguments
+    * the `X00` register will be set to the number of arguments
+    * the `X01` register will point to the arguments
     * the arguments will point to STRINGs
         * the first argument will be the program itself, all beyond will be the arguments of the program
         * example:
             * `my_program.pmc --example    value --other=val`
-            * `AX          <- 4`
-            * `[BX]        <- ADDRESS_OF "my_program.pmc\0"`
-            * `[BX + 8]    <- ADDRESS_OF "--example\0"`
-            * `[BX + 16]   <- ADDRESS_OF "value\0"`
-            * `[BX + 24]   <- ADDRESS_OF "--other=val\0"`
+            * `X00          <- 4`
+            * `[X01]        <- ADDRESS_OF "my_program.pmc\0"`
+            * `[X01 + 8]    <- ADDRESS_OF "--example\0"`
+            * `[X01 + 16]   <- ADDRESS_OF "value\0"`
+            * `[X01 + 24]   <- ADDRESS_OF "--other=val\0"`
     * the `INTCNT` register will be set to `#INTERRUPT_COUNT`
     * the interrupt-table of `INTP` will be initialized and every entry will be set to `-1`
         * so by default the default interrupts will be called, but they can be easily overwritten
@@ -26,12 +26,14 @@ this is the assembler-language for the Primitive-Virtual-Machine
 ## Primitive virtual machine
 
 * the primitive virtual machine has the following registers:
-    * `[A-D]X`
-        * 4 * 64-bit
-        * number registers, for free use
     * `IP`
         * `64-bit`
         * the instruction pointer points to the command to be executed
+		* initialized with the begin of the loaded machine code file
+    * `SP`
+        * `64-bit`
+        * the stack pointer points to the command to be executed
+		* initialized with `-1` or the begin of a memory block
     * `STATUS`
         * `64-bit`
         * saves some results of operations
@@ -39,13 +41,23 @@ this is the assembler-language for the Primitive-Virtual-Machine
         * `HEX-0000000000000002` : `GREATHER`: if on the last `CMP A, B` A was greater than B
         * `HEX-0000000000000004` : `CARRY`: if an overflow was detected
         * `HEX-0000000000000008` : `ZERO`: if the last arithmetic or logical operation leaded to zero (`HEX-0000000000000000`)
+		* initialized with `0`
     * `INTCNT`
         * `64-bit`
         * saves the number of allowed interrupts (`0..(INTCNT-1)` are allowed)
             * all other will call the `INT-ERRORS_ILLEGAL_INTERRUPT` interrupt
+		* initialized with the interrupt count which can be used as default interrupts
     * `INTP`
         * `64-bit`
         * points to the interrupt-table
+		* initialized with the interrupt table
+			* this table has a memory size of  `INTCNT * 8` bytes
+			* all entries of the table are initialized with `-1`
+    * `X[00..FA]`
+        * (256-5) * 64-bit
+        * number registers, for free use
+		* `X00` is initialized with the pointer to the program arguments
+		* `X01` is initialized with the count of program arguments
 
 ## NUMBERS:
 
@@ -63,14 +75,65 @@ this is the assembler-language for the Primitive-Virtual-Machine
 ## CONSTANTS:
 
 * except for the `--POS--` constant all other constants can be overwritten and removed
-* all constants starts with a '#'
+* to define constants write a '#' as prefix
 * the coder can define constants 
 * predefined constants:
 
-<pre><code>        --POS-- :                           </code>the position from the begin of the next command<code><br>        #INT-ERRORS-UNKNOWN_COMMAND :       0<br>        #INT-ERRORS-ILLEGAL_INTERRUPT :     1<br>        #INT-ERRORS-ILLEGAL_MEMORY :        2<br>        #INT-ERRORS-ARITHMETIC_ERROR :      3<br>        #INT-EXIT :                         4<br>        #INT-MEMORY-ALLOC :                 5<br>        #INT-MEMORY-REALLOC :               6<br>        #INT-MEMORY-FREE :                  7<br>        #INT-STREAMS-NEW_IN :               8<br>        #INT-STREAMS-NEW_OUT :              9<br>        #INT-STREAMS-NEW_APPEND :           10<br>        #INT_STREAMS-NEW_IN_OUT :           11<br>        #INT-STREAMS-NEW_APPEND_IN_OUT :    12<br>        #INT-STREAMS-WRITE :                13<br>        #INT-STREAMS-READ :                 14<br>        #INT-STREAMS-CLOSE_STREAM :         15<br>        #INT-STREAMS-GET_POS :              16<br>        #INT-STREAMS-SET_POS :              17<br>        #INT-STREAMS-SET_POS_TO_END :       18<br>        #INT-STREAMS-REM :                  19<br>        #INT-STREAMS-MK_DIR :               20<br>        #INT-STREAMS-REM_DIR :              21<br>        #INT-TIME-GET :                     22<br>        #INT-TIME-WAIT :                    23<br>        #INT-RANDOM :                       24<br>        #INT-SOCKET-CLIENT-CREATE :         25<br>        #INT-SOCKET-CLIENT-CONNECT :        26<br>        #INT-SOCKET-SERVER-CREATE :         27<br>        #INT-SOCKET-SERVER-LISTEN :         28<br>        #INT-SOCKET-SERVER-ACCEPT :         29<br>        #INTERRUPT_COUNT :                  30<br>        #MAX-VALUE :                    HEX-7FFFFFFFFFFFFFFF<br>        #MIN-VALUE :                   NHEX-8000000000000000<br>        #STD-IN :                           0<br>        #STD-OUT :                          1<br>        #STD-LOG :                          2<br>        #FP-NAN :                      UHEX-7FFE000000000000<br>        #FP-MAX-VALUE :                UHEX-7FEFFFFFFFFFFFFF<br>        #FP-MIN-VALUE :                UHEX-0000000000000001<br>        #FP-POS-INFINITY :             UHEX-7FF0000000000000<br>        #FP-NEG-INFINITY :             UHEX-FFF0000000000000</code></pre>
+<pre><code>        --POS-- :                           the actual length of the binary code
+        #INT_ERRORS_UNKNOWN_COMMAND :       0
+        #INT_ERRORS_ILLEGAL_INTERRUPT :     1
+        #INT_ERRORS_ILLEGAL_MEMORY :        2
+        #INT_ERRORS_ARITHMETIC_ERROR :      3
+        #INT_EXIT :                         4
+        #INT_MEMORY_ALLOC :                 5
+        #INT_MEMORY_REALLOC :               6
+        #INT_MEMORY_FREE :                  7
+        #INT_STREAMS_NEW_IN :               8
+        #INT_STREAMS_NEW_OUT :              9
+        #INT_STREAMS_NEW_APPEND :           10
+        #INT_STREAMS_NEW_IN_OUT :           11
+        #INT_STREAMS_NEW_APPEND_IN_OUT :    12
+        #INT_STREAMS_WRITE :                13
+        #INT_STREAMS_READ :                 14
+        #INT_STREAMS_CLOSE_STREAM :         15
+        #INT_STREAMS_GET_POS :              16
+        #INT_STREAMS_SET_POS :              17
+        #INT_STREAMS_SET_POS_TO_END :       18
+        #INT_STREAMS_REM :                  19
+        #INT_STREAMS_MK_DIR :               20
+        #INT_STREAMS_REM_DIR :              21
+        #INT_TIME_GET :                     22
+        #INT_TIME_WAIT :                    23
+        #INT_RANDOM :                       24
+        #INT_SOCKET_CLIENT-CREATE :         25
+        #INT_SOCKET_CLIENT-CONNECT :        26
+        #INT_SOCKET_SERVER-CREATE :         27
+        #INT_SOCKET_SERVER-LISTEN :         28
+        #INT_SOCKET_SERVER-ACCEPT :         29
+        #INTERRUPT_COUNT :                  30
+        #INT_FUNC_MEMORY_COPY :             30
+        #INT_FUNC_MEMORY_MOVE :             31
+        #INT_FUNC_MEMORY_BSET :             32
+        #INT_FUNC_MEMORY_SET :              33
+        #INT_FUNC_STRING_LENGTH :           34
+        #INT_FUNC_STRING_TO_FPNUMBER :      35
+        #INT_FUNC_STRING_TO_NUMBER :        36
+        #INT_FUNC_NUMBER_TO_STRING :        37
+        #INT_FUNC_FPNUMBER_TO_STRING :      38
+        #INT_FUNC_STRING_FORMAT :           39
+        #INT_FUNC_END :                     40
+        #MAX_VALUE :                    HEX-7FFFFFFFFFFFFFFF
+        #MIN_VALUE :                   NHEX-8000000000000000
+        #STD_IN :                           0
+        #STD_OUT :                          1
+        #STD_LOG :                          2
+        #FP-NAN :                      UHEX-7FFE000000000000
+        #FP_MAX_VALUE :                UHEX-7FEFFFFFFFFFFFFF
+        #FP_MIN_VALUE :                UHEX-0000000000000001
+        #FP_POS_INFINITY :             UHEX-7FF0000000000000
+        #FP_NEG_INFINITY :             UHEX-FFF0000000000000</code></pre>
 
 ## STRINGS:
-* if any command, function or whatever of primitive-code refers to STRING(s) this definition is used
 * a string is an array of multiple characters of the UTF-8 encoding
 * a string ends with a '\0' character
 
@@ -420,52 +483,62 @@ this is the assembler-language for the Primitive-Virtual-Machine
 
 `IRET`
 * returns from an interrupt
-    * `IP     <- CX`
-    * `AX     <- [DX]`
-    * `BX     <- [DX + 8]`
-    * `CX     <- [DX + 16]`
-    * `DX     <- [DX + 24]`
-    * `FREE DX`
-        * this does not call the interrupt, which is used to free allocated memory, but is compatible to the interrupt, which is used for allocating memory
+	* `ZW     <- X0A`
+	* `IP     <- [X0A]`
+	* `SP     <- [X0A + 8]`
+	* `STATUS <- [X0A + 16]`
+	* `INTCNT <- [X0A + 24]`
+	* `INTP   <- [X0A + 32]`
+	* `X00    <- [X0A + 40]`
+	* `X01    <- [X0A + 48]`
+	* `X02    <- [X0A + 56]`
+	* `X03    <- [X0A + 64]`
+	* `X04    <- [X0A + 72]`
+	* `X05    <- [X0A + 80]`
+	* `X06    <- [X0A + 88]`
+	* `X07    <- [X0A + 98]`
+	* `X08    <- [X0A + 104]`
+	* `X09    <- [X0A + 112]`
+	* `X0A    <- [X0A + 120]`
+	* `FREE ZW`
+		* this does not use the free interrupt, but works like the default free interrupt (without calling the interrupt (what would cause an infinite recursion)
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-    * `ZW <- MEM-ALLOC{size=32}`
-    * `[ZW + 24] <- DX`
-    * `DX <- ZW`
-    * `[DX + 16] <- CX`
-    * `[DX + 8]  <- BX`
-    * `[DX]      <- AX`
-    * `CX        <- IP + CMD_LEN`
-        * if the interrupt is automatically called:
-            * `CX` is set to the `IP` (`CX <- IP`)
-                * so the program does not think the operation succeeded
-                * (for example because of a division with zero or an illegal memory access)
-            * the registers are saved before the 'params' were set
-                * so after the `IRET` the program has its original state
-                * interrupts with more than one 'param' are not called automatically
-                    * error interrupts can be called automatically (from `0` to `3` (both inclusive))
-                    * the exit interrupt´can be called automatically (when an default error interrupt is called) (`4`)
-                        * if automatically called the return value 'param' is never `0`
-    * `IP <- [INTS + (PARAM * 8)]`
+    * `ZW <- MEM-ALLOC{size=128}`
+	* `[ZW]       <- IP`
+	* `[ZW + 8]   <- SP`
+	* `[ZW + 16]  <- STATUS`
+	* `[ZW + 24]  <- INTCNT`
+	* `[ZW + 32]  <- INTP`
+	* `[ZW + 40]  <- X00`
+	* `[ZW + 48]  <- X01`
+	* `[ZW + 56]  <- X02`
+	* `[ZW + 64]  <- X03`
+	* `[ZW + 72]  <- X04`
+	* `[ZW + 80]  <- X05`
+	* `[ZW + 88]  <- X06`
+	* `[ZW + 96]  <- X07`
+	* `[ZW + 104] <- X08`
+	* `[ZW + 112] <- X09`
+	* `[ZW + 120] <- X0A`
+	* `X0A        <- ZW`
+	* `IP         <- [INTP + (p1 * 8)]`
 * an interrupt can be overwritten:
-    * with `GET_INTS` the interrupt-table can be received
-    * to overwrite the interrupt `N`, write to `N * 8` the absolute position of address
+    * the interrupt-table is saved in the `INTP` register
+    * to overwrite the interrupt `N`, write to `(INTP + (N * 8))` the absolute position of the address
     * example:
-        * `PUSH AX` |> only needed when the value of `AX` should not be overwritten
-        * `PUSH BX` |> only needed when the value of `BX` should not be overwritten
-        * `GET_IP AX` |> this and the next command is not needed if the absolute position is already known
-        * `ADD AX, #RELATIVE-POS-FROM-GET-TO-INTERRUPT`
-        * `GET_INTS BX` |> unneeded if the interrupt table is already known
-        * `MOV [BX + #OVERWRITE-INT_NUM-MULTIPLIED-WITH_8], AX`
-        * `POP BX` |> only needed when the value of `BX` should not be overwritten
-        * `POP AX` |> only needed when the value of `AX` should not be overwritten
+        * `PUSH X00` |> only needed when the value of `X00` should not be overwritten
+        * `MOV X00, IP` |> this and the next command is not needed if the absolute position is already known
+        * `ADD/SUB X00, #RELATIVE-POS-FROM-GET-TO-INTERRUPT`
+        * `MOV [INTP + #OVERWRITE_INT_NUM_MULTIPLIED_WITH_8], X00`
+        * `POP X00` |> only needed when the value of `X00` should not be overwritten
 * default interrupts:
     * `0`: unknown command
-        * `AX` contains the illegal command
+        * `X00` contains the illegal command
         * calls the exit interrupt with `9`
     * `1`: illegal interrupt
-        * `AX` contains the number of the illegal interrupt
+        * `X00` contains the number of the illegal interrupt
         * calls the exit interrupt with `6`
         * if the forbidden interrupt is the exit input, the program exits with `7`
         * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `8`
@@ -474,120 +547,202 @@ this is the assembler-language for the Primitive-Virtual-Machine
     * `3`: arithmetic error
         * calls the exit interrupt with `4`
     * `4`: exit
-        * use `AX` to specify the exit number of the progress
+        * use `X00` to specify the exit number of the progress
     * `5`: allocate a memory-block
-        * `AX` saves the size of the block
-        * if the value of `AX` is `-1` after the call the memory-block could not be allocated
-        * if the value of `AX` is not `-1`, `AX` points to the first element of the allocated memory-block
+        * `X00` saves the size of the block
+        * if the value of `X00` is `-1` after the call the memory-block could not be allocated
+        * if the value of `X00` is not `-1`, `X00` points to the first element of the allocated memory-block
     * `6`: reallocate a memory-block
-        * `AX` points to the memory-block
-        * `BX` saves the new size of the memory-block
-        * if the value of `BX` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
-        * if the value of `BX` is not `-1`, `BX` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
+        * `X00` points to the memory-block
+        * `X01` saves the new size of the memory-block
+        * if the value of `X01` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed
+        * if the value of `X01` is not `-1`, `X01` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used
     * `7`: free a memory-block
-        * `AX` points to the old memory-block
+        * `X00` points to the old memory-block
         * after this the memory-block should not be used
     * `8`: open new in stream
-        * `AX` contains a pointer to the STRING, which refers to the file which should be read
+        * `X00` contains a pointer to the STRING, which refers to the file which should be read
         * opens a new in stream to the specified file
-        * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+        * is successfully the STREAM-ID will be saved in the `X00` register, if not `X00` will contain `-1`
         * output operations are not supported on the new stream
     * `9`: open new out stream
-        * `AX` contains a pointer to the STRING, which refers to the file which should be created
+        * `X00` contains a pointer to the STRING, which refers to the file which should be created
         * opens a new out stream to the specified file
         * if the file exist already it's contend will be overwritten
-        * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+        * is successfully the STREAM-ID will be saved in the `X00` register, if not `X00` will contain `-1`
         * input operations are not supported on the new stream
     * `10`: open new out, append stream
-        * `AX` contains a pointer to the STRING, which refers to the file which should be created
+        * `X00` contains a pointer to the STRING, which refers to the file which should be created
         * opens a new out stream to the specified file
         * if the file exist already it's contend will be overwritten
-        * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+        * is successfully the STREAM-ID will be saved in the `X00` register, if not `X00` will contain `-1`
     * `11`: open new in/out stream
-        * `AX` contains a pointer to the STRING, which refers to the file which should be created
+        * `X00` contains a pointer to the STRING, which refers to the file which should be created
         * opens a new out stream to the specified file
         * if the file exist already it's contend will be overwritten
-        * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+        * is successfully the STREAM-ID will be saved in the `X00` register, if not `X00` will contain `-1`
     * `12`: open new in/out, append stream
-        * `AX` contains a pointer to the STRING, which refers to the file which should be created
+        * `X00` contains a pointer to the STRING, which refers to the file which should be created
         * opens a new out stream to the specified file
         * if the file exist already it's contend will be overwritten
-        * is successfully the STREAM-ID will be saved in the `AX` register, if not `AX` will contain `-1`
+        * is successfully the STREAM-ID will be saved in the `X00` register, if not `X00` will contain `-1`
     * `13`: write
-        * `AX` contains the STREAM-ID
-        * `BX` contains the number of elements to write
-        * `CX` points to the elements to write
-        * after execution `BX` will contain the number of written elements or `-1` if an error occurred
+        * `X00` contains the STREAM-ID
+        * `X01` contains the number of elements to write
+        * `X02` points to the elements to write
+        * after execution `X01` will contain the number of written elements or `-1` if an error occurred
     * `14`: read
-        * `AX` contains the STREAM-ID
-        * `BX` contains the number of elements to read
-        * `CX` points to the elements to read
-        * after execution `BX` will contain the number of elements, which has been read or `-1` if an error occurred.
-		* if `BX` is `0` the end of the stream has reached
+        * `X00` contains the STREAM-ID
+        * `X01` contains the number of elements to read
+        * `X02` points to the elements to read
+        * after execution `X01` will contain the number of elements, which has been read or `-1` if an error occurred.
+		* if `X01` is `0` the end of the stream has reached
 		* reading less bytes than expected does not mead that the stream has reached it's end
     * `15`: close stream
-        * `AX` contains the STREAM-ID
-        * if the stream was closed successfully `AX` will contain `1`, if not `0`
+        * `X00` contains the STREAM-ID
+        * if the stream was closed successfully `X00` will contain `1`, if not `0`
     * `16`: get stream pos
-        * `AX` contains the STREAM-ID
-        * `BX` will contain the position of the stream or `-1` if something went wrong.
+        * `X00` contains the STREAM-ID
+        * `X01` will contain the position of the stream or `-1` if something went wrong.
     * `17`: set stream pos
-        * `AX` contains the STREAM-ID
-        * `BX` contains the position to be set.
+        * `X00` contains the STREAM-ID
+        * `X01` contains the position to be set.
         * if the stream-ID is the ID of a default stream the behavior is undefined.
-        * `BX` will contain the new stream position.
+        * `X01` will contain the new stream position.
     * `18`: set stream to end
-        * `AX` contains the STREAM-ID
+        * `X00` contains the STREAM-ID
         * this will set the stream position to the end
-        * `BX` will the new file pos or `-1` if something went wrong
+        * `X01` will the new file pos or `-1` if something went wrong
     * `19`: remove file
-        * `AX` contains a pointer of a STRING with the file
-        * if the file was successfully removed `AX` will contain `1`, if not `0`
+        * `X00` contains a pointer of a STRING with the file
+        * if the file was successfully removed `X00` will contain `1`, if not `0`
     * `20`: make dictionary
-        * `AX` contains a pointer of a STRING with the dictionary
-        * if the dictionary was successfully created `AX` will contain `1`, if not `0`
+        * `X00` contains a pointer of a STRING with the dictionary
+        * if the dictionary was successfully created `X00` will contain `1`, if not `0`
     * `21`: remove dictionary
-        * `AX` contains a pointer of a STRING with the dictionary
-        * if the dictionary was successfully removed `AX` will contain `1`, if not `0`
-        * if the dictionary is not empty this call will fail (and set `AX` to `0`)
+        * `X00` contains a pointer of a STRING with the dictionary
+        * if the dictionary was successfully removed `X00` will contain `1`, if not `0`
+        * if the dictionary is not empty this call will fail (and set `X00` to `0`)
     * `22`: to get the time in milliseconds
-        * `AX` will contain the time in milliseconds or `-1` if not available
+        * `X00` will contain the time in milliseconds or `-1` if not available
     * `23`: to wait the given time in nanoseconds
-        * `AX` contain the number of nanoseconds to wait (only values from `0` to `999999999` are allowed)
-        * `BX` contain the number of seconds to wait
-        * `AX` and `BX` will contain the remaining time (`0` if it finished waiting)
-        * `CX` will be `1` if the call was successfully and `0` if something went wrong
-			* if `CX` is `1` the remaining time will always be `0`
-			* if `CX` is `0` the remaining time will be greater `0`
-        * `AX` will not be negative if the progress waited too long
+        * `X00` contain the number of nanoseconds to wait (only values from `0` to `999999999` are allowed)
+        * `X01` contain the number of seconds to wait
+        * `X00` and `X01` will contain the remaining time (`0` if it finished waiting)
+        * `X02` will be `1` if the call was successfully and `0` if something went wrong
+			* if `X02` is `1` the remaining time will always be `0`
+			* if `X02` is `0` the remaining time will be greater `0`
+        * `X00` will not be negative if the progress waited too long
     * `24`: socket client create
         * makes a new client socket
-        * `AX` will be set to the SOCKET-ID or `-1` if the operation failed
+        * `X00` will be set to the SOCKET-ID or `-1` if the operation failed
     * `25`: socket client connect
-        * `AX` points to the SOCKET-ID
-        * `BX` points to a STRING, which names the host
-        * `CX` contains the port
+        * `X00` points to the SOCKET-ID
+        * `X01` points to a STRING, which names the host
+        * `X02` contains the port
 			* the port will be the normal number with the normal byte order
         * connects an client socket to the host on the port
-        * `BX` will be set to the `1` on success and `0` on a fail
+        * `X01` will be set to the `1` on success and `0` on a fail
         * on success, the SOCKET-ID, can be used as a STREAM-ID
     * `26`: socket server create
-        * `AX` contains the port
+        * `X00` contains the port
 			* the port will be the normal number with the normal byte order
         * makes a new server socket
-        * `AX` will be set to the SOCKET-ID or `-1` when the operation fails
+        * `X00` will be set to the SOCKET-ID or `-1` when the operation fails
     * `27`: socket server listens
-        * `AX` contains the SOCKET-ID
-        * `BX` contains the MAX_QUEUE length
+        * `X00` contains the SOCKET-ID
+        * `X01` contains the MAX_QUEUE length
         * let a server socket listen
-        * `BX` will be set to `1` or `0` when the operation fails
+        * `X01` will be set to `1` or `0` when the operation fails
     * `28`: socket server accept
-        * `AX` contains the SOCKET-ID
+        * `X00` contains the SOCKET-ID
         * let a server socket accept a client
         * this operation will block, until a client connects
-        * `BX` will be set a new SOCKET-ID, which can be used as STREAM-ID, or `-1`
+        * `X01` will be set a new SOCKET-ID, which can be used as STREAM-ID, or `-1`
     * `29`: random
-        * `AX` will be filled with random bits
+        * `X00` will be filled with random bits
+	* `30`: memory copy
+		* copies a block of memory
+		* this function has undefined behavior if the two blocks overlap
+		* `X00` points to the target memory block
+		* `X01` points to the source memory block
+		* `X02` has the length of bytes to bee copied
+	* `31`: memory move
+		* copies a block of memory
+		* this function makes sure, that the original values of the source block are copied to the target block (even if the two block overlap)
+		* `X00` points to the target memory block
+		* `X01` points to the source memory block
+		* `X02` has the length of bytes to bee copied
+	* `32`: memory byte set
+		* sets a memory block to the given byte-value
+		* `X00` points to the block
+		* `X01` the first byte contains the value to be written to each byte
+		* `X02` contains the length in bytes
+	* `33`: memory set
+		* sets a memory block to the given int64-value
+		* `X00` points to the block
+		* `X01` contains the value to be written to each element
+		* `X02` contains the count of elements to be set
+	* `34`: string length
+		* `X00` points to the STRING
+		* `X00` will be set to the length of the string/ the (byte-)offset of the `'\0'` character
+	* `35`: string to number
+		* `X00` points to the STRING
+		* `X01` points to the base of the number system
+			* (for example `10` for the decimal system or `2` for the binary system)
+		* `X00` will be set to the converted number
+		* `X01` will point to the end of the number-STRING
+			* this might be the `\0'` terminating character
+		* if the STRING contains illegal characters or the base is not valid, the behavior is undefined
+		* this function will ignore leading space characters
+	* `36`: string to floating point number
+		* `X00` points to the STRING
+		* `X00` will be set to the converted number
+		* `X01` will point to the end of the number-STRING
+			* this might be the `\0'` terminating character
+		* if the STRING contains illegal characters or the base is not valid, the behavior is undefined
+		* this function will ignore leading space characters
+	* `37`: number to string
+		* `X00` is set to the number to convert
+		* `X01` is points to the buffer to be filled with the number in a STRING format
+		* `X02` contains the base of the number system
+			* the minimum base is `2`
+			* the maximum base is `36`
+			* other values lead to undefined behavior
+	* `38`: floating point number to string
+		* `X00` is set to the number to convert
+		* `X02` contains the maximum amount of digits to be used to represent the floating point number
+		* `X01` is points to the buffer to be filled with the number in a STRING format
+	* `39`: format string
+		* `X00` is set to the STRING input
+		* `X01` contains the buffer for the STRING output
+			* if `X01` is set to `-1`, `X01` will be allocated to a memory block
+				* the allocated memory block will be exact large enough to contain the formatted STRING
+				* if there could not be allocated enough memory, `X01` will be set to `-1`
+		* the register `X02..XNN` are for the formatting parameters
+		* formatting:
+			* everything, which can not be formatted, will be delegated to the target buffer
+			* `%s`: the next argument points to a STRING, which should be inserted here
+			* `%c`: the next argument points to a character, which should be inserted here
+				* note that characters may contain more than one byte
+					* `BIN-0.......` -> one byte (equivalent to an ASCII character)
+					* `BIN-10......` -> invalid, treated as one byte
+					* `BIN-110.....` -> two bytes
+					* `BIN-1110....` -> three bytes
+					* `BIN-11110...` -> four bytes
+					* `BIN-111110..` -> invalid, treated as five byte
+					* `BIN-1111110.` -> invalid, treated as six byte
+					* `BIN-11111110` -> invalid, treated as seven byte
+					* `BIN-11111111` -> invalid, treated as eight byte
+			* `%B`: the next argument points to a byte, which should be inserted here (without being converted to a STRING)
+			* `%d`: the next argument contains a number, which should be converted to a STRING using the decimal number system and than be inserted here
+			* `%f`: the next argument contains a floating point number, which should be converted to a STRING and than be inserted here
+			* `%p`: the next argument contains a pointer, which should be converted to a STRING
+				* if the pointer is `-1` it will be converted to the STRING `"null"`
+				* if not the pointer will be converted by placing a `"p-"` and then the pointer-number converted to a STRING using the hexadecimal number system
+			* `%h`: the next argument contains a number, which should be converted to a STRING using the hexadecimal number system and than be inserted here
+			* `%b`: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here
+			* `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack
@@ -599,37 +754,6 @@ this is the assembler-language for the Primitive-Virtual-Machine
 * pops the highest value from the stack to the parameter
     * `p <- [SP]`
     * `SP <- SP - 1`
-    * `IP <- IP + CMD_LEN`
-
-`SET_INTS <PARAM>`
-* sets the interrupt pointer to the parameter
-    * `INTS <- p`
-
-`SET_IP <PARAM>`
-* sets the instruction pointer to the parameter
-    * `IP <- p`
-
-`SET_SP <PARAM>`
-* sets the stack pointer to the parameter
-    * `SP <- p`
-    * `IP <- IP + CMD_LEN`
-
-`GET_INTS <NO_CONST_PARAM>`
-* copies the interrupt pointer to the parameter
-    * `p <- INTS`
-    * `IP <- IP + CMD_LEN`
-
-`GET_IP <NO_CONST_PARAM>`
-* copies the instruction pointer to the parameter
-    * `p <- IP`
-    * `IP <- IP + CMD_LEN`
-* note, that the instruction pointer will modify as result of this command
-    * the written value will be the instruction pointer directly before this command
-    * so you can use `SET_IP` to land at this command (`GET_IP`)
-
-`GET_SP <NO_CONST_PARAM>`
-* copies the stack pointer to the parameter
-    * `p <- SP`
     * `IP <- IP + CMD_LEN`
 
 `INC <NO_CONST_PARAM>`

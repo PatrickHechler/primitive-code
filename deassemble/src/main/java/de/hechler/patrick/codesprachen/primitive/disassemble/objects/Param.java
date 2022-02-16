@@ -22,10 +22,13 @@ public class Param {
 	public static final int ART_ASR_BSR = PARAM_BASE | PARAM_A_SR | PARAM_B_SR;
 	
 	
-	public static final int SR_AX = 0x00;
-	public static final int SR_BX = 0x01;
-	public static final int SR_CX = 0x02;
-	public static final int SR_DX = 0x03;
+	public static final int SR_IP = 0;
+	public static final int SR_SP = 1;
+	public static final int SR_STATUS = 2;
+	public static final int SR_INTCNT = 3;
+	public static final int SR_INTP = 4;
+	public static final int SR_X_SUB = 5;
+	
 	
 	public final long num;
 	public final long off;
@@ -41,7 +44,6 @@ public class Param {
 	
 	/**
 	 * can Build all {@link Param}s.
-	 * 
 	 */
 	public static class ParamBuilder {
 		
@@ -129,7 +131,7 @@ public class Param {
 	}
 	
 	public static void checkSR(long num) throws NoCommandException {
-		if ( (num & 0xFFFFFFFFFFFFFFFCL) != 0) {
+		if ( (num & 0xFFFFFFFFFFFFFF00L) != 0) {
 			throw new NoCommandException("this num is no SR: num=" + num + " AX=0 BX=1 CX=2 DX=3");
 		}
 	}
@@ -172,7 +174,7 @@ public class Param {
 		case ART_ANUM_BREG:
 			return "[" + num + "]";
 		case ART_ANUM_BSR:
-			return "[" + num + " + " + getSR(off)+ "]";
+			return "[" + num + " + " + getSR(off) + "]";
 		case ART_ASR_BNUM:
 			return "[" + getSR(num) + " + " + off + "]";
 		case ART_ANUM_BNUM:
@@ -187,16 +189,22 @@ public class Param {
 			throw new InternalError("this is no register");
 		}
 		switch ((int) sr) {
-		case SR_AX:
-			return "AX";
-		case SR_BX:
-			return "BX";
-		case SR_CX:
-			return "CX";
-		case SR_DX:
-			return "DX";
+		case SR_IP:
+			return "IP";
+		case SR_SP:
+			return "SP";
+		case SR_STATUS:
+			return "STATUS";
+		case SR_INTCNT:
+			return "INTCNT";
+		case SR_INTP:
+			return "INTP";
 		default:
-			throw new InternalError("why am I here, I cauth all no regs some lines above");
+			String num = Integer.toHexString((int) sr - SR_X_SUB).toUpperCase();
+			if (num.length() == 0) {
+				return "X0" + num;
+			}
+			return "X" + num;
 		}
 	}
 	

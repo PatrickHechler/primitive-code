@@ -47,7 +47,8 @@ public class CommandChecker extends Checker {
 		assertEquals("CMP 0, [7 + 1]", cmd.toString());
 		pb = new ParamBuilder();
 		pb.art = Param.ART_ASR;
-		pb.v1 = Param.SR_DX;
+		pb.v1 = Param.SR_X_SUB + 3;
+//		pb.v1 = Param.SR_DX;//X03
 		;
 		p = pb.build();
 		pb.art = Param.ART_ANUM_BREG;
@@ -56,7 +57,8 @@ public class CommandChecker extends Checker {
 		assertEquals("ADD DX, [5]", cmd.toString());
 		pb = new ParamBuilder();
 		pb.art = Param.ART_ASR;
-		pb.v1 = Param.SR_DX;
+//		pb.v1 = Param.SR_DX;
+		pb.v1 = Param.SR_X_SUB + 3;//X03
 		;
 		p = pb.build();
 		pb.art = Param.ART_ANUM;

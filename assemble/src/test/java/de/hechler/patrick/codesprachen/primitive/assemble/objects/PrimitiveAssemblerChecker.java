@@ -97,18 +97,18 @@ public class PrimitiveAssemblerChecker extends Checker {
 			}).start();
 			
 			long[] commands = TestUtils.toLong(code);
-			long ax = 5L;
-			long bx = 30L;
-			PVMSnapshot pvmsn = new PVMSnapshot(0, 0, 0, 0, 0, 0, 0, 0, 0);
-			pvmsn.ax = ax;
-			pvmsn.bx = bx;
+			long x00 = 5L;
+			long x01 = 30L;
+			PVMSnapshot pvmsn = new PVMSnapshot(new long[256]);
+			pvmsn.x[0] = x00;
+			pvmsn.x[1] = x01;
 			pvm.setSnapshot(pvmsn);
 			System.out.println("execute");
 			pvm.executeUntilExit(commands, false);
 			pvmsn = pvm.getSnapshot();
-			long cx = pvmsn.cx;
-			assertEquals(ax + bx, cx);
-			System.out.println("CX=" + cx);
+			long x02 = pvmsn.x[2];
+			assertEquals(x00 + x01, x02);
+			System.out.println("X02=" + x02);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
@@ -130,14 +130,16 @@ public class PrimitiveAssemblerChecker extends Checker {
 			long[] commands = TestUtils.toLong(code);
 			long ax = 5L;
 			long bx = 30L;
-			
-			PVMSnapshot sn = new PVMSnapshot(ax, bx, 0L, 0L, 0L, 0L, 0L, 0L, 0L);
+			long[] ls = new long[256];
+			ls[0] = ax;
+			ls[1] = bx;
+			PVMSnapshot sn = new PVMSnapshot(ls);
 			pvm.setSnapshot(sn);
 			
 			System.out.println("execute");
 			pvm.executeUntilExit(commands, false);
 			sn = pvm.getSnapshot();
-			long cx = sn.cx;
+			long cx = sn.x[2];
 			assertEquals(ax + bx, cx);
 			System.out.println("CX=" + cx);
 		} catch (IOException e) {

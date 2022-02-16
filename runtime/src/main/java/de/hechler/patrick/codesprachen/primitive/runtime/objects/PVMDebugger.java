@@ -41,7 +41,7 @@ public class PVMDebugger implements Runnable {
 		} catch (IOException e) {
 			e.printStackTrace(out);
 		}
-		RETURN: while (pvm == null || pvm.isAlive()) {
+		RUN_END: while (pvm == null || pvm.isAlive()) {
 			try {
 				out.print("(pvmdb): ");
 				String str = in.next();
@@ -59,11 +59,11 @@ public class PVMDebugger implements Runnable {
 				case "detach":
 					comunicate.detach();
 					out.println("detached from the pvm");
-					break RETURN;
+					break RUN_END;
 				case "exit":
 					comunicate.exit();
 					out.println("pvm exited, will now end");
-					break RETURN;
+					break RUN_END;
 				case "exec-until":
 				case "exec_until":
 				case "execuntil":
@@ -204,31 +204,10 @@ public class PVMDebugger implements Runnable {
 				case "set":
 					str = in.next();
 					switch (str) {
-					case "ax": {
+					case "ip": {
 						long nval = in.nextLong(16);
 						PVMSnapshot sn = comunicate.getSnapshot();
-						sn.ax = nval;
-						comunicate.setSnapshot(sn);
-						break;
-					}
-					case "bx": {
-						long nval = in.nextLong(16);
-						PVMSnapshot sn = comunicate.getSnapshot();
-						sn.bx = nval;
-						comunicate.setSnapshot(sn);
-						break;
-					}
-					case "cx": {
-						long nval = in.nextLong(16);
-						PVMSnapshot sn = comunicate.getSnapshot();
-						sn.cx = nval;
-						comunicate.setSnapshot(sn);
-						break;
-					}
-					case "dx": {
-						long nval = in.nextLong(16);
-						PVMSnapshot sn = comunicate.getSnapshot();
-						sn.dx = nval;
+						sn.ip = nval;
 						comunicate.setSnapshot(sn);
 						break;
 					}
@@ -239,10 +218,10 @@ public class PVMDebugger implements Runnable {
 						comunicate.setSnapshot(sn);
 						break;
 					}
-					case "ip": {
+					case "status": {
 						long nval = in.nextLong(16);
 						PVMSnapshot sn = comunicate.getSnapshot();
-						sn.ip = nval;
+						sn.status = nval;
 						comunicate.setSnapshot(sn);
 						break;
 					}
@@ -260,13 +239,17 @@ public class PVMDebugger implements Runnable {
 						comunicate.setSnapshot(sn);
 						break;
 					}
-					case "status": {
-						long nval = in.nextLong(16);
-						PVMSnapshot sn = comunicate.getSnapshot();
-						sn.status = nval;
-						comunicate.setSnapshot(sn);
-						break;
-					}
+					default:
+						if (str.matches("X([0-9A-E][0-9A-F]|F[0-9A])")) {
+							long nval = in.nextLong(16);
+							int xnum = Integer.parseInt(str.substring(1), 16);
+							PVMSnapshot sn = comunicate.getSnapshot();
+							sn.x[xnum] = nval;
+							comunicate.setSnapshot(sn);
+							break;
+						} else {
+							throw new RuntimeException("unknown set: '" + str + "'");
+						}
 					case "memory": {
 						long addr = in.nextLong(16);
 						long nval = in.nextLong(16);
@@ -290,8 +273,6 @@ public class PVMDebugger implements Runnable {
 						comunicate.setMem(addr, bytes, 0, bytes.length);
 						break;
 					}
-					default:
-						throw new RuntimeException("unknown set: '" + str + "'");
 					}
 					break;
 				default:
