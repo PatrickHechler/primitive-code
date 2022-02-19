@@ -38,7 +38,7 @@ public class PVMDebugger implements Runnable {
 			byte[] bytes = new byte[24];
 			comunicate.getMem(sn.ip, bytes, 0, bytes.length);
 			disasm.deassemble(sn.ip, bytes);
-		} catch (IOException e) {
+		} catch (IOException | RuntimeException e) {
 			e.printStackTrace(out);
 		}
 		RUN_END: while (pvm == null || pvm.isAlive()) {

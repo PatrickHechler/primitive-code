@@ -30,7 +30,7 @@ public class PVMSnapshot {
 		this.intcnt = longs[3];
 		this.intp = longs[4];
 		this.x = new long[256 - 5];
-		System.arraycopy(this.x, 0, longs, 5, 256 - 5);
+		System.arraycopy(longs, 5, this.x, 0, 256 - 5);
 	}
 	
 	public static PVMSnapshot create(byte[] bytes) throws AssertionError {
@@ -38,7 +38,7 @@ public class PVMSnapshot {
 			throw new AssertionError();
 		}
 		long[] longs = new long[256];
-		for (int li = 0, bi = 0; li < longs.length; li ++, bi += 8 ) {
+		for (int li = 0, bi = 0; li < 256; li ++, bi += 8 ) {
 			longs[li] = convertByteArrToLong(bytes, bi);
 		}
 		return new PVMSnapshot(longs);
@@ -115,7 +115,7 @@ public class PVMSnapshot {
 			if (str.length() == 1) {
 				build.append('0');
 			}
-			build.append(str).append('=').append(convertLongToHexString(intp)).append('\n');
+			build.append(str).append('=').append(convertLongToHexString(x[i])).append('\n');
 		}
 		return build.toString();
 	}
