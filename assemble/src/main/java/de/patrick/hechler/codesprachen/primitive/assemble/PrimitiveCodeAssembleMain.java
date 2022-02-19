@@ -15,8 +15,7 @@ public class PrimitiveCodeAssembleMain {
 	private static PrimitiveAssembler asm;
 	private static Reader input;
 	
-	public static void main(String[] args) {
-		setup(args);
+	public static void main(String[] args) {		setup(args);
 		try {
 			asm.assemble(input);
 			System.out.println("assembled successful");

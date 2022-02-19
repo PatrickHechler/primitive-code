@@ -15,6 +15,7 @@ import java.util.Objects;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.InputMismatchException;
 import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.IntervalSet;
@@ -27,59 +28,62 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 
 public class PrimitiveAssembler {
 	
-	private static final Map<String, Long> START_CONSTANTS;
+	private static final Map <String, Long> START_CONSTANTS;
 	
 	static {
-		START_CONSTANTS = new LinkedHashMap<>();//faster iteration
-		START_CONSTANTS.put("INT-ERRORS-UNKNOWN_COMMAND", (Long) 0L);
-		START_CONSTANTS.put("INT-ERRORS-ILLEGAL_INTERRUPT", (Long) 1L);
-		START_CONSTANTS.put("INT-ERRORS-ILLEGAL_MEMORY", (Long) 2L);
-		START_CONSTANTS.put("INT-ERRORS-ARITHMETIC_ERROR", (Long) 3L);
-		START_CONSTANTS.put("INT-EXIT", (Long) 4L);
-		START_CONSTANTS.put("INT-MEMORY-ALLOC", (Long) 5L);
-		START_CONSTANTS.put("INT-MEMORY-REALLOC", (Long) 6L);
-		START_CONSTANTS.put("INT-MEMORY-FREE", (Long) 7L);
-		START_CONSTANTS.put("INT-STREAMS-NEW_IN", (Long) 8L);
-		START_CONSTANTS.put("INT-STREAMS-NEW_OUT", (Long) 9L);
-		START_CONSTANTS.put("INT-STREAMS-NEW_APPEND", (Long) 10L);
-		START_CONSTANTS.put("INT_STREAMS-NEW_IN_OUT", (Long) 11L);
-		START_CONSTANTS.put("INT-STREAMS-NEW_APPEND_IN_OUT", (Long) 12L);
-		START_CONSTANTS.put("INT-STREAMS-WRITE", (Long) 13L);
-		START_CONSTANTS.put("INT-STREAMS-READ", (Long) 14L);
-		START_CONSTANTS.put("INT-STREAMS-CLOSE_STREAM", (Long) 15L);
-		START_CONSTANTS.put("INT-STREAMS-GET_POS", (Long) 16L);
-		START_CONSTANTS.put("INT-STREAMS-SET_POS", (Long) 17L);
-		START_CONSTANTS.put("INT-STREAMS-SET_POS_TO_END", (Long) 18L);
-		START_CONSTANTS.put("INT-STREAMS-REM", (Long) 19L);
-		START_CONSTANTS.put("INT-STREAMS-MK_DIR", (Long) 20L);
-		START_CONSTANTS.put("INT-STREAMS-REM_DIR", (Long) 21L);
-		START_CONSTANTS.put("INT-TIME-GET", (Long) 22L);
-		START_CONSTANTS.put("INT-TIME-WAIT", (Long) 23L);
-		START_CONSTANTS.put("INT-SOCKET-CLIENT-CREATE", (Long) 24L);
-		START_CONSTANTS.put("INT-SOCKET-CLIENT-CONNECT", (Long) 25L);
-		START_CONSTANTS.put("INT-SOCKET-SERVER-CREATE", (Long) 26L);
-		START_CONSTANTS.put("INT-SOCKET-SERVER-LISTEN", (Long) 27L);
-		START_CONSTANTS.put("INT-SOCKET-SERVER-ACCEPT", (Long) 28L);
-		START_CONSTANTS.put("INT-RANDOM", (Long) 29L);
-		START_CONSTANTS.put("INTERRUPT_COUNT", (Long) 30L);
-		START_CONSTANTS.put("INT-FUNC-MEMORY_COPY", (Long) 30L);
-		START_CONSTANTS.put("INT-FUNC-MEMORY_MOVE", (Long) 31L);
-		START_CONSTANTS.put("INT-FUNC-MEMORY_SET", (Long) 32L);
-		START_CONSTANTS.put("INT-FUNC-MEMORY_BSET", (Long) 33L);
-		START_CONSTANTS.put("INT-FUNC-STRING_TO_NUMBER", (Long) 34L);
-		START_CONSTANTS.put("INT-FUNC-NUMBER_TO_STRING", (Long) 35L);
-		START_CONSTANTS.put("INT-FUNC-STRING_FORMAT", (Long) 36L);
-		START_CONSTANTS.put("COMPLETE_INTERRUPT_COUNT", (Long) 37L);
-		START_CONSTANTS.put("MAX-VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
-		START_CONSTANTS.put("MIN-VALUE", (Long) (-0x8000000000000000L));
-		START_CONSTANTS.put("STD-IN", (Long) 0L);
-		START_CONSTANTS.put("STD-OUT", (Long) 1L);
-		START_CONSTANTS.put("STD-LOG", (Long) 2L);
-		START_CONSTANTS.put("FP-NAN", (Long) 0x7FFE000000000000L);
-		START_CONSTANTS.put("FP-MAX-VALUE", (Long) 0x7FEFFFFFFFFFFFFFL);
-		START_CONSTANTS.put("FP-MIN-VALUE", (Long) 0x0000000000000001L);
-		START_CONSTANTS.put("FP-POS-INFINITY", (Long) 0x7FF0000000000000L);
-		START_CONSTANTS.put("FP-NEG-INFINITY", (Long) 0xFFF0000000000000L);
+		START_CONSTANTS = new LinkedHashMap <>();//linked for  faster iteration
+		START_CONSTANTS.put("INT_ERRORS_ILLEGAL_INTERRUPT", (Long) 0L);
+		START_CONSTANTS.put("INT_ERRORS_UNKNOWN_COMMAND", (Long) 1L);
+		START_CONSTANTS.put("INT_ERRORS_ILLEGAL_MEMORY", (Long) 2L);
+		START_CONSTANTS.put("INT_ERRORS_ARITHMETIC_ERROR", (Long) 3L);
+		START_CONSTANTS.put("INT_EXIT", (Long) 4L);
+		START_CONSTANTS.put("INT_MEMORY_ALLOC", (Long) 5L);
+		START_CONSTANTS.put("INT_MEMORY_REALLOC", (Long) 6L);
+		START_CONSTANTS.put("INT_MEMORY_FREE", (Long) 7L);
+		START_CONSTANTS.put("INT_STREAMS_NEW_IN", (Long) 8L);
+		START_CONSTANTS.put("INT_STREAMS_NEW_OUT", (Long) 9L);
+		START_CONSTANTS.put("INT_STREAMS_NEW_APPEND", (Long) 10L);
+		START_CONSTANTS.put("INT_STREAMS_NEW_IN_OUT", (Long) 11L);
+		START_CONSTANTS.put("INT_STREAMS_NEW_APPEND_IN_OUT", (Long) 12L);
+		START_CONSTANTS.put("INT_STREAMS_WRITE", (Long) 13L);
+		START_CONSTANTS.put("INT_STREAMS_READ", (Long) 14L);
+		START_CONSTANTS.put("INT_STREAMS_SYNC_STREAM", (Long) 15L);
+		START_CONSTANTS.put("INT_STREAMS_CLOSE_STREAM", (Long) 16L);
+		START_CONSTANTS.put("INT_STREAMS_GET_POS", (Long) 17L);
+		START_CONSTANTS.put("INT_STREAMS_SET_POS", (Long) 18L);
+		START_CONSTANTS.put("INT_STREAMS_SET_POS_TO_END", (Long) 19L);
+		START_CONSTANTS.put("INT_STREAMS_REM", (Long) 20L);
+		START_CONSTANTS.put("INT_STREAMS_MK_DIR", (Long) 21L);
+		START_CONSTANTS.put("INT_STREAMS_REM_DIR", (Long) 22L);
+		START_CONSTANTS.put("INT_TIME_GET", (Long) 23L);
+		START_CONSTANTS.put("INT_TIME_WAIT", (Long) 24L);
+		START_CONSTANTS.put("INT_SOCKET_CLIENT_CREATE", (Long) 25L);
+		START_CONSTANTS.put("INT_SOCKET_CLIENT_CONNECT", (Long) 26L);
+		START_CONSTANTS.put("INT_SOCKET_SERVER_CREATE", (Long) 27L);
+		START_CONSTANTS.put("INT_SOCKET_SERVER_LISTEN", (Long) 28L);
+		START_CONSTANTS.put("INT_SOCKET_SERVER_ACCEPT", (Long) 29L);
+		START_CONSTANTS.put("INT_RANDOM", (Long) 30L);
+		START_CONSTANTS.put("INT_FUNC_MEMORY_COPY", (Long) 31L);
+		START_CONSTANTS.put("INT_FUNC_MEMORY_MOVE", (Long) 32L);
+		START_CONSTANTS.put("INT_FUNC_MEMORY_BSET", (Long) 33L);
+		START_CONSTANTS.put("INT_FUNC_MEMORY_SET", (Long) 34L);
+		START_CONSTANTS.put("INT_FUNC_STRING_LENGTH", (Long) 35L);
+		START_CONSTANTS.put("INT_FUNC_NUMBER_TO_STRING", (Long) 36L);
+		START_CONSTANTS.put("INT_FUNC_FPNUMBER_TO_STRING", (Long) 37L);
+		START_CONSTANTS.put("INT_FUNC_STRING_TO_NUMBER", (Long) 38L);
+		START_CONSTANTS.put("INT_FUNC_STRING_TO_FPNUMBER", (Long) 39L);
+		START_CONSTANTS.put("INT_FUNC_STRING_FORMAT", (Long) 40L);
+		START_CONSTANTS.put("INTERRUPT_COUNT", (Long) 41L);
+		START_CONSTANTS.put("MAX_VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
+		START_CONSTANTS.put("MIN_VALUE", (Long) (-0x8000000000000000L));
+		START_CONSTANTS.put("STD_IN", (Long) 0L);
+		START_CONSTANTS.put("STD_OUT", (Long) 1L);
+		START_CONSTANTS.put("STD_LOG", (Long) 2L);
+		START_CONSTANTS.put("FP_NAN", (Long) 0x7FFE000000000000L);
+		START_CONSTANTS.put("FP_MAX_VALUE", (Long) 0x7FEFFFFFFFFFFFFFL);
+		START_CONSTANTS.put("FP_MIN_VALUE", (Long) 0x0000000000000001L);
+		START_CONSTANTS.put("FP_POS_INFINITY", (Long) 0x7FF0000000000000L);
+		START_CONSTANTS.put("FP_NEG_INFINITY", (Long) 0xFFF0000000000000L);
 	}
 	
 	private final OutputStream out;
@@ -118,8 +122,7 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(Reader in) throws IOException, AssembleError {
-		HashMap <String, Long> constants = new HashMap <>();
-		return preassemble(in, constants);
+		return preassemble(in, new HashMap <>(START_CONSTANTS));
 	}
 	
 	public ParseContext preassemble(InputStream in, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
@@ -156,11 +159,16 @@ public class PrimitiveAssembler {
 			} else if (cause instanceof NoViableAltException) {
 				NoViableAltException nvae = (NoViableAltException) cause;
 				handle(nvae);
+			} else if (cause instanceof InputMismatchException){
+				InputMismatchException ime = (InputMismatchException) cause;
+				handle(ime);
 			} else {
-				throw e;
+				handleUnknwon(e);
 			}
 		} catch (AssembleError ae) {
 			handle(ae);
+		} catch (Throwable t) {
+			handleUnknwon(t);
 		}
 		throw new InternalError("handle returned");
 	}
@@ -170,40 +178,82 @@ public class PrimitiveAssembler {
 	 * 
 	 * they either throw an error or call System.exit(1)
 	 */
-	private void handle(NoViableAltException nvae) {
-		Token ot = nvae.getOffendingToken();
-		IntervalSet ets = nvae.getExpectedTokens();
+	private void handleUnknwon(Throwable t) {
 		if (exitOnError) {
+			fullPrint(t, "", "  ");
+			System.exit(1);
+		} else {
+			throw new InternalError("unknwon error: " + t, t);
+		}
+	}
+	
+	private void fullPrint(Throwable t, String ident, String identAdd) {
+		String nextIdent = ident + identAdd;
+		System.err.println(t.getClass().getName());
+		System.err.println(ident + "message: " + t.getMessage());
+		if (t.getMessage() != t.getLocalizedMessage()) {
+			System.err.println(ident + "localized-message: " + t.getMessage());
+		}
+		System.err.println(ident + "stack-tract:");
+		for (StackTraceElement ste : t.getStackTrace()) {
+			System.err.println(nextIdent + ste);
+		}
+		for (Throwable s : t.getSuppressed()) {
+			System.err.print(ident + "suppressed: ");
+			fullPrint(s, nextIdent, identAdd);
+		}
+		Throwable cause = t.getCause();
+		if (cause != null) {
+			System.err.print(ident + "cause: ");
+			fullPrint(cause, nextIdent, identAdd);
+		}
+	}
+	
+	private void handle(InputMismatchException ime) {
+		IntervalSet ets = ime.getExpectedTokens();
+		Token ot = ime.getOffendingToken();
+		handleIllegalInput(ime, ot, ets);
+	}
+	
+	private void handle(NoViableAltException nvae) {
+		IntervalSet ets = nvae.getExpectedTokens();
+		Token ot = nvae.getOffendingToken();
+		handleIllegalInput(nvae, ot, ets);
+	}
+
+	private void handleIllegalInput(Throwable t, Token ot, IntervalSet ets) throws AssembleError {
+		if (exitOnError) {
+			System.err.println("error: " + t);
 			System.err.println("at line: " + ot.getLine() + ':' + ot.getCharPositionInLine());
 			System.err.println("illegal input: " + ot.getText());
-			System.err.println("  token: " + tokenToString(ot, PrimitiveFileGrammarLexer.ruleNames));
+			System.err.println("  token: " + tokenToString(ot.getType(), PrimitiveFileGrammarLexer.ruleNames));
 			System.err.println("expected: ");
 			for (int i = 0; i < ets.size(); i ++ ) {
-				System.err.println("  " + tokenToString(ot, PrimitiveFileGrammarLexer.ruleNames));
+				System.err.println("  " + tokenToString(ets.get(i), PrimitiveFileGrammarLexer.ruleNames));
 			}
 			System.err.flush();
 			System.exit(1);
 		} else {
-			StringBuilder build = new StringBuilder("at line ").append(ot.getLine()).append(':').append(ot.getCharPositionInLine()).append(" token.text='").append(ot.getText());
-			build.append("' token.id=").append(tokenToString(ot, PrimitiveFileGrammarLexer.ruleNames)).append('\n').append("expected: ");
+			StringBuilder build = new StringBuilder("error: ").append(t).append("at line ").append(ot.getLine()).append(':').append(ot.getCharPositionInLine()).append(" token.text='").append(ot.getText());
+			build.append("' token.id=").append(tokenToString(ot.getType(), PrimitiveFileGrammarLexer.ruleNames)).append('\n').append("expected: ");
 			for (int i = 0; i < ets.size(); i ++ ) {
 				if (i > 0) {
 					build.append(", ");
 				}
-				build.append(' ').append(tokenToString(ot, PrimitiveFileGrammarLexer.ruleNames));
+				build.append(' ').append(tokenToString(ets.get(i), PrimitiveFileGrammarLexer.ruleNames));
 			}
 			throw new AssembleError(ot.getLine(), ot.getCharPositionInLine(), build.toString());
 		}
 	}
 	
-	private String tokenToString(Token ot, String[] names) {
+	private String tokenToString(int tok, String[] names) {
 		String token;
-		if (ot.getType() > 0) {
-			token = "<" + names[ot.getType()] + '>';
-		} else if (ot.getType() == PrimitiveFileGrammarLexer.EOF) {
+		if (tok > 0) {
+			token = "<" + names[tok] + '>';
+		} else if (tok == PrimitiveFileGrammarLexer.EOF) {
 			token = "<EOF>";
 		} else {
-			token = "<UNKNOWN=" + ot.getType() + ">";
+			token = "<UNKNOWN=" + tok + ">";
 		}
 		return token;
 	}
@@ -253,9 +303,9 @@ public class PrimitiveAssembler {
 	//
 	private void handle(AssembleError ae) {
 		if (exitOnError) {
-			System.out.println("an error occured at line: " + ae.line + ':' + ae.posInLine);
-			System.out.println(ae.getMessage());
-			System.out.flush();
+			System.err.println("an error occured at line: " + ae.line + ':' + ae.posInLine);
+			System.err.println(ae.getMessage());
+			System.err.flush();
 			System.exit(1);
 		} else {
 			throw new AssembleError(ae.line, ae.posInLine, "at line: " + ae.line + ":" + ae.posInLine + " occured an error: " + ae.getMessage());
@@ -315,10 +365,6 @@ public class PrimitiveAssembler {
 				case CMD_NEG:
 				case CMD_NOT:
 				case CMD_PUSH:
-				case CMD_GET_SP:
-				case CMD_GET_IP:
-				case CMD_GET_INTS:
-				case CMD_GET_INTCNT:
 				case CMD_DEC:
 				case CMD_INC:
 				case CMD_FPTN:
@@ -326,10 +372,6 @@ public class PrimitiveAssembler {
 					if (cmd.p1.art == Param.ART_ANUM) {
 						throw new IllegalStateException("no constants allowed!");
 					}
-				case CMD_SET_SP:
-				case CMD_SET_IP:
-				case CMD_SET_INTS:
-				case CMD_SET_INTCNT:
 				case CMD_INT:
 				case CMD_POP:
 					writeOneParam(cmd, bytes);

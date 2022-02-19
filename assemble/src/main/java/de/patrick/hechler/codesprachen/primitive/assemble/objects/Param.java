@@ -22,11 +22,6 @@ public class Param {
 	public static final int ART_ASR_BSR = BASE | A_SR | B_SR;
 	
 	
-	public static final long SR_AX = 0x00L;
-	public static final long SR_BX = 0x01L;
-	public static final long SR_CX = 0x02L;
-	public static final long SR_DX = 0x03L;
-	
 	public final String label;
 	public final long num;
 	public final long off;
@@ -100,7 +95,7 @@ public class Param {
 				return new Param(null, v1, 0, Param.ART_ASR);
 			case BUILD_ASR_BREG:
 				Param.checkSR(v1);
-				return new Param(null, Param.SR_AX, 0, Param.ART_ASR_BREG);
+				return new Param(null, v1, 0, Param.ART_ASR_BREG);
 			case BUILD_ANUM_BNUM:
 				return new Param(null, v1, v2, Param.ART_ANUM_BNUM);
 			case BUILD_ASR_BNUM:
@@ -192,7 +187,7 @@ public class Param {
 		case ParamBuilder.SR_INTP:
 			return "INTP";
 		default:
-			return "X" + ( (sr < 0x10) ? ("0" + Integer.toHexString(reg)) : Integer.toHexString(reg));
+			return "X" + ( (sr < 0x10) ? ("0" + Integer.toHexString(reg - ParamBuilder.SR_X_ADD)) : Integer.toHexString(reg - ParamBuilder.SR_X_ADD));
 		}
 	}
 	

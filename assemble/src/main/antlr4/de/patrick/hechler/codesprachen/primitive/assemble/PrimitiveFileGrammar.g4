@@ -4,9 +4,9 @@
  * '\s*\[([^\[\]"]|("([^"\r\n]|\\")*"))*\]' -> '' 
  * '\s*{[^({}]|("([^"\r\n]|\\")*")|({[^({}]|("([^"\r\n]|\\")*")|({[^({}]|("([^"\r\n]|\\")*"))*}))*}))*}' -> '' 
  */
-grammar PrimitiveFileGrammar;
+ grammar PrimitiveFileGrammar;
 
-@parser::header {
+ @parser::header {
 import java.util.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.enums.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
@@ -15,7 +15,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
 }
 
-@parser::members {
+ @parser::members {
 	private int getAlign(boolean align, long pos) {
 		if (align) {
 			int mod = (int) (pos % 8);
@@ -27,8 +27,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 	}
  }
 
-parse [long startpos, boolean align, Map<String,Long> constants] returns
-[List<Command> commands, Map<String,Long> labels, long pos] @init {
+ parse [long startpos, boolean align, Map<String,Long> constants] returns
+ [List<Command> commands, Map<String,Long> labels, long pos] @init {
  	$pos = startpos;
  	$labels = new HashMap<>();
  	$commands = new ArrayList<>();
@@ -52,13 +52,13 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
  	 */
  	List<Boolean> stack = new ArrayList();
  }
-:
-	(
-		(
-			{$pos += getAlign(align, $pos);}
+ :
+ 	(
+ 		(
+ 			{$pos += getAlign(align, $pos);}
 
-			CONSTANT_POOL
-			{
+ 			CONSTANT_POOL
+ 			{
  				if (enabled) {
 					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), constants, $labels, $pos, align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine());
 					align = cc.align;
@@ -67,74 +67,74 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
  				}
 			}
 
-		)
-		|
-		(
-			{$pos += getAlign(align, $pos);}
+ 		)
+ 		|
+ 		(
+ 			{$pos += getAlign(align, $pos);}
 
-			command [$pos, constants, $labels, align]
-			{
+ 			command [$pos, constants, $labels, align]
+ 			{
  				if (enabled && $command.c != null) {
  					$commands.add($command.c);
 	 				$pos += $command.c.length();
  				}
  			}
 
-		)
-		|
-		(
-			CONSTANT
-			(
-				(
-					constBerechnungDirekt [$pos, constants]
-					{
+ 		)
+ 		|
+ 		(
+ 			CONSTANT
+ 			(
+ 				(
+ 					constBerechnungDirekt [$pos, constants]
+ 					{
  						if (enabled) {
 	 						constants.put($CONSTANT.getText().substring(1), $constBerechnungDirekt.num);
  						}
  					}
 
-				)
-				|
-				(
-					DEL
-					{
+ 				)
+ 				|
+ 				(
+ 					DEL
+ 					{
  						if (enabled) {
 	 						constants.remove($CONSTANT.getText().substring(1));
  						}
  					}
 
-				)
-			)
-		)
-		|
-		(
-			(
-				CD_ALIGN
-				{
+ 				)
+ 			)
+ 		)
+ 		|
+ 		(
+ 			(
+ 				CD_ALIGN
+ 				{
  					if (enabled) {
 						$commands.add(new CompilerCommandCommand(CompilerCommand.align));
 						align = true;
  					}
 				}
 
-			)
-			|
-			(
-				CD_NOT_ALIGN
-				{
+ 			)
+ 			|
+ 			(
+ 				CD_NOT_ALIGN
+ 				{
  					if (enabled) {
 						$commands.add(new CompilerCommandCommand(CompilerCommand.notAlign));
 						align = false;
  					}
 				}
 
-			)
-		)
-		|
-		(
-			(
-				IF constBerechnungDirekt [$pos, constants]
-				{
+ 			)
+ 		)
+ 		|
+ 		(
+ 			(
+ 				IF constBerechnungDirekt [$pos, constants]
+ 				{
 					{
 		 				boolean top = $constBerechnungDirekt.num != 0;
 		 				stack.add(top);
@@ -145,11 +145,11 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 	 				}
 	 			}
 
-			)
-			|
-			(
-				ELSE_IF constBerechnungDirekt [$pos, constants]
-				{
+ 			)
+ 			|
+ 			(
+ 				ELSE_IF constBerechnungDirekt [$pos, constants]
+ 				{
 	 				if (enabled) {
 	 					disabledSince = stack.size();
 	 					enabled = false;
@@ -163,11 +163,11 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 	 				}
 	 			}
 
-			)
-			|
-			(
-				ELSE
-				{
+ 			)
+ 			|
+ 			(
+ 				ELSE
+ 				{
 	 				if (enabled) {
 	 					disabledSince = stack.size();
 	 					enabled = false;
@@ -180,11 +180,11 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 	 				}
  	 			}
 
-			)
-			|
-			(
-				ENDIF
-				{
+ 			)
+ 			|
+ 			(
+ 				ENDIF
+ 				{
 					if (disabledSince == stack.size()) {
 						enabled = true;
 						disabledSince = -1;
@@ -192,37 +192,37 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 					stack.remove(stack.size()-1);
 	 			}
 
-			)
-			|
-			(
-				ERROR
-				{
+ 			)
+ 			|
+ 			(
+ 				ERROR
+ 				{
 					StringBuilder msg = null;
 					if (enabled) {
 						msg = new StringBuilder("error at line: ").append($ERROR.getLine());
 					}
 				}
 
-				(
-					(
-						(
-							constBerechnungDirekt [$pos, constants]
-							{msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($constBerechnungDirekt.num);}
+ 				(
+ 					(
+ 						(
+ 							constBerechnungDirekt [$pos, constants]
+ 							{msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($constBerechnungDirekt.num);}
 
-						)
-						|
-						(
-							ERROR_MESSAGE_START
-							{
+ 						)
+ 						|
+ 						(
+ 							ERROR_MESSAGE_START
+ 							{
 								if (enabled) {
 									msg.append('\n');
 								}
 							}
 
-							(
-								(
-									STR_STR
-									{
+ 							(
+ 								(
+ 									STR_STR
+ 									{
 										if (enabled) {
 											String str = $STR_STR.getText();
 											str = str.substring(1, str.length() - 1);
@@ -259,258 +259,267 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 										}
 									}
 
-								)
-								|
-								(
-									constBerechnungDirekt [$pos, constants]
-									{
+ 								)
+ 								|
+ 								(
+ 									constBerechnungDirekt [$pos, constants]
+ 									{
 										if (enabled) {
 											msg.append($constBerechnungDirekt.num);
 										}
 									}
 
-								)
-								|
-								(
-									ERROR_HEX constBerechnungDirekt [$pos, constants]
-									{
+ 								)
+ 								|
+ 								(
+ 									ERROR_HEX constBerechnungDirekt [$pos, constants]
+ 									{
 										if (enabled) {
 											msg.append(Long.toHexString($constBerechnungDirekt.num));
 										}
 									}
 
-								)
-							)* ERROR_MESSAGE_END
-						)
-					)?
-				)
-				{
+ 								)
+ 							)* ERROR_MESSAGE_END
+ 						)
+ 					)?
+ 				)
+ 				{
 					if (enabled) {
 						throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), msg.toString());
 					}
 				}
 
-			)
-		)
-		|
-		(
-			ANY
-			{
+ 			)
+ 		)
+ 		|
+ 		(
+ 			ANY
+ 			{
 				if (enabled) {
 					throw new AssembleError($ANY.getLine(), $ANY.getCharPositionInLine(),"illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
 				}
 			}
 
-		)
-	)* EOF
-;
+ 		)
+ 	)* EOF
+ ;
 
-sr returns [int srnum]
-:
-	(
-		IP
-		{$srnum = ParamBuilder.SR_IP;}
+ sr returns [int srnum]
+ :
+ 	(
+ 		IP
+ 		{$srnum = ParamBuilder.SR_IP;}
 
-	)
-	|
-	(
-		SP
-		{$srnum = ParamBuilder.SR_SP;}
+ 	)
+ 	|
+ 	(
+ 		SP
+ 		{$srnum = ParamBuilder.SR_SP;}
 
-	)
-	|
-	(
-		STATUS
-		{$srnum = ParamBuilder.SR_STATUS;}
+ 	)
+ 	|
+ 	(
+ 		STATUS
+ 		{$srnum = ParamBuilder.SR_STATUS;}
 
-	)
-	|
-	(
-		INTCNT
-		{$srnum = ParamBuilder.SR_INTCNT;}
+ 	)
+ 	|
+ 	(
+ 		INTCNT
+ 		{$srnum = ParamBuilder.SR_INTCNT;}
 
-	)
-	|
-	(
-		INTP
-		{$srnum = ParamBuilder.SR_INTP;}
+ 	)
+ 	|
+ 	(
+ 		INTP
+ 		{$srnum = ParamBuilder.SR_INTP;}
 
-	)
-	|
-	(
-		XNN
-		{$srnum= ParamBuilder.SR_X_ADD + Integer.parseInt($XNN.getText().substring(1), 16);}
+ 	)
+ 	|
+ 	(
+ 		XNN
+ 		{$srnum= ParamBuilder.SR_X_ADD + Integer.parseInt($XNN.getText().substring(1), 16);}
 
-	)
-;
+ 	)
+ ;
 
-param [long pos, Map<String,Long> constants] returns [Param p]
-:
-	(
-		{ParamBuilder builder = new ParamBuilder();}
+ param [long pos, Map<String,Long> constants] returns [Param p]
+ :
+ 	(
+ 		NAME
+ 		{
+			if (constants.containsKey($NAME.getText())) {
+				ParamBuilder builder = new ParamBuilder();
+ 				builder.art = ParamBuilder.A_NUM;
+ 				builder.v1 = constants.get($NAME.getText());
+ 				$p = builder.build();
+			} else {
+				$p = Param.createLabel($NAME.getText());
+			}
+		}
 
-		(
-			(
-				sr
-				{
-	 				builder.art = ParamBuilder.A_NUM;
+ 	)
+ 	|
+ 	(
+ 		{ParamBuilder builder = new ParamBuilder();}
+
+ 		(
+ 			(
+ 				sr
+ 				{
+	 				builder.art = ParamBuilder.A_SR;
 	 				builder.v1 = $sr.srnum;
 	 			}
 
-			)
-			|
-			(
-				nummer [pos, constants]
-				{
+ 			)
+ 			|
+ 			(
+ 				nummerNoConstant [pos]
+ 				{
 	 				builder.art = ParamBuilder.A_NUM;
-	 				builder.v1 = $nummer.num;
+	 				builder.v1 = $nummerNoConstant.num;
 	 			}
 
-			)
-		)
-		{$p = builder.build();}
+ 			)
+ 		)
+ 		{$p = builder.build();}
 
-	)
-	|
-	(
-		ECK_KL_AUF
-		{
+ 	)
+ 	|
+ 	(
+ 		ECK_KL_AUF
+ 		{
  			ParamBuilder build = new ParamBuilder();
  			build.art = ParamBuilder.B_REG;
  		}
 
-		(
-			(
-				(
-					(
-						sr
-						{
+ 		(
+ 			(
+ 				(
+ 					(
+ 						sr
+ 						{
 							build.art |= ParamBuilder.A_SR;
 							build.v1 = $sr.srnum;
 						}
 
-					)
-					|
-					(
-						nummer [pos,constants]
-						{
+ 					)
+ 					|
+ 					(
+ 						nummer [pos,constants]
+ 						{
 							build.art |= ParamBuilder.A_NUM;
 							build.v1 = $nummer.num;
 						}
 
-					)
-				)
-				(
-					PLUS
-					{build.art &= ~ParamBuilder.B_REG;}
+ 					)
+ 				)
+ 				(
+ 					PLUS
+ 					{build.art &= ~ParamBuilder.B_REG;}
 
-					(
-						(
-							sr
-							{
+ 					(
+ 						(
+ 							sr
+ 							{
 								build.art |= ParamBuilder.B_SR;
 								build.v2 = $sr.srnum;
 							}
 
-						)
-						|
-						(
-							nummer [pos,constants]
-							{
+ 						)
+ 						|
+ 						(
+ 							nummer [pos,constants]
+ 							{
 								build.art |= ParamBuilder.B_NUM;
 								build.v2 = $nummer.num;
 							}
 
-						)
-					)
-				)?
-			)
-		) ECK_KL_ZU
-		{$p = build.build();}
+ 						)
+ 					)
+ 				)?
+ 			)
+ 		) ECK_KL_ZU
+ 		{$p = build.build();}
 
-	)
-	|
-	(
-		NAME
-		{$p = Param.createLabel($NAME.getText());}
+ 	)
+ ;
 
-	)
-;
+ constBerechnung [long pos, Map<String, Long> constants] returns [long num]
+ :
+ 	c1 = constBerechnungInclusivoder [pos, constants]
+ 	{$num = $c1.num;}
 
-constBerechnung [long pos, Map<String, Long> constants] returns [long num]
-:
-	c1 = constBerechnungInclusivoder [pos, constants]
-	{$num = $c1.num;}
+ 	(
+ 		FRAGEZEICHEN c2 = constBerechnung [pos, constants] DOPPELPUNKT c3 =
+ 		constBerechnungInclusivoder [pos, constants]
+ 		{$num = ($num != 0L) ? $c2.num : $c3.num;}
 
-	(
-		FRAGEZEICHEN c2 = constBerechnung [pos, constants] DOPPELPUNKT c3 =
-		constBerechnungInclusivoder [pos, constants]
-		{$num = ($num != 0L) ? $c2.num : $c3.num;}
+ 	)?
+ ;
 
-	)?
-;
+ constBerechnungInclusivoder [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungExclusivoder [pos, constants]
+ 	{$num = $c1.num;}
 
-constBerechnungInclusivoder [long pos, Map<String, Long> constants] returns
-[long num]
-:
-	c1 = constBerechnungExclusivoder [pos, constants]
-	{$num = $c1.num;}
+ 	(
+ 		INCLUSIVODER c2 = constBerechnungExclusivoder [pos, constants]
+ 		{$num |= $c2.num;}
 
-	(
-		INCLUSIVODER c2 = constBerechnungExclusivoder [pos, constants]
-		{$num |= $c2.num;}
+ 	)*
+ ;
 
-	)*
-;
+ constBerechnungExclusivoder [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungUnd [pos, constants]
+ 	{$num = $c1.num;}
 
-constBerechnungExclusivoder [long pos, Map<String, Long> constants] returns
-[long num]
-:
-	c1 = constBerechnungUnd [pos, constants]
-	{$num = $c1.num;}
+ 	(
+ 		EXCLUSIVPDER c2 = constBerechnungUnd [pos, constants]
+ 		{$num ^= $c2.num;}
 
-	(
-		EXCLUSIVPDER c2 = constBerechnungUnd [pos, constants]
-		{$num ^= $c2.num;}
+ 	)*
+ ;
 
-	)*
-;
+ constBerechnungUnd [long pos, Map<String, Long> constants] returns [long num]
+ :
+ 	c1 = constBerechnungGleichheit [pos, constants]
+ 	{$num = $c1.num;}
 
-constBerechnungUnd [long pos, Map<String, Long> constants] returns [long num]
-:
-	c1 = constBerechnungGleichheit [pos, constants]
-	{$num = $c1.num;}
+ 	(
+ 		UND c2 = constBerechnungGleichheit [pos, constants]
+ 		{$num &= $c2.num;}
 
-	(
-		UND c2 = constBerechnungGleichheit [pos, constants]
-		{$num &= $c2.num;}
+ 	)*
+ ;
 
-	)*
-;
+ constBerechnungGleichheit [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungRelativeTests [pos, constants]
+ 	{$num = $c1.num;}
 
-constBerechnungGleichheit [long pos, Map<String, Long> constants] returns
-[long num]
-:
-	c1 = constBerechnungRelativeTests [pos, constants]
-	{$num = $c1.num;}
+ 	(
+ 		{boolean gleich = false;}
 
-	(
-		{boolean gleich = false;}
+ 		(
+ 			(
+ 				GLEICH_GLEICH
+ 				{gleich = true;}
 
-		(
-			(
-				GLEICH_GLEICH
-				{gleich = true;}
+ 			)
+ 			|
+ 			(
+ 				UNGLEICH
+ 				{gleich = false;}
 
-			)
-			|
-			(
-				UNGLEICH
-				{gleich = false;}
-
-			)
-		) c2 = constBerechnungRelativeTests [pos, constants]
-		{
+ 			)
+ 		) c2 = constBerechnungRelativeTests [pos, constants]
+ 		{
  			if (gleich) {
  				$num = ($num == $c1.num) ? 1L : 0L;
  			} else {
@@ -518,47 +527,47 @@ constBerechnungGleichheit [long pos, Map<String, Long> constants] returns
  			}
  		}
 
-	)*
-;
+ 	)*
+ ;
 
-constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
-[long num]
-:
-	c1 = constBerechnungSchub [pos, constants]
-	{$num = $c1.num;}
+ constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungSchub [pos, constants]
+ 	{$num = $c1.num;}
 
-	(
-	{
+ 	(
+ 	{
 		final int type_gr = 1, type_gr_gl = 2, type_kl_gl = 3, type_kl = 4;
 		int type = -1;
 	}
 
-		(
-			(
-				GROESSER
-				{type = type_gr;}
+ 		(
+ 			(
+ 				GROESSER
+ 				{type = type_gr;}
 
-			)
-			|
-			(
-				GROESSER_GLEICH
-				{type = type_gr_gl;}
+ 			)
+ 			|
+ 			(
+ 				GROESSER_GLEICH
+ 				{type = type_gr_gl;}
 
-			)
-			|
-			(
-				KLEINER_GLEICH
-				{type = type_kl_gl;}
+ 			)
+ 			|
+ 			(
+ 				KLEINER_GLEICH
+ 				{type = type_kl_gl;}
 
-			)
-			|
-			(
-				KLEINER
-				{type = type_kl;}
+ 			)
+ 			|
+ 			(
+ 				KLEINER
+ 				{type = type_kl;}
 
-			)
-		) c2 = constBerechnungSchub [pos, constants]
-		{
+ 			)
+ 		) c2 = constBerechnungSchub [pos, constants]
+ 		{
 			switch(type) {
 			case type_gr:
 				$num = ($num > $c1.num) ? 1L : 0L;
@@ -577,41 +586,41 @@ constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
 			}
 		}
 
-	)*
-;
+ 	)*
+ ;
 
-constBerechnungSchub [long pos, Map<String, Long> constants] returns
-[long num]
-:
-	c1 = constBerechnungStrich [pos, constants]
-	{$num = $c1.num;}
+ constBerechnungSchub [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungStrich [pos, constants]
+ 	{$num = $c1.num;}
 
-	(
-	{
+ 	(
+ 	{
 		final int type_ls = 1, type_lrs = 2, type_ars = 3;
 		int type = -1;
 	}
 
-		(
-			(
-				LINKS_SCHUB
-				{type = type_ls;}
+ 		(
+ 			(
+ 				LINKS_SCHUB
+ 				{type = type_ls;}
 
-			)
-			|
-			(
-				LOGISCHER_RECHTS_SCHUB
-				{type = type_lrs;}
+ 			)
+ 			|
+ 			(
+ 				LOGISCHER_RECHTS_SCHUB
+ 				{type = type_lrs;}
 
-			)
-			|
-			(
-				ARITMETISCHER_RECHTS_SCHUB
-				{type = type_ars;}
+ 			)
+ 			|
+ 			(
+ 				ARITMETISCHER_RECHTS_SCHUB
+ 				{type = type_ars;}
 
-			)
-		) c2 = constBerechnungStrich [pos, constants]
-		{
+ 			)
+ 		) c2 = constBerechnungStrich [pos, constants]
+ 		{
  			switch(type) {
 			case type_ls:
 				$num <<= $c2.num;
@@ -627,32 +636,32 @@ constBerechnungSchub [long pos, Map<String, Long> constants] returns
  			}
  		}
 
-	)*
-;
+ 	)*
+ ;
 
-constBerechnungStrich [long pos, Map<String, Long> constants] returns
-[long num]
-:
-	c1 = constBerechnungPunkt [pos, constants]
-	{$num = $c1.num;}
+ constBerechnungStrich [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungPunkt [pos, constants]
+ 	{$num = $c1.num;}
 
-	(
-		{boolean add = false;}
+ 	(
+ 		{boolean add = false;}
 
-		(
-			(
-				PLUS
-				{add = true;}
+ 		(
+ 			(
+ 				PLUS
+ 				{add = true;}
 
-			)
-			|
-			(
-				MINUS
-				{add = false;}
+ 			)
+ 			|
+ 			(
+ 				MINUS
+ 				{add = false;}
 
-			)
-		) c2 = constBerechnungPunkt [pos, constants]
-		{
+ 			)
+ 		) c2 = constBerechnungPunkt [pos, constants]
+ 		{
  			if (add) {
  				$num += $c2.num;
  			} else {
@@ -660,41 +669,41 @@ constBerechnungStrich [long pos, Map<String, Long> constants] returns
  			}
  		}
 
-	)*
-;
+ 	)*
+ ;
 
-constBerechnungPunkt [long pos, Map<String, Long> constants] returns
-[long num]
-:
-	c1 = constBerechnungDirekt [pos, constants]
-	{$num = $c1.num;}
+ constBerechnungPunkt [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	c1 = constBerechnungDirekt [pos, constants]
+ 	{$num = $c1.num;}
 
-	(
-	{
+ 	(
+ 	{
 		final int type_mal = 1, type_geteilt = 2, type_modulo = 3;
 		int type = -1;
 	}
 
-		(
-			(
-				MAL
-				{type = type_mal;}
+ 		(
+ 			(
+ 				MAL
+ 				{type = type_mal;}
 
-			)
-			|
-			(
-				GETEILT
-				{type = type_geteilt;}
+ 			)
+ 			|
+ 			(
+ 				GETEILT
+ 				{type = type_geteilt;}
 
-			)
-			|
-			(
-				MODULO
-				{type = type_modulo;}
+ 			)
+ 			|
+ 			(
+ 				MODULO
+ 				{type = type_modulo;}
 
-			)
-		) c2 = constBerechnungDirekt [pos, constants]
-		{
+ 			)
+ 		) c2 = constBerechnungDirekt [pos, constants]
+ 		{
  			switch(type) {
 			case type_mal:
 				$num *= $c2.num; 
@@ -710,114 +719,42 @@ constBerechnungPunkt [long pos, Map<String, Long> constants] returns
  			}
  		}
 
-	)*
-;
+ 	)*
+ ;
 
-constBerechnungDirekt [long pos, Map<String, Long> constants] returns
-[long num]
-:
-	(
-		nummer [pos, constants]
-		{$num = $nummer.num;}
+ constBerechnungDirekt [long pos, Map<String, Long> constants] returns
+ [long num]
+ :
+ 	(
+ 		nummer [pos, constants]
+ 		{$num = $nummer.num;}
 
-	)
-	|
-	(
-		EXIST_CONSTANT
-		{$num = constants.containsKey($EXIST_CONSTANT.getText().substring(2)) ? 1L : 0L;}
+ 	)
+ 	|
+ 	(
+ 		EXIST_CONSTANT
+ 		{$num = constants.containsKey($EXIST_CONSTANT.getText().substring(2)) ? 1L : 0L;}
 
-	)
-	|
-	(
-		RND_KL_AUF constBerechnung [pos, constants] RND_KL_ZU
-		{$num = $constBerechnung.num;}
+ 	)
+ 	|
+ 	(
+ 		RND_KL_AUF constBerechnung [pos, constants] RND_KL_ZU
+ 		{$num = $constBerechnung.num;}
 
-	)
-;
+ 	)
+ ;
 
-nummer [long pos, Map<String, Long> constants] returns [long num]
-:
-	(
-		DEC_FP_NUM
-		{$num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
+ nummer [long pos, Map<String, Long> constants] returns [long num]
+ :
+ 	(
+ 		nummerNoConstant [pos]
+ 		{$num = $nummerNoConstant.num;}
 
-	)
-	|
-	(
-		UNSIGNED_HEX_NUM
-		{$num = Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16);}
-
-	)
-	|
-	(
-		HEX_NUM
-		{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
-
-	)
-	|
-	(
-		DEC_NUM
-		{$num = Long.parseLong($DEC_NUM.getText(), 10);}
-
-	)
-	|
-	(
-		DEC_NUM0
-		{$num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
-
-	)
-	|
-	(
-		OCT_NUM
-		{$num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
-
-	)
-	|
-	(
-		BIN_NUM
-		{$num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
-
-	)
-	|
-	(
-		NEG_HEX_NUM
-		{$num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
-
-	)
-	|
-	(
-		NEG_DEC_NUM
-		{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
-
-	)
-	|
-	(
-		NEG_DEC_NUM0
-		{$num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
-
-	)
-	|
-	(
-		NEG_OCT_NUM
-		{$num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
-
-	)
-	|
-	(
-		NEG_BIN_NUM
-		{$num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
-
-	)
-	|
-	(
-		POS
-		{$num = pos;}
-
-	)
-	|
-	(
-		NAME
-		{
+ 	)
+ 	|
+ 	(
+ 		NAME
+ 		{
  			Long zw = constants.get($NAME.getText());
  			if (zw == null) {
  				throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
@@ -825,993 +762,986 @@ nummer [long pos, Map<String, Long> constants] returns [long num]
  			$num = (long) zw;
  		}
 
-	)
-;
+ 	)
+ ;
 
-command
-[long pos, Map<String,Long> constants, Map<String,Long> labels, boolean align]
-returns [Command c] @init {Commands cmd = null;}
-:
-	(
-		(
-			(
-				(
-					MOV
-					{cmd = Commands.CMD_MOV;}
+ nummerNoConstant [long pos] returns [long num]
+ :
+ 	(
+ 		DEC_FP_NUM
+ 		{$num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
 
-				)
-				|
-				(
-					SWAP
-					{cmd = Commands.CMD_SWAP;}
+ 	)
+ 	|
+ 	(
+ 		UNSIGNED_HEX_NUM
+ 		{$num = Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16);}
 
-				)
-				|
-				(
-					ADD
-					{cmd = Commands.CMD_ADD;}
+ 	)
+ 	|
+ 	(
+ 		HEX_NUM
+ 		{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
 
-				)
-				|
-				(
-					SUB
-					{cmd = Commands.CMD_SUB;}
+ 	)
+ 	|
+ 	(
+ 		DEC_NUM
+ 		{$num = Long.parseLong($DEC_NUM.getText(), 10);}
 
-				)
-				|
-				(
-					ADDC
-					{cmd = Commands.CMD_ADDC;}
+ 	)
+ 	|
+ 	(
+ 		DEC_NUM0
+ 		{$num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
 
-				)
-				|
-				(
-					SUBC
-					{cmd = Commands.CMD_SUBC;}
+ 	)
+ 	|
+ 	(
+ 		OCT_NUM
+ 		{$num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
 
-				)
-				|
-				(
-					ADDFP
-					{cmd = Commands.CMD_ADDFP;}
+ 	)
+ 	|
+ 	(
+ 		BIN_NUM
+ 		{$num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
 
-				)
-				|
-				(
-					SUBFP
-					{cmd = Commands.CMD_SUBFP;}
+ 	)
+ 	|
+ 	(
+ 		NEG_HEX_NUM
+ 		{$num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
 
-				)
-				|
-				(
-					MULFP
-					{cmd = Commands.CMD_MULFP;}
+ 	)
+ 	|
+ 	(
+ 		NEG_DEC_NUM
+ 		{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
 
-				)
-				|
-				(
-					DIVFP
-					{cmd = Commands.CMD_DIVFP;}
+ 	)
+ 	|
+ 	(
+ 		NEG_DEC_NUM0
+ 		{$num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
 
-				)
-				|
-				(
-					MUL
-					{cmd = Commands.CMD_MUL;}
+ 	)
+ 	|
+ 	(
+ 		NEG_OCT_NUM
+ 		{$num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
 
-				)
-				|
-				(
-					DIV
-					{cmd = Commands.CMD_DIV;}
+ 	)
+ 	|
+ 	(
+ 		NEG_BIN_NUM
+ 		{$num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
 
-				)
-				|
-				(
-					AND
-					{cmd = Commands.CMD_AND;}
+ 	)
+ 	|
+ 	(
+ 		POS
+ 		{$num = pos;}
 
-				)
-				|
-				(
-					OR
-					{cmd = Commands.CMD_OR;}
+ 	)
+ ;
 
-				)
-				|
-				(
-					XOR
-					{cmd = Commands.CMD_XOR;}
+ command
+ [long pos, Map<String,Long> constants, Map<String,Long> labels, boolean align]
+ returns [Command c] @init {Commands cmd = null;}
+ :
+ 	(
+ 		(
+ 			(
+ 				(
+ 					MOV
+ 					{cmd = Commands.CMD_MOV;}
 
-				)
-				|
-				(
-					CMP
-					{cmd = Commands.CMD_CMP;}
+ 				)
+ 				|
+ 				(
+ 					SWAP
+ 					{cmd = Commands.CMD_SWAP;}
 
-				)
-			) p1 = param [pos, constants] COMMA p2 = param [pos, constants]
-			{$c = new Command(cmd, $p1.p, $p2.p);}
+ 				)
+ 				|
+ 				(
+ 					ADD
+ 					{cmd = Commands.CMD_ADD;}
 
-		)
-		|
-		(
-			(
-				(
-					RET
-					{cmd = Commands.CMD_RET;}
+ 				)
+ 				|
+ 				(
+ 					SUB
+ 					{cmd = Commands.CMD_SUB;}
 
-				)
-				|
-				(
-					IRET
-					{cmd = Commands.CMD_IRET;}
+ 				)
+ 				|
+ 				(
+ 					ADDC
+ 					{cmd = Commands.CMD_ADDC;}
 
-				)
-			)
-			{$c = new Command(cmd, null, null);}
+ 				)
+ 				|
+ 				(
+ 					SUBC
+ 					{cmd = Commands.CMD_SUBC;}
 
-		)
-		|
-		(
-			(
-				(
-					INC
-					{cmd = Commands.CMD_INC;}
+ 				)
+ 				|
+ 				(
+ 					ADDFP
+ 					{cmd = Commands.CMD_ADDFP;}
 
-				)
-				|
-				(
-					DEC
-					{cmd = Commands.CMD_DEC;}
+ 				)
+ 				|
+ 				(
+ 					SUBFP
+ 					{cmd = Commands.CMD_SUBFP;}
 
-				)
-				|
-				(
-					NTFP
-					{cmd = Commands.CMD_NTFP;}
+ 				)
+ 				|
+ 				(
+ 					MULFP
+ 					{cmd = Commands.CMD_MULFP;}
 
-				)
-				|
-				(
-					FPTN
-					{cmd = Commands.CMD_FPTN;}
+ 				)
+ 				|
+ 				(
+ 					DIVFP
+ 					{cmd = Commands.CMD_DIVFP;}
 
-				)
-				|
-				(
-					GET_INTCNT
-					{cmd = Commands.CMD_GET_INTCNT;}
+ 				)
+ 				|
+ 				(
+ 					MUL
+ 					{cmd = Commands.CMD_MUL;}
 
-				)
-				|
-				(
-					GET_INTS
-					{cmd = Commands.CMD_GET_INTS;}
+ 				)
+ 				|
+ 				(
+ 					DIV
+ 					{cmd = Commands.CMD_DIV;}
 
-				)
-				|
-				(
-					GET_IP
-					{cmd = Commands.CMD_GET_IP;}
+ 				)
+ 				|
+ 				(
+ 					AND
+ 					{cmd = Commands.CMD_AND;}
 
-				)
-				|
-				(
-					GET_SP
-					{cmd = Commands.CMD_GET_SP;}
+ 				)
+ 				|
+ 				(
+ 					OR
+ 					{cmd = Commands.CMD_OR;}
 
-				)
-				|
-				(
-					INT
-					{cmd = Commands.CMD_INT;}
+ 				)
+ 				|
+ 				(
+ 					XOR
+ 					{cmd = Commands.CMD_XOR;}
 
-				)
-				|
-				(
-					RASH
-					{cmd = Commands.CMD_RASH;}
+ 				)
+ 				|
+ 				(
+ 					CMP
+ 					{cmd = Commands.CMD_CMP;}
 
-				)
-				|
-				(
-					RLSH
-					{cmd = Commands.CMD_RLSH;}
+ 				)
+ 			) p1 = param [pos, constants] COMMA p2 = param [pos, constants]
+ 			{$c = new Command(cmd, $p1.p, $p2.p);}
 
-				)
-				|
-				(
-					LSH
-					{cmd = Commands.CMD_LSH;}
+ 		)
+ 		|
+ 		(
+ 			(
+ 				(
+ 					RET
+ 					{cmd = Commands.CMD_RET;}
 
-				)
-				|
-				(
-					NOT
-					{cmd = Commands.CMD_NOT;}
+ 				)
+ 				|
+ 				(
+ 					IRET
+ 					{cmd = Commands.CMD_IRET;}
 
-				)
-				|
-				(
-					NEG
-					{cmd = Commands.CMD_NEG;}
+ 				)
+ 			)
+ 			{$c = new Command(cmd, null, null);}
 
-				)
-				|
-				(
-					PUSH
-					{cmd = Commands.CMD_PUSH;}
+ 		)
+ 		|
+ 		(
+ 			(
+ 				(
+ 					INC
+ 					{cmd = Commands.CMD_INC;}
 
-				)
-				|
-				(
-					POP
-					{cmd = Commands.CMD_POP;}
+ 				)
+ 				|
+ 				(
+ 					DEC
+ 					{cmd = Commands.CMD_DEC;}
 
-				)
-				|
-				(
-					JMP
-					{cmd = Commands.CMD_JMP;}
+ 				)
+ 				|
+ 				(
+ 					NTFP
+ 					{cmd = Commands.CMD_NTFP;}
 
-				)
-				|
-				(
-					JMPEQ
-					{cmd = Commands.CMD_JMPEQ;}
+ 				)
+ 				|
+ 				(
+ 					FPTN
+ 					{cmd = Commands.CMD_FPTN;}
 
-				)
-				|
-				(
-					JMPNE
-					{cmd = Commands.CMD_JMPNE;}
+ 				)
+ 				|
+ 				(
+ 					INT
+ 					{cmd = Commands.CMD_INT;}
 
-				)
-				|
-				(
-					JMPGT
-					{cmd = Commands.CMD_JMPGT;}
+ 				)
+ 				|
+ 				(
+ 					RASH
+ 					{cmd = Commands.CMD_RASH;}
 
-				)
-				|
-				(
-					JMPGE
-					{cmd = Commands.CMD_JMPGE;}
+ 				)
+ 				|
+ 				(
+ 					RLSH
+ 					{cmd = Commands.CMD_RLSH;}
 
-				)
-				|
-				(
-					JMPLT
-					{cmd = Commands.CMD_JMPLT;}
+ 				)
+ 				|
+ 				(
+ 					LSH
+ 					{cmd = Commands.CMD_LSH;}
 
-				)
-				|
-				(
-					JMPLE
-					{cmd = Commands.CMD_JMPLE;}
+ 				)
+ 				|
+ 				(
+ 					NOT
+ 					{cmd = Commands.CMD_NOT;}
 
-				)
-				|
-				(
-					JMPCS
-					{cmd = Commands.CMD_JMPCS;}
+ 				)
+ 				|
+ 				(
+ 					NEG
+ 					{cmd = Commands.CMD_NEG;}
 
-				)
-				|
-				(
-					JMPCC
-					{cmd = Commands.CMD_JMPCC;}
+ 				)
+ 				|
+ 				(
+ 					PUSH
+ 					{cmd = Commands.CMD_PUSH;}
 
-				)
-				|
-				(
-					JMPZS
-					{cmd = Commands.CMD_JMPZS;}
+ 				)
+ 				|
+ 				(
+ 					POP
+ 					{cmd = Commands.CMD_POP;}
 
-				)
-				|
-				(
-					JMPZC
-					{cmd = Commands.CMD_JMPZC;}
+ 				)
+ 				|
+ 				(
+ 					JMP
+ 					{cmd = Commands.CMD_JMP;}
 
-				)
-				|
-				(
-					CALL
-					{cmd = Commands.CMD_CALL;}
+ 				)
+ 				|
+ 				(
+ 					JMPEQ
+ 					{cmd = Commands.CMD_JMPEQ;}
 
-				)
-				|
-				(
-					SET_INTCNT
-					{cmd = Commands.CMD_SET_INTCNT;}
+ 				)
+ 				|
+ 				(
+ 					JMPNE
+ 					{cmd = Commands.CMD_JMPNE;}
 
-				)
-				|
-				(
-					SET_INTS
-					{cmd = Commands.CMD_SET_INTS;}
+ 				)
+ 				|
+ 				(
+ 					JMPGT
+ 					{cmd = Commands.CMD_JMPGT;}
 
-				)
-				|
-				(
-					SET_SP
-					{cmd = Commands.CMD_SET_SP;}
+ 				)
+ 				|
+ 				(
+ 					JMPGE
+ 					{cmd = Commands.CMD_JMPGE;}
 
-				)
-				|
-				(
-					SET_IP
-					{cmd = Commands.CMD_SET_IP;}
+ 				)
+ 				|
+ 				(
+ 					JMPLT
+ 					{cmd = Commands.CMD_JMPLT;}
 
-				)
-			) p1 = param [pos,constants]
-			{$c = new Command(cmd, $p1.p, null);}
+ 				)
+ 				|
+ 				(
+ 					JMPLE
+ 					{cmd = Commands.CMD_JMPLE;}
 
-		)
-	)
-	|
-	(
-		LABEL_DECLARATION
-		{
+ 				)
+ 				|
+ 				(
+ 					JMPCS
+ 					{cmd = Commands.CMD_JMPCS;}
+
+ 				)
+ 				|
+ 				(
+ 					JMPCC
+ 					{cmd = Commands.CMD_JMPCC;}
+
+ 				)
+ 				|
+ 				(
+ 					JMPZS
+ 					{cmd = Commands.CMD_JMPZS;}
+
+ 				)
+ 				|
+ 				(
+ 					JMPZC
+ 					{cmd = Commands.CMD_JMPZC;}
+
+ 				)
+ 				|
+ 				(
+ 					CALL
+ 					{cmd = Commands.CMD_CALL;}
+
+ 				)
+ 			) p1 = param [pos,constants]
+ 			{$c = new Command(cmd, $p1.p, null);}
+
+ 		)
+ 	)
+ 	|
+ 	(
+ 		LABEL_DECLARATION
+ 		{
  			labels.put($LABEL_DECLARATION.getText().substring(1), (Long) pos);
 	 		$c = null;
 	 	}
 
-	)
-;
-
-SET_INTCNT
-:
-	'SET_INTCNT'
-;
-
-SET_INTS
-:
-	'SET_INTS'
-;
-
-SET_IP
-:
-	'SET_IP'
-;
-
-SET_SP
-:
-	'SET_SP'
-;
-
-CALL
-:
-	'CALL'
-;
-
-JMPZC
-:
-	'JMPZC'
-;
-
-JMPZS
-:
-	'JMPZS'
-;
-
-JMPCC
-:
-	'JMPCC'
-;
-
-JMPCS
-:
-	'JMPCS'
-;
-
-JMPLE
-:
-	'JMPLE'
-;
-
-JMPLT
-:
-	'JMPLT'
-;
-
-JMPGE
-:
-	'JMPGE'
-;
-
-JMPGT
-:
-	'JMPGT'
-;
-
-JMPNE
-:
-	'JMPNE'
-;
-
-JMPEQ
-:
-	'JMPEQ'
-;
-
-JMP
-:
-	'JMP'
-;
-
-POP
-:
-	'POP'
-;
-
-PUSH
-:
-	'PUSH'
-;
-
-NEG
-:
-	'NEG'
-;
-
-NOT
-:
-	'NOT'
-;
-
-LSH
-:
-	'LSH'
-;
-
-RLSH
-:
-	'RLSH'
-;
-
-RASH
-:
-	'RASH'
-;
-
-CMP
-:
-	'CMP'
-;
-
-XOR
-:
-	'XOR'
-;
-
-OR
-:
-	'OR'
-;
-
-AND
-:
-	'AND'
-;
-
-DIV
-:
-	'DIV'
-;
-
-MUL
-:
-	'MUL'
-;
-
-SUBC
-:
-	'SUBC'
-;
-
-ADDC
-:
-	'ADDC'
-;
-
-SUB
-:
-	'SUB'
-;
-
-ADD
-:
-	'ADD'
-;
-
-MOV
-:
-	'MOV'
-;
-
-SWAP
-:
-	'SWAP'
-;
-
-RET
-:
-	'RET'
-;
-
-IRET
-:
-	'IRET'
-;
-
-INT
-:
-	'INT'
-;
-
-GET_INTCNT
-:
-	'GET_INTCNT'
-;
-
-GET_INTS
-:
-	'GET_INTS'
-;
-
-GET_SP
-:
-	'GET_SP'
-;
-
-GET_IP
-:
-	'GET_IP'
-;
-
-DEC
-:
-	'DEC'
-;
-
-INC
-:
-	'INC'
-;
-
-ADDFP
-:
-	'ADDFP'
-;
-
-SUBFP
-:
-	'SUBFP'
-;
-
-MULFP
-:
-	'MULFP'
-;
-
-DIVFP
-:
-	'DIVFP'
-;
-
-NTFP
-:
-	'NTFP'
-;
-
-FPTN
-:
-	'FPTN'
-;
-
-IP
-:
-	'IP'
-;
-
-SP
-:
-	'SP'
-;
-
-STATUS
-:
-	'STATUS'
-;
-
-INTCNT
-:
-	'INTCNT'
-;
-
-INTP
-:
-	'INTP'
-;
-
-XNN
-:
-	'X'
-	(
-		(
-			[0-9A-E] [0-9A-F]
-		)
-		|
-		(
-			'F' [0-9A]
-		)
-	)
-;
-
-ECK_KL_AUF
-:
-	'['
-;
-
-ECK_KL_ZU
-:
-	']'
-;
-
-PLUS
-:
-	'+'
-;
-
-COMMA
-:
-	','
-;
-
-RND_KL_AUF
-:
-	'('
-;
-
-RND_KL_ZU
-:
-	')'
-;
-
-MINUS
-:
-	'-'
-;
-
-MAL
-:
-	'*'
-;
-
-GETEILT
-:
-	'/'
-;
-
-MODULO
-:
-	'%'
-;
-
-LINKS_SCHUB
-:
-	'<<'
-;
-
-LOGISCHER_RECHTS_SCHUB
-:
-	'>>'
-;
-
-ARITMETISCHER_RECHTS_SCHUB
-:
-	'>>>'
-;
-
-GROESSER
-:
-	'>'
-;
-
-GROESSER_GLEICH
-:
-	'>='
-;
-
-KLEINER_GLEICH
-:
-	'<='
-;
-
-KLEINER
-:
-	'<'
-;
-
-GLEICH_GLEICH
-:
-	'=='
-;
-
-UNGLEICH
-:
-	'!='
-;
-
-UND
-:
-	'&'
-;
-
-EXCLUSIVPDER
-:
-	'^'
-;
-
-INCLUSIVODER
-:
-	'|'
-;
-
-DOPPELPUNKT
-:
-	':'
-;
-
-FRAGEZEICHEN
-:
-	'?'
-;
-
-UNSIGNED_HEX_NUM
-:
-	'UHEX-' [0-9a-fA-F]+
-;
-
-NEG_HEX_NUM
-:
-	'NHEX-' [0-9a-fA-F]+
-;
-
-NEG_DEC_NUM
-:
-	'NDEC-' [0-9]+
-;
-
-NEG_DEC_NUM0
-:
-	'-' [0-9]+
-;
-
-NEG_OCT_NUM
-:
-	'NOCT-' [0-7]+
-;
-
-NEG_BIN_NUM
-:
-	'NBIN-' [01]+
-;
-
-HEX_NUM
-:
-	'HEX-' [0-9a-fA-F]+
-;
-
-DEC_NUM0
-:
-	'DEC-' [0-9]+
-;
-
-DEC_NUM
-:
-	[0-9]+
-;
-
-DEC_FP_NUM
-:
-	'-'? [0-9]* '.' [0-9]*
-;
-
-OCT_NUM
-:
-	'OCT-' [0-7]+
-;
-
-BIN_NUM
-:
-	'BIN-' [01]+
-;
-
-DEL
-:
-	'~DEL'
-;
-
-IF
-:
-	'~IF'
-;
-
-ELSE_IF
-:
-	'~ELSE-IF'
-;
-
-ELSE
-:
-	'~ELSE'
-;
-
-ENDIF
-:
-	'~ENDIF'
-;
-
-ERROR
-:
-	'~ERROR'
-;
-
-POS
-:
-	'--POS--'
-;
-
-EXIST_CONSTANT
-:
-	'#~' NAME
-;
-
-NAME
-:
-	[a-zA-Z_] [a-zA-Z_0-9]*
-;
-
-CONSTANT
-:
-	'#' NAME
-;
-
-LABEL_DECLARATION
-:
-	'@' NAME
-;
-
-CD_NOT_ALIGN
-:
-	'$NOT_ALIGN'
-	| '$NOT-ALIGN'
-	| '$not_align'
-	| '$not-align'
-;
-
-CD_ALIGN
-:
-	'$ALIGN'
-	| '$align'
-;
-
-CONSTANT_POOL
-:
-	':'
-	(
-		(
-			BLOCK_COMMENT
-		)
-		|
-		(
-			LINE_COMMENT
-		)
-		|
-		(
-			'\''
-			(
-				(
-					~[\r\n'\\]
-				)
-				|
-				(
-					'\\' .
-				)
-			)* '\''
-		)
-		|
-		(
-			'"'
-			(
-				(
-					~[\r\n"\\]
-				)
-				|
-				(
-					'\\' .
-				)
-			)* '"'
-		)
-		|
-		(
-			(
-				~( '>' )
-			)+
-		)
-	)* '>'
-;
-
-ERROR_HEX
-:
-	[hH] ':'
-;
-
-ERROR_MESSAGE_START
-:
-	'{'
-;
-
-ERROR_MESSAGE_END
-:
-	'}'
-;
-
-STR_STR
-:
-	'"'
-	(
-		(
-			~'"'
-		)
-		|
-		(
-			'\\' ~( '\r' | '\n' )
-		)
-	)* '"'
-;
-
-LINE_COMMENT
-:
-	(
-		'|>'
-		(
-			~( [\r\n] )
-		)*
-	) -> skip
-;
-
-BLOCK_COMMENT
-:
-	(
-		'|:'
-		(
-			(
-				(
-					~( ':' )
-				)
-				|
-				(
-					':'
-					(
-						~( '>' )
-					)
-				)
-			)*
-		) ':>'
-	) -> skip
-;
-
-WS
-:
-	[ \t\r\n]+ -> skip
-;
-
-ANY
-:
-	.
-;
+ 	)
+ ;
+
+ CALL
+ :
+ 	'CALL'
+ ;
+
+ JMPZC
+ :
+ 	'JMPZC'
+ ;
+
+ JMPZS
+ :
+ 	'JMPZS'
+ ;
+
+ JMPCC
+ :
+ 	'JMPCC'
+ ;
+
+ JMPCS
+ :
+ 	'JMPCS'
+ ;
+
+ JMPLE
+ :
+ 	'JMPLE'
+ ;
+
+ JMPLT
+ :
+ 	'JMPLT'
+ ;
+
+ JMPGE
+ :
+ 	'JMPGE'
+ ;
+
+ JMPGT
+ :
+ 	'JMPGT'
+ ;
+
+ JMPNE
+ :
+ 	'JMPNE'
+ ;
+
+ JMPEQ
+ :
+ 	'JMPEQ'
+ ;
+
+ JMP
+ :
+ 	'JMP'
+ ;
+
+ POP
+ :
+ 	'POP'
+ ;
+
+ PUSH
+ :
+ 	'PUSH'
+ ;
+
+ NEG
+ :
+ 	'NEG'
+ ;
+
+ NOT
+ :
+ 	'NOT'
+ ;
+
+ LSH
+ :
+ 	'LSH'
+ ;
+
+ RLSH
+ :
+ 	'RLSH'
+ ;
+
+ RASH
+ :
+ 	'RASH'
+ ;
+
+ CMP
+ :
+ 	'CMP'
+ ;
+
+ XOR
+ :
+ 	'XOR'
+ ;
+
+ OR
+ :
+ 	'OR'
+ ;
+
+ AND
+ :
+ 	'AND'
+ ;
+
+ DIV
+ :
+ 	'DIV'
+ ;
+
+ MUL
+ :
+ 	'MUL'
+ ;
+
+ SUBC
+ :
+ 	'SUBC'
+ ;
+
+ ADDC
+ :
+ 	'ADDC'
+ ;
+
+ SUB
+ :
+ 	'SUB'
+ ;
+
+ ADD
+ :
+ 	'ADD'
+ ;
+
+ MOV
+ :
+ 	'MOV'
+ ;
+
+ SWAP
+ :
+ 	'SWAP'
+ ;
+
+ RET
+ :
+ 	'RET'
+ ;
+
+ IRET
+ :
+ 	'IRET'
+ ;
+
+ INT
+ :
+ 	'INT'
+ ;
+
+ DEC
+ :
+ 	'DEC'
+ ;
+
+ INC
+ :
+ 	'INC'
+ ;
+
+ ADDFP
+ :
+ 	'ADDFP'
+ ;
+
+ SUBFP
+ :
+ 	'SUBFP'
+ ;
+
+ MULFP
+ :
+ 	'MULFP'
+ ;
+
+ DIVFP
+ :
+ 	'DIVFP'
+ ;
+
+ NTFP
+ :
+ 	'NTFP'
+ ;
+
+ FPTN
+ :
+ 	'FPTN'
+ ;
+
+ IP
+ :
+ 	'IP'
+ ;
+
+ SP
+ :
+ 	'SP'
+ ;
+
+ STATUS
+ :
+ 	'STATUS'
+ ;
+
+ INTCNT
+ :
+ 	'INTCNT'
+ ;
+
+ INTP
+ :
+ 	'INTP'
+ ;
+
+ XNN
+ :
+ 	'X'
+ 	(
+ 		(
+ 			[0-9A-E] [0-9A-F]
+ 		)
+ 		|
+ 		(
+ 			'F' [0-9A]
+ 		)
+ 	)
+ ;
+
+ ECK_KL_AUF
+ :
+ 	'['
+ ;
+
+ ECK_KL_ZU
+ :
+ 	']'
+ ;
+
+ PLUS
+ :
+ 	'+'
+ ;
+
+ COMMA
+ :
+ 	','
+ ;
+
+ RND_KL_AUF
+ :
+ 	'('
+ ;
+
+ RND_KL_ZU
+ :
+ 	')'
+ ;
+
+ MINUS
+ :
+ 	'-'
+ ;
+
+ MAL
+ :
+ 	'*'
+ ;
+
+ GETEILT
+ :
+ 	'/'
+ ;
+
+ MODULO
+ :
+ 	'%'
+ ;
+
+ LINKS_SCHUB
+ :
+ 	'<<'
+ ;
+
+ LOGISCHER_RECHTS_SCHUB
+ :
+ 	'>>'
+ ;
+
+ ARITMETISCHER_RECHTS_SCHUB
+ :
+ 	'>>>'
+ ;
+
+ GROESSER
+ :
+ 	'>'
+ ;
+
+ GROESSER_GLEICH
+ :
+ 	'>='
+ ;
+
+ KLEINER_GLEICH
+ :
+ 	'<='
+ ;
+
+ KLEINER
+ :
+ 	'<'
+ ;
+
+ GLEICH_GLEICH
+ :
+ 	'=='
+ ;
+
+ UNGLEICH
+ :
+ 	'!='
+ ;
+
+ UND
+ :
+ 	'&'
+ ;
+
+ EXCLUSIVPDER
+ :
+ 	'^'
+ ;
+
+ INCLUSIVODER
+ :
+ 	'|'
+ ;
+
+ DOPPELPUNKT
+ :
+ 	':'
+ ;
+
+ FRAGEZEICHEN
+ :
+ 	'?'
+ ;
+
+ UNSIGNED_HEX_NUM
+ :
+ 	'UHEX-' [0-9a-fA-F]+
+ ;
+
+ NEG_HEX_NUM
+ :
+ 	'NHEX-' [0-9a-fA-F]+
+ ;
+
+ NEG_DEC_NUM
+ :
+ 	'NDEC-' [0-9]+
+ ;
+
+ NEG_DEC_NUM0
+ :
+ 	'-' [0-9]+
+ ;
+
+ NEG_OCT_NUM
+ :
+ 	'NOCT-' [0-7]+
+ ;
+
+ NEG_BIN_NUM
+ :
+ 	'NBIN-' [01]+
+ ;
+
+ HEX_NUM
+ :
+ 	'HEX-' [0-9a-fA-F]+
+ ;
+
+ DEC_NUM0
+ :
+ 	'DEC-' [0-9]+
+ ;
+
+ DEC_NUM
+ :
+ 	[0-9]+
+ ;
+
+ DEC_FP_NUM
+ :
+ 	'-'? [0-9]* '.' [0-9]*
+ ;
+
+ OCT_NUM
+ :
+ 	'OCT-' [0-7]+
+ ;
+
+ BIN_NUM
+ :
+ 	'BIN-' [01]+
+ ;
+
+ DEL
+ :
+ 	'~DEL'
+ ;
+
+ IF
+ :
+ 	'~IF'
+ ;
+
+ ELSE_IF
+ :
+ 	'~ELSE-IF'
+ ;
+
+ ELSE
+ :
+ 	'~ELSE'
+ ;
+
+ ENDIF
+ :
+ 	'~ENDIF'
+ ;
+
+ ERROR
+ :
+ 	'~ERROR'
+ ;
+
+ POS
+ :
+ 	'--POS--'
+ ;
+
+ EXIST_CONSTANT
+ :
+ 	'#~' NAME
+ ;
+
+ NAME
+ :
+ 	[a-zA-Z_] [a-zA-Z_0-9]*
+ ;
+
+ CONSTANT
+ :
+ 	'#' NAME
+ ;
+
+ LABEL_DECLARATION
+ :
+ 	'@' NAME
+ ;
+
+ CD_NOT_ALIGN
+ :
+ 	'$NOT_ALIGN'
+ 	| '$NOT-ALIGN'
+ 	| '$not_align'
+ 	| '$not-align'
+ ;
+
+ CD_ALIGN
+ :
+ 	'$ALIGN'
+ 	| '$align'
+ ;
+
+ CONSTANT_POOL
+ :
+ 	':'
+ 	(
+ 		(
+ 			BLOCK_COMMENT
+ 		)
+ 		|
+ 		(
+ 			LINE_COMMENT
+ 		)
+ 		|
+ 		(
+ 			'\''
+ 			(
+ 				(
+ 					~[\r\n'\\]
+ 				)
+ 				|
+ 				(
+ 					'\\' .
+ 				)
+ 			)* '\''
+ 		)
+ 		|
+ 		(
+ 			'"'
+ 			(
+ 				(
+ 					~[\r\n"\\]
+ 				)
+ 				|
+ 				(
+ 					'\\' .
+ 				)
+ 			)* '"'
+ 		)
+ 		|
+ 		(
+ 			(
+ 				~( '>' )
+ 			)+
+ 		)
+ 	)* '>'
+ ;
+
+ ERROR_HEX
+ :
+ 	[hH] ':'
+ ;
+
+ ERROR_MESSAGE_START
+ :
+ 	'{'
+ ;
+
+ ERROR_MESSAGE_END
+ :
+ 	'}'
+ ;
+
+ STR_STR
+ :
+ 	'"'
+ 	(
+ 		(
+ 			~'"'
+ 		)
+ 		|
+ 		(
+ 			'\\' ~( '\r' | '\n' )
+ 		)
+ 	)* '"'
+ ;
+
+ LINE_COMMENT
+ :
+ 	(
+ 		'|>'
+ 		(
+ 			~( [\r\n] )
+ 		)*
+ 	) -> skip
+ ;
+
+ BLOCK_COMMENT
+ :
+ 	(
+ 		'|:'
+ 		(
+ 			(
+ 				(
+ 					~( ':' )
+ 				)
+ 				|
+ 				(
+ 					':'
+ 					(
+ 						~( '>' )
+ 					)
+ 				)
+ 			)*
+ 		) ':>'
+ 	) -> skip
+ ;
+
+ WS
+ :
+ 	[ \t\r\n]+ -> skip
+ ;
+
+ ANY
+ :
+ 	.
+ ;

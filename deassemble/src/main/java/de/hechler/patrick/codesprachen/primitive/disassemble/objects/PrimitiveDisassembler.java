@@ -27,7 +27,7 @@ public class PrimitiveDisassembler {
 	private final DisasmMode mode;
 	
 	public PrimitiveDisassembler(PrintStream out) {
-		this(DisasmMode.analysable, t -> convertLongToHexString("L-", t), out);
+		this(DisasmMode.analysable, t -> convertLongToHexString("L_", t), out);
 	}
 	
 	public PrimitiveDisassembler(LabelNameGenerator lng, PrintStream out) {
@@ -35,7 +35,7 @@ public class PrimitiveDisassembler {
 	}
 	
 	public PrimitiveDisassembler(DisasmMode mode, PrintStream out) {
-		this(mode, mode == DisasmMode.analysable ? t -> convertLongToHexString("L-", t) : LabelNameGenerator.SIMPLE_GEN, out);
+		this(mode, mode == DisasmMode.analysable ? t -> convertLongToHexString("L_", t) : LabelNameGenerator.SIMPLE_GEN, out);
 	}
 	
 	public PrimitiveDisassembler(DisasmMode mode, LabelNameGenerator lng, PrintStream out) {
@@ -75,7 +75,7 @@ public class PrimitiveDisassembler {
 			if (labels.contains((Long) pos)) {
 				switch (mode) {
 				case analysable:
-					out.print("@L-");
+					out.print("@L_");
 					break;
 				case executable:
 					out.println("@" + lng.generateName(pos));
@@ -105,7 +105,7 @@ public class PrimitiveDisassembler {
 					int off;
 					for (off = 0; off <= cp.length() - 8; off += 8) {
 						cp.get(bytes, 0, off, 8);
-						out.println(convertLongToHexString(prefix, pos, convertByteArrToHexString(" -> ", bytes, ": unknown")));
+						out.println(convertLongToHexString(prefix, pos, convertByteArrToHexString(" -> ", bytes, " = unknown")));
 						if (first) {
 							first = false;
 							prefix = "   ";
@@ -115,7 +115,7 @@ public class PrimitiveDisassembler {
 					if (off < cp.length()) {
 						int len = cp.length() - off;
 						int strlen = (len * 2) + 4;
-						out.println(convertLongToHexString(prefix, pos, convertByteArrToHexString(" -> ----------------".substring(0, strlen), bytes, 0, len, ": unknown")));
+						out.println(convertLongToHexString(prefix, pos, convertByteArrToHexString(" -> ----------------".substring(0, strlen), bytes, 0, len, " = unknown")));
 					}
 					break;
 				}
@@ -135,12 +135,12 @@ public class PrimitiveDisassembler {
 				bytes[0] = (byte) cmd.cmd.num;
 				switch (cmd.cmd.art) {
 				case label: {
-					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, ": ")) + cmd.toString(pos));
-					out.println(convertLongToHexString("   ", pos + 8, convertLongToHexString(" -> ", cmd.relativeLabel, " | [relative-label]")));
+					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = ")) + cmd.toString(pos));
+					out.println(convertLongToHexString("   ", pos + 8, convertLongToHexString(" -> ", cmd.relativeLabel, "   | [relative-label]")));
 					break;
 				}
 				case noParams: {
-					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, ": " + cmd.toString())));
+					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = " + cmd.toString())));
 					break;
 				}
 				case oneParamAllowConst:
@@ -153,14 +153,14 @@ public class PrimitiveDisassembler {
 					if ( (cmd.p1.art & Param.PARAM_B_SR) == Param.PARAM_B_SR) {
 						bytes[off -- ] = (byte) cmd.p1.off;
 					}
-					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, ": " + cmd.toString())));
+					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = " + cmd.toString())));
 					long ipos = pos + 8;
 					if ( (cmd.p1.art & Param.PARAM_A_SR) == 0) {
-						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, ": | [p-num]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p-num]")));
 						ipos += 8;
 					}
 					if ( (cmd.p1.art & Param.PARAM_B_SR) == Param.PARAM_B_NUM) {
-						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, ": | [p-offset]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p-offset]")));
 					}
 					break;
 				}
@@ -181,23 +181,23 @@ public class PrimitiveDisassembler {
 					if ( (cmd.p2.art & Param.PARAM_B_SR) == Param.PARAM_B_SR) {
 						bytes[off -- ] = (byte) cmd.p2.off;
 					}
-					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, ": " + cmd.toString())));
+					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = " + cmd.toString())));
 					long ipos = pos;
 					if ( (cmd.p1.art & Param.PARAM_A_SR) == 0) {
 						ipos += 8;
-						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, ": | [p1-num]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p1-num]")));
 					}
 					if ( (cmd.p1.art & Param.PARAM_B_SR) == Param.PARAM_B_NUM) {
 						ipos += 8;
-						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, ": | [p1-offset]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p1-offset]")));
 					}
 					if ( (cmd.p2.art & Param.PARAM_A_SR) == 0) {
 						ipos += 8;
-						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.num, ": | [p2-num]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.num, "   | [p2-num]")));
 					}
 					if ( (cmd.p2.art & Param.PARAM_B_SR) == Param.PARAM_B_NUM) {
 						ipos += 8;
-						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.off, ": | [p2-offset]")));
+						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.off, "   | [p2-offset]")));
 					}
 					break;
 				}

@@ -45,6 +45,8 @@ public class PrimitiveDisassemblerMain {
 				}
 				if (args[i].startsWith("0x")) {
 					pos = Long.parseUnsignedLong(args[i].substring(2), 16);
+				} else if (args[i].startsWith("HEX-")) {
+					pos = Long.parseUnsignedLong(args[i].substring(4), 16);
 				} else {
 					pos = Long.parseUnsignedLong(args[i]);
 				}

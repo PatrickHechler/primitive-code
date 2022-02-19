@@ -2,7 +2,9 @@ package de.hechler.patrick.codesprachen.primitive.disassemble.interfaces;
 
 public interface LabelNameGenerator {
 	
-	LabelNameGenerator SIMPLE_GEN = t -> ("L-" + Long.toHexString(t));
+	LabelNameGenerator SIMPLE_GEN = t -> ("L_" + Long.toHexString(t));
+	
+	String CHECK_REGEX = "[a-zA-Z0-9_]+";
 	
 	/**
 	 * the {@link LabelNameGenerator} generates the name for labels.<br>
@@ -25,26 +27,8 @@ public interface LabelNameGenerator {
 	 * @param check
 	 */
 	static void checkName(String check) {
-		if (check.length() < 1) {
-			throw new IllegalStateException("empty names are invalid and this name is empty!");
-		}
-		for (char c : check.toCharArray()) {
-			if (c >= 'A' && c <= 'Z') {
-				continue;
-			}
-			if (c >= 'a' && c <= 'z') {
-				continue;
-			}
-			if (c >= '0' && c <= '9') {
-				continue;
-			}
-			if (c == '-') {
-				continue;
-			}
-			if (c == '_') {
-				continue;
-			}
-			throw new IllegalStateException("this name contsins a invalid character: '" + c + "' fullName='" + check + "'");
+		if ( !check.matches(CHECK_REGEX)) {
+			throw new IllegalStateException("this name does not match to the ruleRegex: name='" + check + "' regex='" + CHECK_REGEX + "'");
 		}
 	}
 	

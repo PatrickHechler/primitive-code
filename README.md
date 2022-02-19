@@ -75,63 +75,61 @@ this is the assembler-language for the Primitive-Virtual-Machine
 ## CONSTANTS:
 
 * except for the `--POS--` constant all other constants can be overwritten and removed
-* to define constants write a '#' as prefix
-* the coder can define constants 
+* to define constants write a `'#'` as prefix
 * predefined constants:
-
-<pre><code>        --POS-- :                           the actual length of the binary code
-        #INT_ERRORS_UNKNOWN_COMMAND :       0
-        #INT_ERRORS_ILLEGAL_INTERRUPT :     1
-        #INT_ERRORS_ILLEGAL_MEMORY :        2
-        #INT_ERRORS_ARITHMETIC_ERROR :      3
-        #INT_EXIT :                         4
-        #INT_MEMORY_ALLOC :                 5
-        #INT_MEMORY_REALLOC :               6
-        #INT_MEMORY_FREE :                  7
-        #INT_STREAMS_NEW_IN :               8
-        #INT_STREAMS_NEW_OUT :              9
-        #INT_STREAMS_NEW_APPEND :           10
-        #INT_STREAMS_NEW_IN_OUT :           11
-        #INT_STREAMS_NEW_APPEND_IN_OUT :    12
-        #INT_STREAMS_WRITE :                13
-        #INT_STREAMS_READ :                 14
-        #INT_STREAMS_CLOSE_STREAM :         15
-        #INT_STREAMS_GET_POS :              16
-        #INT_STREAMS_SET_POS :              17
-        #INT_STREAMS_SET_POS_TO_END :       18
-        #INT_STREAMS_REM :                  19
-        #INT_STREAMS_MK_DIR :               20
-        #INT_STREAMS_REM_DIR :              21
-        #INT_TIME_GET :                     22
-        #INT_TIME_WAIT :                    23
-        #INT_RANDOM :                       24
-        #INT_SOCKET_CLIENT-CREATE :         25
-        #INT_SOCKET_CLIENT-CONNECT :        26
-        #INT_SOCKET_SERVER-CREATE :         27
-        #INT_SOCKET_SERVER-LISTEN :         28
-        #INT_SOCKET_SERVER-ACCEPT :         29
-        #INTERRUPT_COUNT :                  30
-        #INT_FUNC_MEMORY_COPY :             30
-        #INT_FUNC_MEMORY_MOVE :             31
-        #INT_FUNC_MEMORY_BSET :             32
-        #INT_FUNC_MEMORY_SET :              33
-        #INT_FUNC_STRING_LENGTH :           34
-        #INT_FUNC_STRING_TO_FPNUMBER :      35
-        #INT_FUNC_STRING_TO_NUMBER :        36
-        #INT_FUNC_NUMBER_TO_STRING :        37
-        #INT_FUNC_FPNUMBER_TO_STRING :      38
-        #INT_FUNC_STRING_FORMAT :           39
-        #INT_FUNC_END :                     40
-        #MAX_VALUE :                    HEX-7FFFFFFFFFFFFFFF
-        #MIN_VALUE :                   NHEX-8000000000000000
-        #STD_IN :                           0
-        #STD_OUT :                          1
-        #STD_LOG :                          2
-        #FP-NAN :                      UHEX-7FFE000000000000
-        #FP_MAX_VALUE :                UHEX-7FEFFFFFFFFFFFFF
-        #FP_MIN_VALUE :                UHEX-0000000000000001
-        #FP_POS_INFINITY :             UHEX-7FF0000000000000
-        #FP_NEG_INFINITY :             UHEX-FFF0000000000000</code></pre>
+<pre><code>        --POS-- :                           the actual length of the binary code in bytes
+        INT_ERRORS_ILLEGAL_INTERRUPT :      0
+        INT_ERRORS_UNKNOWN_COMMAND :        1
+        INT_ERRORS_ILLEGAL_MEMORY :         2
+        INT_ERRORS_ARITHMETIC_ERROR :       3
+        INT_EXIT :                          4
+        INT_MEMORY_ALLOC :                  5
+        INT_MEMORY_REALLOC :                6
+        INT_MEMORY_FREE :                   7
+        INT_STREAMS_NEW_IN :                8
+        INT_STREAMS_NEW_OUT :               9
+        INT_STREAMS_NEW_APPEND :            10
+        INT_STREAMS_NEW_IN_OUT :            11
+        INT_STREAMS_NEW_APPEND_IN_OUT :     12
+        INT_STREAMS_WRITE :                 13
+        INT_STREAMS_READ :                  14
+        INT_STREAMS_SYNC_STREAM :           15
+        INT_STREAMS_CLOSE_STREAM :          16
+        INT_STREAMS_GET_POS :               17
+        INT_STREAMS_SET_POS :               18
+        INT_STREAMS_SET_POS_TO_END :        19
+        INT_STREAMS_REM :                   20
+        INT_STREAMS_MK_DIR :                21
+        INT_STREAMS_REM_DIR :               22
+        INT_TIME_GET :                      23
+        INT_TIME_WAIT :                     24
+        INT_SOCKET_CLIENT_CREATE :          25
+        INT_SOCKET_CLIENT_CONNECT :         26
+        INT_SOCKET_SERVER_CREATE :          27
+        INT_SOCKET_SERVER_LISTEN :          28
+        INT_SOCKET_SERVER_ACCEPT :          29
+        INT_RANDOM :                        30
+        INT_FUNC_MEMORY_COPY :              31
+        INT_FUNC_MEMORY_MOVE :              32
+        INT_FUNC_MEMORY_BSET :              33
+        INT_FUNC_MEMORY_SET :               34
+        INT_FUNC_STRING_LENGTH :            35
+        INT_FUNC_NUMBER_TO_STRING :         36
+        INT_FUNC_FPNUMBER_TO_STRING :       37
+        INT_FUNC_STRING_TO_NUMBER :         38
+        INT_FUNC_STRING_TO_FPNUMBER :       39
+        INT_FUNC_STRING_FORMAT :            40
+        INTERRUPT_COUNT :                   41
+        MAX_VALUE :                     HEX-7FFFFFFFFFFFFFFF
+        MIN_VALUE :                    NHEX-8000000000000000
+        STD_IN :                            0
+        STD_OUT :                           1
+        STD_LOG :                           2
+        FP_NAN :                       UHEX-7FFE000000000000
+        FP_MAX_VALUE :                 UHEX-7FEFFFFFFFFFFFFF
+                                                                                      FP_MIN_VALUE :                 UHEX-0000000000000001
+                                                                                      FP_POS_INFINITY :              UHEX-7FF0000000000000
+                                                                                      FP_NEG_INFINITY :              UHEX-FFF0000000000000</code></pre>
 
 ## STRINGS:
 * a string is an array of multiple characters of the UTF-8 encoding
@@ -534,18 +532,18 @@ this is the assembler-language for the Primitive-Virtual-Machine
         * `MOV [INTP + #OVERWRITE_INT_NUM_MULTIPLIED_WITH_8], X00`
         * `POP X00` |> only needed when the value of `X00` should not be overwritten
 * default interrupts:
-    * `0`: unknown command
-        * `X00` contains the illegal command
-        * calls the exit interrupt with `9`
-    * `1`: illegal interrupt
+    * `0`: illegal interrupt
         * `X00` contains the number of the illegal interrupt
-        * calls the exit interrupt with `6`
-        * if the forbidden interrupt is the exit input, the program exits with `7`
-        * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `8`
+        * calls the exit interrupt with `(64 + illegal_interrup_number)`
+        * if the forbidden interrupt is the exit input, the program exits with `(64 + 4) = 68`, but does not calls the exit interrupt to do so
+        * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `63`
+    * `1`: unknown command
+        * `X00` contains the illegal command
+        * calls the exit interrupt with `62`
     * `2`: illegal memory
-        * calls the exit interrupt with `5`
+        * calls the exit interrupt with `61`
     * `3`: arithmetic error
-        * calls the exit interrupt with `4`
+        * calls the exit interrupt with `60`
     * `4`: exit
         * use `X00` to specify the exit number of the progress
     * `5`: allocate a memory-block
@@ -598,34 +596,38 @@ this is the assembler-language for the Primitive-Virtual-Machine
         * after execution `X01` will contain the number of elements, which has been read or `-1` if an error occurred.
 		* if `X01` is `0` the end of the stream has reached
 		* reading less bytes than expected does not mead that the stream has reached it's end
-    * `15`: close stream
+    * `15`: sync stream
+        * `X00` contains the STREAM-ID
+		* if `X00` is set to `-1`, it will be tried to syncronize everything
+        * if the synchronization was successfully `X00` will be set to `1`, if not `0`
+    * `16`: close stream
         * `X00` contains the STREAM-ID
         * if the stream was closed successfully `X00` will contain `1`, if not `0`
-    * `16`: get stream pos
+    * `17`: get stream pos
         * `X00` contains the STREAM-ID
         * `X01` will contain the position of the stream or `-1` if something went wrong.
-    * `17`: set stream pos
+    * `18`: set stream pos
         * `X00` contains the STREAM-ID
         * `X01` contains the position to be set.
         * if the stream-ID is the ID of a default stream the behavior is undefined.
         * `X01` will contain the new stream position.
-    * `18`: set stream to end
+    * `19`: set stream to end
         * `X00` contains the STREAM-ID
         * this will set the stream position to the end
         * `X01` will the new file pos or `-1` if something went wrong
-    * `19`: remove file
+    * `20`: remove file
         * `X00` contains a pointer of a STRING with the file
         * if the file was successfully removed `X00` will contain `1`, if not `0`
-    * `20`: make dictionary
+    * `21`: make dictionary
         * `X00` contains a pointer of a STRING with the dictionary
         * if the dictionary was successfully created `X00` will contain `1`, if not `0`
-    * `21`: remove dictionary
+    * `22`: remove dictionary
         * `X00` contains a pointer of a STRING with the dictionary
         * if the dictionary was successfully removed `X00` will contain `1`, if not `0`
         * if the dictionary is not empty this call will fail (and set `X00` to `0`)
-    * `22`: to get the time in milliseconds
+    * `23`: to get the time in milliseconds
         * `X00` will contain the time in milliseconds or `-1` if not available
-    * `23`: to wait the given time in nanoseconds
+    * `24`: to wait the given time in nanoseconds
         * `X00` contain the number of nanoseconds to wait (only values from `0` to `999999999` are allowed)
         * `X01` contain the number of seconds to wait
         * `X00` and `X01` will contain the remaining time (`0` if it finished waiting)
@@ -633,10 +635,10 @@ this is the assembler-language for the Primitive-Virtual-Machine
 			* if `X02` is `1` the remaining time will always be `0`
 			* if `X02` is `0` the remaining time will be greater `0`
         * `X00` will not be negative if the progress waited too long
-    * `24`: socket client create
+    * `25`: socket client create
         * makes a new client socket
         * `X00` will be set to the SOCKET-ID or `-1` if the operation failed
-    * `25`: socket client connect
+    * `26`: socket client connect
         * `X00` points to the SOCKET-ID
         * `X01` points to a STRING, which names the host
         * `X02` contains the port
@@ -644,49 +646,49 @@ this is the assembler-language for the Primitive-Virtual-Machine
         * connects an client socket to the host on the port
         * `X01` will be set to the `1` on success and `0` on a fail
         * on success, the SOCKET-ID, can be used as a STREAM-ID
-    * `26`: socket server create
+    * `27`: socket server create
         * `X00` contains the port
 			* the port will be the normal number with the normal byte order
         * makes a new server socket
         * `X00` will be set to the SOCKET-ID or `-1` when the operation fails
-    * `27`: socket server listens
+    * `28`: socket server listens
         * `X00` contains the SOCKET-ID
         * `X01` contains the MAX_QUEUE length
         * let a server socket listen
         * `X01` will be set to `1` or `0` when the operation fails
-    * `28`: socket server accept
+    * `29`: socket server accept
         * `X00` contains the SOCKET-ID
         * let a server socket accept a client
         * this operation will block, until a client connects
         * `X01` will be set a new SOCKET-ID, which can be used as STREAM-ID, or `-1`
-    * `29`: random
+    * `30`: random
         * `X00` will be filled with random bits
-	* `30`: memory copy
+	* `31`: memory copy
 		* copies a block of memory
 		* this function has undefined behavior if the two blocks overlap
 		* `X00` points to the target memory block
 		* `X01` points to the source memory block
 		* `X02` has the length of bytes to bee copied
-	* `31`: memory move
+	* `32`: memory move
 		* copies a block of memory
 		* this function makes sure, that the original values of the source block are copied to the target block (even if the two block overlap)
 		* `X00` points to the target memory block
 		* `X01` points to the source memory block
 		* `X02` has the length of bytes to bee copied
-	* `32`: memory byte set
+	* `33`: memory byte set
 		* sets a memory block to the given byte-value
 		* `X00` points to the block
 		* `X01` the first byte contains the value to be written to each byte
 		* `X02` contains the length in bytes
-	* `33`: memory set
+	* `34`: memory set
 		* sets a memory block to the given int64-value
 		* `X00` points to the block
 		* `X01` contains the value to be written to each element
 		* `X02` contains the count of elements to be set
-	* `34`: string length
+	* `35`: string length
 		* `X00` points to the STRING
 		* `X00` will be set to the length of the string/ the (byte-)offset of the `'\0'` character
-	* `35`: string to number
+	* `36`: string to number
 		* `X00` points to the STRING
 		* `X01` points to the base of the number system
 			* (for example `10` for the decimal system or `2` for the binary system)
@@ -695,30 +697,32 @@ this is the assembler-language for the Primitive-Virtual-Machine
 			* this might be the `\0'` terminating character
 		* if the STRING contains illegal characters or the base is not valid, the behavior is undefined
 		* this function will ignore leading space characters
-	* `36`: string to floating point number
+	* `37`: string to floating point number
 		* `X00` points to the STRING
 		* `X00` will be set to the converted number
 		* `X01` will point to the end of the number-STRING
 			* this might be the `\0'` terminating character
 		* if the STRING contains illegal characters or the base is not valid, the behavior is undefined
 		* this function will ignore leading space characters
-	* `37`: number to string
+	* `38`: number to string
 		* `X00` is set to the number to convert
 		* `X01` is points to the buffer to be filled with the number in a STRING format
 		* `X02` contains the base of the number system
 			* the minimum base is `2`
 			* the maximum base is `36`
 			* other values lead to undefined behavior
-	* `38`: floating point number to string
+		* `X00` will be set to the length of the STRING
+	* `39`: floating point number to string
 		* `X00` is set to the number to convert
 		* `X02` contains the maximum amount of digits to be used to represent the floating point number
 		* `X01` is points to the buffer to be filled with the number in a STRING format
-	* `39`: format string
+	* `40`: format string
 		* `X00` is set to the STRING input
 		* `X01` contains the buffer for the STRING output
 			* if `X01` is set to `-1`, `X01` will be allocated to a memory block
 				* the allocated memory block will be exact large enough to contain the formatted STRING
 				* if there could not be allocated enough memory, `X01` will be set to `-1`
+		* `X00` will be set to the length of the output string
 		* the register `X02..XNN` are for the formatting parameters
 		* formatting:
 			* everything, which can not be formatted, will be delegated to the target buffer
@@ -738,8 +742,8 @@ this is the assembler-language for the Primitive-Virtual-Machine
 			* `%d`: the next argument contains a number, which should be converted to a STRING using the decimal number system and than be inserted here
 			* `%f`: the next argument contains a floating point number, which should be converted to a STRING and than be inserted here
 			* `%p`: the next argument contains a pointer, which should be converted to a STRING
-				* if the pointer is `-1` it will be converted to the STRING `"null"`
 				* if not the pointer will be converted by placing a `"p-"` and then the pointer-number converted to a STRING using the hexadecimal number system
+				* if the pointer is `-1` it will be converted to the STRING `"---"`
 			* `%h`: the next argument contains a number, which should be converted to a STRING using the hexadecimal number system and than be inserted here
 			* `%b`: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here
 			* `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here

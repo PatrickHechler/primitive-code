@@ -142,7 +142,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  ;
 
  string [ConstantPoolCommand pool]
- @init {Charset cs = Charset.defaultCharset();}
+ @init {
+ 	StringBuilder build = new StringBuilder();
+ 	Charset cs = Charset.defaultCharset();
+ }
  :
  	(
  		(
@@ -183,40 +186,18 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 	 		}
 
  		)?
- 	) STR_STR
+ 	)
+ 	(
+ 		(
+ 			string_append [build]
+ 		)
+ 		|
+ 		(
+ 			MULTI_STR_START string_append [build]* MULTI_STR_END
+ 		)
+ 	)
  	{
-		String str = $STR_STR.getText();
-		str = str.substring(1, str.length() - 1);
-		char[] chars = new char[str.length()];
-		char[] strchars = str.toCharArray();
-		int ci, si;
-		for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
-			if (strchars[si] == '\\') {
-				si ++;
-				switch(strchars[si]){
-				case 'r':
-					chars[ci] = '\r';
-					break;
-				case 'n':
-					chars[ci] = '\n';
-					break;
-				case 't':
-					chars[ci] = '\t';
-					break;
-				case '0':
-					chars[ci] = '\0';
-					break;
-				case '\\':
-					chars[ci] = '\\';
-					break;
-				default:
-					throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
-				}
-			} else {
-				chars[ci] = strchars[si];
-			}
-		}
-		byte[] bytes = new String(chars, 0, ci).getBytes(cs);
+ 		byte[] bytes = build.toString().getBytes(cs);
 		pool.addBytes(bytes);
 	}
  	//		System.out.println("[J-LOG]: string='"+new String(bytes,cs)+"'");
@@ -227,6 +208,46 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 
  	//			System.out.println("[J-LOG]: bytes[" + i + "]=" + (0xFF & (int) bytes[i]));
  //		}
+
+ ;
+
+ string_append [StringBuilder build]
+ :
+ 	STR_STR
+ 	{
+			String str = $STR_STR.getText();
+			str = str.substring(1, str.length() - 1);
+			char[] chars = new char[str.length()];
+			char[] strchars = str.toCharArray();
+			int ci, si;
+			for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
+				if (strchars[si] == '\\') {
+					si ++;
+					switch(strchars[si]){
+					case 'r':
+						chars[ci] = '\r';
+						break;
+					case 'n':
+						chars[ci] = '\n';
+						break;
+					case 't':
+						chars[ci] = '\t';
+						break;
+					case '0':
+						chars[ci] = '\0';
+						break;
+					case '\\':
+						chars[ci] = '\\';
+						break;
+					default:
+						throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+					}
+				} else {
+					chars[ci] = strchars[si];
+				}
+			}
+			build.append(chars, 0, ci);
+		}
 
  ;
 
@@ -490,6 +511,16 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  ERROR_MESSAGE_END
  :
  	'}'
+ ;
+
+ MULTI_STR_START
+ :
+ 	'('
+ ;
+
+ MULTI_STR_END
+ :
+ 	')'
  ;
 
  ANY_NUM

@@ -122,14 +122,6 @@ public class Command {
 		case CMD_PUSH:
 		case CMD_DEC:
 		case CMD_INC:
-		case CMD_SET_IP:
-		case CMD_SET_SP:
-		case CMD_SET_INTS:
-		case CMD_SET_INTCNT:
-		case CMD_GET_IP:
-		case CMD_GET_SP:
-		case CMD_GET_INTS:
-		case CMD_GET_INTCNT:
 		case CMD_INT:
 		case CMD_NEG:
 		case CMD_NOT:

@@ -185,7 +185,7 @@ public class Param {
 	}
 	
 	private String getSR(long sr) {
-		if ( (sr & 0x0000000000000003L) != sr) {
+		if ( (sr & 0x00000000000000FFL) != sr) {
 			throw new InternalError("this is no register");
 		}
 		switch ((int) sr) {
@@ -201,7 +201,7 @@ public class Param {
 			return "INTP";
 		default:
 			String num = Integer.toHexString((int) sr - SR_X_SUB).toUpperCase();
-			if (num.length() == 0) {
+			if (num.length() == 1) {
 				return "X0" + num;
 			}
 			return "X" + num;

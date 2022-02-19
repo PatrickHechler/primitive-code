@@ -1,5 +1,6 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
+import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.convertByteArrToLong;
 import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.convertLongToByteArr;
 import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.convertLongToHexString;
 
@@ -37,6 +38,9 @@ public class PVMSnapshot {
 			throw new AssertionError();
 		}
 		long[] longs = new long[256];
+		for (int li = 0, bi = 0; li < longs.length; li ++, bi += 8 ) {
+			longs[li] = convertByteArrToLong(bytes, bi);
+		}
 		return new PVMSnapshot(longs);
 	}
 	
@@ -111,7 +115,7 @@ public class PVMSnapshot {
 			if (str.length() == 1) {
 				build.append('0');
 			}
-			build.append(str).append(convertLongToHexString(intp)).append('\n');
+			build.append(str).append('=').append(convertLongToHexString(intp)).append('\n');
 		}
 		return build.toString();
 	}
