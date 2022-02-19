@@ -15,7 +15,8 @@ public class PrimitiveCodeAssembleMain {
 	private static PrimitiveAssembler asm;
 	private static Reader input;
 	
-	public static void main(String[] args) {		setup(args);
+	public static void main(String[] args) {
+		setup(args);
 		try {
 			asm.assemble(input);
 			System.out.println("assembled successful");
@@ -96,50 +97,50 @@ public class PrimitiveCodeAssembleMain {
 	private static void help() {
 		System.out.println("--help");
 		System.out.println("  to print this message");
-//	case "--help":
-//		help();
-//		break;
+		// case "--help":
+		// help();
+		// break;
 		System.out.println("--cs <CHARSET>");
 		System.out.println("or");
 		System.out.println("--charset <<CHARSET>");
 		System.out.println("  to set the charset of the input file");
-//	case "--cs":
-//	case "--charset":
-//		if (args.length <= ++ i) {
-//			crash(args, i, "not enugh args for charset option");
-//		}
-//		cs = Charset.forName(args[i]);
-//		break;
+		// case "--cs":
+		// case "--charset":
+		// if (args.length <= ++ i) {
+		// crash(args, i, "not enugh args for charset option");
+		// }
+		// cs = Charset.forName(args[i]);
+		// break;
 		System.out.println("-pa <IN_FILE>");
 		System.out.println("or");
 		System.out.println("--primasm <IN_FILE>");
 		System.out.println("  to set the input file");
-//	case "-pa":
-//	case "-primasm":
-//		if (args.length <= ++ i) {
-//			crash(args, i, "not enugh args for primasm option");
-//		}
-//		inFile = args[i];
-//		break;
+		// case "-pa":
+		// case "-primasm":
+		// if (args.length <= ++ i) {
+		// crash(args, i, "not enugh args for primasm option");
+		// }
+		// inFile = args[i];
+		// break;
 		System.out.println("-out <IN_FILE>");
 		System.out.println("  to set the output file");
-//	case "-out":
-//		if (args.length <= ++ i) {
-//			crash(args, i, "not enugh args for out option");
-//		}
-//		outFile = args[i];
-//		break;
+		// case "-out":
+		// if (args.length <= ++ i) {
+		// crash(args, i, "not enugh args for out option");
+		// }
+		// outFile = args[i];
+		// break;
 		System.out.println("-sw");
 		System.out.println("or");
 		System.out.println("-suppress-warns");
 		System.out.println("  to suppress warnings");
-//	case "-sw":
-//	case "-suppress-warns":
-//		if (sw) {
-//			crash(args, i, "suppress-wars is already set");
-//		}
-//		sw = true;
-//		break;
+		// case "-sw":
+		// case "-suppress-warns":
+		// if (sw) {
+		// crash(args, i, "suppress-wars is already set");
+		// }
+		// sw = true;
+		// break;
 	}
 	
 }

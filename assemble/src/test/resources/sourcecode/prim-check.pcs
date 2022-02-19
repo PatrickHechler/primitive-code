@@ -10,6 +10,7 @@
 	INT INT_EXIT
 #file_POS --POS--
 	: CHARS 'UTF-8' "./input/in2.data\0" >
+	: > |> for align
 #file_out_POS --POS--
 	: CHARS 'UTF-8' "./output/out2-pc.data\0" >
 #file_length 8
@@ -71,6 +72,7 @@
 	JMPEQ error_5
 	MOV X02, X05
 	MOV X01, file_length
+	INT INT_STREAMS_WRITE
 	CMP X01, file_length
 	JMPNE error_6
 	MOV X00, 18
@@ -185,7 +187,7 @@
 @is_prim
 	CALL wurzel
 	CMP X00, X02
-	JMPEQ return |> BX is already set to the mod zero num
+	JMPEQ is_prim_X01Hit
 	MOV X02, X00
 	AND X02, 1
 	JMPZS is_prim_check_2
@@ -206,6 +208,9 @@
 	JMPEQ return |> X02 is already set to the mod zero num
 	ADD X02, 2
 	JMP is_prim_loop
+@is_prim_X01Hit
+	MOV X02, X01
+	RET
 @is_prim_check_2
 	CMP X00, 2
 	JMPEQ is_prim_ret_N1

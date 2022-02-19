@@ -14,8 +14,7 @@ public class PrimitiveCodeAssembleMainTest {
 	}
 	
 	public static void main(String[] args) {
-		System.out.println(
-				"[J-LOG]: '" + ".\\src\\test\\resources\\readfiles\\helloworld.txt" + "' exists: " + Files.exists(Paths.get(".\\src\\test\\resources\\readfiles\\helloworld.txt")));
+		System.out.println("[J-LOG]: '" + ".\\src\\test\\resources\\readfiles\\helloworld.txt" + "' exists: " + Files.exists(Paths.get(".\\src\\test\\resources\\readfiles\\helloworld.txt")));
 		System.out.println("----- start checks -----");
 		BigCheckResult checked = Checker.checkAll(true, PrimitiveAssemblerChecker.class, QuickSort.class);
 		System.out.println("----- finished checks -----");
