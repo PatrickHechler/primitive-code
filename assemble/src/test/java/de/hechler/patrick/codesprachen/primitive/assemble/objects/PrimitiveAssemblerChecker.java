@@ -24,12 +24,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.PrimitiveAssem
 @CheckClass(disabled = true)//checks are not jet updated to the new version
 public class PrimitiveAssemblerChecker extends Checker {
 	
-	public final static String INPUT_ADD = "/sourcecode/add.pcs";
-	public final static String INPUT_HELLO_WORLD = "/sourcecode/helloworld.pcs";
-	public final static String INPUT_HELLO_WORLD_TO_FILE = "/sourcecode/helloworldtofile.pcs";
+	public final static String INPUT_ADD = "/sourcecode/add.psc";
+	public final static String INPUT_HELLO_WORLD = "/sourcecode/helloworld.psc";
+	public final static String INPUT_HELLO_WORLD_TO_FILE = "/sourcecode/helloworldtofile.psc";
 	public final static String INPUT_HELLO_WORLD_TO_FILE_OUTPUT = ".\\output\\out.txt";
 	public final static String VALUE_HELLO_WORLD_TO_FILE_OUTPUT = "hello file world";
-	public final static String INPUT_HELLO_WORLD_FROM_FILE = "/sourcecode/helloworldfromfile.pcs";
+	public final static String INPUT_HELLO_WORLD_FROM_FILE = "/sourcecode/helloworldfromfile.psc";
 	
 	PVMDebugingComunicator pvm;
 	Process pvmexec;

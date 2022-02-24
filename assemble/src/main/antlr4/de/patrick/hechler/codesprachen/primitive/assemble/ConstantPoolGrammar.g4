@@ -28,24 +28,52 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 
  consts
  [Map<String,Long> constants, Map<String, Long> labels, long pos, boolean alignParam]
- returns [ConstantPoolCommand pool, boolean align]
- @init {
+ returns [ConstantPoolCommand pool, boolean align] @init {
  	$pool = new ConstantPoolCommand();
  	$align = alignParam;
  }
  :
  	START
  	(
+ 		cpanything [pos, $pool, $align, constants, labels]
+ 		{
+ 			pos = $cpanything.pos;
+ 			$pool = $cpanything.pool;
+ 			$align = $cpanything.align;
+ 			constants = $cpanything.constants;
+ 			labels = $cpanything.labels;
+ 		}
+
+ 	)* ENDE EOF
+ ;
+
+ cpanything
+ [long pos_, ConstantPoolCommand pool_, boolean align_, Map<String, Long> constants_, Map<String, Long> labels_]
+ returns
+ [long pos, ConstantPoolCommand pool, boolean align, Map<String, Long> constants, Map<String, Long> labels]
+ @init {
+ 	$pos = pos_;
+ 	$pool = pool_;
+ 	$align = align_;
+ 	$constants = new HashMap<>(constants_);
+ 	$labels = new HashMap<>(labels_);
+ }
+ :
+ 	(
  		(
- 			{makeAlign($align, pos, $pool);}
+ 			comment+
+ 		)
+ 		|
+ 		(
+ 			{makeAlign($align, $pos, $pool);}
 
  			string [$pool]
  		)
  		|
  		(
- 			{makeAlign($align, pos, $pool);}
+ 			{makeAlign($align, $pos, $pool);}
 
- 			numconst [$pool, constants]
+ 			numconst [$pool, $constants]
  		)
  		|
  		(
@@ -61,24 +89,24 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  		)
  		|
  		(
- 			ERROR
+ 			ERROR comment*
  			{StringBuilder msg = new StringBuilder("error at line: ").append($ERROR.getLine());}
 
  			(
  				(
  					(
- 						numconst [null, constants]
+ 						numconst [null, $constants] comment*
  						{msg.append(" error: ").append(_localctx.numconst.getText()).append('=').append($numconst.num);}
 
  					)
  					|
  					(
- 						ERROR_MESSAGE_START
+ 						ERROR_MESSAGE_START comment*
  						{msg.append('\n');}
 
  						(
  							(
- 								STR_STR
+ 								STR_STR comment*
  								{
 									String str = $STR_STR.getText();
 									str = str.substring(1, str.length() - 1);
@@ -117,13 +145,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  							)
  							|
  							(
- 								numconst [null, constants]
+ 								numconst [null, $constants] comment*
  								{msg.append($numconst.num);}
 
  							)
  							|
  							(
- 								ERROR_HEX numconst [null, constants]
+ 								ERROR_HEX comment* numconst [null, $constants] comment*
  								{msg.append(Long.toHexString($numconst.num));}
 
  							)
@@ -138,18 +166,17 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 			}
 
  		)
- 	)* ENDE EOF
+ 	)
  ;
 
- string [ConstantPoolCommand pool]
- @init {
+ string [ConstantPoolCommand pool] @init {
  	StringBuilder build = new StringBuilder();
  	Charset cs = Charset.defaultCharset();
  }
  :
  	(
  		(
- 			CHARS CHAR_STR
+ 			CHARS comment* CHAR_STR comment*
  			{
 	 			String name = $CHAR_STR.getText();
 				name = name.substring(1, name.length() - 1);
@@ -193,21 +220,24 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  		)
  		|
  		(
- 			MULTI_STR_START string_append [build]* MULTI_STR_END
+ 			MULTI_STR_START comment*
+ 			(
+ 				string_append [build] comment*
+ 			)* MULTI_STR_END
  		)
  	)
  	{
  		byte[] bytes = build.toString().getBytes(cs);
 		pool.addBytes(bytes);
 	}
- 	//		System.out.println("[J-LOG]: string='"+new String(bytes,cs)+"'");
+//		System.out.println("[J-LOG]: string='"+new String(bytes,cs)+"'");
 
  	//		System.out.println("[J-LOG]: string='"+new String(bytes,StandardCharsets.UTF_16LE)+"'");
 
  	//		for(int i = 0; i < bytes.length; i ++) {
 
  	//			System.out.println("[J-LOG]: bytes[" + i + "]=" + (0xFF & (int) bytes[i]));
- //		}
+ 	//		}
 
  ;
 
@@ -260,7 +290,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  	(
  		(
  			(
- 				BYTE
+ 				BYTE comment*
  				{$b = true;}
 
  			)?
@@ -375,6 +405,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 
  ;
 
+ comment
+ :
+ 	BLOCK_COMMENT
+ 	| LINE_COMMENT
+ ;
+
  WRITE
  :
  	'WRITE'
@@ -421,11 +457,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  ENDE
  :
  	'>'
- ;
-
- PLUS
- :
- 	'+'
  ;
 
  BYTE
@@ -528,16 +559,6 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  	[0-9a-fA-f]+
  ;
 
- EXIST_CONSTANT
- :
- 	'#~' NAME
- ;
-
- LABEL_DECLARATION
- :
- 	'@' NAME
- ;
-
  NAME
  :
  	[a-zA-Z_] [a-zA-Z_0-9]*
@@ -576,7 +597,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  	'|>'
  	(
  		~( [\r\n] )
- 	)* -> skip
+ 	)*
  ;
 
  BLOCK_COMMENT
@@ -588,7 +609,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  		(
  			'|' ~'>'
  		)
- 	)* ':>' -> skip
+ 	)* ':>'
  ;
 
  WS

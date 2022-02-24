@@ -127,9 +127,9 @@ this is the assembler-language for the Primitive-Virtual-Machine
         STD_LOG :                           2
         FP_NAN :                       UHEX-7FFE000000000000
         FP_MAX_VALUE :                 UHEX-7FEFFFFFFFFFFFFF
-                                                                                      FP_MIN_VALUE :                 UHEX-0000000000000001
-                                                                                      FP_POS_INFINITY :              UHEX-7FF0000000000000
-                                                                                      FP_NEG_INFINITY :              UHEX-FFF0000000000000</code></pre>
+        FP_MIN_VALUE :                 UHEX-0000000000000001
+        FP_POS_INFINITY :              UHEX-7FF0000000000000
+        FP_NEG_INFINITY :              UHEX-FFF0000000000000</code></pre>
 
 ## STRINGS:
 * a string is an array of multiple characters of the UTF-8 encoding
@@ -148,6 +148,11 @@ this is the assembler-language for the Primitive-Virtual-Machine
 `MOV <NO_CONST_PARAM> , <PARAM>`
 * copies the value of the second parameter to the first parameter
     * `p1 <- p2`
+    * `IP <- IP + CMD_LEN`
+
+`LEA <NO_CONST_PARAM> , <PARAM>`
+* sets the first parameter of the value of the second parameter plus the instruction pointer
+    * `p1 <- p2 + IP`
     * `IP <- IP + CMD_LEN`
 
 `SWAP <NO_CONST_PARAM> , <NO_CONST_PARAM>`
@@ -248,6 +253,15 @@ this is the assembler-language for the Primitive-Virtual-Machine
         * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 
+`UMUL <NO_CONST_PARAM> , <PARAM>`
+* like MUL, but uses the parameters as unsigned parameters
+    * `p1 <- p1 * p2`
+	* `if p1 = 0`
+        * `ZERO <- 1`
+	* `else`
+        * `ZERO <- 0`
+    * `IP <- IP + CMD_LEN`
+
 `MULFP <NO_CONST_PARAM> , <PARAM>`
 * multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
     * `if (((p1 > 0.0) & (p2 > 0.0) | (p1 < 0.0) & (p2 < 0.0)) & ((p1 fp-mul p2) < 0.0)) | (((p1 > 0.0) & (p2 < 0.0) | (p1 < 0.0) & (p2 > 0.0)) & ((p1 fp-mul p2) > 0.0))`
@@ -264,6 +278,12 @@ this is the assembler-language for the Primitive-Virtual-Machine
 `DIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
 * divides the first parameter with the second and stores the result in the first parameter and the reminder in the second parameter
 	* `p1 <- p1 / p2`
+	* `p2 <- p1 mod p2`
+    * `IP <- IP + CMD_LEN`
+
+`UDIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* like DIV, but uses the parameters as unsigned parameters
+	* `p1 <- p1 udiv p2`
 	* `p2 <- p1 mod p2`
     * `IP <- IP + CMD_LEN`
 

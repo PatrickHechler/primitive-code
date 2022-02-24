@@ -75,7 +75,7 @@
 	INT INT_STREAMS_WRITE
 	CMP X01, file_length
 	JMPNE error_6
-	MOV X00, 18
+	MOV X00, 26
 	INT INT_MEMORY_ALLOC
 	CMP X00, -1
 	JMPEQ return
@@ -84,8 +84,10 @@
 	MOV X00, [X05]
 	MOV X02, 16
 	INT INT_FUNC_NUMBER_TO_STRING
+	MOV [X01 + X00], HEX-0A
 	MOV X02, X01
 	MOV X01, X00
+	INC X01
 	MOV X00, STD_OUT
 	INT INT_STREAMS_WRITE
 	MOV X00, 0 |> EXIT_SUCCESS
@@ -93,20 +95,22 @@
 	RET |> main gets called, main caller exits
 
 #error_msg_POS --POS--
-	: CHARS 'UTF-8' (
-		"An error occurred\n"
-		"I will exit the program now (with exit code 1) (@error_%d)\n"
-		"SP=%p\n"
-		"STATUS=%h\n"
-		"X00=%d\n"
-		"X01=%d\n"
-		"X02=%d\n"
-		"X04=%d\n"
-		"X05=%d\n"
-		"XFA=%h\n"
-		"\0"
-	) >
-
+	:
+		CHARS 'UTF-8' (
+			"An error occurred\n"
+			"I will exit the program now (with exit code 1) (@error_%d)\n"
+			"SP=%p\n"
+			"STATUS=%h\n"
+			"X00=%d\n"
+			"X01=%d\n"
+			"X02=%d\n"
+			"X04=%d\n"
+			"X05=%d\n"
+			"XFA=%h\n"
+			"\0"
+		)
+	>
+	: >
 @error_1
 	MOV X10, 1
 	JMP error

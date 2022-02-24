@@ -72,6 +72,7 @@ public class Command {
 		case CMD_ADDFP:
 		case CMD_AND:
 		case CMD_MOV:
+		case CMD_LEA:
 		case CMD_MUL:
 		case CMD_MULFP:
 		case CMD_OR:
@@ -80,6 +81,9 @@ public class Command {
 		case CMD_SUBFP:
 		case CMD_XOR:
 		case CMD_CMP:
+		case CMD_LSH:
+		case CMD_RASH:
+		case CMD_RLSH:
 		case CMD_DIV:
 		case CMD_DIVFP:
 			int len;
@@ -125,9 +129,6 @@ public class Command {
 		case CMD_INT:
 		case CMD_NEG:
 		case CMD_NOT:
-		case CMD_LSH:
-		case CMD_RASH:
-		case CMD_RLSH:
 		case CMD_NTFP:
 		case CMD_FPTN:
 			switch (p1.art) {

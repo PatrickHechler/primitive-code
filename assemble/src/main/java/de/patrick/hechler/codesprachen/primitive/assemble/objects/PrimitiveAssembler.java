@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -28,62 +29,63 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 
 public class PrimitiveAssembler {
 	
-	private static final Map <String, Long> START_CONSTANTS;
+	public static final Map <String, Long> START_CONSTANTS;
 	
 	static {
-		START_CONSTANTS = new LinkedHashMap <>();//linked for  faster iteration
-		START_CONSTANTS.put("INT_ERRORS_ILLEGAL_INTERRUPT", (Long) 0L);
-		START_CONSTANTS.put("INT_ERRORS_UNKNOWN_COMMAND", (Long) 1L);
-		START_CONSTANTS.put("INT_ERRORS_ILLEGAL_MEMORY", (Long) 2L);
-		START_CONSTANTS.put("INT_ERRORS_ARITHMETIC_ERROR", (Long) 3L);
-		START_CONSTANTS.put("INT_EXIT", (Long) 4L);
-		START_CONSTANTS.put("INT_MEMORY_ALLOC", (Long) 5L);
-		START_CONSTANTS.put("INT_MEMORY_REALLOC", (Long) 6L);
-		START_CONSTANTS.put("INT_MEMORY_FREE", (Long) 7L);
-		START_CONSTANTS.put("INT_STREAMS_NEW_IN", (Long) 8L);
-		START_CONSTANTS.put("INT_STREAMS_NEW_OUT", (Long) 9L);
-		START_CONSTANTS.put("INT_STREAMS_NEW_APPEND", (Long) 10L);
-		START_CONSTANTS.put("INT_STREAMS_NEW_IN_OUT", (Long) 11L);
-		START_CONSTANTS.put("INT_STREAMS_NEW_APPEND_IN_OUT", (Long) 12L);
-		START_CONSTANTS.put("INT_STREAMS_WRITE", (Long) 13L);
-		START_CONSTANTS.put("INT_STREAMS_READ", (Long) 14L);
-		START_CONSTANTS.put("INT_STREAMS_SYNC_STREAM", (Long) 15L);
-		START_CONSTANTS.put("INT_STREAMS_CLOSE_STREAM", (Long) 16L);
-		START_CONSTANTS.put("INT_STREAMS_GET_POS", (Long) 17L);
-		START_CONSTANTS.put("INT_STREAMS_SET_POS", (Long) 18L);
-		START_CONSTANTS.put("INT_STREAMS_SET_POS_TO_END", (Long) 19L);
-		START_CONSTANTS.put("INT_STREAMS_REM", (Long) 20L);
-		START_CONSTANTS.put("INT_STREAMS_MK_DIR", (Long) 21L);
-		START_CONSTANTS.put("INT_STREAMS_REM_DIR", (Long) 22L);
-		START_CONSTANTS.put("INT_TIME_GET", (Long) 23L);
-		START_CONSTANTS.put("INT_TIME_WAIT", (Long) 24L);
-		START_CONSTANTS.put("INT_SOCKET_CLIENT_CREATE", (Long) 25L);
-		START_CONSTANTS.put("INT_SOCKET_CLIENT_CONNECT", (Long) 26L);
-		START_CONSTANTS.put("INT_SOCKET_SERVER_CREATE", (Long) 27L);
-		START_CONSTANTS.put("INT_SOCKET_SERVER_LISTEN", (Long) 28L);
-		START_CONSTANTS.put("INT_SOCKET_SERVER_ACCEPT", (Long) 29L);
-		START_CONSTANTS.put("INT_RANDOM", (Long) 30L);
-		START_CONSTANTS.put("INT_FUNC_MEMORY_COPY", (Long) 31L);
-		START_CONSTANTS.put("INT_FUNC_MEMORY_MOVE", (Long) 32L);
-		START_CONSTANTS.put("INT_FUNC_MEMORY_BSET", (Long) 33L);
-		START_CONSTANTS.put("INT_FUNC_MEMORY_SET", (Long) 34L);
-		START_CONSTANTS.put("INT_FUNC_STRING_LENGTH", (Long) 35L);
-		START_CONSTANTS.put("INT_FUNC_NUMBER_TO_STRING", (Long) 36L);
-		START_CONSTANTS.put("INT_FUNC_FPNUMBER_TO_STRING", (Long) 37L);
-		START_CONSTANTS.put("INT_FUNC_STRING_TO_NUMBER", (Long) 38L);
-		START_CONSTANTS.put("INT_FUNC_STRING_TO_FPNUMBER", (Long) 39L);
-		START_CONSTANTS.put("INT_FUNC_STRING_FORMAT", (Long) 40L);
-		START_CONSTANTS.put("INTERRUPT_COUNT", (Long) 41L);
-		START_CONSTANTS.put("MAX_VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
-		START_CONSTANTS.put("MIN_VALUE", (Long) (-0x8000000000000000L));
-		START_CONSTANTS.put("STD_IN", (Long) 0L);
-		START_CONSTANTS.put("STD_OUT", (Long) 1L);
-		START_CONSTANTS.put("STD_LOG", (Long) 2L);
-		START_CONSTANTS.put("FP_NAN", (Long) 0x7FFE000000000000L);
-		START_CONSTANTS.put("FP_MAX_VALUE", (Long) 0x7FEFFFFFFFFFFFFFL);
-		START_CONSTANTS.put("FP_MIN_VALUE", (Long) 0x0000000000000001L);
-		START_CONSTANTS.put("FP_POS_INFINITY", (Long) 0x7FF0000000000000L);
-		START_CONSTANTS.put("FP_NEG_INFINITY", (Long) 0xFFF0000000000000L);
+		Map<String, Long> startConstants = new LinkedHashMap <>();//linked for  faster iteration
+		startConstants.put("INT_ERRORS_ILLEGAL_INTERRUPT", (Long) 0L);
+		startConstants.put("INT_ERRORS_UNKNOWN_COMMAND", (Long) 1L);
+		startConstants.put("INT_ERRORS_ILLEGAL_MEMORY", (Long) 2L);
+		startConstants.put("INT_ERRORS_ARITHMETIC_ERROR", (Long) 3L);
+		startConstants.put("INT_EXIT", (Long) 4L);
+		startConstants.put("INT_MEMORY_ALLOC", (Long) 5L);
+		startConstants.put("INT_MEMORY_REALLOC", (Long) 6L);
+		startConstants.put("INT_MEMORY_FREE", (Long) 7L);
+		startConstants.put("INT_STREAMS_NEW_IN", (Long) 8L);
+		startConstants.put("INT_STREAMS_NEW_OUT", (Long) 9L);
+		startConstants.put("INT_STREAMS_NEW_APPEND", (Long) 10L);
+		startConstants.put("INT_STREAMS_NEW_IN_OUT", (Long) 11L);
+		startConstants.put("INT_STREAMS_NEW_APPEND_IN_OUT", (Long) 12L);
+		startConstants.put("INT_STREAMS_WRITE", (Long) 13L);
+		startConstants.put("INT_STREAMS_READ", (Long) 14L);
+		startConstants.put("INT_STREAMS_SYNC_STREAM", (Long) 15L);
+		startConstants.put("INT_STREAMS_CLOSE_STREAM", (Long) 16L);
+		startConstants.put("INT_STREAMS_GET_POS", (Long) 17L);
+		startConstants.put("INT_STREAMS_SET_POS", (Long) 18L);
+		startConstants.put("INT_STREAMS_SET_POS_TO_END", (Long) 19L);
+		startConstants.put("INT_STREAMS_REM", (Long) 20L);
+		startConstants.put("INT_STREAMS_MK_DIR", (Long) 21L);
+		startConstants.put("INT_STREAMS_REM_DIR", (Long) 22L);
+		startConstants.put("INT_TIME_GET", (Long) 23L);
+		startConstants.put("INT_TIME_WAIT", (Long) 24L);
+		startConstants.put("INT_SOCKET_CLIENT_CREATE", (Long) 25L);
+		startConstants.put("INT_SOCKET_CLIENT_CONNECT", (Long) 26L);
+		startConstants.put("INT_SOCKET_SERVER_CREATE", (Long) 27L);
+		startConstants.put("INT_SOCKET_SERVER_LISTEN", (Long) 28L);
+		startConstants.put("INT_SOCKET_SERVER_ACCEPT", (Long) 29L);
+		startConstants.put("INT_RANDOM", (Long) 30L);
+		startConstants.put("INT_FUNC_MEMORY_COPY", (Long) 31L);
+		startConstants.put("INT_FUNC_MEMORY_MOVE", (Long) 32L);
+		startConstants.put("INT_FUNC_MEMORY_BSET", (Long) 33L);
+		startConstants.put("INT_FUNC_MEMORY_SET", (Long) 34L);
+		startConstants.put("INT_FUNC_STRING_LENGTH", (Long) 35L);
+		startConstants.put("INT_FUNC_NUMBER_TO_STRING", (Long) 36L);
+		startConstants.put("INT_FUNC_FPNUMBER_TO_STRING", (Long) 37L);
+		startConstants.put("INT_FUNC_STRING_TO_NUMBER", (Long) 38L);
+		startConstants.put("INT_FUNC_STRING_TO_FPNUMBER", (Long) 39L);
+		startConstants.put("INT_FUNC_STRING_FORMAT", (Long) 40L);
+		startConstants.put("INTERRUPT_COUNT", (Long) 41L);
+		startConstants.put("MAX_VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
+		startConstants.put("MIN_VALUE", (Long) (-0x8000000000000000L));
+		startConstants.put("STD_IN", (Long) 0L);
+		startConstants.put("STD_OUT", (Long) 1L);
+		startConstants.put("STD_LOG", (Long) 2L);
+		startConstants.put("FP_NAN", (Long) 0x7FFE000000000000L);
+		startConstants.put("FP_MAX_VALUE", (Long) 0x7FEFFFFFFFFFFFFFL);
+		startConstants.put("FP_MIN_VALUE", (Long) 0x0000000000000001L);
+		startConstants.put("FP_POS_INFINITY", (Long) 0x7FF0000000000000L);
+		startConstants.put("FP_NEG_INFINITY", (Long) 0xFFF0000000000000L);
+		START_CONSTANTS = Collections.unmodifiableMap(startConstants);
 	}
 	
 	private final OutputStream out;
@@ -359,9 +361,6 @@ public class PrimitiveAssembler {
 				case CMD_RET:
 				case CMD_IRET:
 					break;// nothing more to write
-				case CMD_RASH:
-				case CMD_RLSH:
-				case CMD_LSH:
 				case CMD_NEG:
 				case CMD_NOT:
 				case CMD_PUSH:
@@ -381,6 +380,9 @@ public class PrimitiveAssembler {
 					if (cmd.p2.art == Param.ART_ANUM) {
 						throw new IllegalStateException("no constants allowed on any param!");
 					}
+				case CMD_RASH:
+				case CMD_RLSH:
+				case CMD_LSH:
 				case CMD_MOV:
 				case CMD_ADD:
 				case CMD_ADDC:
