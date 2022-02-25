@@ -1,5 +1,6 @@
 package de.patrick.hechler.codesprachen.primitive.asmeditor.objects.gui;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
@@ -32,6 +33,7 @@ import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
@@ -182,7 +184,7 @@ public class PrimAsmEditorWindow {
 			
 			@Override
 			public void componentResized(ComponentEvent e) {
-				paew.textScrollPane.setBounds(0, 30, paew.frame.getWidth(), paew.frame.getHeight() - 30 - 30);
+				paew.textScrollPane.setBounds(0, 30, paew.frame.getWidth() - 15, paew.frame.getHeight() - 30 - 37);
 			}
 			
 		});
@@ -371,10 +373,12 @@ public class PrimAsmEditorWindow {
 			}
 			
 		});
-		//TODO size JScrollPane/JTextPane
-		paew.textScrollPane = new JScrollPane(paew.textPane);;
+		// https://tips4java.wordpress.com/2009/01/25/no-wrap-text-pane/
+		JPanel noWrapPanel = new JPanel( new BorderLayout() );
+		noWrapPanel.add( paew.textPane );
+		paew.textScrollPane = new JScrollPane(noWrapPanel);;
 		paew.textScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
-		paew.textScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		paew.textScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		paew.frame.add(paew.textScrollPane);
 		if (paew.openFile.exists()) {
 			paew.readFile(paew.openFile, paew.frame);
