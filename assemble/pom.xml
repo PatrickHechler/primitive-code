@@ -16,7 +16,7 @@
 		<dependency>
 			<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
 			<artifactId>runtime</artifactId>
-			<version>4.0.0</version>
+			<version>4.0.1</version>
 			<scope>test</scope>
 		</dependency>
 		<dependency>
