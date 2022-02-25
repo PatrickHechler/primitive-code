@@ -57,7 +57,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  	$pool = pool_;
  	$align = align_;
  	$constants = new HashMap<>(constants_);
- 	$labels = new HashMap<>(labels_);
+ 	$labels = labels_;
  }
  :
  	(
