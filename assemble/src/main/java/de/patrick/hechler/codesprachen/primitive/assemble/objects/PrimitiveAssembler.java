@@ -164,6 +164,7 @@ public class PrimitiveAssembler {
 				AssembleError ae = (AssembleError) cause;
 				handle(ae);
 			} else if (cause instanceof AssembleRuntimeException) {
+				assert false;// this should never happen, because this exception should be suppressed by ANTLR!
 				AssembleRuntimeException ae = (AssembleRuntimeException) cause;
 				handle(ae);
 			} else if (cause instanceof NoViableAltException) {

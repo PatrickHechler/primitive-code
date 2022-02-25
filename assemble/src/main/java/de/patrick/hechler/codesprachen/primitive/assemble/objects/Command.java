@@ -39,7 +39,7 @@ public class Command {
 			ConstsContext constantPool = parser.consts(constants, labels, pos, align, bailError);
 			return constantPool;
 		} catch (AssembleRuntimeException ae) {
-			assert !bailError;
+			assert false;// this should never happen, because this exception should be suppressed by ANTLR!
 			AssembleRuntimeException err = new AssembleRuntimeException(line, posInLine, ae.getMessage());
 			err.setStackTrace(ae.getStackTrace());
 			throw err;
