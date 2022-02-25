@@ -75,7 +75,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  anything
  [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, Long> constants, List<Command> commands, Map<String, Long> labels, long pos, boolean be]
  returns
- [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_]
+ [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, ConstsContext cc]
  @init {
 	$enabled_ = enabled;
 	$disabledSince_ = disabledSince;
@@ -98,10 +98,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			CONSTANT_POOL
  			{
 				if (enabled) {
-					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos, align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), be);
-					align = cc.align;
-					pos += cc.pool.length();
-					commands.add(cc.pool);
+					$cc = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos, align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), be);
+					align = $cc.align;
+					pos += $cc.pool.length();
+					commands.add($cc.pool);
 				}
 			}
 
