@@ -15,6 +15,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
 import de.patrick.hechler.codesprachen.primitive.assemble.enums.Commands;
 import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
+import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 
 public class Command {
 	
@@ -28,15 +29,25 @@ public class Command {
 		this.p2 = p2;
 	}
 	
-	public static ConstsContext parseCP(String cp, Map <String, Long> constants, Map <String, Long> labels, long pos, boolean align, int line, int posInLine) {
+	public static ConstsContext parseCP(String cp, Map <String, Long> constants, Map <String, Long> labels, long pos, boolean align, int line, int posInLine, boolean bailError) {
 		ANTLRInputStream in = new ANTLRInputStream(cp);
 		ConstantPoolGrammarLexer lexer = new ConstantPoolGrammarLexer(in);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		ConstantPoolGrammarParser parser = new ConstantPoolGrammarParser(tokens);
 		parser.setErrorHandler(new BailErrorStrategy());
 		try {
-			ConstsContext constantPool = parser.consts(constants, labels, pos, align);
+			ConstsContext constantPool = parser.consts(constants, labels, pos, align, bailError);
 			return constantPool;
+		} catch (AssembleRuntimeException ae) {
+			assert !bailError;
+			AssembleRuntimeException err = new AssembleRuntimeException(line, posInLine, ae.getMessage());
+			err.setStackTrace(ae.getStackTrace());
+			throw err;
+		} catch (AssembleError ae) {
+			assert bailError;
+			AssembleError err = new AssembleError(line, posInLine, ae.getMessage());
+			err.setStackTrace(ae.getStackTrace());
+			throw err;
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof AssembleError) {

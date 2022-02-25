@@ -10,6 +10,7 @@ import java.nio.charset.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.enums.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
+import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 }
 
  @parser::members {
@@ -27,7 +28,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 }
 
  consts
- [Map<String,Long> constants, Map<String, Long> labels, long pos, boolean alignParam]
+ [Map<String,Long> constants, Map<String, Long> labels, long pos, boolean alignParam, boolean bailError]
  returns [ConstantPoolCommand pool, boolean align] @init {
  	$pool = new ConstantPoolCommand();
  	$align = alignParam;
@@ -35,7 +36,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  :
  	START
  	(
- 		cpanything [pos, $pool, $align, constants, labels]
+ 		cpanything [pos, $pool, $align, constants, labels, bailError]
  		{
  			pos = $cpanything.pos;
  			$pool = $cpanything.pool;
@@ -48,7 +49,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  ;
 
  cpanything
- [long pos_, ConstantPoolCommand pool_, boolean align_, Map<String, Long> constants_, Map<String, Long> labels_]
+ [long pos_, ConstantPoolCommand pool_, boolean align_, Map<String, Long> constants_, Map<String, Long> labels_, boolean be]
  returns
  [long pos, ConstantPoolCommand pool, boolean align, Map<String, Long> constants, Map<String, Long> labels]
  @init {
@@ -67,13 +68,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  		(
  			{makeAlign($align, $pos, $pool);}
 
- 			string [$pool]
+ 			string [$pool, be]
  		)
  		|
  		(
  			{makeAlign($align, $pos, $pool);}
 
- 			numconst [$pool, $constants]
+ 			numconst [$pool, $constants, be]
  		)
  		|
  		(
@@ -95,7 +96,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  			(
  				(
  					(
- 						numconst [null, $constants] comment*
+ 						numconst [null, $constants, be] comment*
  						{msg.append(" error: ").append(_localctx.numconst.getText()).append('=').append($numconst.num);}
 
  					)
@@ -133,7 +134,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 												chars[ci] = '\\';
 												break;
 											default:
-												throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+												if (be) {
+													throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+												} else {
+													throw new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+												}
 											}
 										} else {
 											chars[ci] = strchars[si];
@@ -145,13 +150,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  							)
  							|
  							(
- 								numconst [null, $constants] comment*
+ 								numconst [null, $constants, be] comment*
  								{msg.append($numconst.num);}
 
  							)
  							|
  							(
- 								ERROR_HEX comment* numconst [null, $constants] comment*
+ 								ERROR_HEX comment* numconst [null, $constants, be] comment*
  								{msg.append(Long.toHexString($numconst.num));}
 
  							)
@@ -169,7 +174,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  	)
  ;
 
- string [ConstantPoolCommand pool] @init {
+ string [ConstantPoolCommand pool, boolean be] @init {
  	StringBuilder build = new StringBuilder();
  	Charset cs = Charset.defaultCharset();
  }
@@ -202,8 +207,15 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 						case '\\':
 							chars[ci] = '\\';
 							break;
+						case '\'':
+							chars[ci] = '\'';
+							break;
 						default:
-							throw new AssembleError($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
+							if (be) {
+								throw new AssembleError($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
+							} else {
+								throw new AssembleRuntimeException($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
+							}
 						}
 					} else {
 						chars[ci] = strchars[si];
@@ -216,13 +228,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
  	)
  	(
  		(
- 			string_append [build]
+ 			string_append [build, be]
  		)
  		|
  		(
  			MULTI_STR_START comment*
  			(
- 				string_append [build] comment*
+ 				string_append [build, be] comment*
  			)* MULTI_STR_END
  		)
  	)
@@ -241,7 +253,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 
  ;
 
- string_append [StringBuilder build]
+ string_append [StringBuilder build, boolean be]
  :
  	STR_STR
  	{
@@ -269,8 +281,15 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 					case '\\':
 						chars[ci] = '\\';
 						break;
+					case '"':
+						chars[ci] = '"';
+						break;
 					default:
-						throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+						if (be) {
+							throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+						} else {
+							throw new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine(),"illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+						}
 					}
 				} else {
 					chars[ci] = strchars[si];
@@ -281,8 +300,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 
  ;
 
- numconst [ConstantPoolCommand pool, Map<String, Long> constants] returns
- [long num, boolean b] @init {
+ numconst [ConstantPoolCommand pool, Map<String, Long> constants, boolean be]
+ returns [long num, boolean b] @init {
 	int radix;
 	$b = false;
 }

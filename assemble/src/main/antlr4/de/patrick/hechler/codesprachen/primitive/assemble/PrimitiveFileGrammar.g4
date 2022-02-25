@@ -13,6 +13,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.objects.Param.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
 import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
+import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 }
 
 @parser::members {
@@ -27,7 +28,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 	}
  }
 
-parse [long startpos, boolean align, Map<String,Long> constants] returns
+parse [long startpos, boolean align, Map<String,Long> constants, boolean bailError] returns
 [List<Command> commands, Map<String,Long> labels, long pos] @init {
  	$pos = startpos;
  	$labels = new HashMap<>();
@@ -55,7 +56,7 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 :
 	(
 		anything
-		[enabled, disabledSince, stack, align, constants, $commands, $labels, $pos]
+		[enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError]
 		{
  			enabled = $anything.enabled_;
  			disabledSince = $anything.disabledSince_;
@@ -71,7 +72,7 @@ parse [long startpos, boolean align, Map<String,Long> constants] returns
 ;
 
 anything
-[boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, Long> constants, List<Command> commands, Map<String, Long> labels, long pos]
+[boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, Long> constants, List<Command> commands, Map<String, Long> labels, long pos, boolean be]
 returns
 [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_]
 :
@@ -86,7 +87,7 @@ returns
 			CONSTANT_POOL
 			{
 				if (enabled) {
-					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos, align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine());
+					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos, align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), be);
 					align = cc.align;
 					pos += cc.pool.length();
 					commands.add(cc.pool);
@@ -99,7 +100,7 @@ returns
 			(
 				{pos += getAlign(align, pos);}
 
-				command [pos, constants, labels, align]
+				command [pos, constants, labels, align, be]
 				{
 	 				if (enabled && $command.c != null) {
 	 					$commands.add($command.c);
@@ -113,7 +114,7 @@ returns
 				CONSTANT comment*
 				(
 					(
-						constBerechnungDirekt [pos, constants]
+						constBerechnungDirekt [pos, constants, be]
 						{
 	 						if (enabled) {
 		 						constants.put($CONSTANT.getText().substring(1), $constBerechnungDirekt.num);
@@ -160,7 +161,7 @@ returns
 			|
 			(
 				(
-					IF comment* constBerechnungDirekt [pos, constants]
+					IF comment* constBerechnungDirekt [pos, constants, be]
 					{
 		 				boolean top = $constBerechnungDirekt.num != 0;
 		 				stack.add(top);
@@ -173,7 +174,7 @@ returns
 				)
 				|
 				(
-					ELSE_IF comment* constBerechnungDirekt [pos, constants]
+					ELSE_IF comment* constBerechnungDirekt [pos, constants, be]
 					{
 		 				if (enabled) {
 		 					disabledSince = stack.size();
@@ -231,7 +232,7 @@ returns
 					(
 						(
 							(
-								constBerechnungDirekt [pos, constants]
+								constBerechnungDirekt [pos, constants, be]
 								{msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($constBerechnungDirekt.num);}
 
 							)
@@ -275,7 +276,11 @@ returns
 															chars[ci] = '\\';
 															break;
 														default:
-															throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(), "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+															if (be) {
+																throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine(), "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+															} else {
+																throw new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine(), "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+															}
 														}
 													} else {
 														chars[ci] = strchars[si];
@@ -288,7 +293,7 @@ returns
 									)
 									|
 									(
-										constBerechnungDirekt [pos, constants]
+										constBerechnungDirekt [pos, constants, be]
 										{
 											if (enabled) {
 												msg.append($constBerechnungDirekt.num);
@@ -298,7 +303,7 @@ returns
 									)
 									|
 									(
-										ERROR_HEX comment* constBerechnungDirekt [pos, constants]
+										ERROR_HEX comment* constBerechnungDirekt [pos, constants, be]
 										{
 										if (enabled) {
 											msg.append(Long.toHexString($constBerechnungDirekt.num));
@@ -312,7 +317,11 @@ returns
 					)
 					{
 					if (enabled) {
-						throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), msg.toString());
+						if (be) {
+							throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), msg.toString());
+						} else {
+							throw new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), msg.toString());
+						}
 					}
 				}
 
@@ -323,7 +332,11 @@ returns
 				ANY
 				{
 					if (enabled) {
-						throw new AssembleError($ANY.getLine(), $ANY.getCharPositionInLine(),"illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
+						if (be) {
+							throw new AssembleError($ANY.getLine(), $ANY.getCharPositionInLine(),"illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
+						} else {
+							throw new AssembleRuntimeException($ANY.getLine(), $ANY.getCharPositionInLine(),"illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
+						}
 					}
 				}
 
@@ -383,7 +396,7 @@ sr returns [int srnum]
 	)
 ;
 
-param [long pos, Map<String,Long> constants] returns [Param p]
+param [long pos, Map<String,Long> constants, boolean be] returns [Param p]
 :
 	(
 		NAME
@@ -447,7 +460,7 @@ param [long pos, Map<String,Long> constants] returns [Param p]
 					)
 					|
 					(
-						nummer [pos,constants]
+						nummer [pos,constants,be]
 						{
 							build.art |= ParamBuilder.A_NUM;
 							build.v1 = $nummer.num;
@@ -470,7 +483,7 @@ param [long pos, Map<String,Long> constants] returns [Param p]
 						)
 						|
 						(
-							nummer [pos,constants]
+							nummer [pos,constants,be]
 							{
 								build.art |= ParamBuilder.B_NUM;
 								build.v2 = $nummer.num;
@@ -486,62 +499,62 @@ param [long pos, Map<String,Long> constants] returns [Param p]
 	)
 ;
 
-constBerechnung [long pos, Map<String, Long> constants] returns [long num]
+constBerechnung [long pos, Map<String, Long> constants, boolean be] returns [long num]
 :
-	c1 = constBerechnungInclusivoder [pos, constants]
+	c1 = constBerechnungInclusivoder [pos, constants, be]
 	{$num = $c1.num;}
 
 	(
-		comment* FRAGEZEICHEN comment* c2 = constBerechnung [pos, constants] comment*
-		DOPPELPUNKT comment* c3 = constBerechnungInclusivoder [pos, constants]
+		comment* FRAGEZEICHEN comment* c2 = constBerechnung [pos, constants, be] comment*
+		DOPPELPUNKT comment* c3 = constBerechnungInclusivoder [pos, constants, be]
 		{$num = ($num != 0L) ? $c2.num : $c3.num;}
 
 	)?
 ;
 
-constBerechnungInclusivoder [long pos, Map<String, Long> constants] returns
+constBerechnungInclusivoder [long pos, Map<String, Long> constants, boolean be] returns
 [long num]
 :
-	c1 = constBerechnungExclusivoder [pos, constants]
+	c1 = constBerechnungExclusivoder [pos, constants, be]
 	{$num = $c1.num;}
 
 	(
 		comment* INCLUSIVODER comment* c2 = constBerechnungExclusivoder
-		[pos, constants]
+		[pos, constants, be]
 		{$num |= $c2.num;}
 
 	)*
 ;
 
-constBerechnungExclusivoder [long pos, Map<String, Long> constants] returns
+constBerechnungExclusivoder [long pos, Map<String, Long> constants, boolean be] returns
 [long num]
 :
-	c1 = constBerechnungUnd [pos, constants]
+	c1 = constBerechnungUnd [pos, constants, be]
 	{$num = $c1.num;}
 
 	(
-		comment* EXCLUSIVPDER comment* c2 = constBerechnungUnd [pos, constants]
+		comment* EXCLUSIVPDER comment* c2 = constBerechnungUnd [pos, constants, be]
 		{$num ^= $c2.num;}
 
 	)*
 ;
 
-constBerechnungUnd [long pos, Map<String, Long> constants] returns [long num]
+constBerechnungUnd [long pos, Map<String, Long> constants, boolean be] returns [long num]
 :
-	c1 = constBerechnungGleichheit [pos, constants]
+	c1 = constBerechnungGleichheit [pos, constants, be]
 	{$num = $c1.num;}
 
 	(
-		comment* UND comment* c2 = constBerechnungGleichheit [pos, constants]
+		comment* UND comment* c2 = constBerechnungGleichheit [pos, constants, be]
 		{$num &= $c2.num;}
 
 	)*
 ;
 
-constBerechnungGleichheit [long pos, Map<String, Long> constants] returns
+constBerechnungGleichheit [long pos, Map<String, Long> constants, boolean be] returns
 [long num]
 :
-	c1 = constBerechnungRelativeTests [pos, constants]
+	c1 = constBerechnungRelativeTests [pos, constants, be]
 	{$num = $c1.num;}
 
 	(
@@ -560,7 +573,7 @@ constBerechnungGleichheit [long pos, Map<String, Long> constants] returns
 				{gleich = false;}
 
 			)
-		) comment* c2 = constBerechnungRelativeTests [pos, constants]
+		) comment* c2 = constBerechnungRelativeTests [pos, constants, be]
 		{
  			if (gleich) {
  				$num = ($num == $c1.num) ? 1L : 0L;
@@ -572,10 +585,10 @@ constBerechnungGleichheit [long pos, Map<String, Long> constants] returns
 	)*
 ;
 
-constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
+constBerechnungRelativeTests [long pos, Map<String, Long> constants, boolean be] returns
 [long num]
 :
-	c1 = constBerechnungSchub [pos, constants]
+	c1 = constBerechnungSchub [pos, constants, be]
 	{$num = $c1.num;}
 
 	(
@@ -609,7 +622,7 @@ constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
 				{type = type_kl;}
 
 			)
-		) comment* c2 = constBerechnungSchub [pos, constants]
+		) comment* c2 = constBerechnungSchub [pos, constants, be]
 		{
 			switch(type) {
 			case type_gr:
@@ -632,9 +645,9 @@ constBerechnungRelativeTests [long pos, Map<String, Long> constants] returns
 	)*
 ;
 
-constBerechnungSchub [long pos, Map<String, Long> constants] returns [long num]
+constBerechnungSchub [long pos, Map<String, Long> constants, boolean be] returns [long num]
 :
-	c1 = constBerechnungStrich [pos, constants]
+	c1 = constBerechnungStrich [pos, constants, be]
 	{$num = $c1.num;}
 
 	(
@@ -662,7 +675,7 @@ constBerechnungSchub [long pos, Map<String, Long> constants] returns [long num]
 				{type = type_ars;}
 
 			)
-		) comment* c2 = constBerechnungStrich [pos, constants]
+		) comment* c2 = constBerechnungStrich [pos, constants, be]
 		{
  			switch(type) {
 			case type_ls:
@@ -682,10 +695,10 @@ constBerechnungSchub [long pos, Map<String, Long> constants] returns [long num]
 	)*
 ;
 
-constBerechnungStrich [long pos, Map<String, Long> constants] returns
+constBerechnungStrich [long pos, Map<String, Long> constants, boolean be] returns
 [long num]
 :
-	c1 = constBerechnungPunkt [pos, constants]
+	c1 = constBerechnungPunkt [pos, constants, be]
 	{$num = $c1.num;}
 
 	(
@@ -704,7 +717,7 @@ constBerechnungStrich [long pos, Map<String, Long> constants] returns
 				{add = false;}
 
 			)
-		) comment* c2 = constBerechnungPunkt [pos, constants]
+		) comment* c2 = constBerechnungPunkt [pos, constants, be]
 		{
  			if (add) {
  				$num += $c2.num;
@@ -716,9 +729,9 @@ constBerechnungStrich [long pos, Map<String, Long> constants] returns
 	)*
 ;
 
-constBerechnungPunkt [long pos, Map<String, Long> constants] returns [long num]
+constBerechnungPunkt [long pos, Map<String, Long> constants, boolean be] returns [long num]
 :
-	c1 = constBerechnungDirekt [pos, constants]
+	c1 = constBerechnungDirekt [pos, constants, be]
 	{$num = $c1.num;}
 
 	(
@@ -746,7 +759,7 @@ constBerechnungPunkt [long pos, Map<String, Long> constants] returns [long num]
 				{type = type_modulo;}
 
 			)
-		) comment* c2 = constBerechnungDirekt [pos, constants]
+		) comment* c2 = constBerechnungDirekt [pos, constants, be]
 		{
  			switch(type) {
 			case type_mal:
@@ -766,11 +779,11 @@ constBerechnungPunkt [long pos, Map<String, Long> constants] returns [long num]
 	)*
 ;
 
-constBerechnungDirekt [long pos, Map<String, Long> constants] returns
+constBerechnungDirekt [long pos, Map<String, Long> constants, boolean be] returns
 [long num]
 :
 	(
-		nummer [pos, constants]
+		nummer [pos, constants, be]
 		{$num = $nummer.num;}
 
 	)
@@ -782,13 +795,13 @@ constBerechnungDirekt [long pos, Map<String, Long> constants] returns
 	)
 	|
 	(
-		RND_KL_AUF comment* constBerechnung [pos, constants] comment* RND_KL_ZU
+		RND_KL_AUF comment* constBerechnung [pos, constants, be] comment* RND_KL_ZU
 		{$num = $constBerechnung.num;}
 
 	)
 ;
 
-nummer [long pos, Map<String, Long> constants] returns [long num]
+nummer [long pos, Map<String, Long> constants, boolean be] returns [long num]
 :
 	(
 		nummerNoConstant [pos]
@@ -801,7 +814,11 @@ nummer [long pos, Map<String, Long> constants] returns [long num]
 		{
  			Long zw = constants.get($NAME.getText());
  			if (zw == null) {
- 				throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
+ 				if (be) {
+	 				throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
+ 				} else {
+	 				throw new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
+ 				}
  			}
  			$num = (long) zw;
  		}
@@ -891,7 +908,7 @@ nummerNoConstant [long pos] returns [long num]
 ;
 
 command
-[long pos, Map<String,Long> constants, Map<String,Long> labels, boolean align]
+[long pos, Map<String,Long> constants, Map<String,Long> labels, boolean align, boolean be]
 returns [Command c] @init {Commands cmd = null;}
 :
 	(
@@ -1016,8 +1033,8 @@ returns [Command c] @init {Commands cmd = null;}
 					{cmd = Commands.CMD_LSH;}
 
 				)
-			) comment* p1 = param [pos, constants] comment* COMMA comment* p2 = param
-			[pos, constants]
+			) comment* p1 = param [pos, constants, be] comment* COMMA comment* p2 = param
+			[pos, constants, be]
 			{$c = new Command(cmd, $p1.p, $p2.p);}
 
 		)
@@ -1167,7 +1184,7 @@ returns [Command c] @init {Commands cmd = null;}
 					{cmd = Commands.CMD_CALL;}
 
 				)
-			) comment* p1 = param [pos,constants]
+			) comment* p1 = param [pos, constants, be]
 			{$c = new Command(cmd, $p1.p, null);}
 
 		)

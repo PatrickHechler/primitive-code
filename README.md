@@ -22,6 +22,7 @@ this is the assembler-language for the Primitive-Virtual-Machine
     * the `INTCNT` register will be set to `#INTERRUPT_COUNT`
     * the interrupt-table of `INTP` will be initialized and every entry will be set to `-1`
         * so by default the default interrupts will be called, but they can be easily overwritten
+    * the `SP` will be either be set to `-1` or `SP` will point to the start of an memory block (with an undefined size)
 
 ## Primitive virtual machine
 

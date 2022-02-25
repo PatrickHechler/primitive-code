@@ -26,13 +26,14 @@ import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarLe
 import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarParser;
 import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ParseContext;
 import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
+import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 
 public class PrimitiveAssembler {
 	
 	public static final Map <String, Long> START_CONSTANTS;
 	
 	static {
-		Map<String, Long> startConstants = new LinkedHashMap <>();//linked for  faster iteration
+		Map <String, Long> startConstants = new LinkedHashMap <>();// linked for faster iteration
 		startConstants.put("INT_ERRORS_ILLEGAL_INTERRUPT", (Long) 0L);
 		startConstants.put("INT_ERRORS_UNKNOWN_COMMAND", (Long) 1L);
 		startConstants.put("INT_ERRORS_ILLEGAL_MEMORY", (Long) 2L);
@@ -76,7 +77,7 @@ public class PrimitiveAssembler {
 		startConstants.put("INT_FUNC_STRING_FORMAT", (Long) 40L);
 		startConstants.put("INTERRUPT_COUNT", (Long) 41L);
 		startConstants.put("MAX_VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
-		startConstants.put("MIN_VALUE", (Long) (-0x8000000000000000L));
+		startConstants.put("MIN_VALUE", (Long) ( -0x8000000000000000L));
 		startConstants.put("STD_IN", (Long) 0L);
 		startConstants.put("STD_OUT", (Long) 1L);
 		startConstants.put("STD_LOG", (Long) 2L);
@@ -113,8 +114,6 @@ public class PrimitiveAssembler {
 		this.exitOnError = exitOnError;
 	}
 	
-	
-	
 	public ParseContext preassemble(InputStream in) throws IOException, AssembleError {
 		return preassemble(new InputStreamReader(in));
 	}
@@ -144,12 +143,18 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
+		return preassemble(antlrin, new HashMap <>(START_CONSTANTS), true);
+	}
+	
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants, boolean bailError) throws IOException, AssembleError {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
-		parser.setErrorHandler(new BailErrorStrategy());
+		if (bailError) {
+			parser.setErrorHandler(new BailErrorStrategy());
+		}
 		try {
-			return parser.parse(0L, defaultAlign, predefinedConstants);
+			return parser.parse(0L, defaultAlign, predefinedConstants, bailError);
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
 			if (cause == null) {
@@ -158,10 +163,13 @@ public class PrimitiveAssembler {
 			if (cause instanceof AssembleError) {
 				AssembleError ae = (AssembleError) cause;
 				handle(ae);
+			} else if (cause instanceof AssembleRuntimeException) {
+				AssembleRuntimeException ae = (AssembleRuntimeException) cause;
+				handle(ae);
 			} else if (cause instanceof NoViableAltException) {
 				NoViableAltException nvae = (NoViableAltException) cause;
 				handle(nvae);
-			} else if (cause instanceof InputMismatchException){
+			} else if (cause instanceof InputMismatchException) {
 				InputMismatchException ime = (InputMismatchException) cause;
 				handle(ime);
 			} else {
@@ -222,7 +230,7 @@ public class PrimitiveAssembler {
 		Token ot = nvae.getOffendingToken();
 		handleIllegalInput(nvae, ot, ets);
 	}
-
+	
 	private void handleIllegalInput(Throwable t, Token ot, IntervalSet ets) throws AssembleError {
 		if (exitOnError) {
 			System.err.println("error: " + t);
@@ -236,7 +244,8 @@ public class PrimitiveAssembler {
 			System.err.flush();
 			System.exit(1);
 		} else {
-			StringBuilder build = new StringBuilder("error: ").append(t).append("at line ").append(ot.getLine()).append(':').append(ot.getCharPositionInLine()).append(" token.text='").append(ot.getText());
+			StringBuilder build = new StringBuilder("error: ").append(t).append("at line ").append(ot.getLine()).append(':').append(ot.getCharPositionInLine())
+					.append(" token.text='").append(ot.getText());
 			build.append("' token.id=").append(tokenToString(ot.getType(), PrimitiveFileGrammarLexer.ruleNames)).append('\n').append("expected: ");
 			for (int i = 0; i < ets.size(); i ++ ) {
 				if (i > 0) {
@@ -267,7 +276,8 @@ public class PrimitiveAssembler {
 	// throw new InternalError("cause is null", ae);
 	// }
 	// if ( ! (cause instanceof ParseCancellationException)) {
-	// throw new InternalError("unknown cause class: " + cause.getClass().getName(), ae);
+	// throw new InternalError("unknown cause class: " + cause.getClass().getName(),
+	// ae);
 	// }
 	// ParseCancellationException pce = (ParseCancellationException) cause;
 	// cause = pce.getCause();
@@ -281,17 +291,20 @@ public class PrimitiveAssembler {
 	// }
 	// line += ae.line;
 	// if (exitOnError) {
-	// System.err.println("at " + line + ":" + posInLine + " was illegal input: " + ot.getText());
+	// System.err.println("at " + line + ":" + posInLine + " was illegal input: " +
+	// ot.getText());
 	// System.err.flush();
 	// System.exit(1);
 	// } else {
-	// throw new Error("at line: " + line + " at char: " + posInLine + " was illegal input: " +
+	// throw new Error("at line: " + line + " at char: " + posInLine + " was illegal
+	// input: " +
 	// ot.getText(), nvae);
 	// }
 	// } else if (cause instanceof AssembleException) {
 	// handle(ae.line, ae.posInLine, (AssembleException) cause);
 	// } else {
-	// throw new InternalError("unknown cause cause class: " + cause.getClass().getName(), cause);
+	// throw new InternalError("unknown cause cause class: " +
+	// cause.getClass().getName(), cause);
 	// }
 	// } catch (Throwable t) {
 	// if (exitOnError) {
@@ -303,14 +316,22 @@ public class PrimitiveAssembler {
 	// }
 	// }
 	//
+	private void handle(AssembleRuntimeException ae) {
+		handle(ae.line, ae.posInLine, ae.getMessage());
+	}
+	
 	private void handle(AssembleError ae) {
+		handle(ae.line, ae.posInLine, ae.getMessage());
+	}
+	
+	private void handle(int line, int posInLine, String msg) {
 		if (exitOnError) {
-			System.err.println("an error occured at line: " + ae.line + ':' + ae.posInLine);
-			System.err.println(ae.getMessage());
+			System.err.println("an error occured at line: " + line + ':' + posInLine);
+			System.err.println(msg);
 			System.err.flush();
 			System.exit(1);
 		} else {
-			throw new AssembleError(ae.line, ae.posInLine, "at line: " + ae.line + ":" + ae.posInLine + " occured an error: " + ae.getMessage());
+			throw new AssembleError(line, posInLine, "at line: " + line + ":" + posInLine + " occured an error: " + msg);
 		}
 	}
 	
