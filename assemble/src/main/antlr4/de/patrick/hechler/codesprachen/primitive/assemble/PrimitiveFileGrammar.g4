@@ -59,32 +59,33 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		anything
  		[enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError]
  		{
- 			enabled = $anything.enabled_;
- 			disabledSince = $anything.disabledSince_;
-			stack = $anything.stack_;
-			align = $anything.align_;
-			constants = $anything.constants_;
-			$commands = $anything.commands_;
-			$labels = $anything.labels_;
-			$pos = $anything.pos_;
+ 			enabled = $anything.enabled;
+ 			disabledSince = $anything.disabledSince;
+			stack = $anything.stack;
+			align = $anything.align;
+			constants = $anything.constants;
+			$commands = $anything.commands;
+			$labels = $anything.labels;
+			$pos = $anything.pos;
  		}
 
  	)* EOF
  ;
 
  anything
- [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, Long> constants, List<Command> commands, Map<String, Long> labels, long pos, boolean be]
+ [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be]
  returns
- [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, ConstsContext cc]
+ [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, Long> constants, List<Command> commands, Map<String, Long> labels, long pos, Object zusatz]
  @init {
-	$enabled_ = enabled;
-	$disabledSince_ = disabledSince;
-	$stack_ = stack;
-	$align_ = align;
-	$constants_ = new HashMap<>(constants);
-	$commands_ = commands;
-	$labels_ = labels;
-	$pos_ = pos;
+	$enabled = enabled_;
+	$disabledSince = disabledSince_;
+	$stack = stack_;
+	$align = align_;
+	$constants = new HashMap<>(constants_);
+	$commands = commands_;
+	$labels = labels_;
+	$pos = pos_;
+	$zusatz = null;
  }
  :
  	(
@@ -93,28 +94,29 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		)
  		|
  		(
- 			{pos += getAlign(align, pos);}
+ 			{$pos += getAlign($align, $pos);}
 
  			CONSTANT_POOL
  			{
-				if (enabled) {
-					$cc = Command.parseCP($CONSTANT_POOL.getText(), constants, labels, pos, align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), be);
-					align = $cc.align;
-					pos += $cc.pool.length();
-					commands.add($cc.pool);
+				if ($enabled) {
+					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), $constants, $labels, $pos, $align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), be);
+					$align = cc.align;
+					$pos += cc.pool.length();
+					$commands.add(cc.pool);
+					$zusatz = cc;
 				}
 			}
 
  		)
  		|
  		(
- 			{pos += getAlign(align, pos);}
+ 			{$pos += getAlign($align, $pos);}
 
- 			command [pos, constants, labels, align, be]
+ 			command [$pos, $constants, $labels, $align, be]
  			{
-	 				if (enabled && $command.c != null) {
+	 				if ($enabled && $command.c != null) {
 	 					$commands.add($command.c);
-		 				pos += $command.c.length();
+		 				$pos += $command.c.length();
 	 				}
 	 			}
 
@@ -124,10 +126,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			CONSTANT comment*
  			(
  				(
- 					constBerechnungDirekt [pos, constants, be]
+ 					constBerechnungDirekt [$pos, $constants, be]
  					{
-	 						if (enabled) {
-		 						constants.put($CONSTANT.getText().substring(1), $constBerechnungDirekt.num);
+	 						if ($enabled) {
+		 						$constants.put($CONSTANT.getText().substring(1), $constBerechnungDirekt.num);
 	 						}
 	 					}
 
@@ -136,8 +138,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  				(
  					DEL
  					{
-	 						if (enabled) {
-		 						constants.remove($CONSTANT.getText().substring(1));
+	 						if ($enabled) {
+		 						$constants.remove($CONSTANT.getText().substring(1));
 	 						}
 	 					}
 
@@ -149,9 +151,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			(
  				CD_ALIGN
  				{
-	 					if (enabled) {
-							commands.add(new CompilerCommandCommand(CompilerCommand.align));
-							align = true;
+	 					if ($enabled) {
+							$commands.add(new CompilerCommandCommand(CompilerCommand.align));
+							$align = true;
 	 					}
 					}
 
@@ -160,9 +162,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			(
  				CD_NOT_ALIGN
  				{
-	 					if (enabled) {
-							commands.add(new CompilerCommandCommand(CompilerCommand.notAlign));
-							align = false;
+	 					if ($enabled) {
+							$commands.add(new CompilerCommandCommand(CompilerCommand.notAlign));
+							$align = false;
 	 					}
 					}
 
@@ -171,30 +173,30 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		|
  		(
  			(
- 				IF comment* constBerechnungDirekt [pos, constants, be]
+ 				IF comment* constBerechnungDirekt [$pos, $constants, be]
  				{
 		 				boolean top = $constBerechnungDirekt.num != 0;
-		 				stack.add(top);
-		 				if (enabled && !top) {
-		 					disabledSince = stack.size();
-		 					enabled = false;
+		 				$stack.add(top);
+		 				if ($enabled && !top) {
+		 					$disabledSince = $stack.size();
+		 					$enabled = false;
 		 				}
 		 			}
 
  			)
  			|
  			(
- 				ELSE_IF comment* constBerechnungDirekt [pos, constants, be]
+ 				ELSE_IF comment* constBerechnungDirekt [$pos, $constants, be]
  				{
-		 				if (enabled) {
-		 					disabledSince = stack.size();
-		 					enabled = false;
+		 				if ($enabled) {
+		 					$disabledSince = $stack.size();
+		 					$enabled = false;
 		 				}
-		 				if (stack.get(stack.size()-1) != null) {
-		 					if (stack.get(stack.size()-1)) {
-		 						stack.set(stack.size()-1, null);
+		 				if ($stack.get($stack.size()-1) != null) {
+		 					if ($stack.get($stack.size()-1)) {
+		 						$stack.set($stack.size()-1, null);
 		 					} else if ($constBerechnungDirekt.num != 0L) {
-		 						stack.set(stack.size()-1, true);
+		 						$stack.set($stack.size()-1, true);
 		 					}
 		 				}
 		 			}
@@ -204,14 +206,14 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			(
  				ELSE
  				{
-		 				if (enabled) {
-		 					disabledSince = stack.size();
-		 					enabled = false;
+		 				if ($enabled) {
+		 					$disabledSince = $stack.size();
+		 					$enabled = false;
 		 				}
 						{
-			 				Boolean top = stack.get(stack.size()-1);
+			 				Boolean top = $stack.get($stack.size()-1);
 			 				if (top != null && !top) {
-			 					stack.set(stack.size()-1,true);
+			 					$stack.set($stack.size()-1,true);
 			 				}
 		 				}
 	 	 			}
@@ -221,11 +223,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			(
  				ENDIF
  				{
-						if (disabledSince == stack.size()) {
-							enabled = true;
-							disabledSince = -1;
+						if ($disabledSince == $stack.size()) {
+							$enabled = true;
+							$disabledSince = -1;
 						}
-						stack.remove(stack.size()-1);
+						$stack.remove($stack.size()-1);
 		 			}
 
  			)
@@ -233,16 +235,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			(
  				ERROR comment*
  				{
-						StringBuilder msg = null;
-						if (enabled) {
-							msg = new StringBuilder("error at line: ").append($ERROR.getLine());
-						}
-					}
+					StringBuilder msg = new StringBuilder();
+				}
 
  				(
  					(
  						(
- 							constBerechnungDirekt [pos, constants, be]
+ 							constBerechnungDirekt [$pos, $constants, be]
  							{msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($constBerechnungDirekt.num);}
 
  						)
@@ -250,7 +249,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  						(
  							ERROR_MESSAGE_START comment*
  							{
-									if (enabled) {
+									if ($enabled) {
 										msg.append('\n');
 									}
 								}
@@ -260,7 +259,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  								(
  									STR_STR
  									{
-											if (enabled) {
+											if ($enabled) {
 												String str = $STR_STR.getText();
 												str = str.substring(1, str.length() - 1);
 												char[] chars = new char[str.length()];
@@ -303,9 +302,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  								)
  								|
  								(
- 									constBerechnungDirekt [pos, constants, be]
+ 									constBerechnungDirekt [$pos, $constants, be]
  									{
-											if (enabled) {
+											if ($enabled) {
 												msg.append($constBerechnungDirekt.num);
 											}
 										}
@@ -313,9 +312,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  								)
  								|
  								(
- 									ERROR_HEX comment* constBerechnungDirekt [pos, constants, be]
+ 									ERROR_HEX comment* constBerechnungDirekt [$pos, $constants, be]
  									{
-										if (enabled) {
+										if ($enabled) {
 											msg.append(Long.toHexString($constBerechnungDirekt.num));
 										}
 									}
@@ -326,11 +325,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  					)?
  				)
  				{
-					if (enabled) {
+ 					$zusatz = msg.toString();
+					if ($enabled) {
 						if (be) {
-							throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), msg.toString());
+							throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), (String) $zusatz);
 						} else {
-							throw new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), msg.toString());
+							throw new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), (String) $zusatz);
 						}
 					}
 				}
@@ -341,7 +341,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		(
  			ANY
  			{
-					if (enabled) {
+					if ($enabled) {
 						if (be) {
 							throw new AssembleError($ANY.getLine(), $ANY.getCharPositionInLine(),"illegal character at line: " + $ANY.getLine() + ", pos-in-line: "+$ANY.getCharPositionInLine()+" char='" + $ANY.getText() + "'");
 						} else {
