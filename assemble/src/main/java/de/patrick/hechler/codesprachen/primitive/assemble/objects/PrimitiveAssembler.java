@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.antlr.v4.runtime.ANTLRErrorStrategy;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -147,11 +148,15 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants, boolean bailError) throws IOException, AssembleError {
+		return preassemble(antlrin, predefinedConstants, bailError ? new BailErrorStrategy() : null, bailError);
+	}
+	
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError) throws IOException, AssembleError {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
-		if (bailError) {
-			parser.setErrorHandler(new BailErrorStrategy());
+		if (errorHandler != null) {
+			parser.setErrorHandler(errorHandler);
 		}
 		try {
 			return parser.parse(0L, defaultAlign, predefinedConstants, bailError);

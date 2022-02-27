@@ -1,6 +1,5 @@
 package de.patrick.hechler.codesprachen.primitive.assemble.exceptions;
 
-
 public class AssembleRuntimeException extends RuntimeException {
 	
 	/** UID */
