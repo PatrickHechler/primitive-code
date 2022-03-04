@@ -39,20 +39,20 @@ public class Command {
 			ConstsContext constantPool = parser.consts(constants, labels, pos, align, bailError);
 			return constantPool;
 		} catch (AssembleRuntimeException ae) {
-			assert false;// this should never happen, because this exception should be suppressed by ANTLR!
-			AssembleRuntimeException err = new AssembleRuntimeException(line, posInLine, ae.getMessage());
+			assert false;
+			AssembleRuntimeException err = new AssembleRuntimeException(line, posInLine, ae.length, ae.getMessage());
 			err.setStackTrace(ae.getStackTrace());
 			throw err;
 		} catch (AssembleError ae) {
 			assert bailError;
-			AssembleError err = new AssembleError(line, posInLine, ae.getMessage());
+			AssembleError err = new AssembleError(line, posInLine, ae.length, ae.getMessage());
 			err.setStackTrace(ae.getStackTrace());
 			throw err;
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof AssembleError) {
 				AssembleError ae = (AssembleError) cause;
-				AssembleError err = new AssembleError(line, posInLine, ae.getMessage());
+				AssembleError err = new AssembleError(line + ae.line, ae.posInLine + (ae.length == 0 ? posInLine : 0), ae.length, ae.getMessage());
 				err.setStackTrace(ae.getStackTrace());
 				throw err;
 			} else if (cause instanceof NoViableAltException) {
@@ -69,9 +69,9 @@ public class Command {
 					msg.append('<').append(names[t]).append('>');
 				}
 				int lineAdd = ot.getLine();
-				throw new AssembleError(line + lineAdd, lineAdd == 0 ? posInLine + ot.getCharPositionInLine() : ot.getCharPositionInLine(), msg.append(']').toString());
+				throw new AssembleError(line + lineAdd, lineAdd == 0 ? posInLine + ot.getCharPositionInLine() : ot.getCharPositionInLine(), ot.getStopIndex() - ot.getStartIndex() + 1, msg.append(']').toString());
 			} else {
-				throw new AssembleError( -line, -posInLine, "ParseCancelationException: " + e.getMessage());
+				throw new AssembleError(line, posInLine, 1, "ParseCancelationException: " + e.getMessage());
 			}
 		}
 	}

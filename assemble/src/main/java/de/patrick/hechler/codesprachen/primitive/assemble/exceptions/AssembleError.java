@@ -8,11 +8,20 @@ public class AssembleError extends Error {
 	
 	public final int line;
 	public final int posInLine;
+	public final int length;
 	
-	public AssembleError(int line, int posInLine, String msg) {
+	public AssembleError(int line, int posInLine, int length, String msg, Throwable cause) {
+		super(msg, cause);
+		this.line = line;
+		this.posInLine = posInLine;
+		this.length = length;
+	}
+	
+	public AssembleError(int line, int posInLine, int length, String msg) {
 		super(msg);
 		this.line = line;
 		this.posInLine = posInLine;
+		this.length = length;
 	}
 	
 }

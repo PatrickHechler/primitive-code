@@ -2,7 +2,7 @@
 
 a register based assembler language
 
-this is the assembler-language for the Primitive-Virtual-Machine
+the assembler language for the Primitive-Virtual-Machine
 
 ## Start
 
@@ -13,7 +13,7 @@ this is the assembler-language for the Primitive-Virtual-Machine
     * the arguments will point to STRINGs
         * the first argument will be the program itself, all beyond will be the arguments of the program
         * example:
-            * `my_program.pmc --example    value --other=val`
+            * `my_program.pmc --example    value	 --other=val`
             * `X00          <- 4`
             * `[X01]        <- ADDRESS_OF "my_program.pmc\0"`
             * `[X01 + 8]    <- ADDRESS_OF "--example\0"`

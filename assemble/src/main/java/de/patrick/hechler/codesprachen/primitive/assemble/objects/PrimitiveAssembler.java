@@ -151,7 +151,8 @@ public class PrimitiveAssembler {
 		return preassemble(antlrin, predefinedConstants, bailError ? new BailErrorStrategy() : null, bailError);
 	}
 	
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError) throws IOException, AssembleError {
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError)
+			throws IOException, AssembleError {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
@@ -259,7 +260,7 @@ public class PrimitiveAssembler {
 				}
 				build.append(' ').append(tokenToString(ets.get(i), PrimitiveFileGrammarLexer.ruleNames));
 			}
-			throw new AssembleError(ot.getLine(), ot.getCharPositionInLine(), build.toString());
+			throw new AssembleError(ot.getLine(), ot.getCharPositionInLine(), ot.getStopIndex() - ot.getStartIndex() + 1, build.toString());
 		}
 	}
 	
@@ -323,21 +324,21 @@ public class PrimitiveAssembler {
 	// }
 	//
 	private void handle(AssembleRuntimeException ae) {
-		handle(ae.line, ae.posInLine, ae.getMessage());
+		handle(ae.line, ae.posInLine, ae.length, ae.getMessage());
 	}
 	
 	private void handle(AssembleError ae) {
-		handle(ae.line, ae.posInLine, ae.getMessage());
+		handle(ae.line, ae.posInLine, ae.length, ae.getMessage());
 	}
 	
-	private void handle(int line, int posInLine, String msg) {
+	private void handle(int line, int posInLine, int len, String msg) {
 		if (exitOnError) {
-			System.err.println("an error occured at line: " + line + ':' + posInLine);
+			System.err.println("an error occured at line: " + line + ':' + posInLine + " length=" + len);
 			System.err.println(msg);
 			System.err.flush();
 			System.exit(1);
 		} else {
-			throw new AssembleError(line, posInLine, "at line: " + line + ":" + posInLine + " occured an error: " + msg);
+			throw new AssembleError(line, posInLine, len, "at line: " + line + ":" + posInLine + " occured an error: " + msg);
 		}
 	}
 	
