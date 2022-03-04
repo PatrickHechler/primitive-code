@@ -29,7 +29,8 @@ public class Command {
 		this.p2 = p2;
 	}
 	
-	public static ConstsContext parseCP(String cp, Map <String, Long> constants, Map <String, Long> labels, long pos, boolean align, int line, int posInLine, boolean bailError) {
+	public static ConstsContext parseCP(String cp, Map <String, Long> constants, Map <String, Long> labels, long pos, boolean align, int line, int posInLine, int charPos,
+			boolean bailError) {
 		ANTLRInputStream in = new ANTLRInputStream(cp);
 		ConstantPoolGrammarLexer lexer = new ConstantPoolGrammarLexer(in);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -40,19 +41,20 @@ public class Command {
 			return constantPool;
 		} catch (AssembleRuntimeException ae) {
 			assert false;
-			AssembleRuntimeException err = new AssembleRuntimeException(line, posInLine, ae.length, ae.getMessage());
+			AssembleRuntimeException err = new AssembleRuntimeException(line + ae.line, ae.line == 0 ? ae.posInLine + posInLine : ae.posInLine, ae.length, charPos + ae.charPos,
+					ae.getMessage());
 			err.setStackTrace(ae.getStackTrace());
 			throw err;
 		} catch (AssembleError ae) {
 			assert bailError;
-			AssembleError err = new AssembleError(line, posInLine, ae.length, ae.getMessage());
+			AssembleError err = new AssembleError(line, posInLine, ae.length, ae.charPos, ae.getMessage());
 			err.setStackTrace(ae.getStackTrace());
 			throw err;
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof AssembleError) {
 				AssembleError ae = (AssembleError) cause;
-				AssembleError err = new AssembleError(line + ae.line, ae.posInLine + (ae.length == 0 ? posInLine : 0), ae.length, ae.getMessage());
+				AssembleError err = new AssembleError(line + ae.line, ae.posInLine + (ae.length == 0 ? posInLine : 0), ae.length, ae.charPos, ae.getMessage());
 				err.setStackTrace(ae.getStackTrace());
 				throw err;
 			} else if (cause instanceof NoViableAltException) {
@@ -69,9 +71,10 @@ public class Command {
 					msg.append('<').append(names[t]).append('>');
 				}
 				int lineAdd = ot.getLine();
-				throw new AssembleError(line + lineAdd, lineAdd == 0 ? posInLine + ot.getCharPositionInLine() : ot.getCharPositionInLine(), ot.getStopIndex() - ot.getStartIndex() + 1, msg.append(']').toString());
+				throw new AssembleError(line + lineAdd, lineAdd == 0 ? posInLine + ot.getCharPositionInLine() : ot.getCharPositionInLine(),
+						ot.getStopIndex() - ot.getStartIndex() + 1, ot.getStartIndex(), msg.append(']').toString());
 			} else {
-				throw new AssembleError(line, posInLine, 1, "ParseCancelationException: " + e.getMessage());
+				throw new AssembleError(line, posInLine, 1, charPos, "ParseCancelationException: " + e.getMessage());
 			}
 		}
 	}
@@ -200,4 +203,3 @@ public class Command {
 	}
 	
 }
-

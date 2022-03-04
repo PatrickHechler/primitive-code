@@ -109,7 +109,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			CONSTANT_POOL
  			{
 				if ($enabled) {
-					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), $constants, $labels, $pos, $align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), be);
+					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), $constants, $labels, $pos, $align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), $CONSTANT_POOL.getStartIndex(), be);
 					$align = cc.align;
 					$pos += cc.pool.length();
 					$commands.add(cc.pool);
@@ -131,9 +131,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 		 				$pos += $command.c.length();
  					} catch (Exception npe) {
  						if (be) {
- 							throw new AssembleError(_localctx.command.getStart().getLine(), _localctx.command.getStart().getCharPositionInLine(), 1, npe.getMessage(), npe);
+ 							throw new AssembleError(_localctx.command.getStart().getLine(), _localctx.command.getStart().getCharPositionInLine(), 1, _localctx.command.getStart().getStartIndex(), npe.getMessage(), npe);
  						} else {
- 							$are = new AssembleRuntimeException(_localctx.command.getStart().getLine(), _localctx.command.getStart().getCharPositionInLine(), 1, npe.getMessage(), npe);
+ 							$are = new AssembleRuntimeException(_localctx.command.getStart().getLine(), _localctx.command.getStart().getCharPositionInLine(), 1, _localctx.command.getStart().getStartIndex(), npe.getMessage(), npe);
  						}
  					}
  				}
@@ -303,11 +303,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 														break;
 													default:
 														if (be) {
-															throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: char='" + strchars[si] + "'");
+															throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: char='" + strchars[si] + "'");
 														} else if ($are != null) {
-															$are.addSuppressed(new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: char='" + strchars[si] + "'"));
+															$are.addSuppressed(new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: char='" + strchars[si] + "'"));
 														} else {
-															$are = new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: char='" + strchars[si] + "'");
+															$are = new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: char='" + strchars[si] + "'");
 														}
 													}
 												} else {
@@ -357,11 +357,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  					$zusatz = msg.toString();
 					if ($enabled) {
 						if (be) {
-							throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, (String) $zusatz);
+							throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), (String) $zusatz);
 						} else if ($are != null) {
-							$are.addSuppressed(new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, (String) $zusatz));
+							$are.addSuppressed(new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), (String) $zusatz));
 						} else {
-							$are = new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, (String) $zusatz);
+							$are = new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), (String) $zusatz);
 						}
 					}
 				}
@@ -374,11 +374,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			{
 				if ($enabled) {
 					if (be) {
-						throw new AssembleError($ANY.getLine(), $ANY.getCharPositionInLine(), 1, "illegal character: char='" + $ANY.getText() + "'");
+						throw new AssembleError($ANY.getLine(), $ANY.getCharPositionInLine(), 1, $ANY.getStartIndex(), "illegal character: char='" + $ANY.getText() + "'");
 					} else if ($are != null) {
-						$are.addSuppressed(new AssembleRuntimeException($ANY.getLine(), $ANY.getCharPositionInLine(), 1, "illegal character: char='" + $ANY.getText() + "'"));
+						$are.addSuppressed(new AssembleRuntimeException($ANY.getLine(), $ANY.getCharPositionInLine(), 1, $ANY.getStartIndex(), "illegal character: char='" + $ANY.getText() + "'"));
 					} else {
-						$are = new AssembleRuntimeException($ANY.getLine(), $ANY.getCharPositionInLine(), 1, "illegal character: char='" + $ANY.getText() + "'");
+						$are = new AssembleRuntimeException($ANY.getLine(), $ANY.getCharPositionInLine(), 1, $ANY.getStartIndex(), "illegal character: char='" + $ANY.getText() + "'");
 					}
 				}
 			}
@@ -618,8 +618,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungUnd [long pos, Map<String, Long> constants, boolean be]
- returns [long num, AssembleRuntimeException are]
+ constBerechnungUnd [long pos, Map<String, Long> constants, boolean be] returns
+ [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungGleichheit [pos, constants, be]
  	{
@@ -967,10 +967,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			Long zw = constants.get($NAME.getText());
  			if (zw == null) {
  				if (be) {
-	 				throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
+	 				throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
  				} else {
 	 				zw = 0L;
-	 				$are = new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
+	 				$are = new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
  				}
  			}
  			$num = (long) zw;

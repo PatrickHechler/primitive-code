@@ -9,19 +9,22 @@ public class AssembleError extends Error {
 	public final int line;
 	public final int posInLine;
 	public final int length;
+	public final int charPos;
 	
-	public AssembleError(int line, int posInLine, int length, String msg, Throwable cause) {
+	public AssembleError(int line, int posInLine, int length, int charPos, String msg, Throwable cause) {
 		super(msg, cause);
 		this.line = line;
 		this.posInLine = posInLine;
 		this.length = length;
+		this.charPos = charPos;
 	}
 	
-	public AssembleError(int line, int posInLine, int length, String msg) {
+	public AssembleError(int line, int posInLine, int length, int charPos, String msg) {
 		super(msg);
 		this.line = line;
 		this.posInLine = posInLine;
 		this.length = length;
+		this.charPos = charPos;
 	}
 	
 }

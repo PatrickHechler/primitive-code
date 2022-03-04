@@ -1,9 +1,9 @@
 /**
  * Define a grammar called Hello
  */
- grammar ConstantPoolGrammar;
+grammar ConstantPoolGrammar;
 
- @parser::header {
+@parser::header {
 import java.util.*;
 import java.math.*;
 import java.nio.charset.*;
@@ -13,7 +13,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 }
 
- @parser::members {
+@parser::members {
 	
 	private void makeAlign(boolean align, long pos, ConstantPoolCommand cpc) {
 		if (align && cpc.length() > 0) {//on the start the compiler will align (if active)
@@ -27,19 +27,18 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 	
 }
 
- consts
- [Map<String,Long> constants, Map<String, Long> labels, long pos, boolean alignParam, boolean bailError]
- returns
- [ConstantPoolCommand pool, boolean align, AssembleRuntimeException are]
- @init {
+consts
+[Map<String,Long> constants, Map<String, Long> labels, long pos, boolean alignParam, boolean bailError]
+returns [ConstantPoolCommand pool, boolean align, AssembleRuntimeException are]
+@init {
  	$pool = new ConstantPoolCommand();
  	$align = alignParam;
  }
- :
- 	START
- 	(
- 		cpanything [pos, $pool, $align, constants, labels, bailError]
- 		{
+:
+	START
+	(
+		cpanything [pos, $pool, $align, constants, labels, bailError]
+		{
  			pos = $cpanything.pos;
  			$pool = $cpanything.pool;
  			$align = $cpanything.align;
@@ -54,77 +53,77 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			}
  		}
 
- 	)* ENDE EOF
- ;
+	)* ENDE EOF
+;
 
- cpanything
- [long pos_, ConstantPoolCommand pool_, boolean align_, Map<String, Long> constants_, Map<String, Long> labels_, boolean be]
- returns
- [long pos, ConstantPoolCommand pool, boolean align, Map<String, Long> constants, Map<String, Long> labels, AssembleRuntimeException are]
- @init {
+cpanything
+[long pos_, ConstantPoolCommand pool_, boolean align_, Map<String, Long> constants_, Map<String, Long> labels_, boolean be]
+returns
+[long pos, ConstantPoolCommand pool, boolean align, Map<String, Long> constants, Map<String, Long> labels, AssembleRuntimeException are]
+@init {
  	$pos = pos_;
  	$pool = pool_;
  	$align = align_;
  	$constants = new HashMap<>(constants_);
  	$labels = labels_;
  }
- :
- 	(
- 		(
- 			comment+
- 		)
- 		|
- 		(
- 			{makeAlign($align, $pos, $pool);}
+:
+	(
+		(
+			comment+
+		)
+		|
+		(
+			{makeAlign($align, $pos, $pool);}
 
- 			string [$pool, be]
- 			{$are = $string.are;}
+			string [$pool, be]
+			{$are = $string.are;}
 
- 		)
- 		|
- 		(
- 			{makeAlign($align, $pos, $pool);}
+		)
+		|
+		(
+			{makeAlign($align, $pos, $pool);}
 
- 			numconst [$pool, $constants, be]
- 			{$are = $numconst.are;}
+			numconst [$pool, $constants, be]
+			{$are = $numconst.are;}
 
- 		)
- 		|
- 		(
- 			CD_ALIGN
- 			{$align = true;}
+		)
+		|
+		(
+			CD_ALIGN
+			{$align = true;}
 
- 		)
- 		|
- 		(
- 			CD_NOT_ALIGN
- 			{$align = false;}
+		)
+		|
+		(
+			CD_NOT_ALIGN
+			{$align = false;}
 
- 		)
- 		|
- 		(
- 			ERROR comment*
- 			{StringBuilder msg = new StringBuilder("error at line: ").append($ERROR.getLine());}
+		)
+		|
+		(
+			ERROR comment*
+			{StringBuilder msg = new StringBuilder("error at line: ").append($ERROR.getLine());}
 
- 			(
- 				(
- 					(
- 						numconst [null, $constants, be] comment*
- 						{
+			(
+				(
+					(
+						numconst [null, $constants, be] comment*
+						{
  							msg.append(" error: ").append(_localctx.numconst.getText()).append('=').append($numconst.num);
  							$are = $numconst.are;
  						}
 
- 					)
- 					|
- 					(
- 						ERROR_MESSAGE_START comment*
- 						{msg.append('\n');}
+					)
+					|
+					(
+						ERROR_MESSAGE_START comment*
+						{msg.append('\n');}
 
- 						(
- 							(
- 								STR_STR comment*
- 								{
+						(
+							(
+								STR_STR comment*
+								{
 									String str = $STR_STR.getText();
 									str = str.substring(1, str.length() - 1);
 									char[] chars = new char[str.length()];
@@ -151,11 +150,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 												break;
 											default:
 												if (be) {
-													throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+													throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex() + si, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
 												} else if ($are != null) {
-													$are.addSuppressed(new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'"));
+													$are.addSuppressed(new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex() + si, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'"));
 												} else {
-													$are = new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+													$are = new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex() + si, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
 												}
 											}
 										} else {
@@ -165,20 +164,20 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 									msg.append(chars, 0, ci);
 								}
 
- 							)
- 							|
- 							(
- 								numconst [null, $constants, be] comment*
- 								{
+							)
+							|
+							(
+								numconst [null, $constants, be] comment*
+								{
  									msg.append($numconst.num);
  									$are = $numconst.are;
  								}
 
- 							)
- 							|
- 							(
- 								ERROR_HEX comment* numconst [null, $constants, be] comment*
- 								{
+							)
+							|
+							(
+								ERROR_HEX comment* numconst [null, $constants, be] comment*
+								{
  									msg.append(Long.toHexString($numconst.num));
 									if ($are != null) {
 										$are.addSuppressed($numconst.are);
@@ -187,36 +186,35 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 									}
  								}
 
- 							)
- 						)* ERROR_MESSAGE_END
- 					)
- 				)?
- 			)
- 			{
+							)
+						)* ERROR_MESSAGE_END
+					)
+				)?
+			)
+			{
 				if (be) {
-					throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, msg.toString());
+					throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), msg.toString());
 				} else if ($are != null) {
-					$are.addSuppressed(new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, msg.toString()));
+					$are.addSuppressed(new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), msg.toString()));
 				} else {
-					$are = new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, msg.toString());
+					$are = new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), msg.toString());
 				}
 			}
 
- 		)
- 	)
- ;
+		)
+	)
+;
 
- string [ConstantPoolCommand pool, boolean be] returns
- [AssembleRuntimeException are]
- @init {
+string [ConstantPoolCommand pool, boolean be] returns
+[AssembleRuntimeException are] @init {
  	StringBuilder build = new StringBuilder();
  	Charset cs = Charset.defaultCharset();
  }
- :
- 	(
- 		(
- 			CHARS comment* CHAR_STR comment*
- 			{
+:
+	(
+		(
+			CHARS comment* CHAR_STR comment*
+			{
 	 			String name = $CHAR_STR.getText();
 				name = name.substring(1, name.length() - 1);
 				char[] chars = new char[name.length()];
@@ -246,11 +244,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 							break;
 						default:
 							if (be) {
-								throw new AssembleError($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
+								throw new AssembleError($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine() + si - 1, 2, $CHAR_STR.getStartIndex() + si - 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
 							} else if ($are != null) {
-								$are.addSuppressed(new AssembleRuntimeException($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'"));
+								$are.addSuppressed(new AssembleRuntimeException($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine() + si - 1, 2, $CHAR_STR.getStartIndex() + si - 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'"));
 							} else {
-								$are = new AssembleRuntimeException($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
+								$are = new AssembleRuntimeException($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine() + si - 1, 2, $CHAR_STR.getStartIndex() + si - 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
 							}
 						}
 					} else {
@@ -260,12 +258,12 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 	 			cs = Charset.forName(new String(chars, 0 ,ci));
 	 		}
 
- 		)?
- 	)
- 	(
- 		(
- 			string_append [build, be]
- 			{
+		)?
+	)
+	(
+		(
+			string_append [build, be]
+			{
  				if ($string_append.are != null) {
  					if ($are != null) {
  						$are.addSuppressed($string_append.are);
@@ -275,13 +273,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  				}
  			}
 
- 		)
- 		|
- 		(
- 			MULTI_STR_START comment*
- 			(
- 				string_append [build, be] comment*
- 				{
+		)
+		|
+		(
+			MULTI_STR_START comment*
+			(
+				string_append [build, be] comment*
+				{
 	 				if ($string_append.are != null) {
 	 					if ($are != null) {
 	 						$are.addSuppressed($string_append.are);
@@ -291,29 +289,29 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 	 				}
 	 			}
 
- 			)* MULTI_STR_END
- 		)
- 	)
- 	{
+			)* MULTI_STR_END
+		)
+	)
+	{
  		byte[] bytes = build.toString().getBytes(cs);
 		pool.addBytes(bytes);
 	}
- 	//		System.out.println("[J-LOG]: string='"+new String(bytes,cs)+"'");
+//		System.out.println("[J-LOG]: string='"+new String(bytes,cs)+"'");
 
- 	//		System.out.println("[J-LOG]: string='"+new String(bytes,StandardCharsets.UTF_16LE)+"'");
+	//		System.out.println("[J-LOG]: string='"+new String(bytes,StandardCharsets.UTF_16LE)+"'");
 
- 	//		for(int i = 0; i < bytes.length; i ++) {
+	//		for(int i = 0; i < bytes.length; i ++) {
 
- 	//			System.out.println("[J-LOG]: bytes[" + i + "]=" + (0xFF & (int) bytes[i]));
- //		}
+	//			System.out.println("[J-LOG]: bytes[" + i + "]=" + (0xFF & (int) bytes[i]));
+	//		}
 
- ;
+;
 
- string_append [StringBuilder build, boolean be] returns
- [AssembleRuntimeException are]
- :
- 	STR_STR
- 	{
+string_append [StringBuilder build, boolean be] returns
+[AssembleRuntimeException are]
+:
+	STR_STR
+	{
 		String str = $STR_STR.getText();
 		str = str.substring(1, str.length() - 1);
 		char[] chars = new char[str.length()];
@@ -343,11 +341,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 					break;
 				default:
 					if (be) {
-						throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+						throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
 					} else if ($are != null) {
-						$are.addSuppressed(new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'"));
+						$are.addSuppressed(new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'"));
 					} else {
-						$are = new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+						$are = new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
 					}
 				}
 			} else {
@@ -357,124 +355,123 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 		build.append(chars, 0, ci);
 	}
 
- ;
+;
 
- numconst [ConstantPoolCommand pool, Map<String, Long> constants, boolean be]
- returns [long num, boolean b, AssembleRuntimeException are]
- @init {
+numconst [ConstantPoolCommand pool, Map<String, Long> constants, boolean be]
+returns [long num, boolean b, AssembleRuntimeException are] @init {
 	int radix;
 	$b = false;
 }
- :
- 	(
- 		(
- 			(
- 				BYTE comment*
- 				{$b = true;}
+:
+	(
+		(
+			(
+				BYTE comment*
+				{$b = true;}
 
- 			)?
- 			(
- 				(
- 					t = DEC_FP_NUM
- 					{$num = Double.doubleToRawLongBits(Double.parseDouble($t.getText()));}
+			)?
+			(
+				(
+					t = DEC_FP_NUM
+					{$num = Double.doubleToRawLongBits(Double.parseDouble($t.getText()));}
 
- 				)
- 				|
- 				(
- 					t = UNSIGNED_HEX_NUM
- 					{$num = Long.parseUnsignedLong($t.getText().substring(5), 16);}
+				)
+				|
+				(
+					t = UNSIGNED_HEX_NUM
+					{$num = Long.parseUnsignedLong($t.getText().substring(5), 16);}
 
- 				)
- 				|
- 				(
- 					t = HEX_NUM
- 					{$num = Long.parseLong($t.getText().substring(4), 16);}
+				)
+				|
+				(
+					t = HEX_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 16);}
 
- 				)
- 				|
- 				(
- 					t = DEC_NUM
- 					{$num = Long.parseLong($t.getText(), 10);}
+				)
+				|
+				(
+					t = DEC_NUM
+					{$num = Long.parseLong($t.getText(), 10);}
 
- 				)
- 				|
- 				(
- 					t = DEC_NUM0
- 					{$num = Long.parseLong($t.getText().substring(4), 10);}
+				)
+				|
+				(
+					t = DEC_NUM0
+					{$num = Long.parseLong($t.getText().substring(4), 10);}
 
- 				)
- 				|
- 				(
- 					t = OCT_NUM
- 					{$num = Long.parseLong($t.getText().substring(4), 8);}
+				)
+				|
+				(
+					t = OCT_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 8);}
 
- 				)
- 				|
- 				(
- 					t = BIN_NUM
- 					{$num = Long.parseLong($t.getText().substring(4), 2);}
+				)
+				|
+				(
+					t = BIN_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 2);}
 
- 				)
- 				|
- 				(
- 					t = NEG_HEX_NUM
- 					{$num = Long.parseLong($t.getText().substring(4), 16);}
+				)
+				|
+				(
+					t = NEG_HEX_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 16);}
 
- 				)
- 				|
- 				(
- 					t = NEG_DEC_NUM
- 					{$num = Long.parseLong($t.getText().substring(4), 10);}
+				)
+				|
+				(
+					t = NEG_DEC_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 10);}
 
- 				)
- 				|
- 				(
- 					t = NEG_DEC_NUM0
- 					{$num = Long.parseLong($t.getText(), 10);}
+				)
+				|
+				(
+					t = NEG_DEC_NUM0
+					{$num = Long.parseLong($t.getText(), 10);}
 
- 				)
- 				|
- 				(
- 					t = NEG_OCT_NUM
- 					{$num = Long.parseLong($t.getText().substring(4), 8);}
+				)
+				|
+				(
+					t = NEG_OCT_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 8);}
 
- 				)
- 				|
- 				(
- 					t = NEG_BIN_NUM
- 					{$num = Long.parseLong($t.getText().substring(4), 2);}
+				)
+				|
+				(
+					t = NEG_BIN_NUM
+					{$num = Long.parseLong($t.getText().substring(4), 2);}
 
- 				)
- 			)
- 		)
- 		|
- 		(
- 			NAME
- 			{
+				)
+			)
+		)
+		|
+		(
+			NAME
+			{
 				Long l = constants.get($NAME.getText());
 				if (l == null) {
 					if (be) {
-						throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, "unknown constant: " + $NAME.getText());
+						throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: " + $NAME.getText());
 					} else {
 						l = 0L;
-						$are = new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, "unknown constant: " + $NAME.getText());
+						$are = new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: " + $NAME.getText());
 					}
 				}
 				$num = l;
 			}
 
- 		)
- 	)
- 	{
+		)
+	)
+	{
 		if (pool != null) {
 			if ($b) {
 				if (($num & 0xFFL) != $num) {
 					if (be) {
-						throw new AssembleError($t.getLine(), $t.getCharPositionInLine(), $t.getStopIndex() - $t.getStartIndex() + 1, "byte num not inside of byte bounds: 0..255 : 0x00..0xFF");
+						throw new AssembleError($t.getLine(), $t.getCharPositionInLine(), $t.getStopIndex() - $t.getStartIndex() + 1, $t.getStartIndex(), "byte num not inside of byte bounds: 0..255 : 0x00..0xFF");
 					} else if ($are != null) {
-						$are.addSuppressed(new AssembleRuntimeException($t.getLine(), $t.getCharPositionInLine(), $t.getStopIndex() - $t.getStartIndex() + 1, "byte num not inside of byte bounds: 0..255 : 0x00..0xFF"));
+						$are.addSuppressed(new AssembleRuntimeException($t.getLine(), $t.getCharPositionInLine(), $t.getStopIndex() - $t.getStartIndex() + 1, $t.getStartIndex(), "byte num not inside of byte bounds: 0..255 : 0x00..0xFF"));
 					} else {
-						$are = new AssembleRuntimeException($t.getLine(), $t.getCharPositionInLine(), $t.getStopIndex() - $t.getStartIndex() + 1, "byte num not inside of byte bounds: 0..255 : 0x00..0xFF");
+						$are = new AssembleRuntimeException($t.getLine(), $t.getCharPositionInLine(), $t.getStopIndex() - $t.getStartIndex() + 1, $t.getStartIndex(), "byte num not inside of byte bounds: 0..255 : 0x00..0xFF");
 					}
 				}
 		 		pool.addBytes(new byte[]{(byte)$num});
@@ -493,216 +490,216 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 		}
  	}
 
- ;
+;
 
- comment
- :
- 	BLOCK_COMMENT
- 	| LINE_COMMENT
- ;
+comment
+:
+	BLOCK_COMMENT
+	| LINE_COMMENT
+;
 
- WRITE
- :
- 	'WRITE'
- ;
+WRITE
+:
+	'WRITE'
+;
 
- CHARS
- :
- 	'CHARS'
- ;
+CHARS
+:
+	'CHARS'
+;
 
- CHAR_STR
- :
- 	'\''
- 	(
- 		(
- 			~('\'' | '\\')
- 		)
- 		|
- 		(
- 			'\\' ~( '\r' | '\n' )
- 		)
- 	)* '\''
- ;
+CHAR_STR
+:
+	'\''
+	(
+		(
+			~( '\'' | '\\' )
+		)
+		|
+		(
+			'\\' ~( '\r' | '\n' )
+		)
+	)* '\''
+;
 
- STR_STR
- :
- 	'"'
- 	(
- 		(
- 			~('"' | '\\')
- 		)
- 		|
- 		(
- 			'\\' ~( '\r' | '\n' )
- 		)
- 	)* '"'
- ;
+STR_STR
+:
+	'"'
+	(
+		(
+			~( '"' | '\\' )
+		)
+		|
+		(
+			'\\' ~( '\r' | '\n' )
+		)
+	)* '"'
+;
 
- START
- :
- 	':'
- ;
+START
+:
+	':'
+;
 
- ENDE
- :
- 	'>'
- ;
+ENDE
+:
+	'>'
+;
 
- BYTE
- :
- 	'B-'
- ;
+BYTE
+:
+	'B-'
+;
 
- UNSIGNED_HEX_NUM
- :
- 	'UHEX-' [0-9a-fA-F]+
- ;
+UNSIGNED_HEX_NUM
+:
+	'UHEX-' [0-9a-fA-F]+
+;
 
- NEG_HEX_NUM
- :
- 	'NHEX-' [0-9a-fA-F]+
- ;
+NEG_HEX_NUM
+:
+	'NHEX-' [0-9a-fA-F]+
+;
 
- NEG_DEC_NUM
- :
- 	'NDEC-' [0-9]+
- ;
+NEG_DEC_NUM
+:
+	'NDEC-' [0-9]+
+;
 
- NEG_DEC_NUM0
- :
- 	'-' [0-9]+
- ;
+NEG_DEC_NUM0
+:
+	'-' [0-9]+
+;
 
- NEG_OCT_NUM
- :
- 	'NOCT-' [0-7]+
- ;
+NEG_OCT_NUM
+:
+	'NOCT-' [0-7]+
+;
 
- NEG_BIN_NUM
- :
- 	'NBIN-' [01]+
- ;
+NEG_BIN_NUM
+:
+	'NBIN-' [01]+
+;
 
- HEX_NUM
- :
- 	'HEX-' [0-9a-fA-F]+
- ;
+HEX_NUM
+:
+	'HEX-' [0-9a-fA-F]+
+;
 
- DEC_NUM0
- :
- 	'DEC-' [0-9]+
- ;
+DEC_NUM0
+:
+	'DEC-' [0-9]+
+;
 
- DEC_NUM
- :
- 	[0-9]+
- ;
+DEC_NUM
+:
+	[0-9]+
+;
 
- DEC_FP_NUM
- :
- 	'-'? [0-9]* '.' [0-9]*
- ;
+DEC_FP_NUM
+:
+	'-'? [0-9]* '.' [0-9]*
+;
 
- OCT_NUM
- :
- 	'OCT-' [0-7]+
- ;
+OCT_NUM
+:
+	'OCT-' [0-7]+
+;
 
- BIN_NUM
- :
- 	'BIN-' [01]+
- ;
+BIN_NUM
+:
+	'BIN-' [01]+
+;
 
- ERROR
- :
- 	'~ERROR'
- ;
+ERROR
+:
+	'~ERROR'
+;
 
- ERROR_HEX
- :
- 	[hH] ':'
- ;
+ERROR_HEX
+:
+	[hH] ':'
+;
 
- ERROR_MESSAGE_START
- :
- 	'{'
- ;
+ERROR_MESSAGE_START
+:
+	'{'
+;
 
- ERROR_MESSAGE_END
- :
- 	'}'
- ;
+ERROR_MESSAGE_END
+:
+	'}'
+;
 
- MULTI_STR_START
- :
- 	'('
- ;
+MULTI_STR_START
+:
+	'('
+;
 
- MULTI_STR_END
- :
- 	')'
- ;
+MULTI_STR_END
+:
+	')'
+;
 
- ANY_NUM
- :
- 	[0-9a-fA-f]+
- ;
+ANY_NUM
+:
+	[0-9a-fA-f]+
+;
 
- NAME
- :
- 	[a-zA-Z_] [a-zA-Z_0-9]*
- ;
+NAME
+:
+	[a-zA-Z_] [a-zA-Z_0-9]*
+;
 
- CD_NOT_ALIGN
- :
- 	'$NOT_ALIGN'
- 	| '$NOT-ALIGN'
- 	| '$not_align'
- 	| '$not-align'
- ;
+CD_NOT_ALIGN
+:
+	'$NOT_ALIGN'
+	| '$NOT-ALIGN'
+	| '$not_align'
+	| '$not-align'
+;
 
- CD_ALIGN
- :
- 	'$ALIGN'
- 	| '$align'
- ;
+CD_ALIGN
+:
+	'$ALIGN'
+	| '$align'
+;
 
- ERROR_MESSAGE
- :
- 	'{'
- 	(
- 		(
- 			~( '}' | '\\' )
- 		)
- 		|
- 		(
- 			'\\' .
- 		)
- 	)* '}'
- ;
+ERROR_MESSAGE
+:
+	'{'
+	(
+		(
+			~( '}' | '\\' )
+		)
+		|
+		(
+			'\\' .
+		)
+	)* '}'
+;
 
- LINE_COMMENT
- :
- 	'|>'
- 	(
- 		~( [\r\n] )
- 	)*
- ;
+LINE_COMMENT
+:
+	'|>'
+	(
+		~( [\r\n] )
+	)*
+;
 
- BLOCK_COMMENT
- :
- 	'|:'
- 	(
- 		~'|'
- 		|
- 		(
- 			'|' ~'>'
- 		)
- 	)* ':>'
- ;
+BLOCK_COMMENT
+:
+	'|:'
+	(
+		~'|'
+		|
+		(
+			'|' ~'>'
+		)
+	)* ':>'
+;
 
- WS
- :
- 	[ \t\r\n]+ -> skip
- ;
+WS
+:
+	[ \t\r\n]+ -> skip
+;
