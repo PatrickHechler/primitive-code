@@ -247,6 +247,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 						default:
 							if (be) {
 								throw new AssembleError($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
+							} else if ($are != null) {
+								$are.addSuppressed(new AssembleRuntimeException($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'"));
 							} else {
 								$are = new AssembleRuntimeException($CHAR_STR.getLine(), $CHAR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + name + "'");
 							}
@@ -342,6 +344,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 				default:
 					if (be) {
 						throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
+					} else if ($are != null) {
+						$are.addSuppressed(new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'"));
 					} else {
 						$are = new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si, 1, "illegal escaped character: '" + strchars[si] + "' complete orig string='" + str + "'");
 					}
@@ -512,7 +516,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  	'\''
  	(
  		(
- 			~'\''
+ 			~('\'' | '\\')
  		)
  		|
  		(
@@ -526,7 +530,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  	'"'
  	(
  		(
- 			~'"'
+ 			~('"' | '\\')
  		)
  		|
  		(
