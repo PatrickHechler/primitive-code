@@ -2,8 +2,9 @@ package de.patrick.hechler.codesprachen.primitive.assemble.objects;
 
 import java.util.Map;
 
+import org.antlr.v4.runtime.ANTLRErrorListener;
+import org.antlr.v4.runtime.ANTLRErrorStrategy;
 import org.antlr.v4.runtime.ANTLRInputStream;
-import org.antlr.v4.runtime.BailErrorStrategy;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.Token;
@@ -30,12 +31,17 @@ public class Command {
 	}
 	
 	public static ConstsContext parseCP(String cp, Map <String, Long> constants, Map <String, Long> labels, long pos, boolean align, int line, int posInLine, int charPos,
-			boolean bailError) {
+			boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener) {
 		ANTLRInputStream in = new ANTLRInputStream(cp);
 		ConstantPoolGrammarLexer lexer = new ConstantPoolGrammarLexer(in);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		ConstantPoolGrammarParser parser = new ConstantPoolGrammarParser(tokens);
-		parser.setErrorHandler(new BailErrorStrategy());
+		if (errorHandler != null) {
+			parser.setErrorHandler(errorHandler);
+		}
+		if (errorListener != null) {
+			parser.addErrorListener(errorListener);
+		}
 		try {
 			ConstsContext constantPool = parser.consts(constants, labels, pos, align, bailError);
 			return constantPool;

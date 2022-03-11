@@ -30,7 +30,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  }
 
  parse
- [long startpos, boolean align, Map<String,Long> constants, boolean bailError]
+ [long startpos, boolean align, Map<String,Long> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener]
  returns
  [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are]
  @init {
@@ -60,7 +60,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  :
  	(
  		anything
- 		[enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError]
+ 		[enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener]
  		{
  			enabled = $anything.enabled;
  			disabledSince = $anything.disabledSince;
@@ -83,7 +83,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  anything
- [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be]
+ [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener]
  returns
  [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, Long> constants, List<Command> commands, Map<String, Long> labels, long pos, Object zusatz, AssembleRuntimeException are]
  @init {
@@ -109,7 +109,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			CONSTANT_POOL
  			{
 				if ($enabled) {
-					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), $constants, $labels, $pos, $align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), $CONSTANT_POOL.getStartIndex(), be);
+					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), $constants, $labels, $pos, $align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), $CONSTANT_POOL.getStartIndex(), be, errorHandler, errorListener);
 					$align = cc.align;
 					$pos += cc.pool.length();
 					$commands.add(cc.pool);
