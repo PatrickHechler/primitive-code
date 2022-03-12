@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRErrorStrategy;
@@ -31,11 +32,11 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleErr
 import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 
 public class PrimitiveAssembler {
-
-	public static final Map<String, Long> START_CONSTANTS;
-
+	
+	public static final Map <String, Long> START_CONSTANTS;
+	
 	static {
-		Map<String, Long> startConstants = new LinkedHashMap<>();// linked for faster iteration
+		Map <String, Long> startConstants = new LinkedHashMap <>();// linked for faster iteration
 		startConstants.put("INT_ERRORS_ILLEGAL_INTERRUPT", (Long) 0L);
 		startConstants.put("INT_ERRORS_UNKNOWN_COMMAND", (Long) 1L);
 		startConstants.put("INT_ERRORS_ILLEGAL_MEMORY", (Long) 2L);
@@ -79,7 +80,7 @@ public class PrimitiveAssembler {
 		startConstants.put("INT_FUNC_STRING_FORMAT", (Long) 40L);
 		startConstants.put("INTERRUPT_COUNT", (Long) 41L);
 		startConstants.put("MAX_VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
-		startConstants.put("MIN_VALUE", (Long) (-0x8000000000000000L));
+		startConstants.put("MIN_VALUE", (Long) ( -0x8000000000000000L));
 		startConstants.put("STD_IN", (Long) 0L);
 		startConstants.put("STD_OUT", (Long) 1L);
 		startConstants.put("STD_LOG", (Long) 2L);
@@ -90,81 +91,81 @@ public class PrimitiveAssembler {
 		startConstants.put("FP_NEG_INFINITY", (Long) 0xFFF0000000000000L);
 		START_CONSTANTS = Collections.unmodifiableMap(startConstants);
 	}
-
+	
 	private final OutputStream out;
 	private final boolean supressWarn;
 	private final boolean defaultAlign;
 	private final boolean exitOnError;
-
+	
 	public PrimitiveAssembler(OutputStream out) {
 		this(out, false);
 	}
-
+	
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings) {
 		this(out, supressWarnings, true);
-
+		
 	}
-
+	
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings, boolean defaultAlign) {
 		this(out, supressWarnings, defaultAlign, true);
 	}
-
+	
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings, boolean defaultAlign, boolean exitOnError) {
 		this.out = out;
 		this.supressWarn = supressWarnings;
 		this.defaultAlign = defaultAlign;
 		this.exitOnError = exitOnError;
 	}
-
+	
 	public ParseContext preassemble(InputStream in) throws IOException, AssembleError {
 		return preassemble(new InputStreamReader(in));
 	}
-
+	
 	public ParseContext preassemble(InputStream in, Charset cs) throws IOException, AssembleError {
 		return preassemble(new InputStreamReader(in, cs));
 	}
-
+	
 	public ParseContext preassemble(Reader in) throws IOException, AssembleError {
-		return preassemble(in, new HashMap<>(START_CONSTANTS));
+		return preassemble(in, new HashMap <>(START_CONSTANTS));
 	}
-
-	public ParseContext preassemble(InputStream in, Map<String, Long> predefinedConstants)
-			throws IOException, AssembleError {
+	
+	public ParseContext preassemble(InputStream in, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
 		return preassemble(new InputStreamReader(in), predefinedConstants);
 	}
-
-	public ParseContext preassemble(InputStream in, Charset cs, Map<String, Long> predefinedConstants)
-			throws IOException, AssembleError {
+	
+	public ParseContext preassemble(InputStream in, Charset cs, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
 		return preassemble(new InputStreamReader(in, cs), predefinedConstants);
 	}
-
-	public ParseContext preassemble(Reader in, Map<String, Long> predefinedConstants)
-			throws IOException, AssembleError {
+	
+	public ParseContext preassemble(Reader in, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
 		return preassemble(new ANTLRInputStream(in), predefinedConstants);
 	}
-
+	
 	public ParseContext preassemble(ANTLRInputStream antlrin) throws IOException, AssembleError {
-		return preassemble(antlrin, new HashMap<>(START_CONSTANTS));
+		return preassemble(antlrin, new HashMap <>(START_CONSTANTS));
 	}
-
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, Long> predefinedConstants)
-			throws IOException, AssembleError {
-		return preassemble(antlrin, new HashMap<>(START_CONSTANTS), true);
+	
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
+		return preassemble(antlrin, new HashMap <>(START_CONSTANTS), true);
 	}
-
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, Long> predefinedConstants, boolean bailError)
-			throws IOException, AssembleError {
+	
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants, boolean bailError) throws IOException, AssembleError {
 		return preassemble(antlrin, predefinedConstants, bailError ? new BailErrorStrategy() : null, bailError);
 	}
-
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, Long> predefinedConstants,
-			ANTLRErrorStrategy errorHandler, boolean bailError) throws IOException, AssembleError {
+	
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError)
+			throws IOException, AssembleError {
 		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, null);
 	}
-
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, Long> predefinedConstants,
-			ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener)
-			throws IOException, AssembleError {
+	
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError,
+			ANTLRErrorListener errorListener) throws IOException, AssembleError {
+		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {
+		});
+	}
+	
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError,
+			ANTLRErrorListener errorListener, BiConsumer <Integer, Integer> enterConstPool) throws IOException, AssembleError {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
@@ -175,7 +176,7 @@ public class PrimitiveAssembler {
 			parser.addErrorListener(errorListener);
 		}
 		try {
-			return parser.parse(0L, defaultAlign, predefinedConstants, bailError, errorHandler, errorListener);
+			return parser.parse(0L, defaultAlign, predefinedConstants, bailError, errorHandler, errorListener, enterConstPool);
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
 			if (cause == null) {
@@ -205,7 +206,7 @@ public class PrimitiveAssembler {
 		}
 		throw new InternalError("handle returned");
 	}
-
+	
 	/*
 	 * the handle methods will never return normally
 	 * 
@@ -219,7 +220,7 @@ public class PrimitiveAssembler {
 			throw new InternalError("unknwon error: " + t, t);
 		}
 	}
-
+	
 	private void fullPrint(Throwable t, String ident, String identAdd) {
 		String nextIdent = ident + identAdd;
 		System.err.println(t.getClass().getName());
@@ -241,19 +242,19 @@ public class PrimitiveAssembler {
 			fullPrint(cause, nextIdent, identAdd);
 		}
 	}
-
+	
 	private void handle(InputMismatchException ime) {
 		IntervalSet ets = ime.getExpectedTokens();
 		Token ot = ime.getOffendingToken();
 		handleIllegalInput(ime, ot, ets);
 	}
-
+	
 	private void handle(NoViableAltException nvae) {
 		IntervalSet ets = nvae.getExpectedTokens();
 		Token ot = nvae.getOffendingToken();
 		handleIllegalInput(nvae, ot, ets);
 	}
-
+	
 	private void handleIllegalInput(Throwable t, Token ot, IntervalSet ets) throws AssembleError {
 		if (exitOnError) {
 			System.err.println("error: " + t);
@@ -261,27 +262,25 @@ public class PrimitiveAssembler {
 			System.err.println("illegal input: " + ot.getText());
 			System.err.println("  token: " + tokenToString(ot.getType(), PrimitiveFileGrammarLexer.ruleNames));
 			System.err.println("expected: ");
-			for (int i = 0; i < ets.size(); i++) {
+			for (int i = 0; i < ets.size(); i ++ ) {
 				System.err.println("  " + tokenToString(ets.get(i), PrimitiveFileGrammarLexer.ruleNames));
 			}
 			System.err.flush();
 			System.exit(1);
 		} else {
-			StringBuilder build = new StringBuilder("error: ").append(t).append("at line ").append(ot.getLine())
-					.append(':').append(ot.getCharPositionInLine()).append(" token.text='").append(ot.getText());
-			build.append("' token.id=").append(tokenToString(ot.getType(), PrimitiveFileGrammarLexer.ruleNames))
-					.append('\n').append("expected: ");
-			for (int i = 0; i < ets.size(); i++) {
+			StringBuilder build = new StringBuilder("error: ").append(t).append("at line ").append(ot.getLine()).append(':').append(ot.getCharPositionInLine())
+					.append(" token.text='").append(ot.getText());
+			build.append("' token.id=").append(tokenToString(ot.getType(), PrimitiveFileGrammarLexer.ruleNames)).append('\n').append("expected: ");
+			for (int i = 0; i < ets.size(); i ++ ) {
 				if (i > 0) {
 					build.append(", ");
 				}
 				build.append(' ').append(tokenToString(ets.get(i), PrimitiveFileGrammarLexer.ruleNames));
 			}
-			throw new AssembleError(ot.getLine(), ot.getCharPositionInLine(),
-					ot.getStopIndex() - ot.getStartIndex() + 1, ot.getStartIndex(), build.toString());
+			throw new AssembleError(ot.getLine(), ot.getCharPositionInLine(), ot.getStopIndex() - ot.getStartIndex() + 1, ot.getStartIndex(), build.toString());
 		}
 	}
-
+	
 	private String tokenToString(int tok, String[] names) {
 		String token;
 		if (tok > 0) {
@@ -293,7 +292,7 @@ public class PrimitiveAssembler {
 		}
 		return token;
 	}
-
+	
 	// private void handle(AssembleError ae) {
 	// Throwable cause = ae.getCause();
 	// try {
@@ -344,15 +343,14 @@ public class PrimitiveAssembler {
 	private void handle(AssembleRuntimeException ae) {
 		handle(ae.line, ae.posInLine, ae.length, ae.charPos, ae.getMessage(), ae.getStackTrace());
 	}
-
+	
 	private void handle(AssembleError ae) {
 		handle(ae.line, ae.posInLine, ae.length, ae.charPos, ae.getMessage(), ae.getStackTrace());
 	}
-
+	
 	private void handle(int line, int posInLine, int len, int charPos, String msg, StackTraceElement[] stack) {
 		StringBuilder build = new StringBuilder();
-		build.append("an error occured at line: ").append(line).append(':').append(posInLine).append(" length=")
-				.append(len).append('\n');
+		build.append("an error occured at line: ").append(line).append(':').append(posInLine).append(" length=").append(len).append('\n');
 		build.append(msg).append('\n');
 		build.append("stack:").append('\n');
 		for (StackTraceElement ste : stack) {
@@ -366,37 +364,36 @@ public class PrimitiveAssembler {
 			throw new AssembleError(line, posInLine, len, charPos, build.toString());
 		}
 	}
-
+	
 	public void assemble(InputStream in) throws IOException, AssembleError {
 		assemble(preassemble(in));
 	}
-
+	
 	public void assemble(InputStream in, Charset cs) throws IOException, AssembleError {
 		assemble(preassemble(in, cs));
 	}
-
+	
 	public void assemble(Reader in) throws IOException, AssembleError {
 		assemble(preassemble(in));
 	}
-
+	
 	public void assemble(ANTLRInputStream antlrin) throws IOException, AssembleError {
 		assemble(preassemble(antlrin));
 	}
-
-	public void assemble(ANTLRInputStream antlrin, Map<String, Long> predefinedConstants)
-			throws IOException, AssembleError {
+	
+	public void assemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
 		assemble(preassemble(antlrin, predefinedConstants));
 	}
-
+	
 	public void assemble(PrimitiveFileGrammarParser.ParseContext parsed) throws IOException {
 		assemble(parsed.commands, parsed.labels);
 	}
-
-	public void assemble(List<Command> cmds, Map<String, Long> labels) throws IOException {
+	
+	public void assemble(List <Command> cmds, Map <String, Long> labels) throws IOException {
 		long pos = 0;
 		boolean align = defaultAlign;
 		Command last = null, cmd;
-		for (int i = 0; i < cmds.size(); i++) {
+		for (int i = 0; i < cmds.size(); i ++ ) {
 			cmd = cmds.get(i);
 			if (align && last != null && last.alignable()) {
 				int mod = (int) (pos % 8);
@@ -486,9 +483,8 @@ public class PrimitiveAssembler {
 					} else if (cmd.p1.art == Param.ART_ANUM) {
 						assert cmd.p1.label == null;
 						assert cmd.p1.off == 0;
-						if (!supressWarn) {
-							System.err.println(
-									"[WARN]: it is not recomended to use jump/call operation with a number instead of a label as param!");
+						if ( !supressWarn) {
+							System.err.println("[WARN]: it is not recomended to use jump/call operation with a number instead of a label as param!");
 						}
 						relativeDest = cmd.p1.num;
 					} else {
@@ -525,7 +521,7 @@ public class PrimitiveAssembler {
 		}
 		out.flush();
 	}
-
+	
 	private void writeOneParam(Command cmd, byte[] bytes) throws IOException {
 		assert cmd.p1 != null : "I need a first Param!";
 		assert cmd.p2 == null : "I can't have a second Param!";
@@ -539,9 +535,8 @@ public class PrimitiveAssembler {
 			convertLong(bytes, num);
 			break;
 		case Param.ART_ANUM_BNUM:
-			if (!supressWarn) {
-				System.err.println(
-						"[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
+			if ( !supressWarn) {
+				System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
 			}
 			out.write(bytes, 0, bytes.length);
 			convertLong(bytes, num);
@@ -549,7 +544,7 @@ public class PrimitiveAssembler {
 			convertLong(bytes, off);
 			break;
 		case Param.ART_ANUM_BREG:
-			if (!supressWarn) {
+			if ( !supressWarn) {
 				System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
 			}
 			out.write(bytes, 0, bytes.length);
@@ -585,7 +580,7 @@ public class PrimitiveAssembler {
 			throw new InternalError("unknown art: " + art);
 		}
 	}
-
+	
 	private static void convertLong(byte[] bytes, long num) {
 		bytes[0] = (byte) num;
 		bytes[1] = (byte) (num >> 8);
@@ -596,7 +591,7 @@ public class PrimitiveAssembler {
 		bytes[6] = (byte) (num >> 48);
 		bytes[7] = (byte) (num >> 56);
 	}
-
+	
 	private void writeTwoParam(Command cmd, byte[] bytes) throws IOException {
 		assert cmd.p1 != null : "I need a first Param!";
 		assert cmd.p2 != null : "I need a second Param!";
@@ -612,37 +607,36 @@ public class PrimitiveAssembler {
 			case Param.ART_ANUM:
 				break;
 			case Param.ART_ANUM_BNUM:
-				if (!supressWarn) {
-					System.err.println(
-							"[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
+				if ( !supressWarn) {
+					System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
 				}
 				break;
 			case Param.ART_ANUM_BREG:
-				if (!supressWarn) {
+				if ( !supressWarn) {
 					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
 				}
 				break;
 			case Param.ART_ANUM_BSR:
 				Param.checkSR(p1off);
-				bytes[index--] = (byte) p1off;
+				bytes[index -- ] = (byte) p1off;
 				break;
 			case Param.ART_ASR:
 				Param.checkSR(p1num);
-				bytes[index--] = (byte) p1num;
+				bytes[index -- ] = (byte) p1num;
 				break;
 			case Param.ART_ASR_BNUM:
 				Param.checkSR(p1num);
-				bytes[index--] = (byte) p1num;
+				bytes[index -- ] = (byte) p1num;
 				break;
 			case Param.ART_ASR_BREG:
 				Param.checkSR(p1num);
-				bytes[index--] = (byte) p1num;
+				bytes[index -- ] = (byte) p1num;
 				break;
 			case Param.ART_ASR_BSR:
 				Param.checkSR(p1num);
 				Param.checkSR(p1off);
-				bytes[index--] = (byte) p1num;
-				bytes[index--] = (byte) p1off;
+				bytes[index -- ] = (byte) p1num;
+				bytes[index -- ] = (byte) p1off;
 				break;
 			default:
 				throw new InternalError("unknown art: " + p1art);
@@ -651,37 +645,36 @@ public class PrimitiveAssembler {
 			case Param.ART_ANUM:
 				break;
 			case Param.ART_ANUM_BNUM:
-				if (!supressWarn) {
-					System.err.println(
-							"[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
+				if ( !supressWarn) {
+					System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
 				}
 				break;
 			case Param.ART_ANUM_BREG:
-				if (!supressWarn) {
+				if ( !supressWarn) {
 					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
 				}
 				break;
 			case Param.ART_ANUM_BSR:
 				Param.checkSR(p2off);
-				bytes[index--] = (byte) p2off;
+				bytes[index -- ] = (byte) p2off;
 				break;
 			case Param.ART_ASR:
 				Param.checkSR(p2num);
-				bytes[index--] = (byte) p2num;
+				bytes[index -- ] = (byte) p2num;
 				break;
 			case Param.ART_ASR_BNUM:
 				Param.checkSR(p2num);
-				bytes[index--] = (byte) p2num;
+				bytes[index -- ] = (byte) p2num;
 				break;
 			case Param.ART_ASR_BREG:
 				Param.checkSR(p2num);
-				bytes[index--] = (byte) p2num;
+				bytes[index -- ] = (byte) p2num;
 				break;
 			case Param.ART_ASR_BSR:
 				Param.checkSR(p2num);
 				Param.checkSR(p2off);
-				bytes[index--] = (byte) p2num;
-				bytes[index--] = (byte) p2off;
+				bytes[index -- ] = (byte) p2num;
+				bytes[index -- ] = (byte) p2off;
 				break;
 			default:
 				throw new InternalError("unknown art: " + p2art);
@@ -694,9 +687,8 @@ public class PrimitiveAssembler {
 				convertLong(bytes, p1num);
 				break;
 			case Param.ART_ANUM_BNUM:
-				if (!supressWarn) {
-					System.err.println(
-							"[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
+				if ( !supressWarn) {
+					System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
 				}
 				out.write(bytes, 0, bytes.length);
 				convertLong(bytes, p1num);
@@ -704,7 +696,7 @@ public class PrimitiveAssembler {
 				convertLong(bytes, p1off);
 				break;
 			case Param.ART_ANUM_BREG:
-				if (!supressWarn) {
+				if ( !supressWarn) {
 					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
 				}
 				out.write(bytes, 0, bytes.length);
@@ -733,9 +725,8 @@ public class PrimitiveAssembler {
 				convertLong(bytes, p2num);
 				break;
 			case Param.ART_ANUM_BNUM:
-				if (!supressWarn) {
-					System.err.println(
-							"[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
+				if ( !supressWarn) {
+					System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
 				}
 				out.write(bytes, 0, bytes.length);
 				convertLong(bytes, p2num);
@@ -743,7 +734,7 @@ public class PrimitiveAssembler {
 				convertLong(bytes, p2off);
 				break;
 			case Param.ART_ANUM_BREG:
-				if (!supressWarn) {
+				if ( !supressWarn) {
 					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
 				}
 				out.write(bytes, 0, bytes.length);
@@ -768,5 +759,5 @@ public class PrimitiveAssembler {
 			}
 		}
 	}
-
+	
 }

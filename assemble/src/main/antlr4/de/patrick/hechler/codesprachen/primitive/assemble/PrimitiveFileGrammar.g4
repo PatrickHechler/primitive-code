@@ -7,6 +7,7 @@
  grammar PrimitiveFileGrammar;
 
  @parser::header {
+import java.util.function.*;
 import java.util.*;
 import java.io.*;
 import de.patrick.hechler.codesprachen.primitive.assemble.enums.*;
@@ -30,7 +31,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  }
 
  parse
- [long startpos, boolean align, Map<String,Long> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener]
+ [long startpos, boolean align, Map<String,Long> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp]
  returns
  [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are]
  @init {
@@ -60,7 +61,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  :
  	(
  		anything
- 		[enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener]
+ 		[enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp]
  		{
  			enabled = $anything.enabled;
  			disabledSince = $anything.disabledSince;
@@ -83,7 +84,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  anything
- [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener]
+ [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp]
  returns
  [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, Long> constants, List<Command> commands, Map<String, Long> labels, long pos, Object zusatz, AssembleRuntimeException are]
  @init {
@@ -109,12 +110,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  			CONSTANT_POOL
  			{
 				if ($enabled) {
+					ecp.accept($CONSTANT_POOL.getLine(), $CONSTANT_POOL.getStartIndex());
 					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), $constants, $labels, $pos, $align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), $CONSTANT_POOL.getStartIndex(), be, errorHandler, errorListener);
 					$align = cc.align;
 					$pos += cc.pool.length();
 					$commands.add(cc.pool);
 					$zusatz = cc;
-					$are = cc.are;
+					$are = Command.getConvertedCP_ARE(cc.are, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), $CONSTANT_POOL.getStartIndex());
 				}
 			}
 
@@ -1780,7 +1782,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 
  DEC_FP_NUM
  :
- 	'-'? [0-9]* '.' [0-9]*
+ 	'-'? [0-9]+ '.' [0-9]*
+ 	| [0-9]* '.' [0-9]+
  ;
 
  OCT_NUM

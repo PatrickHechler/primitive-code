@@ -85,6 +85,24 @@ public class Command {
 		}
 	}
 	
+	public static AssembleRuntimeException getConvertedCP_ARE(AssembleRuntimeException are, int line, int posInLine, int charPos) {
+		if (are == null) {
+			return null;
+		} else {
+			AssembleRuntimeException result = new AssembleRuntimeException(are.line + line, are.line == 0 ? are.posInLine : are.posInLine + posInLine, are.length,
+					charPos + are.charPos, are.getMessage(), are.getCause());
+			Throwable[] sup = are.getSuppressed();
+			if (sup != null) {
+				for (Throwable s : sup) {
+					if ( ! (s instanceof AssembleRuntimeException)) {
+						result.addSuppressed(getConvertedCP_ARE((AssembleRuntimeException) s, line, posInLine, charPos));
+					}
+				}
+			}
+			return result;
+		}
+	}
+	
 	public long length() {
 		switch (cmd) {
 		case CMD_ADD:
