@@ -706,7 +706,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		~':'
  		|
  		(
- 			'|' ~'>'
+ 			':' ~'>'
  		)
  	)* ':>'
  ;

@@ -33,13 +33,13 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  parse
  [long startpos, boolean align, Map<String,Long> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp]
  returns
- [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are]
+ [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are, boolean enabled]
  @init {
  	$pos = startpos;
  	$labels = new HashMap<>();
  	$commands = new ArrayList<>();
  	$commands.add(new CompilerCommandCommand(align ? CompilerCommand.align : CompilerCommand.notAlign));
- 	boolean enabled = true;
+ 	$enabled = true;
  	int disabledSince = -1;
  	/* 
  	 * use alll three states of the Boolean class (true, false, null)
@@ -61,9 +61,9 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  :
  	(
  		anything
- 		[enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp]
+ 		[$enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp]
  		{
- 			enabled = $anything.enabled;
+ 			$enabled = $anything.enabled;
  			disabledSince = $anything.disabledSince;
 			stack = $anything.stack;
 			align = $anything.align;
@@ -151,8 +151,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  					{
  						if ($enabled) {
 	 						$constants.put($CONSTANT.getText().substring(1), $constBerechnungDirekt.num);
+		 					$are = $constBerechnungDirekt.are;
  						}
-	 					$are = $constBerechnungDirekt.are;
  					}
 
  				)
@@ -170,205 +170,205 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		)
  		|
  		(
- 			(
- 				CD_ALIGN
- 				{
- 					if ($enabled) {
-						$commands.add(new CompilerCommandCommand(CompilerCommand.align));
-						$align = true;
- 					}
+ 			CD_ALIGN
+ 			{
+				if ($enabled) {
+					$commands.add(new CompilerCommandCommand(CompilerCommand.align));
+					$align = true;
 				}
+			}
 
- 			)
- 			|
- 			(
- 				CD_NOT_ALIGN
- 				{
- 					if ($enabled) {
-						$commands.add(new CompilerCommandCommand(CompilerCommand.notAlign));
-						$align = false;
- 					}
-				}
-
- 			)
  		)
  		|
  		(
- 			(
- 				IF comment* constBerechnungDirekt [$pos, $constants, be]
- 				{
-	 				boolean top = $constBerechnungDirekt.num != 0;
-	 				$stack.add(top);
-	 				if ($enabled && !top) {
-	 					$disabledSince = $stack.size();
-	 					$enabled = false;
-	 				}
+ 			CD_NOT_ALIGN
+ 			{
+				if ($enabled) {
+					$commands.add(new CompilerCommandCommand(CompilerCommand.notAlign));
+					$align = false;
+				}
+			}
+
+ 		)
+ 		|
+ 		(
+ 			IF comment* constBerechnungDirekt [$pos, $constants, be]
+ 			{
+ 				boolean top = $constBerechnungDirekt.num != 0;
+ 				$stack.add(top);
+ 				if ($enabled) {
 	 				$are = $constBerechnungDirekt.are;
-	 			}
-
- 			)
- 			|
- 			(
- 				ELSE_IF comment* constBerechnungDirekt [$pos, $constants, be]
- 				{
-	 				if ($enabled) {
+	 				if (!top) {
 	 					$disabledSince = $stack.size();
 	 					$enabled = false;
 	 				}
-	 				if ($stack.get($stack.size()-1) != null) {
-	 					if ($stack.get($stack.size()-1)) {
-	 						$stack.set($stack.size()-1, null);
-	 					} else if ($constBerechnungDirekt.num != 0L) {
-	 						$stack.set($stack.size()-1, true);
-	 					}
-	 				}
+ 				}
+ 			}
+
+ 		)
+ 		|
+ 		(
+ 			ELSE_IF comment* constBerechnungDirekt [$pos, $constants, be]
+ 			{
+ 				if ($enabled) {
+ 					$disabledSince = $stack.size();
+ 					$enabled = false;
+ 				}
+ 				if ($stack.get($stack.size()-1) != null) {
+ 					if ($stack.get($stack.size()-1)) {
+ 						$stack.set($stack.size()-1, null);
+ 					} else if ($constBerechnungDirekt.num != 0L) {
+ 						$stack.set($stack.size()-1, true);
+ 					}
+ 				}
+ 				if ($enabled || $disabledSince == $stack.size()) {
 	 				$are = $constBerechnungDirekt.are;
-	 			}
+ 				}
+ 			}
 
- 			)
- 			|
- 			(
- 				ELSE
- 				{
-	 				if ($enabled) {
-	 					$disabledSince = $stack.size();
-	 					$enabled = false;
+ 		)
+ 		|
+ 		(
+ 			ELSE
+ 			{
+ 				if ($enabled) {
+ 					$disabledSince = $stack.size();
+ 					$enabled = false;
+ 				}
+				{
+	 				Boolean top = $stack.get($stack.size()-1);
+	 				if (top != null && !top) {
+	 					$stack.set($stack.size()-1,true);
 	 				}
-					{
-		 				Boolean top = $stack.get($stack.size()-1);
-		 				if (top != null && !top) {
-		 					$stack.set($stack.size()-1,true);
-		 				}
-	 				}
- 	 			}
+ 				}
+ 			}
 
- 			)
- 			|
+ 		)
+ 		|
+ 		(
+ 			ENDIF
+ 			{
+				if ($disabledSince == $stack.size()) {
+					$enabled = true;
+					$disabledSince = -1;
+				}
+				$stack.remove($stack.size()-1);
+ 			}
+
+ 		)
+ 		|
+ 		(
+ 			ERROR comment*
+ 			{StringBuilder msg = new StringBuilder();}
+
  			(
- 				ENDIF
- 				{
-					if ($disabledSince == $stack.size()) {
-						$enabled = true;
-						$disabledSince = -1;
-					}
-					$stack.remove($stack.size()-1);
-	 			}
-
- 			)
- 			|
- 			(
- 				ERROR comment*
- 				{StringBuilder msg = new StringBuilder();}
-
  				(
  					(
- 						(
- 							constBerechnungDirekt [$pos, $constants, be]
- 							{
-								msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($constBerechnungDirekt.num);
-								$are = $constBerechnungDirekt.are;
-							}
-
- 						)
- 						|
- 						(
- 							ERROR_MESSAGE_START comment*
- 							(
- 								comment*
- 								(
- 									STR_STR
- 									{
-										if ($enabled) {
-											String str = $STR_STR.getText();
-											str = str.substring(1, str.length() - 1);
-											char[] chars = new char[str.length()];
-											char[] strchars = str.toCharArray();
-											int ci, si;
-											for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
-												if (strchars[si] == '\\') {
-													si ++;
-													switch(strchars[si]){
-													case 'r':
-														chars[ci] = '\r';
-														break;
-													case 'n':
-														chars[ci] = '\n';
-														break;
-													case 't':
-														chars[ci] = '\t';
-														break;
-													case '0':
-														chars[ci] = '\0';
-														break;
-													case '\\':
-														chars[ci] = '\\';
-														break;
-													default:
-														if (be) {
-															throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: char='" + strchars[si] + "'");
-														} else if ($are != null) {
-															$are.addSuppressed(new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: char='" + strchars[si] + "'"));
-														} else {
-															$are = new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: char='" + strchars[si] + "'");
-														}
-													}
-												} else {
-													chars[ci] = strchars[si];
-												}
-											}
-											msg.append(chars, 0, ci);
-										}
-									}
-
- 								)
- 								|
- 								(
- 									constBerechnungDirekt [$pos, $constants, be]
- 									{
-										msg.append($constBerechnungDirekt.num);
-										if ($constBerechnungDirekt.are != null) {
-											if ($are != null) {
-												$are.addSuppressed($constBerechnungDirekt.are);
-											} else {
-												$are = $constBerechnungDirekt.are;
-											}
-										}
-									}
-
- 								)
- 								|
- 								(
- 									ERROR_HEX comment* constBerechnungDirekt [$pos, $constants, be]
- 									{
-										if ($constBerechnungDirekt.are != null) {
-											if ($are != null) {
-												$are.addSuppressed($constBerechnungDirekt.are);
-											} else {
-												$are = $constBerechnungDirekt.are;
-											}
-										}
-										msg.append(Long.toHexString($constBerechnungDirekt.num));
-									}
-
- 								)
- 							)* comment* ERROR_MESSAGE_END
- 						)
- 					)?
- 				)
- 				{
- 					$zusatz = msg.toString();
-					if ($enabled) {
-						if (be) {
-							throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), (String) $zusatz);
-						} else if ($are != null) {
-							$are.addSuppressed(new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), (String) $zusatz));
-						} else {
-							$are = new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), (String) $zusatz);
+ 						constBerechnungDirekt [$pos, $constants, be]
+ 						{
+							msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($constBerechnungDirekt.num);
+							$are = $constBerechnungDirekt.are;
 						}
+
+ 					)
+ 					|
+ 					(
+ 						ERROR_MESSAGE_START comment*
+ 						(
+ 							comment*
+ 							(
+ 								STR_STR
+ 								{
+									if ($enabled) {
+										String str = $STR_STR.getText();
+										str = str.substring(1, str.length() - 1);
+										char[] chars = new char[str.length()];
+										char[] strchars = str.toCharArray();
+										int ci, si;
+										for (ci = 0, si = 0; si < strchars.length; ci ++, si ++) {
+											if (strchars[si] == '\\') {
+												si ++;
+												switch(strchars[si]){
+												case 'r':
+													chars[ci] = '\r';
+													break;
+												case 'n':
+													chars[ci] = '\n';
+													break;
+												case 't':
+													chars[ci] = '\t';
+													break;
+												case '0':
+													chars[ci] = '\0';
+													break;
+												case '\\':
+													chars[ci] = '\\';
+													break;
+												default:
+													if (be) {
+														throw new AssembleError($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: char='" + strchars[si] + "'");
+													} else if ($are != null) {
+														$are.addSuppressed(new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: char='" + strchars[si] + "'"));
+													} else {
+														$are = new AssembleRuntimeException($STR_STR.getLine(), $STR_STR.getCharPositionInLine() + si - 1, 2, $STR_STR.getStartIndex(), "illegal escaped character: char='" + strchars[si] + "'");
+													}
+												}
+											} else {
+												chars[ci] = strchars[si];
+											}
+										}
+										msg.append(chars, 0, ci);
+									}
+								}
+
+ 							)
+ 							|
+ 							(
+ 								constBerechnungDirekt [$pos, $constants, be]
+ 								{
+									msg.append($constBerechnungDirekt.num);
+									if ($constBerechnungDirekt.are != null) {
+										if ($are != null) {
+											$are.addSuppressed($constBerechnungDirekt.are);
+										} else {
+											$are = $constBerechnungDirekt.are;
+										}
+									}
+								}
+
+ 							)
+ 							|
+ 							(
+ 								ERROR_HEX comment* constBerechnungDirekt [$pos, $constants, be]
+ 								{
+									if ($constBerechnungDirekt.are != null) {
+										if ($are != null) {
+											$are.addSuppressed($constBerechnungDirekt.are);
+										} else {
+											$are = $constBerechnungDirekt.are;
+										}
+									}
+									msg.append(Long.toHexString($constBerechnungDirekt.num));
+								}
+
+ 							)
+ 						)* comment* ERROR_MESSAGE_END
+ 					)
+ 				)?
+ 			)
+ 			{
+				$zusatz = msg.toString();
+				if ($enabled) {
+					if (be) {
+						throw new AssembleError($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), (String) $zusatz);
+					} else if ($are != null) {
+						$are.addSuppressed(new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), (String) $zusatz));
+					} else {
+						$are = new AssembleRuntimeException($ERROR.getLine(), $ERROR.getCharPositionInLine(), $ERROR.getStopIndex() - $ERROR.getStartIndex() + 1, $ERROR.getStartIndex(), (String) $zusatz);
 					}
 				}
+			}
 
- 			)
  		)
  		|
  		(
@@ -556,10 +556,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		{
  			$num = ($num != 0L) ? $c2.num : $c3.num;
  			if ($c2.are != null) {
- 				if ($c1.are != null) {
- 					$are.addSuppressed($c1.are);
+ 				if ($are != null) {
+ 					$are.addSuppressed($c2.are);
  				} else {
- 					$are = $c1.are;
+ 					$are = $c2.are;
  				}
  			}
  		}
@@ -583,10 +583,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		{
  			$num |= $c2.num;
  			if ($c2.are != null) {
- 				if ($c1.are != null) {
- 					$are.addSuppressed($c1.are);
+ 				if ($are != null) {
+ 					$are.addSuppressed($c2.are);
  				} else {
- 					$are = $c1.are;
+ 					$are = $c2.are;
  				}
  			}
  		}
@@ -609,10 +609,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		{
  			$num ^= $c2.num;
  			if ($c2.are != null) {
- 				if ($c1.are != null) {
- 					$are.addSuppressed($c1.are);
+ 				if ($are != null) {
+ 					$are.addSuppressed($c2.are);
  				} else {
- 					$are = $c1.are;
+ 					$are = $c2.are;
  				}
  			}
  		}
@@ -634,10 +634,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		{
  			$num &= $c2.num;
  			if ($c2.are != null) {
- 				if ($c1.are != null) {
- 					$are.addSuppressed($c1.are);
+ 				if ($are != null) {
+ 					$are.addSuppressed($c2.are);
  				} else {
- 					$are = $c1.are;
+ 					$are = $c2.are;
  				}
  			}
  		}
@@ -673,15 +673,15 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		) comment* c2 = constBerechnungRelativeTests [pos, constants, be]
  		{
  			if (gleich) {
- 				$num = ($num == $c1.num) ? 1L : 0L;
+ 				$num = ($num == $c2.num) ? 1L : 0L;
  			} else {
- 				$num = ($num == $c1.num) ? 0L : 1L;
+ 				$num = ($num == $c2.num) ? 0L : 1L;
  			}
  			if ($c2.are != null) {
- 				if ($c1.are != null) {
- 					$are.addSuppressed($c1.are);
+ 				if ($are != null) {
+ 					$are.addSuppressed($c2.are);
  				} else {
- 					$are = $c1.are;
+ 					$are = $c2.are;
  				}
  			}
  		}
@@ -734,25 +734,25 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		{
 			switch(type) {
 			case type_gr:
-				$num = ($num > $c1.num) ? 1L : 0L;
+				$num = ($num > $c2.num) ? 1L : 0L;
 				break;
 			case type_gr_gl:
-				$num = ($num >= $c1.num) ? 1L : 0L;
+				$num = ($num >= $c2.num) ? 1L : 0L;
 				break;
 			case type_kl_gl:
-				$num = ($num <= $c1.num) ? 1L : 0L;
+				$num = ($num <= $c2.num) ? 1L : 0L;
 				break;
 			case type_kl:
-				$num = ($num < $c1.num) ? 1L : 0L;
+				$num = ($num < $c2.num) ? 1L : 0L;
 				break;
 			default:
 				throw new InternalError("unknown type=" + type);
 			}
  			if ($c2.are != null) {
- 				if ($c1.are != null) {
- 					$are.addSuppressed($c1.are);
+ 				if ($are != null) {
+ 					$are.addSuppressed($c2.are);
  				} else {
- 					$are = $c1.are;
+ 					$are = $c2.are;
  				}
  			}
 		}
@@ -810,10 +810,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 				throw new InternalError("unknown type=" + type);
  			}
  			if ($c2.are != null) {
- 				if ($c1.are != null) {
- 					$are.addSuppressed($c1.are);
+ 				if ($are != null) {
+ 					$are.addSuppressed($c2.are);
  				} else {
- 					$are = $c1.are;
+ 					$are = $c2.are;
  				}
  			}
  		}
@@ -854,10 +854,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  				$num -= $c2.num;
  			}
  			if ($c2.are != null) {
- 				if ($c1.are != null) {
- 					$are.addSuppressed($c1.are);
+ 				if ($c2.are != null) {
+ 					$are.addSuppressed($c2.are);
  				} else {
- 					$are = $c1.are;
+ 					$are = $c2.are;
  				}
  			}
  		}
@@ -915,10 +915,10 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 				throw new InternalError("unknown type=" + type);
  			}
  			if ($c2.are != null) {
- 				if ($c1.are != null) {
- 					$are.addSuppressed($c1.are);
+ 				if ($are != null) {
+ 					$are.addSuppressed($c2.are);
  				} else {
- 					$are = $c1.are;
+ 					$are = $c2.are;
  				}
  			}
  		}
