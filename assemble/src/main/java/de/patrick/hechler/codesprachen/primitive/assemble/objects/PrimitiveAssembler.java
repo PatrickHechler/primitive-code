@@ -434,6 +434,7 @@ public class PrimitiveAssembler {
 				case CMD_RASH:
 				case CMD_RLSH:
 				case CMD_LSH:
+				case CMD_LEA:
 				case CMD_MOV:
 				case CMD_ADD:
 				case CMD_ADDC:

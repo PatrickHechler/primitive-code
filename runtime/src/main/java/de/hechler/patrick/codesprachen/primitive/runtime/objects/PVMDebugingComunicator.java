@@ -13,21 +13,21 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PVMDebugingComunicator {
-	
+
 	private final Process pvm;
 	private final InputStream in;
 	private final OutputStream out;
-	
+
 	public PVMDebugingComunicator(Process pvm, Socket sok) throws IOException {
 		this(pvm, sok.getInputStream(), sok.getOutputStream());
 	}
-	
+
 	public PVMDebugingComunicator(Process pvm, InputStream in, OutputStream out) {
 		this.pvm = pvm;
 		this.in = in;
 		this.out = out;
 	}
-	
+
 	/**
 	 * exit the pvm with exit-code 0<br>
 	 */
@@ -58,7 +58,8 @@ public class PVMDebugingComunicator {
 	 */
 	private static final int PVM_DEBUG_GET_SNAPSHOT = 4;
 	/**
-	 * send a snapshot to the pvm and let the pvm overwrite the current state with the snapshot<br>
+	 * send a snapshot to the pvm and let the pvm overwrite the current state with
+	 * the snapshot<br>
 	 * snapshot includes: see {@link #PVM_DEBUG_GET_SNAPSHOT}
 	 * 
 	 * @see #PVM_DEBUG_GET_SNAPSHOT
@@ -113,8 +114,8 @@ public class PVMDebugingComunicator {
 	private static final int PVM_DEBUG_GET_IGNORE_BREAKPOINTS = 11;
 	/**
 	 * if all breakpoints should be ignored or not.<br>
-	 * ignoring the breakpoints does not delete the breakpoints, and adding breakpoints will not
-	 * change<br>
+	 * ignoring the breakpoints does not delete the breakpoints, and adding
+	 * breakpoints will not change<br>
 	 * this property.<br>
 	 * receive:<br>
 	 * 0x01: if breakpoints should not be ignored<br>
@@ -126,44 +127,43 @@ public class PVMDebugingComunicator {
 	 */
 	private static final int PVM_DEBUG_EXECUTE_NEXT = 13;
 	/**
-	 * allocate memory:
-	 * 64-bit: size
-	 * the pvm responses with:
-	 * 64-bit: the PNTR
+	 * allocate memory: 64-bit: size the pvm responses with: 64-bit: the PNTR
 	 */
 	private static final int PVM_DEBUG_ALLOCMEM = 14;
 	/**
-	 * reallocate memory:
-	 * 64-bit: PNTR
-	 * 64-bit: newsize
-	 * the pvm responses with:
+	 * reallocate memory: 64-bit: PNTR 64-bit: newsize the pvm responses with:
 	 * 64-bit: the new PNTR
 	 */
 	private static final int PVM_DEBUG_REALLOCMEM = 15;
 	/**
-	 * free memory:
-	 * 64-bit: PNTR
+	 * free memory: 64-bit: PNTR
 	 */
 	private static final int PVM_DEBUG_FREEMEM = 16;
 	/**
-	 * let the pvm run until an error occurs, exit gets called or of course if a breakpoint triggers
-	 * (only if the breakpoints are enabled)
+	 * let the pvm run until an error occurs, exit gets called or of course if a
+	 * breakpoint triggers (only if the breakpoints are enabled)
 	 */
 	private static final int PVM_DEBUG_EXECUTE_UNTIL_ERROR_OR_END_CALL = 17;
 	/**
-	 * let the pvm run until it would exit or an breakpoint triggers (an overwritten exit will still be
-	 * executed, since it does not exit the pvm)
+	 * let the pvm run until it would exit or an breakpoint triggers (an overwritten
+	 * exit will still be executed, since it does not exit the pvm)
 	 */
 	private static final int PVM_DEBUG_EXECUTE_UNTIL_EXIT = 18;
 	/**
-	 * if not other specified the pvm will response with this message<br>
+	 * if not other specified the pvm will response with this message
 	 */
 	private static final int EXECUTED_COMMAND = 0x7F;
-	
+	/**
+	 * returned from the socket when the pvm terminated and thus closed the
+	 * socket<br>
+	 * this constant holds simply the end-of-file/stream constant {@code -1}
+	 */
+	private static final int PVM_TERMINATED = -1;
+
 	public void exit() throws IOException, RuntimeException {
 		out.write(PVM_DEBUG_EXIT);
 		if (pvm == null) {
-			checkedRead( -1);// socket automatically closed on exit
+			checkedRead(PVM_TERMINATED);// socket automatically closed on exit
 		} else {
 			try {
 				int exitVal = pvm.waitFor();
@@ -175,31 +175,31 @@ public class PVMDebugingComunicator {
 			}
 		}
 	}
-	
+
 	public void pause() throws IOException {
 		out.write(PVM_DEBUG_PAUSE);
-		checkedRead(EXECUTED_COMMAND);
+		checkedRead(EXECUTED_COMMAND, PVM_TERMINATED);
 	}
-	
+
 	public void run() throws IOException {
 		out.write(PVM_DEBUG_RUN);
-		checkedRead(EXECUTED_COMMAND);
+		checkedRead(EXECUTED_COMMAND, PVM_TERMINATED);
 	}
-	
+
 	public PVMSnapshot getSnapshot() throws IOException {
 		out.write(PVM_DEBUG_GET_SNAPSHOT);
 		byte[] bytes = new byte[PVMSnapshot.PVM_SNAPSHOT_LENGH];
-		in.read(bytes, 0, bytes.length);
+		read(bytes);
 		return PVMSnapshot.create(bytes);
 	}
-	
+
 	public void setSnapshot(PVMSnapshot sn) throws IOException {
 		out.write(PVM_DEBUG_SET_SNAPSHOT);
 		byte[] bytes = sn.toBytes();
 		out.write(bytes);
 		checkedRead(EXECUTED_COMMAND);
 	}
-	
+
 	public void getMem(long PNTR, byte[] bytes, int off, int len) throws IOException {
 		if (len <= 0) {
 			throw new IllegalArgumentException("len <= 0: len=" + len);
@@ -216,12 +216,13 @@ public class PVMDebugingComunicator {
 			out.write(zw);
 		}
 		if (checkedRead(1, 0) == 1) {
-			in.read(bytes, off, len);
+			read(bytes, off, len);
 		} else {
-			throw new RuntimeException("the pvm had an error by reading the memory PNTR=0x" + Long.toHexString(PNTR) + " len=" + len);
+			throw new RuntimeException(
+					"the pvm had an error by reading the memory PNTR=0x" + Long.toHexString(PNTR) + " len=" + len);
 		}
 	}
-	
+
 	public void setMem(long PNTR, byte[] bytes, int off, int len) throws IOException {
 		out.write(PVM_DEBUG_SET_MEMORY);
 		byte[] zw = new byte[16];
@@ -233,13 +234,13 @@ public class PVMDebugingComunicator {
 			throw new IOException("the pvm had an error by setting the memory (PNTR=" + PNTR + " len=" + len + ")");
 		}
 	}
-	
+
 	public long[] getBreakpoints() throws IOException {
 		byte[] bytes = new byte[8];
 		out.write(PVM_DEBUG_GET_BREAKPOINTS);
-		List <Long> ls = new ArrayList <>();
+		List<Long> ls = new ArrayList<>();
 		while (true) {
-			in.read(bytes);
+			read(bytes);
 			long l = convertByteArrToLong(bytes, 0);
 			if (l == -1L) {
 				break;
@@ -248,11 +249,11 @@ public class PVMDebugingComunicator {
 		}
 		return convertLongListToLongArr(ls);
 	}
-	
+
 	public void addBreakpoints(long[] add) throws IOException {
 		out.write(PVM_DEBUG_ADD_BREAKPOINTS);
 		byte[] bytes = new byte[8];
-		for (int i = 0; i < add.length; i ++ ) {
+		for (int i = 0; i < add.length; i++) {
 			convertLongToByteArr(bytes, 0, add[i]);
 			out.write(bytes);
 		}
@@ -260,11 +261,11 @@ public class PVMDebugingComunicator {
 		out.write(bytes);
 		checkedRead(EXECUTED_COMMAND);
 	}
-	
+
 	public void removeBreakpoints(long[] rem) throws IOException {
 		out.write(PVM_DEBUG_REMOVE_BREAKPOINTS);
 		byte[] bytes = new byte[8];
-		for (int i = 0; i < rem.length; i ++ ) {
+		for (int i = 0; i < rem.length; i++) {
 			convertLongToByteArr(bytes, 0, rem[i]);
 			out.write(bytes);
 		}
@@ -272,50 +273,40 @@ public class PVMDebugingComunicator {
 		out.write(bytes);
 		checkedRead(EXECUTED_COMMAND);
 	}
-	
+
 	public boolean isBreakpointsEnabled() throws IOException {
 		out.write(PVM_DEBUG_GET_IGNORE_BREAKPOINTS);
 		return checkedRead(1, 0) == 1;
 	}
-	
+
 	public void setBreakpointsEnabled(boolean enabled) throws IOException {
 		out.write(PVM_DEBUG_SET_IGNORE_BREAKPOINTS);
 		out.write(enabled ? 1 : 0);
 		checkedRead(EXECUTED_COMMAND);
 	}
-	
-	private int checkedRead(int... expect) throws IOException {
-		int r = in.read();
-		for (int i = 0; i < expect.length; i ++ ) {
-			if (r == expect[i]) {
-				return r;
-			}
-		}
-		throw new RuntimeException("did not read the expected things: read=" + r + " expected=" + Arrays.toString(expect));
-	}
-	
+
 	public void executeNext() throws IOException {
 		out.write(PVM_DEBUG_EXECUTE_NEXT);
 		checkedRead(EXECUTED_COMMAND);
 	}
-	
+
 	public long memalloc(long size) throws IOException {
 		out.write(PVM_DEBUG_ALLOCMEM);
 		byte[] bytes = new byte[8];
-		in.read(bytes);
+		read(bytes);
 		return convertByteArrToLong(bytes, 0);
 	}
-	
+
 	public long realloc(long PNTR, long newsize) throws IOException {
 		out.write(PVM_DEBUG_REALLOCMEM);
 		byte[] bytes = new byte[16];
 		convertLongToByteArr(bytes, 0, PNTR);
 		convertLongToByteArr(bytes, 8, newsize);
 		out.write(bytes);
-		in.read(bytes, 0, 8);
+		read(bytes, 0, 8);
 		return convertByteArrToLong(bytes, 0);
 	}
-	
+
 	public void free(long PNTR) throws IOException {
 		out.write(PVM_DEBUG_FREEMEM);
 		byte[] bytes = new byte[8];
@@ -323,24 +314,24 @@ public class PVMDebugingComunicator {
 		out.write(bytes);
 		checkedRead(EXECUTED_COMMAND);
 	}
-	
+
 	public void executeUntilErrorOrExitCall() throws IOException {
 		out.write(PVM_DEBUG_EXECUTE_UNTIL_ERROR_OR_END_CALL);
 		checkedRead(EXECUTED_COMMAND);
 	}
-	
+
 	public void executeUntilExit() throws IOException {
 		out.write(PVM_DEBUG_EXECUTE_UNTIL_EXIT);
 		checkedRead(EXECUTED_COMMAND);
 	}
-	
+
 	public void executeUntilExit(long[] programm, boolean stopAlsoOnErrors) throws IOException {
 		PVMSnapshot sn = getSnapshot();
 		sn.ip = memalloc(programm.length * 8);
 		setSnapshot(sn);
 		byte[] bytes = new byte[programm.length * 8];
-		for (int i = 0; i < programm.length; i ++ ) {
-			bytes[ (8 * i)] = (byte) programm[i];
+		for (int i = 0; i < programm.length; i++) {
+			bytes[(8 * i)] = (byte) programm[i];
 			bytes[1 + (8 * i)] = (byte) (programm[i] << 8);
 			bytes[2 + (8 * i)] = (byte) (programm[i] << 16);
 			bytes[3 + (8 * i)] = (byte) (programm[i] << 24);
@@ -356,7 +347,7 @@ public class PVMDebugingComunicator {
 			executeUntilExit();
 		}
 	}
-	
+
 	public void detach() {
 		try {
 			out.close();
@@ -364,5 +355,42 @@ public class PVMDebugingComunicator {
 		} catch (IOException e) {
 		}
 	}
-	
+
+	private int checkedRead(int... expect) throws IOException {
+		int r = in.read();
+		for (int i = 0; i < expect.length; i++) {
+			if (r == expect[i]) {
+				return r;
+			}
+		}
+		byte[] bytes = new byte[in.available()];
+		IOException suppress = null;
+		try {
+			read(bytes);
+		} catch (IOException err) {
+			suppress = err;
+
+		}
+		RuntimeException re = new RuntimeException("did not read the expected things: read=" + r + " expected="
+				+ Arrays.toString(expect) + " behind that was: " + Arrays.toString(bytes));
+		if (suppress != null) {
+			re.addSuppressed(suppress);
+		}
+		throw re;
+	}
+
+	private void read(byte[] bytes) throws IOException {
+		read(bytes, 0, bytes.length);
+	}
+
+	private void read(byte[] bytes, int off, int len) throws IOException {
+		for (int need = len; need > 0; need -= len) {
+			int r = in.read(bytes, off, len);
+			if (r == -1) {
+				throw new IOException("end of stream reached too early! len=" + len + " read=" + need + " read: "
+						+ Arrays.toString(Arrays.copyOfRange(bytes, off, off + need)));
+			}
+		}
+	}
+
 }

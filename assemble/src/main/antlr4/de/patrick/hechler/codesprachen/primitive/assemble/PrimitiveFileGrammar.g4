@@ -127,6 +127,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 
  			command [$pos, $constants, $labels, $align, be]
  			{
+ 				$zusatz = $command.c;
  				if ($enabled && $command.c != null) {
  					$commands.add($command.c);
  					try {
@@ -210,19 +211,28 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		(
  			ELSE_IF comment* constBerechnungDirekt [$pos, $constants, be]
  			{
- 				if ($enabled) {
- 					$disabledSince = $stack.size();
- 					$enabled = false;
- 				}
- 				if ($stack.get($stack.size()-1) != null) {
- 					if ($stack.get($stack.size()-1)) {
- 						$stack.set($stack.size()-1, null);
- 					} else if ($constBerechnungDirekt.num != 0L) {
- 						$stack.set($stack.size()-1, true);
- 					}
- 				}
- 				if ($enabled || $disabledSince == $stack.size()) {
-	 				$are = $constBerechnungDirekt.are;
+ 				if ($stack.isEmpty()) {
+ 					assert $enabled;
+					if (be) {
+						throw new AssembleError($ENDIF.getLine(), $ENDIF.getCharPositionInLine(), $ENDIF.getStopIndex() - $ENDIF.getStartIndex(), $ENDIF.getStartIndex(), "endif without previos if");
+					} else {
+						$are = new AssembleRuntimeException($ENDIF.getLine(), $ENDIF.getCharPositionInLine(), $ENDIF.getStopIndex() - $ENDIF.getStartIndex(), $ENDIF.getStartIndex(), "endif without previos if");
+					}
+ 				} else {
+	 				if ($enabled) {
+	 					$disabledSince = $stack.size();
+	 					$enabled = false;
+	 				}
+	 				if ($stack.get($stack.size()-1) != null) {
+	 					if ($stack.get($stack.size()-1)) {
+	 						$stack.set($stack.size()-1, null);
+	 					} else if ($constBerechnungDirekt.num != 0L) {
+	 						$stack.set($stack.size()-1, true);
+	 					}
+	 				}
+	 				if ($enabled || $disabledSince == $stack.size()) {
+		 				$are = $constBerechnungDirekt.are;
+	 				}
  				}
  			}
 
@@ -231,11 +241,18 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		(
  			ELSE
  			{
- 				if ($enabled) {
- 					$disabledSince = $stack.size();
- 					$enabled = false;
- 				}
-				{
+ 				if ($stack.isEmpty()) {
+ 					assert $enabled;
+					if (be) {
+						throw new AssembleError($ENDIF.getLine(), $ENDIF.getCharPositionInLine(), $ENDIF.getStopIndex() - $ENDIF.getStartIndex(), $ENDIF.getStartIndex(), "else without previos if");
+					} else {
+						$are = new AssembleRuntimeException($ENDIF.getLine(), $ENDIF.getCharPositionInLine(), $ENDIF.getStopIndex() - $ENDIF.getStartIndex(), $ENDIF.getStartIndex(), "else without previos if");
+					}
+ 				} else {
+	 				if ($enabled) {
+	 					$disabledSince = $stack.size();
+	 					$enabled = false;
+	 				}
 	 				Boolean top = $stack.get($stack.size()-1);
 	 				if (top != null && !top) {
 	 					$stack.set($stack.size()-1,true);
@@ -248,11 +265,20 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  		(
  			ENDIF
  			{
-				if ($disabledSince == $stack.size()) {
-					$enabled = true;
-					$disabledSince = -1;
-				}
-				$stack.remove($stack.size()-1);
+ 				if ($stack.isEmpty()) {
+ 					assert $enabled;
+					if (be) {
+						throw new AssembleError($ENDIF.getLine(), $ENDIF.getCharPositionInLine(), $ENDIF.getStopIndex() - $ENDIF.getStartIndex(), $ENDIF.getStartIndex(), "endif without previos if");
+					} else {
+						$are = new AssembleRuntimeException($ENDIF.getLine(), $ENDIF.getCharPositionInLine(), $ENDIF.getStopIndex() - $ENDIF.getStartIndex(), $ENDIF.getStartIndex(), "endif without previos if");
+					}
+ 				} else {
+					if ($disabledSince == $stack.size()) {
+						$enabled = true;
+						$disabledSince = -1;
+					}
+					$stack.remove($stack.size()-1);
+ 				}
  			}
 
  		)
@@ -620,8 +646,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungUnd [long pos, Map<String, Long> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
+ constBerechnungUnd [long pos, Map<String, Long> constants, boolean be]
+ returns [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungGleichheit [pos, constants, be]
  	{
@@ -854,7 +880,7 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
  				$num -= $c2.num;
  			}
  			if ($c2.are != null) {
- 				if ($c2.are != null) {
+ 				if ($are != null) {
  					$are.addSuppressed($c2.are);
  				} else {
  					$are = $c2.are;
