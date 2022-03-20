@@ -14,3 +14,7 @@
 	MOV X00, 0
 	INT INT_EXIT
 	MOV [-1], 2
+
+|:
+org.eclipse.core.internal.filebuffers.SynchronizableDocument@d35d84a=primitivecodeeclipseplugin.objects.DocumentValue@626edbe0
+:>

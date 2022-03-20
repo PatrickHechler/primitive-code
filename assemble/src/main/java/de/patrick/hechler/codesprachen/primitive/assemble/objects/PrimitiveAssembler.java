@@ -6,6 +6,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -34,6 +35,8 @@ import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRun
 public class PrimitiveAssembler {
 	
 	public static final Map <String, Long> START_CONSTANTS;
+	
+	private static final byte[] INERPRETER_START = "#!/bin/pvm        --pmc\n".getBytes(StandardCharsets.US_ASCII);
 	
 	static {
 		Map <String, Long> startConstants = new LinkedHashMap <>();// linked for faster iteration
@@ -68,17 +71,18 @@ public class PrimitiveAssembler {
 		startConstants.put("INT_SOCKET_SERVER_LISTEN", (Long) 28L);
 		startConstants.put("INT_SOCKET_SERVER_ACCEPT", (Long) 29L);
 		startConstants.put("INT_RANDOM", (Long) 30L);
-		startConstants.put("INT_FUNC_MEMORY_COPY", (Long) 31L);
-		startConstants.put("INT_FUNC_MEMORY_MOVE", (Long) 32L);
-		startConstants.put("INT_FUNC_MEMORY_BSET", (Long) 33L);
-		startConstants.put("INT_FUNC_MEMORY_SET", (Long) 34L);
-		startConstants.put("INT_FUNC_STRING_LENGTH", (Long) 35L);
-		startConstants.put("INT_FUNC_NUMBER_TO_STRING", (Long) 36L);
-		startConstants.put("INT_FUNC_FPNUMBER_TO_STRING", (Long) 37L);
-		startConstants.put("INT_FUNC_STRING_TO_NUMBER", (Long) 38L);
-		startConstants.put("INT_FUNC_STRING_TO_FPNUMBER", (Long) 39L);
-		startConstants.put("INT_FUNC_STRING_FORMAT", (Long) 40L);
-		startConstants.put("INTERRUPT_COUNT", (Long) 41L);
+		startConstants.put("INT_MEMORY_COPY", (Long) 31L);
+		startConstants.put("INT_MEMORY_MOVE", (Long) 32L);
+		startConstants.put("INT_MEMORY_BSET", (Long) 33L);
+		startConstants.put("INT_MEMORY_SET", (Long) 34L);
+		startConstants.put("INT_STRING_LENGTH", (Long) 35L);
+		startConstants.put("INT_NUMBER_TO_STRING", (Long) 36L);
+		startConstants.put("INT_FPNUMBER_TO_STRING", (Long) 37L);
+		startConstants.put("INT_STRING_TO_NUMBER", (Long) 38L);
+		startConstants.put("INT_STRING_TO_FPNUMBER", (Long) 39L);
+		startConstants.put("INT_STRING_FORMAT", (Long) 40L);
+		startConstants.put("INT_LOAD_FILE", (Long) 41L);
+		startConstants.put("INTERRUPT_COUNT", (Long) 42L);
 		startConstants.put("MAX_VALUE", (Long) 0x7FFFFFFFFFFFFFFFL);
 		startConstants.put("MIN_VALUE", (Long) ( -0x8000000000000000L));
 		startConstants.put("STD_IN", (Long) 0L);
@@ -96,6 +100,7 @@ public class PrimitiveAssembler {
 	private final boolean supressWarn;
 	private final boolean defaultAlign;
 	private final boolean exitOnError;
+	private final boolean interpreterStart;
 	
 	public PrimitiveAssembler(OutputStream out) {
 		this(out, false);
@@ -111,10 +116,15 @@ public class PrimitiveAssembler {
 	}
 	
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings, boolean defaultAlign, boolean exitOnError) {
+		this(out, supressWarnings, defaultAlign, true, true);
+	}
+	
+	public PrimitiveAssembler(OutputStream out, boolean supressWarnings, boolean defaultAlign, boolean exitOnError, boolean interpreterStart) {
 		this.out = out;
 		this.supressWarn = supressWarnings;
 		this.defaultAlign = defaultAlign;
 		this.exitOnError = exitOnError;
+		this.interpreterStart = interpreterStart;
 	}
 	
 	public ParseContext preassemble(InputStream in) throws IOException, AssembleError {
@@ -390,6 +400,9 @@ public class PrimitiveAssembler {
 	}
 	
 	public void assemble(List <Command> cmds, Map <String, Long> labels) throws IOException {
+		if (this.interpreterStart) {
+			this.out.write(INERPRETER_START);
+		}
 		long pos = 0;
 		boolean align = defaultAlign;
 		Command last = null, cmd;
@@ -400,7 +413,7 @@ public class PrimitiveAssembler {
 				if (mod != 0) {
 					int add = 8 - mod;
 					byte[] bytes = new byte[add];
-					out.write(bytes);
+					out.write(bytes, 0, bytes.length);
 					pos += add;
 				}
 			}
@@ -409,6 +422,22 @@ public class PrimitiveAssembler {
 				byte[] bytes = new byte[8];
 				bytes[0] = (byte) cmd.cmd.num;
 				switch (cmd.cmd) {
+				case CMD_MVAD:
+					if (cmd.p3.art != Param.ART_ANUM) {
+						throw new IllegalStateException("offset must be a constant! (cmd: CALO)");
+					}
+					writeTwoParam(cmd, bytes);
+					convertLong(bytes, cmd.p3.num);
+					out.write(bytes, 0, bytes.length);
+					break;
+				case CMD_CALO:
+					if (cmd.p2.art != Param.ART_ANUM) {
+						throw new IllegalStateException("offset must be a constant! (cmd: CALO)");
+					}
+					writeOneParam(cmd, bytes);
+					convertLong(bytes, cmd.p2.num);
+					out.write(bytes, 0, bytes.length);
+					break;
 				case CMD_RET:
 				case CMD_IRET:
 					break;// nothing more to write
@@ -419,6 +448,8 @@ public class PrimitiveAssembler {
 				case CMD_INC:
 				case CMD_FPTN:
 				case CMD_NTFP:
+				case CMD_ISNAN:
+				case CMD_ISINF:
 					if (cmd.p1.art == Param.ART_ANUM) {
 						throw new IllegalStateException("no constants allowed!");
 					}
@@ -522,7 +553,7 @@ public class PrimitiveAssembler {
 		}
 		out.flush();
 	}
-	
+
 	private void writeOneParam(Command cmd, byte[] bytes) throws IOException {
 		assert cmd.p1 != null : "I need a first Param!";
 		assert cmd.p2 == null : "I can't have a second Param!";

@@ -384,11 +384,12 @@ public class PVMDebugingComunicator {
 	}
 
 	private void read(byte[] bytes, int off, int len) throws IOException {
-		for (int need = len; need > 0; need -= len) {
-			int r = in.read(bytes, off, len);
+		final int origOff = off;
+		for (int need = len, r; need > 0; need -= r, off += r) {
+			r = in.read(bytes, off, need);
 			if (r == -1) {
-				throw new IOException("end of stream reached too early! len=" + len + " read=" + need + " read: "
-						+ Arrays.toString(Arrays.copyOfRange(bytes, off, off + need)));
+				throw new IOException("end of stream reached too early! len=" + len + " stillNeed=" + need + " read: "
+						+ Arrays.toString(Arrays.copyOfRange(bytes, origOff, len - need)));
 			}
 		}
 	}

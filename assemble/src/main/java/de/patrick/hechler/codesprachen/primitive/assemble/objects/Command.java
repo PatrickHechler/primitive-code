@@ -23,11 +23,17 @@ public class Command {
 	public final Commands cmd;
 	public final Param p1;
 	public final Param p2;
+	public final Param p3;
 	
 	public Command(Commands cmd, Param p1, Param p2) {
+		this(cmd, p1, p2, null);
+	}
+	
+	public Command(Commands cmd, Param p1, Param p2, Param p3) {
 		this.cmd = cmd;
 		this.p1 = p1;
 		this.p2 = p2;
+		this.p3 = p3;
 	}
 	
 	public static ConstsContext parseCP(String cp, Map <String, Long> constants, Map <String, Long> labels, long pos, boolean align, int line, int posInLine, int charPos,

@@ -15,6 +15,13 @@ public class PVMSnapshot {
 	public static final long PVM_SNAPSHOT_STATUS_CARRY = 0x0000000000000004L;
 	public static final long PVM_SNAPSHOT_STATUS_ZERO = 0x0000000000000008L;
 
+	public static final int IP_INDEX = 0;
+	public static final int SP_INDEX = 1;
+	public static final int STATUS_INDEX = 2;
+	public static final int INTCNT_INDEX = 3;
+	public static final int INTP_INDEX = 4;
+	public static final int XNN_SUB = 5;
+
 	public long ip;
 	public long sp;
 	public long status;
@@ -46,18 +53,41 @@ public class PVMSnapshot {
 
 	public long getRegister(int reg) {
 		switch (reg) {
-		case 0:
+		case IP_INDEX:
 			return this.ip;
-		case 1:
+		case SP_INDEX:
 			return this.sp;
-		case 2:
+		case STATUS_INDEX:
 			return this.status;
-		case 3:
+		case INTCNT_INDEX:
 			return this.intcnt;
-		case 4:
+		case INTP_INDEX:
 			return this.intp;
 		default:
-			return this.x[reg - 5];
+			return this.x[reg - XNN_SUB];
+		}
+	}
+
+	public void setRegister(int reg, long value) {
+		switch (reg) {
+		case IP_INDEX:
+			this.ip = value;
+			break;
+		case SP_INDEX:
+			this.sp = value;
+			break;
+		case STATUS_INDEX:
+			this.status = value;
+			break;
+		case INTCNT_INDEX:
+			this.intcnt = value;
+			break;
+		case INTP_INDEX:
+			this.intp = value;
+			break;
+		default:
+			this.x[reg - XNN_SUB] = value;
+			break;
 		}
 	}
 
