@@ -4,8 +4,6 @@ TARGET = pvm
 
 LDFLAGS = -lpthread
 
-BIN	= $(PROJEXT_ROOT)bin/
-
 CC = gcc
 
 TARGET_COPY_PATH = /mnt/c/Users/Patrick/git/primitive-code/assemble/
@@ -25,7 +23,7 @@ else
     $(error Build mode $(BUILD_MODE) not supported by this Makefile)
 endif
 
-BINARY = $(BIN)$(BUILD_MODE)/
+BINARY = $(PROJEXT_ROOT)bin/$(BUILD_MODE)/
 
 OBJS = $(BINARY)pvm_main.o $(BINARY)pvm_signal_handler.o $(BINARY)pvm_virtual_mashine.o $(BINARY)pvm_debug.o $(BINARY)hashset.o
 
