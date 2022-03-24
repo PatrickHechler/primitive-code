@@ -4,6 +4,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -31,6 +32,7 @@ public class PrimitiveCodeAssembleMain {
 		String inFile = null;
 		String outFile = null;
 		boolean sw = false;
+		boolean ne = false;
 		try {
 			for (int i = 0; i < args.length; i ++ ) {
 				switch (args[i].toLowerCase()) {
@@ -61,6 +63,10 @@ public class PrimitiveCodeAssembleMain {
 				case "-suppress-warns":
 					sw = true;
 					break;
+				case "-ne":
+				case "-no-export":
+					ne = true;
+					break;
 				default:
 					crash(args, i, "unknown arg: " + args[i]);
 				}
@@ -77,7 +83,17 @@ public class PrimitiveCodeAssembleMain {
 				cs = StandardCharsets.UTF_8;
 			}
 			input = new InputStreamReader(new FileInputStream(inFile), cs);
-			asm = new PrimitiveAssembler(new FileOutputStream(outFile), sw);
+			if (ne) {
+				asm = new PrimitiveAssembler(new FileOutputStream(outFile), sw);
+			} else {
+				String exportFile;
+				if (outFile.endsWith(".pmc")) {
+					exportFile = outFile.substring(0, outFile.length() - 3) + "psf";
+				} else {
+					exportFile = outFile + ".psf";
+				}
+				asm = new PrimitiveAssembler(new FileOutputStream(outFile), new PrintStream(new FileOutputStream(exportFile), true, "UTF-8"), sw);
+			}
 		} catch (Exception e) {
 			crash(args, -1, e.getMessage());
 		}
@@ -141,6 +157,12 @@ public class PrimitiveCodeAssembleMain {
 		// }
 		// sw = true;
 		// break;
+		System.out.println("-ne");
+		System.out.println("or");
+		System.out.println("-no-export");
+		System.out.println("  to suppress exporting export symbols");
+		// case "-ne":
+		// case "-no-export":
 	}
 	
 }

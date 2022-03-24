@@ -1,9 +1,13 @@
 package de.patrick.hechler.codesprachen.primitive.assemble.objects;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
@@ -13,6 +17,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Scanner;
 import java.util.function.BiConsumer;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
@@ -25,6 +30,8 @@ import org.antlr.v4.runtime.NoViableAltException;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.IntervalSet;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
+
+import com.google.common.io.NullOutputStream;
 
 import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarLexer;
 import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarParser;
@@ -97,6 +104,7 @@ public class PrimitiveAssembler {
 	}
 	
 	private final OutputStream out;
+	private final PrintStream exportOut;
 	private final boolean supressWarn;
 	private final boolean defaultAlign;
 	private final boolean exitOnError;
@@ -111,16 +119,33 @@ public class PrimitiveAssembler {
 		
 	}
 	
+	public PrimitiveAssembler(OutputStream out, PrintStream exportOut, boolean supressWarnings) {
+		this(out, exportOut, supressWarnings, true);
+	}
+	
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings, boolean defaultAlign) {
 		this(out, supressWarnings, defaultAlign, true);
+	}
+	
+	public PrimitiveAssembler(OutputStream out, PrintStream exportOut, boolean supressWarnings, boolean defaultAlign) {
+		this(out, exportOut, supressWarnings, defaultAlign, true);
 	}
 	
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings, boolean defaultAlign, boolean exitOnError) {
 		this(out, supressWarnings, defaultAlign, true, true);
 	}
 	
+	public PrimitiveAssembler(OutputStream out, PrintStream exportOut, boolean supressWarnings, boolean defaultAlign, boolean exitOnError) {
+		this(out, exportOut, supressWarnings, defaultAlign, true, true);
+	}
+	
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings, boolean defaultAlign, boolean exitOnError, boolean interpreterStart) {
+		this(out, null, supressWarnings, defaultAlign, exitOnError, interpreterStart);
+	}
+	
+	public PrimitiveAssembler(OutputStream out, PrintStream exportOut, boolean supressWarnings, boolean defaultAlign, boolean exitOnError, boolean interpreterStart) {
 		this.out = out;
+		this.exportOut = exportOut;
 		this.supressWarn = supressWarnings;
 		this.defaultAlign = defaultAlign;
 		this.exitOnError = exitOnError;
@@ -156,7 +181,7 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants) throws IOException, AssembleError {
-		return preassemble(antlrin, new HashMap <>(START_CONSTANTS), true);
+		return preassemble(antlrin, new HashMap <>(predefinedConstants), true);
 	}
 	
 	public ParseContext preassemble(ANTLRInputStream antlrin, Map <String, Long> predefinedConstants, boolean bailError) throws IOException, AssembleError {
@@ -397,6 +422,64 @@ public class PrimitiveAssembler {
 	
 	public void assemble(PrimitiveFileGrammarParser.ParseContext parsed) throws IOException {
 		assemble(parsed.commands, parsed.labels);
+		export(parsed.exports);
+	}
+	
+	public void export(Map <String, Long> exports) {
+		if (this.exportOut == null) {
+			return;
+		}
+		exports.forEach((symbol, value) -> {
+			this.exportOut.print(symbol + '=' + Long.toHexString(value).toUpperCase() + '\n');
+		});
+	}
+	
+	public static void readSymbols(String readFile, Boolean isSource, String prefix, Map <String, Long> startConsts, Map <String, Long> addSymbols)
+			throws IllegalArgumentException, IOException, RuntimeException {
+		// Map<String, Long> overwritten = new HashMap<>();
+		prefix = prefix == null ? "" : prefix;
+		boolean iss;
+		if (isSource != null) {
+			iss = isSource;
+		} else {
+			if (readFile.endsWith(".psc")) {
+				iss = true;
+			} else if (readFile.endsWith(".psf")) {
+				iss = false;
+			} else {
+				throw new IllegalArgumentException("Source/Symbol not set, but readFile is not *.psc and not *.psf! readFile='" + readFile + "'");
+			}
+		}
+		try (InputStream input = new FileInputStream(readFile)) {
+			InputStream in = input;
+			if (iss) {
+				ByteArrayOutputStream baos = new ByteArrayOutputStream();
+				PrimitiveAssembler asm = new PrimitiveAssembler(new NullOutputStream(), new PrintStream(baos, true, "UTF-8"), false, true, false, true);
+				ParseContext pc = asm.preassemble(in, startConsts);
+				asm.export(pc.exports);
+				in = new ByteArrayInputStream(baos.toByteArray());
+			}
+			try (Scanner sc = new Scanner(in, "UTF-8")) {
+				while (sc.hasNextLine()) {
+					String line = sc.next().trim();
+					if (line.isEmpty()) {
+						continue;
+					}
+					final String regex = "^#?([a-zA-Z_0-9]+)\\s*=\\s*([0-9a-fa-F]+)$";
+					if ( !line.matches(regex)) {
+						throw new RuntimeException("line does not match regex: line='" + line + "', regex='" + regex + "'");
+					}
+					String constName = line.replaceFirst(regex, "$1");
+					long value = Long.parseUnsignedLong(line.replaceFirst(regex, "$2"), 16);
+					String name = prefix + constName;
+					/* Long old = */ addSymbols.put(name, value);
+					// if (old != null) {
+					// overwritten.put(name, old);
+					// }
+				}
+			}
+		}
+		// return overwritten;
 	}
 	
 	public void assemble(List <Command> cmds, Map <String, Long> labels) throws IOException {
@@ -553,7 +636,7 @@ public class PrimitiveAssembler {
 		}
 		out.flush();
 	}
-
+	
 	private void writeOneParam(Command cmd, byte[] bytes) throws IOException {
 		assert cmd.p1 != null : "I need a first Param!";
 		assert cmd.p2 == null : "I can't have a second Param!";

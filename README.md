@@ -80,7 +80,7 @@ the assembler language for the Primitive-Virtual-Machine
 * except for the `--POS--` constant all other constants can be overwritten and removed
 * to define constants write a `'#'` as prefix
 * to load the constant of an other file
-    * `~READ_SYM <FILE> [...] ;`
+    * `~READ_SYM "<FILE>" [...] >`
         * [...]: no, one or multiple of the following:
             * `#<CONSTANT_PREFIX>`
                 * to set before all read constants the given prefix
