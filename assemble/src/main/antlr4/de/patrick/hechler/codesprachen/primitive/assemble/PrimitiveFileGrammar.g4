@@ -145,13 +145,25 @@ returns
 		)
 		|
 		(
-			CONSTANT comment*
+			{String constName = null;}
+
+			(
+				(
+					CONSTANT
+					{constName = $CONSTANT.getText().substring(1);}
+				)
+				|
+				(
+					EXPORT_CONSTANT
+					{constName = $EXPORT_CONSTANT.getText().substring(5);}
+				)
+			) comment*
 			(
 				(
 					constBerechnungDirekt [$pos, $constants, be & $enabled]
 					{
  						if ($enabled) {
-	 						$constants.put($CONSTANT.getText().substring(1), $constBerechnungDirekt.num);
+	 						$constants.put(constName, $constBerechnungDirekt.num);
 		 					$are = $constBerechnungDirekt.are;
  						}
  					}
@@ -368,7 +380,8 @@ returns
 							)
 							|
 							(
-								ERROR_HEX comment* constBerechnungDirekt [$pos, $constants, be & $enabled]
+								ERROR_HEX comment* constBerechnungDirekt
+								[$pos, $constants, be & $enabled]
 								{
 									if ($constBerechnungDirekt.are != null) {
 										if ($are != null) {
@@ -1907,6 +1920,31 @@ ERROR
 POS
 :
 	'--POS--'
+;
+
+MY_CONSTS
+:
+	'--MY_CONSTS--'
+;
+
+SOURCE
+:
+	'--SOURCE--'
+;
+
+SYMBOL
+:
+	'--SYMBOL--'
+;
+
+ADD_CONSTANT
+:
+	'#ADD~' NAME
+;
+
+EXPORT_CONSTANT
+:
+	'#EXP~' NAME
 ;
 
 EXIST_CONSTANT

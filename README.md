@@ -65,10 +65,10 @@ the assembler language for the Primitive-Virtual-Machine
 ## NUMBERS:
 
 * numbers can be assigned to constants, used as a parameter or inside of a parameter as offset
-* to write a decimal number it is possible to write just the number.
-    * to write a negative decimal number put a `-` before the number
+* to use a decimal number it is possible to write just the number.
+    * to use a negative decimal number put a `-` before the number
 * it is possible to specify the number system, by putting the correct keyword before the number:
-    * `for binary (base 2): `BIN-`
+    * for binary (base 2): `BIN-`
     * for octal (base 8): `OCT-`
     * for decimal (base 10): `DEC-`
     * for hexadecimal (base 16): `HEX-`
@@ -79,6 +79,32 @@ the assembler language for the Primitive-Virtual-Machine
 
 * except for the `--POS--` constant all other constants can be overwritten and removed
 * to define constants write a `'#'` as prefix
+* to load the constant of an other file
+    * `~READ_SYM <FILE> [...] ;`
+        * [...]: no, one or multiple of the following:
+            * `#<CONSTANT_PREFIX>`
+                * to set before all read constants the given prefix
+            * `--MY_CONSTS--`
+                * to not use the default constant, but the constants which are now set
+                * only possible, when the file is a primitive source code file
+            * `#ADD~<NAME> <VALUE>`
+                * to add the a constant with the given name and value to the start-constants of the file
+                * only possible, when the file is a primitive source code file
+            * `--SOURCE--`
+                * to set the type of the file to a primitive source code file
+            * `--SYMBOL--`
+                * to set the type of the file to a primitive symbol file
+        * if the file type has not been set, the file must end with one of these:
+            * `.psf`: is assumed to be a primitive symbol file
+            * `.psc`: is assumed to be a primitive source code file
+			* any other end will cause an error
+* to set define an export constant
+    * `#EXP~<NAME> <VALUE>`
+    * an export constant can be used like a normal constant
+    * when an export constant is deleted or overwritten like an normal constant, this will not affect the export
+    * to delete an export constant, write `#EXP~<NAME> ~DEL`
+        * then it will be deleted as normal and as export constant
+    * to change a normal constant to an export constant, just redefine it: `#EXP~<NAME> <NAME>`
 * predefined constants:
 <pre><code>        --POS-- :                           the actual length of the binary code in bytes
         INT_ERRORS_ILLEGAL_INTERRUPT :      0
@@ -133,8 +159,8 @@ the assembler language for the Primitive-Virtual-Machine
         FP_MAX_VALUE :                 UHEX-7FEFFFFFFFFFFFFF
         FP_MIN_VALUE :                 UHEX-0000000000000001
         FP_POS_INFINITY :              UHEX-7FF0000000000000
-        FP_NEG_INFINITY :              UHEX-FFF0000000000000</code></pre>`
-
+        FP_NEG_INFINITY :              UHEX-FFF0000000000000</code></pre>
+        
 ## STRINGS:
 * a string is an array of multiple characters of the `UTF-8` encoding
 * a string ends with a `'\0'` character
@@ -1199,5 +1225,8 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P1.OFF_NUM]`
 
 ## not (yet) there/supported
+* already planed
+    * read file symbols
+    * export file symbols
 * execute other programs
 * Multi-threading/-progressing
