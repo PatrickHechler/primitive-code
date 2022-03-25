@@ -1,4 +1,4 @@
-package de.patrick.hechler.codesprachen.primitive.assemble;
+package de.hechler.patrick.codesprachen.primitive.assemble;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -9,7 +9,7 @@ import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
-import de.patrick.hechler.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
+import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
 
 public class PrimitiveCodeAssembleMain {
 	

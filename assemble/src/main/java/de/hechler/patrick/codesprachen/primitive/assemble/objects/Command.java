@@ -1,4 +1,4 @@
-package de.patrick.hechler.codesprachen.primitive.assemble.objects;
+package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
 import java.util.Map;
 
@@ -11,12 +11,12 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.IntervalSet;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
-import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarLexer;
-import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser;
-import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
-import de.patrick.hechler.codesprachen.primitive.assemble.enums.Commands;
-import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
-import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
+import de.hechler.patrick.codesprachen.primitive.assemble.ConstantPoolGrammarLexer;
+import de.hechler.patrick.codesprachen.primitive.assemble.ConstantPoolGrammarParser;
+import de.hechler.patrick.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
+import de.hechler.patrick.codesprachen.primitive.assemble.enums.Commands;
+import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
+import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 
 public class Command {
 	

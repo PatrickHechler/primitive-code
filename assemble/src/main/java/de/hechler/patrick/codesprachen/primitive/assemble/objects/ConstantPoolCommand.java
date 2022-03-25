@@ -1,4 +1,4 @@
-package de.patrick.hechler.codesprachen.primitive.assemble.objects;
+package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
 import java.io.IOException;
 import java.io.OutputStream;

@@ -19,7 +19,6 @@ import de.hechler.patrick.zeugs.check.anotations.CheckClass;
 import de.hechler.patrick.zeugs.check.anotations.End;
 import de.hechler.patrick.zeugs.check.anotations.MethodParam;
 import de.hechler.patrick.zeugs.check.anotations.Start;
-import de.patrick.hechler.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
 
 @CheckClass(disabled = true)//checks are not jet updated to the new version
 public class PrimitiveAssemblerChecker extends Checker {

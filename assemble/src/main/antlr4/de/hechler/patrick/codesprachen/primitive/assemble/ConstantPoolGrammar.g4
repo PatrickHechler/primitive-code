@@ -7,10 +7,10 @@
 import java.util.*;
 import java.math.*;
 import java.nio.charset.*;
-import de.patrick.hechler.codesprachen.primitive.assemble.enums.*;
-import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
-import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
-import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
+import de.hechler.patrick.codesprachen.primitive.assemble.enums.*;
+import de.hechler.patrick.codesprachen.primitive.assemble.objects.*;
+import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
+import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 }
 
  @parser::members {

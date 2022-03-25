@@ -1,4 +1,4 @@
-package de.patrick.hechler.codesprachen.primitive.assemble.objects;
+package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,13 +31,12 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.misc.IntervalSet;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 
-import com.google.common.io.NullOutputStream;
-
-import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarLexer;
-import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarParser;
-import de.patrick.hechler.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ParseContext;
-import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
-import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
+import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarLexer;
+import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser;
+import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ParseContext;
+import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
+import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
+import de.hechler.patrick.objects.NullOutputStream;
 
 public class PrimitiveAssembler {
 	

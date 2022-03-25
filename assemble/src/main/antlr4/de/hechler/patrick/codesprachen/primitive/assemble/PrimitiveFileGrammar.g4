@@ -10,12 +10,12 @@
 import java.util.function.*;
 import java.util.*;
 import java.io.*;
-import de.patrick.hechler.codesprachen.primitive.assemble.enums.*;
-import de.patrick.hechler.codesprachen.primitive.assemble.objects.*;
-import de.patrick.hechler.codesprachen.primitive.assemble.objects.Param.*;
-import de.patrick.hechler.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
-import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleError;
-import de.patrick.hechler.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
+import de.hechler.patrick.codesprachen.primitive.assemble.enums.*;
+import de.hechler.patrick.codesprachen.primitive.assemble.objects.*;
+import de.hechler.patrick.codesprachen.primitive.assemble.objects.Param.*;
+import de.hechler.patrick.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
+import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
+import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 }
 
  @parser::members {

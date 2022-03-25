@@ -1,6 +1,6 @@
-package de.patrick.hechler.codesprachen.primitive.assemble.objects;
+package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
-import de.patrick.hechler.codesprachen.primitive.assemble.enums.CompilerCommand;
+import de.hechler.patrick.codesprachen.primitive.assemble.enums.CompilerCommand;
 
 public class CompilerCommandCommand extends Command {
 	
