@@ -24,10 +24,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.dialogs.WizardNewFileCreationPage;
 
+import de.hechler.patrick.codesprachen.primitive.assemble.enums.PrimitiveFileTypes;
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.DisasmMode;
 import de.hechler.patrick.codesprachen.primitive.disassemble.objects.PrimitiveDisassembler;
-import de.hechler.patrick.codesprachen.primitive.eclplugin.enums.PrimitiveFileTypes;
 import de.hechler.patrick.objects.NullOutputStream;
 
 public class PrimitiveImportWizardPage extends WizardNewFileCreationPage {

@@ -72,7 +72,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  }
 
  parse
- [long startpos, boolean align, Map<String,Long> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, PrimitiveAssembler asm, ANTLRInputStream antlrin]
+ [long startpos, boolean align, Map<String,Long> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles]
  returns
  [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are, boolean enabled, Map<String, Long> exports]
  @init {
@@ -103,7 +103,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  :
  	(
  		anything
- 		[$enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp, $exports, asm, antlrin]
+ 		[$enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp, $exports, asm, antlrin, $thisFile, $readFiles]
  		{
  			$enabled = $anything.enabled;
  			disabledSince = $anything.disabledSince;
@@ -127,7 +127,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  anything
- [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, Map<String, Long> exports_, PrimitiveAssembler asm, ANTLRInputStream antlrin]
+ [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, Map<String, Long> exports_, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles]
  returns
  [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, Long> constants, List<Command> commands, Map<String, Long> labels, long pos, Object zusatz, AssembleRuntimeException are, Map<String, Long> exports]
  @init {
@@ -343,7 +343,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				if ($enabled) {
 	 				addConsts.putAll(useMyConsts ? $constants : PrimitiveAssembler.START_CONSTANTS);
 	 				try {
-		 				AssembleRuntimeException sare = asm.readSymbols(readFile, isSource, prefix, addConsts, $constants, antlrin, be && $enabled, $READ_SYM);
+		 				AssembleRuntimeException sare = asm.readSymbols(readFile, isSource, prefix, addConsts, $constants, antlrin, be && $enabled, $READ_SYM, $thisFile, $readFiles);
 		 				if (sare != null) {
 							if ($are != null) {
 								$are.addSuppressed(sare);

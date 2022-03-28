@@ -21,6 +21,8 @@ public class PscContentAssistProcessor implements IContentAssistProcessor {
 
 	// @formatter:off
 	private static final List<String> NO_CONST_POOL = Arrays.asList(new String[] {
+			"~READ_SYM",
+			"~IF", "~ELSEIF", "~ELSE", "~ENDIF",
 			"MOV", "ADD", "SUB", "MUL", "DIV", "AND", "OR", "XOR", "NOT", "NEG",
 			"LSH", "RLSH", "RASH", "DEC", "INC", "JMP", "JMPEQ", "JMPNE", "JMPGT",
 			"JMPGE", "JMPLT", "JMPLE", "JMPCS", "JMPCC", "JMPZS", "JMPZC", "CALL",
@@ -66,14 +68,14 @@ public class PscContentAssistProcessor implements IContentAssistProcessor {
 		for (Iterable<?> iter : iterables) {
 			for (String complete : (Iterable<String>) iter) {
 				if (complete.startsWith(last)) {
-					result.add(new CompletionProposal(complete, offset, complete.length(), offset));
+					result.add(new CompletionProposal(complete.substring(last.length()), offset, 0, complete.length() - last.length(), null, complete, null, null));
 				}
 			}
 		}
 	}
 
 	/* @formatter:off
-		// TODO this is logic for .project file to complete on nature and project
+		// todo this is logic for .project file to complete on nature and project
 		// references. Replace with your language logic!
 		String _text = viewer.getDocument().get();
 		String natureTag = "<nature>";
@@ -103,7 +105,7 @@ public class PscContentAssistProcessor implements IContentAssistProcessor {
 		@formatter:on */
 
 	private String getLastPart(String text) {
-		int[] lasts = new int[] { //@formatter:off
+		int[] lasts = new int[]{ //@formatter:off
 			text.lastIndexOf(' '),
 			text.lastIndexOf('\t'),
 			text.lastIndexOf('\r'),
@@ -125,7 +127,7 @@ public class PscContentAssistProcessor implements IContentAssistProcessor {
 
 	@Override
 	public char[] getCompletionProposalAutoActivationCharacters() {
-		return new char[] { '@', '#' };
+		return new char[]{'@', '#'};
 	}
 
 	@Override

@@ -120,18 +120,24 @@ public class PrimNewWizard extends Wizard implements INewWizard {
 	 */
 
 	private InputStream openContentStream(PrimitiveNewFileTypes fileType) {
-		switch (fileType) {//TODO
-			case nft_empty_file:
+		String res;
+		switch (fileType) {
+			case nft_none:
+				res = "/res/none.psc";
 				break;
 			case nft_main_file:
+				res = "/res/main.psc";
 				break;
 			case nft_standalone__main_file:
+				res = "/res/standalone-main.psc";
 				break;
 			case nft_super__main_lib_file:
+				res = "/res/super-main.psc";
 				break;
 			default:
 				throw new InternalError("unknown PrimitiveNewFileType: " + fileType.name());
 		}
+		return getClass().getResourceAsStream(res);
 		// String contents =
 		// "This is the initial file contents for *.psc file that should be
 		// word-sorted in the Preview page of the multi-page editor";

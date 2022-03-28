@@ -1,4 +1,4 @@
-package de.hechler.patrick.codesprachen.primitive.eclplugin.enums;
+package de.hechler.patrick.codesprachen.primitive.assemble.enums;
 
 public enum PrimitiveFileTypes {
 

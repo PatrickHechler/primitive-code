@@ -464,7 +464,7 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 		private void preassemble(IDocument document, DocumentValue docval) {
 			docval.context = ValidatorDocumentSetupParticipant.preassemble(document.get(), docval.asm, this.errorListener, this.enterCpPool);
 		}
-
+		
 	}
 
 	private static ParseContext preassemble(String document, PrimitiveAssembler asm, ANTLRErrorListener el, BiConsumer<Integer, Integer> ecp) {

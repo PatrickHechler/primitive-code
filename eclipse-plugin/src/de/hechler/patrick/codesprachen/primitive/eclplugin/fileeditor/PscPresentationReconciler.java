@@ -162,12 +162,13 @@ public class PscPresentationReconciler extends PresentationReconciler {
 			} else if (rc instanceof NummerNoConstantContext) {
 				if (rc.getParent() instanceof ParamContext) {
 					return new Token(TA_PARAM_VAL);
+				} else if (tinf.tn.getSymbol().getType() == PrimitiveFileGrammarLexer.POS) {
+					return new Token(TA_CONSTANT);
 				} else {
 					return new Token(TA_CONST_CALC);
 				}
 			} else if (rc instanceof NummerContext || isConstCalc(rc)) {
-				if (tinf.tn.getSymbol().getType() == PrimitiveFileGrammarLexer.POS
-						|| tinf.ac.constants.containsKey(tinf.tn.getText().replaceFirst("^(#~)?([a-zA-Z_]+)$", "$2"))) {
+				if (tinf.ac.constants.containsKey(tinf.tn.getText().replaceFirst("^(#~)?([a-zA-Z_]+)$", "$2"))) {
 					return new Token(TA_CONSTANT);
 				} else {
 					return new Token(TA_CONST_CALC);
@@ -240,7 +241,7 @@ public class PscPresentationReconciler extends PresentationReconciler {
 			} else if (rc instanceof String_appendContext) {
 				return new Token(TA_STRING);
 			} else if (rc instanceof NumconstContext) {
-				if (tinf.cpac.constants.containsKey(rc.getText())) {
+				if (tinf.cpac.constants.containsKey(rc.getText()) || tinf.tn.getSymbol().getType() == PrimitiveFileGrammarLexer.POS) {
 					return new Token(TA_CONSTANT);
 				} else {
 					return new Token(TA_CONST_CALC);

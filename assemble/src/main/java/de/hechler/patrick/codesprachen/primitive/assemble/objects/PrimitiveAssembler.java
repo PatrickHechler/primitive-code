@@ -12,6 +12,8 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -36,6 +38,7 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarLexer;
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser;
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ParseContext;
+import de.hechler.patrick.codesprachen.primitive.assemble.enums.PrimitiveFileTypes;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 
@@ -121,7 +124,7 @@ public class PrimitiveAssembler {
 		this(out, supressWarnings, true);
 
 	}
-	
+
 	public PrimitiveAssembler(OutputStream out, PrintStream exportOut, File lookup, boolean supressWarnings) {
 		this(out, exportOut, lookup, supressWarnings, true);
 	}
@@ -133,7 +136,7 @@ public class PrimitiveAssembler {
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings, boolean defaultAlign) {
 		this(out, supressWarnings, defaultAlign, true);
 	}
-	
+
 	public PrimitiveAssembler(OutputStream out, PrintStream exportOut, File lookup, boolean supressWarnings, boolean defaultAlign) {
 		this(out, exportOut, lookup, supressWarnings, defaultAlign, true);
 	}
@@ -149,7 +152,7 @@ public class PrimitiveAssembler {
 	public PrimitiveAssembler(OutputStream out, PrintStream exportOut, File lookup, boolean supressWarnings, boolean defaultAlign, boolean exitOnError) {
 		this(out, exportOut, lookup, supressWarnings, defaultAlign, exitOnError, true);
 	}
-	
+
 	public PrimitiveAssembler(OutputStream out, PrintStream exportOut, boolean supressWarnings, boolean defaultAlign, boolean exitOnError) {
 		this(out, exportOut, supressWarnings, defaultAlign, exitOnError, true);
 	}
@@ -217,9 +220,19 @@ public class PrimitiveAssembler {
 		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {
 		});
 	}
-
+	
 	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener,
 			BiConsumer<Integer, Integer> enterConstPool) throws IOException, AssembleError {
+		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, "[THIS]");
+	}
+
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener,
+			BiConsumer<Integer, Integer> enterConstPool, String thisFile) throws IOException, AssembleError {
+		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile, new HashMap<>());
+	}
+	
+	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener,
+			BiConsumer<Integer, Integer> enterConstPool, String thisFile, Map<String, List<Map<String, Long>>> readFiles) throws IOException, AssembleError {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
@@ -230,19 +243,18 @@ public class PrimitiveAssembler {
 			parser.addErrorListener(errorListener);
 		}
 		try {
-			return parser.parse(0L, defaultAlign, predefinedConstants, bailError, errorHandler, errorListener, enterConstPool, this, antlrin);
+			return parser.parse(0L, defaultAlign, predefinedConstants, bailError, errorHandler, errorListener, enterConstPool, this, antlrin, thisFile, readFiles);
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
 			if (cause == null) {
 				throw e;
 			}
 			if (cause instanceof AssembleError) {
+				assert false;// this should never happen
 				AssembleError ae = (AssembleError) cause;
 				handle(ae);
 			} else if (cause instanceof AssembleRuntimeException) {
-				assert false;// this should never happen, because this exception
-								// should be suppressed by
-								// ANTLR!
+				assert false;// this should never happen, since this should not be thrown
 				AssembleRuntimeException ae = (AssembleRuntimeException) cause;
 				handle(ae);
 			} else if (cause instanceof NoViableAltException) {
@@ -254,6 +266,9 @@ public class PrimitiveAssembler {
 			} else {
 				handleUnknwon(e);
 			}
+		} catch (AssembleRuntimeException ae) {
+			assert false;// this should never happen, since this should not be thrown
+			handle(ae);
 		} catch (AssembleError ae) {
 			handle(ae);
 		} catch (Throwable t) {
@@ -466,27 +481,41 @@ public class PrimitiveAssembler {
 	}
 
 	public AssembleRuntimeException readSymbols(String readFile, Boolean isSource, String prefix, Map<String, Long> startConsts, Map<String, Long> addSymbols, ANTLRInputStream antlrin, boolean be,
-			Token tok) throws IllegalArgumentException, IOException, RuntimeException {
+			Token tok, String thisFile, Map<String, List<Map<String, Long>>> readFiles) throws IllegalArgumentException, IOException, RuntimeException {
 		// Map<String, Long> overwritten = new HashMap<>();
 		byte[] bytes = null;
 		if (readFile.equals("[THIS]")) {
 			assert isSource == null || isSource;
 			isSource = true;
 			bytes = antlrin.getText(new Interval(0, Integer.MAX_VALUE)).getBytes(StandardCharsets.UTF_8);
+			readFile = thisFile;
 		}
-		prefix = prefix == null ? "" : prefix;
 		boolean iss;
 		if (isSource != null) {
 			iss = isSource;
 		} else {
-			if (readFile.endsWith(".psc")) {
+			PrimitiveFileTypes type = PrimitiveFileTypes.getTypeFromName(readFile, PrimitiveFileTypes.primitiveMashineCode);
+			switch (type) {
+			case primitiveSourceCode:
 				iss = true;
-			} else if (readFile.endsWith(".psf")) {
+				break;
+			case primitiveSymbolFile:
 				iss = false;
-			} else {
+				break;
+			default:
 				throw new IllegalArgumentException("Source/Symbol not set, but readFile is not *.psc and not *.psf! readFile='" + readFile + "'");
 			}
 		}
+		readFiles.compute(readFile, (String key, List<Map<String, Long>> oldValue) -> {
+			List<Map<String, Long>> result;
+			if (oldValue == null) {
+				result = Arrays.asList(new HashMap<>(startConsts));
+			} else {
+				result = new ArrayList<>(oldValue);
+				result.add(new HashMap<>(startConsts));
+			}
+			return result;
+		});
 		File file = new File(readFile);
 		if (!file.isAbsolute()) {
 			file = new File(this.lookup, readFile);
@@ -527,11 +556,11 @@ public class PrimitiveAssembler {
 			}
 			String constName = line.replaceFirst(regex, "$1");
 			long value = Long.parseUnsignedLong(line.replaceFirst(regex, "$2"), 16);
-			String name = prefix + constName;
-			/* Long old = */ addSymbols.put(name, value);
-			// if (old != null) {
-			// overwritten.put(name, old);
-			// }
+			if (prefix == null) {
+				addSymbols.put(constName, value);
+			} else {
+				addSymbols.put(prefix + constName, value);
+			}
 		}
 	}
 
@@ -559,124 +588,124 @@ public class PrimitiveAssembler {
 				byte[] bytes = new byte[8];
 				bytes[0] = (byte) cmd.cmd.num;
 				switch (cmd.cmd) {
-					case CMD_MVAD:
-						if (cmd.p3.art != Param.ART_ANUM) {
-							throw new IllegalStateException("offset must be a constant! (cmd: CALO)");
-						}
-						writeTwoParam(cmd, bytes);
-						convertLong(bytes, cmd.p3.num);
-						out.write(bytes, 0, bytes.length);
-						break;
-					case CMD_CALO:
-						if (cmd.p2.art != Param.ART_ANUM) {
-							throw new IllegalStateException("offset must be a constant! (cmd: CALO)");
-						}
-						writeOneParam(cmd, bytes);
-						convertLong(bytes, cmd.p2.num);
-						out.write(bytes, 0, bytes.length);
-						break;
-					case CMD_RET:
-					case CMD_IRET:
-						break;// nothing more to write
-					case CMD_NEG:
-					case CMD_NOT:
-					case CMD_PUSH:
-					case CMD_DEC:
-					case CMD_INC:
-					case CMD_FPTN:
-					case CMD_NTFP:
-					case CMD_ISNAN:
-					case CMD_ISINF:
-						if (cmd.p1.art == Param.ART_ANUM) {
-							throw new IllegalStateException("no constants allowed!");
-						}
-					case CMD_INT:
-					case CMD_POP:
-						writeOneParam(cmd, bytes);
-						break;
-					case CMD_DIV:
-					case CMD_SWAP:
-						if (cmd.p2.art == Param.ART_ANUM) {
-							throw new IllegalStateException("no constants allowed on any param!");
-						}
-					case CMD_RASH:
-					case CMD_RLSH:
-					case CMD_LSH:
-					case CMD_LEA:
-					case CMD_MOV:
-					case CMD_ADD:
-					case CMD_ADDC:
-					case CMD_ADDFP:
-					case CMD_SUB:
-					case CMD_SUBC:
-					case CMD_SUBFP:
-					case CMD_MUL:
-					case CMD_MULFP:
-					case CMD_DIVFP:
-					case CMD_AND:
-					case CMD_OR:
-					case CMD_XOR:
-						if (cmd.p1.art == Param.ART_ANUM) {
-							throw new IllegalStateException("no constants allowed on the first param!");
-						}
-					case CMD_CMP: {
-						assert cmd.p1 != null;
-						assert cmd.p2 != null;
-						writeTwoParam(cmd, bytes);
-						break;
+				case CMD_MVAD:
+					if (cmd.p3.art != Param.ART_ANUM) {
+						throw new IllegalStateException("offset must be a constant! (cmd: CALO)");
 					}
-					case CMD_CALL:
-					case CMD_JMP:
-					case CMD_JMPCS:
-					case CMD_JMPCC:
-					case CMD_JMPEQ:
-					case CMD_JMPGE:
-					case CMD_JMPGT:
-					case CMD_JMPLE:
-					case CMD_JMPLT:
-					case CMD_JMPNE:
-					case CMD_JMPZS:
-					case CMD_JMPZC: {
-						assert cmd.p1 != null : "I need a first param!";
-						assert cmd.p2 == null : "my command can not have a second param";
-						out.write(bytes, 0, bytes.length);
-						long relativeDest;
-						if (cmd.p1.art == Param.ART_LABEL) {
-							assert cmd.p1.num == 0;
-							assert cmd.p1.off == 0;
-							final long absoluteDest = Objects.requireNonNull(labels.get(cmd.p1.label), "can't find the used label '" + cmd.p1.label + "', I know the labels '" + labels + "'");
-							assert absoluteDest >= 0;
-							relativeDest = absoluteDest - pos;
-							assert pos + relativeDest == absoluteDest;
-						} else if (cmd.p1.art == Param.ART_ANUM) {
-							assert cmd.p1.label == null;
-							assert cmd.p1.off == 0;
-							if (!supressWarn) {
-								System.err.println("[WARN]: it is not recomended to use jump/call operation with a number instead of a label as param!");
-							}
-							relativeDest = cmd.p1.num;
-						} else {
-							throw new IllegalStateException("illegal param art: " + Param.artToString(cmd.p1.art));
-						}
-						convertLong(bytes, relativeDest);
-						break;
+					writeTwoParam(cmd, bytes);
+					convertLong(bytes, cmd.p3.num);
+					out.write(bytes, 0, bytes.length);
+					break;
+				case CMD_CALO:
+					if (cmd.p2.art != Param.ART_ANUM) {
+						throw new IllegalStateException("offset must be a constant! (cmd: CALO)");
 					}
-					default:
-						throw new IllegalStateException("unknown command enum: " + cmd.cmd.name());
+					writeOneParam(cmd, bytes);
+					convertLong(bytes, cmd.p2.num);
+					out.write(bytes, 0, bytes.length);
+					break;
+				case CMD_RET:
+				case CMD_IRET:
+					break;// nothing more to write
+				case CMD_NEG:
+				case CMD_NOT:
+				case CMD_PUSH:
+				case CMD_DEC:
+				case CMD_INC:
+				case CMD_FPTN:
+				case CMD_NTFP:
+				case CMD_ISNAN:
+				case CMD_ISINF:
+					if (cmd.p1.art == Param.ART_ANUM) {
+						throw new IllegalStateException("no constants allowed!");
+					}
+				case CMD_INT:
+				case CMD_POP:
+					writeOneParam(cmd, bytes);
+					break;
+				case CMD_DIV:
+				case CMD_SWAP:
+					if (cmd.p2.art == Param.ART_ANUM) {
+						throw new IllegalStateException("no constants allowed on any param!");
+					}
+				case CMD_RASH:
+				case CMD_RLSH:
+				case CMD_LSH:
+				case CMD_LEA:
+				case CMD_MOV:
+				case CMD_ADD:
+				case CMD_ADDC:
+				case CMD_ADDFP:
+				case CMD_SUB:
+				case CMD_SUBC:
+				case CMD_SUBFP:
+				case CMD_MUL:
+				case CMD_MULFP:
+				case CMD_DIVFP:
+				case CMD_AND:
+				case CMD_OR:
+				case CMD_XOR:
+					if (cmd.p1.art == Param.ART_ANUM) {
+						throw new IllegalStateException("no constants allowed on the first param!");
+					}
+				case CMD_CMP: {
+					assert cmd.p1 != null;
+					assert cmd.p2 != null;
+					writeTwoParam(cmd, bytes);
+					break;
+				}
+				case CMD_CALL:
+				case CMD_JMP:
+				case CMD_JMPCS:
+				case CMD_JMPCC:
+				case CMD_JMPEQ:
+				case CMD_JMPGE:
+				case CMD_JMPGT:
+				case CMD_JMPLE:
+				case CMD_JMPLT:
+				case CMD_JMPNE:
+				case CMD_JMPZS:
+				case CMD_JMPZC: {
+					assert cmd.p1 != null : "I need a first param!";
+					assert cmd.p2 == null : "my command can not have a second param";
+					out.write(bytes, 0, bytes.length);
+					long relativeDest;
+					if (cmd.p1.art == Param.ART_LABEL) {
+						assert cmd.p1.num == 0;
+						assert cmd.p1.off == 0;
+						final long absoluteDest = Objects.requireNonNull(labels.get(cmd.p1.label), "can't find the used label '" + cmd.p1.label + "', I know the labels '" + labels + "'");
+						assert absoluteDest >= 0;
+						relativeDest = absoluteDest - pos;
+						assert pos + relativeDest == absoluteDest;
+					} else if (cmd.p1.art == Param.ART_ANUM) {
+						assert cmd.p1.label == null;
+						assert cmd.p1.off == 0;
+						if (!supressWarn) {
+							System.err.println("[WARN]: it is not recomended to use jump/call operation with a number instead of a label as param!");
+						}
+						relativeDest = cmd.p1.num;
+					} else {
+						throw new IllegalStateException("illegal param art: " + Param.artToString(cmd.p1.art));
+					}
+					convertLong(bytes, relativeDest);
+					break;
+				}
+				default:
+					throw new IllegalStateException("unknown command enum: " + cmd.cmd.name());
 				}
 				out.write(bytes, 0, bytes.length);
 			} else if (cmd instanceof CompilerCommandCommand) {
 				CompilerCommandCommand cdc = (CompilerCommandCommand) cmd;
 				assert 0 == cdc.length();
 				switch (cdc.directive) {
-					case align:
-						align = true;
-						break;
-					case notAlign:
-						align = false;
-						break;
-					default:
-						throw new InternalError("unknown directive: " + cdc.directive.name());
+				case align:
+					align = true;
+					break;
+				case notAlign:
+					align = false;
+					break;
+				default:
+					throw new InternalError("unknown directive: " + cdc.directive.name());
 				}
 			} else if (cmd instanceof ConstantPoolCommand) {
 				last = cmd;
@@ -698,54 +727,54 @@ public class PrimitiveAssembler {
 		long num = cmd.p1.num, off = cmd.p1.off;
 		int art = cmd.p1.art;
 		switch (art) {
-			case Param.ART_ANUM:
-				out.write(bytes, 0, bytes.length);
-				convertLong(bytes, num);
-				break;
-			case Param.ART_ANUM_BNUM:
-				if (!supressWarn) {
-					System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
-				}
-				out.write(bytes, 0, bytes.length);
-				convertLong(bytes, num);
-				out.write(bytes, 0, bytes.length);
-				convertLong(bytes, off);
-				break;
-			case Param.ART_ANUM_BREG:
-				if (!supressWarn) {
-					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
-				}
-				out.write(bytes, 0, bytes.length);
-				convertLong(bytes, num);
-				break;
-			case Param.ART_ANUM_BSR:
-				Param.checkSR(off);
-				bytes[7] = (byte) off;
-				out.write(bytes, 0, bytes.length);
-				convertLong(bytes, num);
-				break;
-			case Param.ART_ASR:
-				Param.checkSR(num);
-				bytes[7] = (byte) num;
-				break;
-			case Param.ART_ASR_BNUM:
-				Param.checkSR(num);
-				bytes[7] = (byte) num;
-				out.write(bytes, 0, bytes.length);
-				convertLong(bytes, num);
-				break;
-			case Param.ART_ASR_BREG:
-				Param.checkSR(num);
-				bytes[7] = (byte) num;
-				break;
-			case Param.ART_ASR_BSR:
-				Param.checkSR(num);
-				Param.checkSR(off);
-				bytes[6] = (byte) off;
-				bytes[7] = (byte) num;
-				break;
-			default:
-				throw new InternalError("unknown art: " + art);
+		case Param.ART_ANUM:
+			out.write(bytes, 0, bytes.length);
+			convertLong(bytes, num);
+			break;
+		case Param.ART_ANUM_BNUM:
+			if (!supressWarn) {
+				System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
+			}
+			out.write(bytes, 0, bytes.length);
+			convertLong(bytes, num);
+			out.write(bytes, 0, bytes.length);
+			convertLong(bytes, off);
+			break;
+		case Param.ART_ANUM_BREG:
+			if (!supressWarn) {
+				System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
+			}
+			out.write(bytes, 0, bytes.length);
+			convertLong(bytes, num);
+			break;
+		case Param.ART_ANUM_BSR:
+			Param.checkSR(off);
+			bytes[7] = (byte) off;
+			out.write(bytes, 0, bytes.length);
+			convertLong(bytes, num);
+			break;
+		case Param.ART_ASR:
+			Param.checkSR(num);
+			bytes[7] = (byte) num;
+			break;
+		case Param.ART_ASR_BNUM:
+			Param.checkSR(num);
+			bytes[7] = (byte) num;
+			out.write(bytes, 0, bytes.length);
+			convertLong(bytes, num);
+			break;
+		case Param.ART_ASR_BREG:
+			Param.checkSR(num);
+			bytes[7] = (byte) num;
+			break;
+		case Param.ART_ASR_BSR:
+			Param.checkSR(num);
+			Param.checkSR(off);
+			bytes[6] = (byte) off;
+			bytes[7] = (byte) num;
+			break;
+		default:
+			throw new InternalError("unknown art: " + art);
 		}
 	}
 
@@ -772,158 +801,158 @@ public class PrimitiveAssembler {
 		bytes[2] = (byte) p2art;
 		{
 			switch (p1art) {
-				case Param.ART_ANUM:
-					break;
-				case Param.ART_ANUM_BNUM:
-					if (!supressWarn) {
-						System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
-					}
-					break;
-				case Param.ART_ANUM_BREG:
-					if (!supressWarn) {
-						System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
-					}
-					break;
-				case Param.ART_ANUM_BSR:
-					Param.checkSR(p1off);
-					bytes[index--] = (byte) p1off;
-					break;
-				case Param.ART_ASR:
-					Param.checkSR(p1num);
-					bytes[index--] = (byte) p1num;
-					break;
-				case Param.ART_ASR_BNUM:
-					Param.checkSR(p1num);
-					bytes[index--] = (byte) p1num;
-					break;
-				case Param.ART_ASR_BREG:
-					Param.checkSR(p1num);
-					bytes[index--] = (byte) p1num;
-					break;
-				case Param.ART_ASR_BSR:
-					Param.checkSR(p1num);
-					Param.checkSR(p1off);
-					bytes[index--] = (byte) p1num;
-					bytes[index--] = (byte) p1off;
-					break;
-				default:
-					throw new InternalError("unknown art: " + p1art);
+			case Param.ART_ANUM:
+				break;
+			case Param.ART_ANUM_BNUM:
+				if (!supressWarn) {
+					System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
+				}
+				break;
+			case Param.ART_ANUM_BREG:
+				if (!supressWarn) {
+					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
+				}
+				break;
+			case Param.ART_ANUM_BSR:
+				Param.checkSR(p1off);
+				bytes[index--] = (byte) p1off;
+				break;
+			case Param.ART_ASR:
+				Param.checkSR(p1num);
+				bytes[index--] = (byte) p1num;
+				break;
+			case Param.ART_ASR_BNUM:
+				Param.checkSR(p1num);
+				bytes[index--] = (byte) p1num;
+				break;
+			case Param.ART_ASR_BREG:
+				Param.checkSR(p1num);
+				bytes[index--] = (byte) p1num;
+				break;
+			case Param.ART_ASR_BSR:
+				Param.checkSR(p1num);
+				Param.checkSR(p1off);
+				bytes[index--] = (byte) p1num;
+				bytes[index--] = (byte) p1off;
+				break;
+			default:
+				throw new InternalError("unknown art: " + p1art);
 			}
 			switch (p2art) {
-				case Param.ART_ANUM:
-					break;
-				case Param.ART_ANUM_BNUM:
-					if (!supressWarn) {
-						System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
-					}
-					break;
-				case Param.ART_ANUM_BREG:
-					if (!supressWarn) {
-						System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
-					}
-					break;
-				case Param.ART_ANUM_BSR:
-					Param.checkSR(p2off);
-					bytes[index--] = (byte) p2off;
-					break;
-				case Param.ART_ASR:
-					Param.checkSR(p2num);
-					bytes[index--] = (byte) p2num;
-					break;
-				case Param.ART_ASR_BNUM:
-					Param.checkSR(p2num);
-					bytes[index--] = (byte) p2num;
-					break;
-				case Param.ART_ASR_BREG:
-					Param.checkSR(p2num);
-					bytes[index--] = (byte) p2num;
-					break;
-				case Param.ART_ASR_BSR:
-					Param.checkSR(p2num);
-					Param.checkSR(p2off);
-					bytes[index--] = (byte) p2num;
-					bytes[index--] = (byte) p2off;
-					break;
-				default:
-					throw new InternalError("unknown art: " + p2art);
+			case Param.ART_ANUM:
+				break;
+			case Param.ART_ANUM_BNUM:
+				if (!supressWarn) {
+					System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
+				}
+				break;
+			case Param.ART_ANUM_BREG:
+				if (!supressWarn) {
+					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
+				}
+				break;
+			case Param.ART_ANUM_BSR:
+				Param.checkSR(p2off);
+				bytes[index--] = (byte) p2off;
+				break;
+			case Param.ART_ASR:
+				Param.checkSR(p2num);
+				bytes[index--] = (byte) p2num;
+				break;
+			case Param.ART_ASR_BNUM:
+				Param.checkSR(p2num);
+				bytes[index--] = (byte) p2num;
+				break;
+			case Param.ART_ASR_BREG:
+				Param.checkSR(p2num);
+				bytes[index--] = (byte) p2num;
+				break;
+			case Param.ART_ASR_BSR:
+				Param.checkSR(p2num);
+				Param.checkSR(p2off);
+				bytes[index--] = (byte) p2num;
+				bytes[index--] = (byte) p2off;
+				break;
+			default:
+				throw new InternalError("unknown art: " + p2art);
 			}
 		}
 		{
 			switch (p1art) {
-				case Param.ART_ANUM:
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p1num);
-					break;
-				case Param.ART_ANUM_BNUM:
-					if (!supressWarn) {
-						System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
-					}
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p1num);
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p1off);
-					break;
-				case Param.ART_ANUM_BREG:
-					if (!supressWarn) {
-						System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
-					}
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p1num);
-					break;
-				case Param.ART_ANUM_BSR:
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p1num);
-					break;
-				case Param.ART_ASR:
-					break;
-				case Param.ART_ASR_BNUM:
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p1off);
-					break;
-				case Param.ART_ASR_BREG:
-					break;
-				case Param.ART_ASR_BSR:
-					break;
-				default:
-					throw new InternalError("unknown art: " + p1art);
+			case Param.ART_ANUM:
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p1num);
+				break;
+			case Param.ART_ANUM_BNUM:
+				if (!supressWarn) {
+					System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
+				}
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p1num);
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p1off);
+				break;
+			case Param.ART_ANUM_BREG:
+				if (!supressWarn) {
+					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
+				}
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p1num);
+				break;
+			case Param.ART_ANUM_BSR:
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p1num);
+				break;
+			case Param.ART_ASR:
+				break;
+			case Param.ART_ASR_BNUM:
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p1off);
+				break;
+			case Param.ART_ASR_BREG:
+				break;
+			case Param.ART_ASR_BSR:
+				break;
+			default:
+				throw new InternalError("unknown art: " + p1art);
 			}
 			switch (p2art) {
-				case Param.ART_ANUM:
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p2num);
-					break;
-				case Param.ART_ANUM_BNUM:
-					if (!supressWarn) {
-						System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
-					}
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p2num);
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p2off);
-					break;
-				case Param.ART_ANUM_BREG:
-					if (!supressWarn) {
-						System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
-					}
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p2num);
-					break;
-				case Param.ART_ANUM_BSR:
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p2num);
-					break;
-				case Param.ART_ASR:
-					break;
-				case Param.ART_ASR_BNUM:
-					out.write(bytes, 0, bytes.length);
-					convertLong(bytes, p2off);
-					break;
-				case Param.ART_ASR_BREG:
-					break;
-				case Param.ART_ASR_BSR:
-					break;
-				default:
-					throw new InternalError("unknown art: " + p2art);
+			case Param.ART_ANUM:
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p2num);
+				break;
+			case Param.ART_ANUM_BNUM:
+				if (!supressWarn) {
+					System.err.println("[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
+				}
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p2num);
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p2off);
+				break;
+			case Param.ART_ANUM_BREG:
+				if (!supressWarn) {
+					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
+				}
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p2num);
+				break;
+			case Param.ART_ANUM_BSR:
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p2num);
+				break;
+			case Param.ART_ASR:
+				break;
+			case Param.ART_ASR_BNUM:
+				out.write(bytes, 0, bytes.length);
+				convertLong(bytes, p2off);
+				break;
+			case Param.ART_ASR_BREG:
+				break;
+			case Param.ART_ASR_BSR:
+				break;
+			default:
+				throw new InternalError("unknown art: " + p2art);
 			}
 		}
 	}
