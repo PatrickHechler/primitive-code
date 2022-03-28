@@ -72,7 +72,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  }
 
  parse
- [long startpos, boolean align, Map<String,Long> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp]
+ [long startpos, boolean align, Map<String,Long> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, PrimitiveAssembler asm, ANTLRInputStream antlrin]
  returns
  [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are, boolean enabled, Map<String, Long> exports]
  @init {
@@ -103,7 +103,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  :
  	(
  		anything
- 		[$enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp, $exports]
+ 		[$enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp, $exports, asm, antlrin]
  		{
  			$enabled = $anything.enabled;
  			disabledSince = $anything.disabledSince;
@@ -127,7 +127,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  anything
- [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, Map<String, Long> exports_]
+ [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, Map<String, Long> exports_, PrimitiveAssembler asm, ANTLRInputStream antlrin]
  returns
  [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, Long> constants, List<Command> commands, Map<String, Long> labels, long pos, Object zusatz, AssembleRuntimeException are, Map<String, Long> exports]
  @init {
@@ -262,7 +262,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				(
  					CONSTANT
  					{
- 						if (prefix != null) {
+ 						if (prefix == null) {
  							prefix = $CONSTANT.getText().substring(1);
  						} else if ($enabled) {
 							if (be) {
@@ -315,42 +315,51 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 
  					(
  						(
- 							SOURCE
+ 							sourceOrSymbol = SOURCE
  							{iss = true;}
  						)
  						|
  						(
- 							SYMBOL
+ 							sourceOrSymbol = SYMBOL
  							{iss = false;}
  						)
  					)
  					{
- 						if (isSource != null) {
+ 						if (isSource == null) {
  							isSource = iss;
  						} else if ($enabled) {
 							if (be) {
-								throw new AssembleError($CONSTANT.getLine(), $CONSTANT.getCharPositionInLine(), $CONSTANT.getStopIndex() - $CONSTANT.getStartIndex() + 1, $CONSTANT.getStartIndex(), "Source/Symbol already set old=" + (isSource ? "Source" : "Symbol") + " new="+ (isSource ? "Source":"Symbol"));
+								throw new AssembleError($sourceOrSymbol.getLine(), $sourceOrSymbol.getCharPositionInLine(), $sourceOrSymbol.getStopIndex() - $sourceOrSymbol.getStartIndex() + 1, $sourceOrSymbol.getStartIndex(), "Source/Symbol already set old=" + (isSource ? "Source" : "Symbol") + " new="+ (iss ? "Source" : "Symbol"));
 							} else if ($are != null) {
-								$are.addSuppressed(new AssembleRuntimeException($CONSTANT.getLine(), $CONSTANT.getCharPositionInLine(), $CONSTANT.getStopIndex() - $CONSTANT.getStartIndex() + 1, $CONSTANT.getStartIndex(), "Source/Symbol already set old=" + (isSource ? "Source" : "Symbol") + " new="+ (isSource ? "Source":"Symbol")));
+								$are.addSuppressed(new AssembleRuntimeException($sourceOrSymbol.getLine(), $sourceOrSymbol.getCharPositionInLine(), $sourceOrSymbol.getStopIndex() - $sourceOrSymbol.getStartIndex() + 1, $sourceOrSymbol.getStartIndex(), "Source/Symbol already set old=" + (isSource ? "Source" : "Symbol") + " new="+ (iss ? "Source" : "Symbol")));
 							} else {
-								$are = new AssembleRuntimeException($CONSTANT.getLine(), $CONSTANT.getCharPositionInLine(), $CONSTANT.getStopIndex() - $CONSTANT.getStartIndex() + 1, $CONSTANT.getStartIndex(), "Source/Symbol already set old=" + (isSource ? "Source" : "Symbol") + " new="+ (isSource ? "Source":"Symbol"));
+								$are = new AssembleRuntimeException($sourceOrSymbol.getLine(), $sourceOrSymbol.getCharPositionInLine(), $sourceOrSymbol.getStopIndex() - $sourceOrSymbol.getStartIndex() + 1, $sourceOrSymbol.getStartIndex(), "Source/Symbol already set old=" + (isSource ? "Source" : "Symbol") + " new="+ (iss ? "Source" : "Symbol"));
 							}
  						}
  					}
  				)
- 			)* KLEINER
+ 			)* GROESSER
  			{
- 				addConsts.putAll(useMyConsts ? $constants : PrimitiveAssembler.START_CONSTANTS);
- 				try {
-	 				PrimitiveAssembler.readSymbols(readFile, isSource, prefix, addConsts, $constants);
- 				} catch(Exception iae) {
-					if (be) {
-						throw new AssembleError($READ_SYM.getLine(), $READ_SYM.getCharPositionInLine(), $KLEINER.getStopIndex() - $READ_SYM.getStartIndex() + 1, $READ_SYM.getStartIndex(), iae.getMessage(), iae);
-					} else if ($are != null) {
-						$are.addSuppressed(new AssembleRuntimeException($READ_SYM.getLine(), $READ_SYM.getCharPositionInLine(), $KLEINER.getStopIndex() - $READ_SYM.getStartIndex() + 1, $READ_SYM.getStartIndex(), iae.getMessage(), iae));
-					} else {
-						$are = new AssembleRuntimeException($READ_SYM.getLine(), $READ_SYM.getCharPositionInLine(), $KLEINER.getStopIndex() - $READ_SYM.getStartIndex() + 1, $READ_SYM.getStartIndex(), iae.getMessage(), iae);
-					}
+ 				if ($enabled) {
+	 				addConsts.putAll(useMyConsts ? $constants : PrimitiveAssembler.START_CONSTANTS);
+	 				try {
+		 				AssembleRuntimeException sare = asm.readSymbols(readFile, isSource, prefix, addConsts, $constants, antlrin, be && $enabled, $READ_SYM);
+		 				if (sare != null) {
+							if ($are != null) {
+								$are.addSuppressed(sare);
+			 				} else {
+								$are = sare;
+			 				}
+		 				}
+	 				} catch(Exception iae) {
+						if (be) {
+							throw new AssembleError($READ_SYM.getLine(), $READ_SYM.getCharPositionInLine(), $GROESSER.getStopIndex() - $READ_SYM.getStartIndex() + 1, $READ_SYM.getStartIndex(), iae.getMessage(), iae);
+						} else if ($are != null) {
+							$are.addSuppressed(new AssembleRuntimeException($READ_SYM.getLine(), $READ_SYM.getCharPositionInLine(), $GROESSER.getStopIndex() - $READ_SYM.getStartIndex() + 1, $READ_SYM.getStartIndex(), iae.getMessage(), iae));
+						} else {
+							$are = new AssembleRuntimeException($READ_SYM.getLine(), $READ_SYM.getCharPositionInLine(), $GROESSER.getStopIndex() - $READ_SYM.getStartIndex() + 1, $READ_SYM.getStartIndex(), iae.getMessage(), iae);
+						}
+	 				}
  				}
  			}
  		)

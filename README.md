@@ -98,6 +98,7 @@ the assembler language for the Primitive-Virtual-Machine
             * `.psf`: is assumed to be a primitive symbol file
             * `.psc`: is assumed to be a primitive source code file
 			* any other end will cause an error
+		* if "<FILE>" is "[THIS]" the file, which is now parsed is used.
 * to set define an export constant
     * `#EXP~<NAME> <VALUE>`
     * an export constant can be used like a normal constant
@@ -1104,7 +1105,7 @@ the assembler language for the Primitive-Virtual-Machine
             * `%b`: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here
             * `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here
     * `41`: load file
-        * `X00` is set to the full path (inclusive name) of the file
+        * `X00` is set to the path (inclusive name) of the file
         * `X00` will point to the memory block, in which the file has been loaded
         * `X01` will be set to the length of the file (and the memory block)
         * when an error occured `X00` will be set to `-1`
