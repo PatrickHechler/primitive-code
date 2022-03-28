@@ -22,6 +22,6 @@ Import-Package: javax.inject
 Automatic-Module-Name: sa
 Bundle-ClassPath: .,
  libs/antlr4-runtime-4.3.jar,
- libs/assemble-6.0.13.jar,
+ libs/assemble-6.1.0.jar,
  libs/disassemble-4.1.0.jar,
  libs/runtime-4.4.1.jar

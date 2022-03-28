@@ -500,23 +500,7 @@ public class PrimitiveAssembler {
 				in = new ByteArrayInputStream(baos.toByteArray());
 			}
 			try (Scanner sc = new Scanner(in, "UTF-8")) {
-				while (sc.hasNextLine()) {
-					String line = sc.nextLine().trim();
-					if (line.isEmpty()) {
-						continue;
-					}
-					final String regex = "^#?([a-zA-Z_0-9]+)\\s*[=]\\s*([0-9a-fA-F]+)$";
-					if (!line.matches(regex)) {
-						throw new RuntimeException("line does not match regex: line='" + line + "', regex='" + regex + "'");
-					}
-					String constName = line.replaceFirst(regex, "$1");
-					long value = Long.parseUnsignedLong(line.replaceFirst(regex, "$2"), 16);
-					String name = prefix + constName;
-					/* Long old = */ addSymbols.put(name, value);
-					// if (old != null) {
-					// overwritten.put(name, old);
-					// }
-				}
+				readSymbols(prefix, addSymbols, sc);
 			}
 		} catch (StackOverflowError soe) {
 			if (be) {
@@ -529,6 +513,26 @@ public class PrimitiveAssembler {
 		}
 		// return overwritten;
 		return null;
+	}
+
+	public static void readSymbols(String prefix, Map<String, Long> addSymbols, Scanner sc) {
+		while (sc.hasNextLine()) {
+			String line = sc.nextLine().trim();
+			if (line.isEmpty()) {
+				continue;
+			}
+			final String regex = "^#?([a-zA-Z_0-9]+)\\s*[=]\\s*([0-9a-fA-F]+)$";
+			if (!line.matches(regex)) {
+				throw new RuntimeException("line does not match regex: line='" + line + "', regex='" + regex + "'");
+			}
+			String constName = line.replaceFirst(regex, "$1");
+			long value = Long.parseUnsignedLong(line.replaceFirst(regex, "$2"), 16);
+			String name = prefix + constName;
+			/* Long old = */ addSymbols.put(name, value);
+			// if (old != null) {
+			// overwritten.put(name, old);
+			// }
+		}
 	}
 
 	public void assemble(List<Command> cmds, Map<String, Long> labels) throws IOException {

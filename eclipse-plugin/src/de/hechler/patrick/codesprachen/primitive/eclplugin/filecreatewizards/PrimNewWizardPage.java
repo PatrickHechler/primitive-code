@@ -19,7 +19,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 
-import de.hechler.patrick.codesprachen.primitive.eclplugin.enums.NewFileTypes;
+import de.hechler.patrick.codesprachen.primitive.eclplugin.enums.PrimitiveNewFileTypes;
 
 /**
  * The "New" wizard page allows setting the container for the new file as well
@@ -81,7 +81,7 @@ public class PrimNewWizardPage extends WizardPage {
 		label = new Label(container, SWT.NULL);
 		label.setText("File type:");
 		fileType = new Combo(container, SWT.DROP_DOWN | SWT.READ_ONLY);
-		NewFileTypes[] nfts = NewFileTypes.values();
+		PrimitiveNewFileTypes[] nfts = PrimitiveNewFileTypes.values();
 		String[] vals = new String[nfts.length];
 		for (int i = 0; i < vals.length; i++) {
 			vals[i] = nfts[i].toString();
@@ -115,7 +115,7 @@ public class PrimNewWizardPage extends WizardPage {
 			}
 		}
 		fileText.setText("my-asm.psc");
-		fileType.select(NewFileTypes.nft_main_file.ordinal());
+		fileType.select(PrimitiveNewFileTypes.nft_main_file.ordinal());
 	}
 
 	/**
@@ -188,4 +188,9 @@ public class PrimNewWizardPage extends WizardPage {
 	public String getFileName() {
 		return fileText.getText();
 	}
+	
+	public PrimitiveNewFileTypes getFileType() {
+		return PrimitiveNewFileTypes.values()[fileType.getSelectionIndex()];
+	}
+	
 }
