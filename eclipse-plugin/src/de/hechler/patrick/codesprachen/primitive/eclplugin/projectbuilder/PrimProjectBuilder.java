@@ -22,9 +22,14 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
+import de.hechler.patrick.codesprachen.primitive.eclplugin.Activator;
 import de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.ValidatorDocumentSetupParticipant;
 
 public class PrimProjectBuilder extends IncrementalProjectBuilder {
+
+	public static final String BUILDER_ID = Activator.PLUGIN_ID + ".primProjectBuilder";
+
+	private static final String MARKER_TYPE = Activator.PLUGIN_ID + ".primCodeProblem";
 
 	private class PrimCodeDeltaVisitorIncrementalBuilder implements IResourceDeltaVisitor {
 		private final IProgressMonitor monitor;
@@ -83,49 +88,47 @@ public class PrimProjectBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-//	class XMLErrorHandler extends DefaultHandler {
-//
-//		private IFile file;
-//
-//		public XMLErrorHandler(IFile file) {
-//			this.file = file;
-//		}
-//
-//		private void addMarker(SAXParseException e, int severity) {
-//			PrimProjectBuilder.this.addMarker(file, e.getMessage(), e.getLineNumber(), severity);
-//		}
-//
-//		public void error(SAXParseException exception) throws SAXException {
-//			addMarker(exception, IMarker.SEVERITY_ERROR);
-//		}
-//
-//		public void fatalError(SAXParseException exception) throws SAXException {
-//			addMarker(exception, IMarker.SEVERITY_ERROR);
-//		}
-//
-//		public void warning(SAXParseException exception) throws SAXException {
-//			addMarker(exception, IMarker.SEVERITY_WARNING);
-//		}
-//	}
+	// class XMLErrorHandler extends DefaultHandler {
+	//
+	// private IFile file;
+	//
+	// public XMLErrorHandler(IFile file) {
+	// this.file = file;
+	// }
+	//
+	// private void addMarker(SAXParseException e, int severity) {
+	// PrimProjectBuilder.this.addMarker(file, e.getMessage(),
+	// e.getLineNumber(), severity);
+	// }
+	//
+	// public void error(SAXParseException exception) throws SAXException {
+	// addMarker(exception, IMarker.SEVERITY_ERROR);
+	// }
+	//
+	// public void fatalError(SAXParseException exception) throws SAXException {
+	// addMarker(exception, IMarker.SEVERITY_ERROR);
+	// }
+	//
+	// public void warning(SAXParseException exception) throws SAXException {
+	// addMarker(exception, IMarker.SEVERITY_WARNING);
+	// }
+	// }
 
-	public static final String BUILDER_ID = "sa.primProjectBuilder";
+	// private SAXParserFactory parserFactory;
 
-	private static final String MARKER_TYPE = "sa.primCodeProblem";
-
-//	private SAXParserFactory parserFactory;
-
-//	private void addMarker(IFile file, String message, int lineNumber, int severity) {
-//		try {
-//			IMarker marker = file.createMarker(MARKER_TYPE);
-//			marker.setAttribute(IMarker.MESSAGE, message);
-//			marker.setAttribute(IMarker.SEVERITY, severity);
-//			if (lineNumber == -1) {
-//				lineNumber = 1;
-//			}
-//			marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
-//		} catch (CoreException e) {
-//		}
-//	}
+	// private void addMarker(IFile file, String message, int lineNumber, int
+	// severity) {
+	// try {
+	// IMarker marker = file.createMarker(MARKER_TYPE);
+	// marker.setAttribute(IMarker.MESSAGE, message);
+	// marker.setAttribute(IMarker.SEVERITY, severity);
+	// if (lineNumber == -1) {
+	// lineNumber = 1;
+	// }
+	// marker.setAttribute(IMarker.LINE_NUMBER, lineNumber);
+	// } catch (CoreException e) {
+	// }
+	// }
 
 	@Override
 	protected IProject[] build(int kind, Map<String, String> args, IProgressMonitor monitor) throws CoreException {
@@ -180,7 +183,8 @@ public class PrimProjectBuilder extends IncrementalProjectBuilder {
 				File loockup = ValidatorDocumentSetupParticipant.getProjectFile(project);
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				ByteArrayOutputStream exbaos = new ByteArrayOutputStream();
-//				PrimitiveAssembler asm = new PrimitiveAssembler(baos, true, true, false, true);
+				// PrimitiveAssembler asm = new PrimitiveAssembler(baos, true,
+				// true, false, true);
 				PrimitiveAssembler asm = new PrimitiveAssembler(baos, new PrintStream(exbaos, true, StandardCharsets.UTF_8), loockup, true, true, false, true);
 				asm.assemble(sourceFile.getContents(), Charset.forName(sourceFile.getCharset()));
 				setContentOrCreate(monitor, mashineFile, new ByteArrayInputStream(baos.toByteArray()));
@@ -219,12 +223,13 @@ public class PrimProjectBuilder extends IncrementalProjectBuilder {
 		}
 	}
 
-//	private SAXParser getParser() throws ParserConfigurationException, SAXException {
-//		if (parserFactory == null) {
-//			parserFactory = SAXParserFactory.newInstance();
-//		}
-//		return parserFactory.newSAXParser();
-//	}
+	// private SAXParser getParser() throws ParserConfigurationException,
+	// SAXException {
+	// if (parserFactory == null) {
+	// parserFactory = SAXParserFactory.newInstance();
+	// }
+	// return parserFactory.newSAXParser();
+	// }
 
 	protected void incrementalBuild(IResourceDelta delta, IProgressMonitor monitor) throws CoreException {
 		// the visitor does the work.

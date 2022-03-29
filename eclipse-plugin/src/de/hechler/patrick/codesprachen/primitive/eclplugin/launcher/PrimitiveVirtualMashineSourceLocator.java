@@ -1,12 +1,10 @@
 package de.hechler.patrick.codesprachen.primitive.eclplugin.launcher;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.debug.core.DebugException;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.ILineBreakpoint;
 import org.eclipse.debug.core.model.ISourceLocator;
 import org.eclipse.debug.core.model.IStackFrame;
-import org.eclipse.debug.core.model.IThread;
 import org.eclipse.debug.ui.ISourcePresentation;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.part.FileEditorInput;
@@ -29,33 +27,12 @@ public class PrimitiveVirtualMashineSourceLocator implements ISourceLocator, ISo
 	public Object getSourceElement(IStackFrame stackFrame) {
 		IDebugTarget dt = stackFrame.getDebugTarget();
 		if (dt instanceof PrimitiveCodeDebugTarget) {
-			de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.debugelements.PrimitiveCodeStackFrame sf = (PrimitiveCodeStackFrame) stackFrame;
+			PrimitiveCodeStackFrame sf = (PrimitiveCodeStackFrame) stackFrame;
 			IFile file = sf.getFile();
 			return new LocatedSource(file, sf.getLineNumber(), sf.getCharStart(), sf.getCharEnd());
 		}
-		Object result = getSourceElementOld(stackFrame, stackFrame.getThread());
-		if (result != null) {
-			return result;
-		}
 		if (this.fallback != null) {
-			result = fallback.getSourceElement(stackFrame);
-		}
-		return result;
-	}
-
-	@SuppressWarnings("deprecation")
-	private Object getSourceElementOld(IStackFrame stackFrame, IThread thread) {
-		if (thread instanceof de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeDebugTarget.PrimCodeThread) {
-			try {
-				de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeDebugTarget.PrimCodeThread pcp = (de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeDebugTarget.PrimCodeThread) thread;
-				IFile file = pcp.getDebugTarget().getSourcefile();
-				int line = stackFrame.getLineNumber();
-				if (line != -1) {
-					int start = stackFrame.getCharStart(), end = stackFrame.getCharEnd();
-					return new LocatedSource(file, line, start, end);
-				}
-			} catch (DebugException e) {
-			}
+			return fallback.getSourceElement(stackFrame);
 		}
 		return null;
 	}
@@ -97,7 +74,6 @@ public class PrimitiveVirtualMashineSourceLocator implements ISourceLocator, ISo
 		if (element instanceof IFile || element instanceof ILineBreakpoint || element instanceof LocatedSource
 				|| element instanceof IStackFrame)
 			return ValidatorDocumentSetupParticipant.MY_ID;
-//			return "org.eclipse.ui.DefaultTextEditor";
 		return null;
 	}
 

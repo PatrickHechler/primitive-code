@@ -49,9 +49,7 @@ public class PrimitiveAssembler {
 	private static final byte[] INERPRETER_START = "#!/bin/pvm        --pmc\n".getBytes(StandardCharsets.US_ASCII);
 
 	static {
-		Map<String, Long> startConstants = new LinkedHashMap<>();// linked for
-																	// faster
-																	// iteration
+		Map<String, Long> startConstants = new LinkedHashMap<>();
 		startConstants.put("INT_ERRORS_ILLEGAL_INTERRUPT", (Long) 0L);
 		startConstants.put("INT_ERRORS_UNKNOWN_COMMAND", (Long) 1L);
 		startConstants.put("INT_ERRORS_ILLEGAL_MEMORY", (Long) 2L);
@@ -122,7 +120,6 @@ public class PrimitiveAssembler {
 
 	public PrimitiveAssembler(OutputStream out, boolean supressWarnings) {
 		this(out, supressWarnings, true);
-
 	}
 
 	public PrimitiveAssembler(OutputStream out, PrintStream exportOut, File lookup, boolean supressWarnings) {
@@ -220,7 +217,7 @@ public class PrimitiveAssembler {
 		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {
 		});
 	}
-	
+
 	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener,
 			BiConsumer<Integer, Integer> enterConstPool) throws IOException, AssembleError {
 		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, "[THIS]");
@@ -230,7 +227,7 @@ public class PrimitiveAssembler {
 			BiConsumer<Integer, Integer> enterConstPool, String thisFile) throws IOException, AssembleError {
 		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile, new HashMap<>());
 	}
-	
+
 	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, Long> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener,
 			BiConsumer<Integer, Integer> enterConstPool, String thisFile, Map<String, List<Map<String, Long>>> readFiles) throws IOException, AssembleError {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
@@ -254,7 +251,8 @@ public class PrimitiveAssembler {
 				AssembleError ae = (AssembleError) cause;
 				handle(ae);
 			} else if (cause instanceof AssembleRuntimeException) {
-				assert false;// this should never happen, since this should not be thrown
+				assert false;// this should never happen, since this should not
+								// be thrown
 				AssembleRuntimeException ae = (AssembleRuntimeException) cause;
 				handle(ae);
 			} else if (cause instanceof NoViableAltException) {
@@ -267,7 +265,8 @@ public class PrimitiveAssembler {
 				handleUnknwon(e);
 			}
 		} catch (AssembleRuntimeException ae) {
-			assert false;// this should never happen, since this should not be thrown
+			assert false;// this should never happen, since this should not be
+							// thrown
 			handle(ae);
 		} catch (AssembleError ae) {
 			handle(ae);
@@ -482,7 +481,7 @@ public class PrimitiveAssembler {
 
 	public AssembleRuntimeException readSymbols(String readFile, Boolean isSource, String prefix, Map<String, Long> startConsts, Map<String, Long> addSymbols, ANTLRInputStream antlrin, boolean be,
 			Token tok, String thisFile, Map<String, List<Map<String, Long>>> readFiles) throws IllegalArgumentException, IOException, RuntimeException {
-		// Map<String, Long> overwritten = new HashMap<>();
+		readFiles = new HashMap<>(readFiles);
 		byte[] bytes = null;
 		if (readFile.equals("[THIS]")) {
 			assert isSource == null || isSource;
@@ -506,16 +505,32 @@ public class PrimitiveAssembler {
 				throw new IllegalArgumentException("Source/Symbol not set, but readFile is not *.psc and not *.psf! readFile='" + readFile + "'");
 			}
 		}
-		readFiles.compute(readFile, (String key, List<Map<String, Long>> oldValue) -> {
-			List<Map<String, Long>> result;
-			if (oldValue == null) {
-				result = Arrays.asList(new HashMap<>(startConsts));
-			} else {
-				result = new ArrayList<>(oldValue);
-				result.add(new HashMap<>(startConsts));
-			}
-			return result;
-		});
+		try {
+			final String rf = readFile;
+			readFiles.compute(readFile, (String key, List<Map<String, Long>> oldValue) -> {
+				List<Map<String, Long>> newValue;
+				if (oldValue == null) {
+					newValue = Arrays.asList(new HashMap<>(startConsts));
+				} else {
+					for (Map<String, Long> startConstants : oldValue) {
+						if (startConsts.equals(startConstants)) {
+							if (be) {
+								throw new AssembleError(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - tok.getStartIndex() + 1, tok.getStartIndex(),
+										"loop detected! started again with the same start consts: in file='" + thisFile + "' read symbols of file='" + rf + "' constants: " + startConsts);
+							} else {
+								throw new AssembleRuntimeException(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - tok.getStartIndex() + 1, tok.getStartIndex(),
+										"loop detected! started again with the same start consts: in file='" + thisFile + "' read symbols of file='" + rf + "' constants: " + startConsts);
+							}
+						}
+					}
+					newValue = new ArrayList<>(oldValue);
+					newValue.add(new HashMap<>(startConsts));
+				}
+				return newValue;
+			});
+		} catch (AssembleRuntimeException are) {
+			return are;
+		}
 		File file = new File(readFile);
 		if (!file.isAbsolute()) {
 			file = new File(this.lookup, readFile);
@@ -524,23 +539,15 @@ public class PrimitiveAssembler {
 			InputStream in = input;
 			if (iss) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				ParseContext pc = preassemble(new ANTLRInputStream(new InputStreamReader(in, StandardCharsets.UTF_8)), startConsts, be);
+				ParseContext pc = preassemble(new ANTLRInputStream(new InputStreamReader(in, StandardCharsets.UTF_8)), startConsts, be ? new BailErrorStrategy() : null, be, null, (line, charPos) -> {
+				}, readFile, readFiles);
 				export(pc.exports, new PrintStream(baos, true, "UTF-8"));
 				in = new ByteArrayInputStream(baos.toByteArray());
 			}
 			try (Scanner sc = new Scanner(in, "UTF-8")) {
 				readSymbols(prefix, addSymbols, sc);
 			}
-		} catch (StackOverflowError soe) {
-			if (be) {
-				throw new AssembleError(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - tok.getStartIndex() + 1, tok.getStartIndex(),
-						"did you just read your own symbols without making sure that the recursion stops?" + soe.getMessage(), soe);
-			} else {
-				return new AssembleRuntimeException(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - tok.getStartIndex() + 1, tok.getStartIndex(),
-						"did you just read your own symbols without making sure that the recursion stops?" + soe.getMessage(), soe);
-			}
 		}
-		// return overwritten;
 		return null;
 	}
 

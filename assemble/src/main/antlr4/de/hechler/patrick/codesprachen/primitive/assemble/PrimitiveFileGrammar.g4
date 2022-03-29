@@ -1260,7 +1260,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				{cmd = Commands.CMD_MVAD;}
 
  			) comment* p1 = param [pos, constants, be] comment* COMMA comment* p2 =
- 			param [pos, constants, be] comment* p3 = param [pos, constants, be]
+ 			param [pos, constants, be] comment* COMMA comment* p3 = param [pos, constants, be]
  			{$c = new Command(cmd, $p1.p, $p2.p, $p3.p);}
 
  		)

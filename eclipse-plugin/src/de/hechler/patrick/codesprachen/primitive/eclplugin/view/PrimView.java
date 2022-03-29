@@ -2,6 +2,9 @@ package de.hechler.patrick.codesprachen.primitive.eclplugin.view;
 
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.ui.part.*;
+
+import de.hechler.patrick.codesprachen.primitive.eclplugin.Activator;
+
 import org.eclipse.jface.viewers.*;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.jface.action.*;
@@ -31,7 +34,7 @@ public class PrimView extends ViewPart {
 	/**
 	 * The ID of the view as specified by the extension.
 	 */
-	public static final String ID = "de.hechler.patrick.codesprachen.primitive.eclplugin.view.PrimView";
+	public static final String ID = Activator.PLUGIN_ID + ".view.PrimView";
 
 	@Inject
 	IWorkbench workbench;

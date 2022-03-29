@@ -22,19 +22,21 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.core.model.ISourceLocator;
 import org.eclipse.debug.core.model.RuntimeProcess;
 
-import de.hechler.patrick.codesprachen.primitive.eclplugin.objects.DocumentValue;
+import de.hechler.patrick.codesprachen.primitive.eclplugin.Activator;
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMDebugingComunicator;
 
 //	org.eclipse.debug.core.model.ILaunchConfigurationDelegate
 public class PrimitiveCodeLauncerDelegate implements ILaunchConfigurationDelegate {
 
-	public static final String ATTRIBUTE_NAME_DEBUG_PORT = "pvm_debug_port";
-	public static final String ATTRIBUTE_NAME_PVM_ARGS = "pvm_args";
-	public static final String ATTRIBUTE_NAME_PROGRAM_ARGS = "program_args";
-	public static final String ATTRIBUTE_NAME_PROGRAM = "program";
-	public static final String ATTRIBUTE_NAME_PVM = "pvm";
-	public static final String ATTRIBUTE_NAME_DIRECTORY = "dir";
-	public static final String ATTRIBUTE_NAME_SOURCE_TEXT = "pvm_sources";
+	private static final String ATTRIBUTE_NAME_PREFIX = Activator.PLUGIN_ID + ".launch_attribute.";
+
+	public static final String ATTRIBUTE_NAME_DEBUG_PORT = ATTRIBUTE_NAME_PREFIX + "pvm_debug_port";
+	public static final String ATTRIBUTE_NAME_PVM_ARGS = ATTRIBUTE_NAME_PREFIX + "pvm_args";
+	public static final String ATTRIBUTE_NAME_PROGRAM_ARGS = ATTRIBUTE_NAME_PREFIX + "program_args";
+	public static final String ATTRIBUTE_NAME_PROGRAM = ATTRIBUTE_NAME_PREFIX + "program";
+	public static final String ATTRIBUTE_NAME_PVM = ATTRIBUTE_NAME_PREFIX + "pvm";
+	public static final String ATTRIBUTE_NAME_DIRECTORY = ATTRIBUTE_NAME_PREFIX + "dir";
+	public static final String ATTRIBUTE_NAME_SOURCE_TEXT = ATTRIBUTE_NAME_PREFIX + "pvm_sources";
 
 	private static final Random rnd = new Random();
 
@@ -58,10 +60,10 @@ public class PrimitiveCodeLauncerDelegate implements ILaunchConfigurationDelegat
 		}
 		for (String arg : pvmargs) {
 			switch (arg) {
-				case "--port" :
-				case "--wait" :
-				case "--pmc" :
-					error("illegal pvmarg: (pvmarg='" + arg + "', all pvmarg=" + pvmargs + ")");
+			case "--port":
+			case "--wait":
+			case "--pmc":
+				error("illegal pvmarg: (pvmarg='" + arg + "', all pvmarg=" + pvmargs + ")");
 			}
 			if (arg.startsWith("--port=")) {
 				error("illegal pvmarg: (pvmarg='" + arg + "', all pvmarg=" + pvmargs + ")");
@@ -75,21 +77,21 @@ public class PrimitiveCodeLauncerDelegate implements ILaunchConfigurationDelegat
 		arguments.add(pvm);
 		arguments.addAll(pvmargs);
 		switch (mode) {
-			case ILaunchManager.DEBUG_MODE :
-				run = false;
-				arguments.add("--wait");
-				dport = dport == -1 ? rnd.nextInt((1 << 16) - 2500) + 2500 : dport;
-				arguments.add("--port=" + dport);
-				arguments.add("--pmc=" + program);
-				break;
-			case ILaunchManager.RUN_MODE :
-				if (dport != -1) {
-					error("port set on run mode! (port='" + mode + "')");
-				}
-				arguments.add("--pmc=" + program);
-				break;
-			default :
-				error("unknown launch mode: (mode='" + mode + "')");
+		case ILaunchManager.DEBUG_MODE:
+			run = false;
+			arguments.add("--wait");
+			dport = dport == -1 ? rnd.nextInt((1 << 16) - 2500) + 2500 : dport;
+			arguments.add("--port=" + dport);
+			arguments.add("--pmc=" + program);
+			break;
+		case ILaunchManager.RUN_MODE:
+			if (dport != -1) {
+				error("port set on run mode! (port='" + mode + "')");
+			}
+			arguments.add("--pmc=" + program);
+			break;
+		default:
+			error("unknown launch mode: (mode='" + mode + "')");
 		}
 		arguments.addAll(programargs);
 		if (!program.endsWith(".pmc")) {
@@ -143,22 +145,6 @@ public class PrimitiveCodeLauncerDelegate implements ILaunchConfigurationDelegat
 			process = new RuntimeProcess(launch, p, pvm + " : " + pvmargs + " : " + program + " : " + programargs, null);
 		}
 		launch.addProcess(process);
-		// oldLaunch(launch, dport, dir, run, sourcefile, proglen, docval,
-		// argArr);
-	}
-
-	@SuppressWarnings({"deprecation", "unused"})
-	private void oldLaunch(ILaunch launch, int dport, String dir, boolean run, IFile sourcefile, long proglen, DocumentValue docval, String[] argArr) {
-		PrimitiveCodeDebugTarget process = new PrimitiveCodeDebugTarget(launch, argArr, sourcefile);
-		try {
-			process.start(dir, dport, proglen, launch);
-			if (!run) {
-				launch.addDebugTarget(process);
-				docval.currentDebugSession = process.getCom();
-			}
-			launch.addProcess(process.getProcess());
-		} catch (IOException e) {
-		}
 	}
 
 	public static IFile findSourceFile(String absolute) {

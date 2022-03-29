@@ -1,7 +1,7 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Primitive-Code Eclipse-Plugin
-Bundle-SymbolicName: primitive-code-eclipse-plugin;singleton:=true
+Bundle-SymbolicName: de.hechler.patrick.codesprachen.primitive.eclplugin;singleton:=true
 Bundle-Version: 1.0.0
 Require-Bundle: org.eclipse.core.resources,
  org.eclipse.core.runtime,
@@ -22,6 +22,41 @@ Import-Package: javax.inject
 Automatic-Module-Name: sa
 Bundle-ClassPath: .,
  libs/antlr4-runtime-4.3.jar,
- libs/assemble-6.1.0.jar,
+ libs/assemble-7.1.3.jar,
  libs/disassemble-4.1.0.jar,
  libs/runtime-4.4.1.jar
+Export-Package: de.hechler.patrick.codesprachen.primitive.assemble,
+ de.hechler.patrick.codesprachen.primitive.assemble.enums,
+ de.hechler.patrick.codesprachen.primitive.assemble.exceptions,
+ de.hechler.patrick.codesprachen.primitive.assemble.objects,
+ de.hechler.patrick.codesprachen.primitive.disassemble,
+ de.hechler.patrick.codesprachen.primitive.disassemble.enums,
+ de.hechler.patrick.codesprachen.primitive.disassemble.exceptions,
+ de.hechler.patrick.codesprachen.primitive.disassemble.interfaces,
+ de.hechler.patrick.codesprachen.primitive.disassemble.objects,
+ de.hechler.patrick.codesprachen.primitive.disassemble.utils,
+ de.hechler.patrick.codesprachen.primitive.eclplugin,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.enums,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.filecreatewizards,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.launcher,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.debugelements,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.objects,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.preferences,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.projectbuilder,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.view,
+ de.hechler.patrick.codesprachen.primitive.runtime,
+ de.hechler.patrick.codesprachen.primitive.runtime.objects,
+ de.hechler.patrick.objects,
+ org.antlr.v4.runtime,
+ org.antlr.v4.runtime.atn,
+ org.antlr.v4.runtime.dfa,
+ org.antlr.v4.runtime.misc,
+ org.antlr.v4.runtime.tree,
+ org.antlr.v4.runtime.tree.gui,
+ org.antlr.v4.runtime.tree.pattern,
+ org.antlr.v4.runtime.tree.xpath
+Bundle-Vendor: Patrick
+Bundle-Activator: de.hechler.patrick.codesprachen.primitive.eclplugin.Activator
+Bundle-ActivationPolicy: lazy

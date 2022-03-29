@@ -188,7 +188,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`MVAD <NO_CONST_PARAM> , <PARAM>, <CONST_PARAM>`
+`MVAD <NO_CONST_PARAM> , <PARAM> , <CONST_PARAM>`
 * copies the value of the second parameter plus the third parameter to the first parameter
 * definition:
     * `p1 <- p2 + p3`
@@ -764,7 +764,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `2A <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
-    * `<P3.NUM_NUM>`
+    * `<P2.NUM_NUM>`
 
 `CMP <PARAM> , <PARAM>`
 * compares the two values and stores the result in the status register

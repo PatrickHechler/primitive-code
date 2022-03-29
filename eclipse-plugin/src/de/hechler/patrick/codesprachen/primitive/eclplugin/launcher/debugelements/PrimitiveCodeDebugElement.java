@@ -13,12 +13,13 @@ import org.eclipse.debug.core.model.IDebugElement;
 
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.AnythingContext;
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ParseContext;
+import de.hechler.patrick.codesprachen.primitive.eclplugin.Activator;
 import de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.ValidatorDocumentSetupParticipant;
 import de.hechler.patrick.codesprachen.primitive.eclplugin.objects.DocumentValue;
 
 public abstract class PrimitiveCodeDebugElement implements IDebugElement {
 
-	public static final String PVM_MODEL_IDENTIFIER = "primitive virtaul mashine";
+	public static final String PVM_MODEL_IDENTIFIER = Activator.PLUGIN_ID + ".debug_model";
 	@Override
 	public abstract <T> T getAdapter(Class<T> adapter);
 

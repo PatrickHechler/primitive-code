@@ -104,7 +104,7 @@ public class PscContentAssistProcessor implements IContentAssistProcessor {
 		return new ICompletionProposal[0];
 		@formatter:on */
 
-	private String getLastPart(String text) {
+	public static String getLastPart(String text) {
 		int[] lasts = new int[]{ //@formatter:off
 			text.lastIndexOf(' '),
 			text.lastIndexOf('\t'),
