@@ -60,7 +60,6 @@ public class PscAutoEditStrategy implements IAutoEditStrategy {
 							command.text = "\"\"";
 						}
 						command.doit = true;
-						command.shiftsCaret = false;
 						break;
 					}
 					switch (chars[i]) {
@@ -88,7 +87,6 @@ public class PscAutoEditStrategy implements IAutoEditStrategy {
 				}
 				command.text = "::>";
 				command.doit = true;
-				command.shiftsCaret = false;
 				break;
 			}
 			default:

@@ -1226,8 +1226,5 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P1.OFF_NUM]`
 
 ## not (yet) there/supported
-* already planed
-    * read file symbols
-    * export file symbols
 * execute other programs
 * Multi-threading/-progressing
