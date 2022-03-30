@@ -86,6 +86,7 @@ public class PrimNewWizardPage extends WizardPage {
 		for (int i = 0; i < vals.length; i++) {
 			vals[i] = nfts[i].toString();
 		}
+		fileType.setItems(vals);
 		
 		initialize();
 		dialogChanged();
