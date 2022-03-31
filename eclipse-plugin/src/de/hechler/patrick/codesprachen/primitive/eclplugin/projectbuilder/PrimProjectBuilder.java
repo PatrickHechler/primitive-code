@@ -192,7 +192,7 @@ public class PrimProjectBuilder extends IncrementalProjectBuilder {
 				if (exbytes.length == 0) {
 					deleteIfExist(monitor, exportFile);
 				} else {
-					setContentOrCreate(monitor, mashineFile, new ByteArrayInputStream(exbytes));
+					setContentOrCreate(monitor, exportFile, new ByteArrayInputStream(exbytes));
 				}
 			} catch (IOException | CoreException e) {
 				throw new RuntimeException(e);

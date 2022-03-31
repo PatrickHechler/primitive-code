@@ -653,11 +653,6 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	')'
  ;
 
- ANY_NUM
- :
- 	[0-9a-fA-f]+
- ;
-
  NAME
  :
  	[a-zA-Z_] [a-zA-Z_0-9]*
