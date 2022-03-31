@@ -59,6 +59,7 @@
 : CHARS 'UTF-8' "\ngoodbye, thanks for calling me.\n" >
 |> no need for an \0 because this is not used as a string
 #MAIN_BYE_MSG_LEN (--POS-- - MAIN_BYE_MSG_POS)
+: > |> do not forget the align!
 #EXP~main --POS--
 	MOV X03, 0 |> not needed when stack init ensures zero registers
 	MOV X05, X00

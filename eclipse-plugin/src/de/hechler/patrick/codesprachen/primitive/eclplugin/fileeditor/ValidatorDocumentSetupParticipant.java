@@ -265,26 +265,26 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 					Parser p = (Parser) recognizer;
 					boolean inConstPool;
 					switch (p.getGrammarFileName()) {
-						case "PrimitiveFileGrammar.g4": {
-							inConstPool = false;
-							ParserRuleContext rc = p.getContext();
-							while (true) {
-								if (rc instanceof ParseContext) {
-									ParseContext ac = (ParseContext) rc;
-									if (!ac.enabled) {
-										return;
-									}
-									break;
+					case "PrimitiveFileGrammar.g4": {
+						inConstPool = false;
+						ParserRuleContext rc = p.getContext();
+						while (true) {
+							if (rc instanceof ParseContext) {
+								ParseContext ac = (ParseContext) rc;
+								if (!ac.enabled) {
+									return;
 								}
-								rc = rc.getParent();
+								break;
 							}
-							break;
+							rc = rc.getParent();
 						}
-						case "ConstantPoolGrammar.g4":
-							inConstPool = true;
-							break;
-						default:
-							throw new InternalError("unknown grammar File name: '" + p.getGrammarFileName() + "'", e);
+						break;
+					}
+					case "ConstantPoolGrammar.g4":
+						inConstPool = true;
+						break;
+					default:
+						throw new InternalError("unknown grammar File name: '" + p.getGrammarFileName() + "'", e);
 					}
 					IntervalSet expected = p.getExpectedTokens();
 					if (expected.size() > 5) {
@@ -375,18 +375,28 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 			for (int i = 0, size = rc.getChildCount(); i < size; i++) {
 				ParseTree child = rc.getChild(i);
 				if (child instanceof PrimitiveFileGrammarParser.CommentContext || child instanceof ConstantPoolGrammarParser.CommentContext) {
+					int line = getStartLine((RuleContext) child);
 					String text = child.getText();
-					int index = text.indexOf("TODO");
-					if (index >= 0) {
-						int line = getStartLine((RuleContext) child);
+					for (int index = text.indexOf("TODO"); index >= 0; index = text.indexOf("TODO")) {
+						boolean ignore = false;
+						if (index > 0) {
+							if (text.substring(index - 1, index).matches("[A-Za-z0-9_\\-\\\\]")) {
+								ignore = true;
+							} else if (text.substring(index + "TODO".length(), index + "TODO".length() + 1).matches("[A-Za-z0-9_\\-\\\\]")) {
+								ignore = true;
+							}
+						}
 						final String regex = "^([^\r\n]*)(\r\n?|\n)((.|\r|\n)*)$";
 						String msg = text.substring(index).replaceFirst(regex, "$1");
-						text = text.substring(0, index - 1);
-						while (text.matches(regex)) {
-							text = text.replaceFirst(regex, "$3");
+						String skip = text.substring(0, index - 1);
+						while (skip.matches(regex)) {
+							skip = skip.replaceFirst(regex, "$3");
 							line++;
 						}
-						addBoockmark(this.markers, msg, line);
+						if (!ignore) {
+							addBoockmark(this.markers, msg, line);
+						}
+						text = text.substring(index + msg.length());
 					}
 				} else if (child instanceof RuleContext) {
 					searchTodos((RuleContext) child);
@@ -464,7 +474,7 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 		private void preassemble(IDocument document, DocumentValue docval) {
 			docval.context = ValidatorDocumentSetupParticipant.preassemble(document.get(), docval.asm, this.errorListener, this.enterCpPool);
 		}
-		
+
 	}
 
 	private static ParseContext preassemble(String document, PrimitiveAssembler asm, ANTLRErrorListener el, BiConsumer<Integer, Integer> ecp) {
