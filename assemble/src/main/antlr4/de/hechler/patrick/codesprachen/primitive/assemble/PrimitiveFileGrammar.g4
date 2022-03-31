@@ -28,6 +28,13 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 		}
 		return 0;
 	}
+	private AssembleRuntimeException createAre(Token tok, boolean be, String msg, Throwable cause) {
+		if (be) {
+			throw new AssembleError(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - tok.getStartIndex() + 1, tok.getStartIndex(), msg, cause);
+		} else {
+			return new AssembleRuntimeException(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - tok.getStartIndex() + 1, tok.getStartIndex(), msg, cause);
+		}
+	}
 	private AssembleRuntimeException appendString(StringBuilder msg, Token tok, boolean be, AssembleRuntimeException are) {
 		String str = tok.getText();
 		str = str.substring(1, str.length() - 1);
@@ -317,11 +324,13 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  						(
  							sourceOrSymbol = SOURCE
  							{iss = true;}
+
  						)
  						|
  						(
  							sourceOrSymbol = SYMBOL
  							{iss = false;}
+
  						)
  					)
  					{
@@ -337,6 +346,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 							}
  						}
  					}
+
  				)
  			)* GROESSER
  			{
@@ -362,6 +372,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 	 				}
  				}
  			}
+
  		)
  		|
  		(
@@ -647,7 +658,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			)
  			|
  			(
- 				nummerNoConstant [pos]
+ 				nummerNoConstant [pos, be]
  				{
 	 				builder.art = ParamBuilder.A_NUM;
 	 				builder.v1 = $nummerNoConstant.num;
@@ -1145,7 +1156,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  [long num, AssembleRuntimeException are]
  :
  	(
- 		nummerNoConstant [pos]
+ 		nummerNoConstant [pos, be]
  		{$num = $nummerNoConstant.num;}
 
  	)
@@ -1168,77 +1179,150 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)
  ;
 
- nummerNoConstant [long pos] returns [long num]
+ nummerNoConstant [long pos, boolean be] returns
+ [long num, AssembleRuntimeException are]
  :
  	(
- 		DEC_FP_NUM
- 		{$num = Double.doubleToRawLongBits(Double.parseDouble($DEC_FP_NUM.getText()));}
+ 		tok = DEC_FP_NUM
+ 		{
+ 			try {
+	 			$num = Double.doubleToRawLongBits(Double.parseDouble($tok.getText()));
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		UNSIGNED_HEX_NUM
- 		{$num = Long.parseUnsignedLong($UNSIGNED_HEX_NUM.getText().substring(5), 16);}
+ 		tok = UNSIGNED_HEX_NUM
+ 		{
+ 			try {
+	 			$num = Long.parseUnsignedLong($tok.getText().substring(5), 16);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		HEX_NUM
- 		{$num = Long.parseLong($HEX_NUM.getText().substring(4), 16);}
+ 		tok = HEX_NUM
+ 		{
+ 			try {
+	 			$num = Long.parseLong($tok.getText().substring(4), 16);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		DEC_NUM
- 		{$num = Long.parseLong($DEC_NUM.getText(), 10);}
+ 		tok = DEC_NUM
+ 		{
+ 			try {
+ 				$num = Long.parseLong($tok.getText(), 10);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		DEC_NUM0
- 		{$num = Long.parseLong($DEC_NUM0.getText().substring(4), 10);}
+ 		tok = DEC_NUM0
+ 		{
+ 			try {
+ 				$num = Long.parseLong($tok.getText().substring(4), 10);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		OCT_NUM
- 		{$num = Long.parseLong($OCT_NUM.getText().substring(4), 8);}
+ 		tok = OCT_NUM
+ 		{
+ 			try {
+ 				$num = Long.parseLong($tok.getText().substring(4), 8);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		BIN_NUM
- 		{$num = Long.parseLong($BIN_NUM.getText().substring(4), 2);}
+ 		tok = BIN_NUM
+ 		{
+ 			try {
+	 			$num = Long.parseLong($tok.getText().substring(4), 2);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		NEG_HEX_NUM
- 		{$num = Long.parseLong("-" + $NEG_HEX_NUM.getText().substring(5), 16);}
+ 		tok = NEG_HEX_NUM
+ 		{
+ 			try {
+ 				$num = Long.parseLong($tok.getText().substring(4), 16);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		NEG_DEC_NUM
- 		{$num = Long.parseLong("-" + $NEG_DEC_NUM.getText().substring(5), 10);}
+ 		tok = NEG_DEC_NUM
+ 		{
+ 			try {
+ 				$num = Long.parseLong($tok.getText().substring(4), 10);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		NEG_DEC_NUM0
- 		{$num = Long.parseLong($NEG_DEC_NUM0.getText(), 10);}
+ 		tok = NEG_DEC_NUM0
+ 		{
+ 			try {
+ 				$num = Long.parseLong($tok.getText(), 10);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		NEG_OCT_NUM
- 		{$num = Long.parseLong("-" + $NEG_OCT_NUM.getText().substring(5), 8);}
+ 		tok = NEG_OCT_NUM
+ 		{
+ 			try {
+ 				$num = Long.parseLong($tok.getText().substring(4), 8);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
  	(
- 		NEG_BIN_NUM
- 		{$num = Long.parseLong("-" + $NEG_BIN_NUM.getText().substring(5), 2);}
+ 		tok = NEG_BIN_NUM
+ 		{
+ 			try {
+ 				$num = Long.parseLong($tok.getText().substring(4), 2);
+ 			} catch (NumberFormatException nfe) {
+ 				$are = createAre($tok, be, "error on converting the number: " + nfe.getMessage(), nfe);
+  			}
+ 		}
 
  	)
  	|
@@ -1260,7 +1344,8 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				{cmd = Commands.CMD_MVAD;}
 
  			) comment* p1 = param [pos, constants, be] comment* COMMA comment* p2 =
- 			param [pos, constants, be] comment* COMMA comment* p3 = param [pos, constants, be]
+ 			param [pos, constants, be] comment* COMMA comment* p3 = param
+ 			[pos, constants, be]
  			{$c = new Command(cmd, $p1.p, $p2.p, $p3.p);}
 
  		)
