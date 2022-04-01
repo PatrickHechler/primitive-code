@@ -382,8 +382,10 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 						if (index > 0) {
 							if (text.substring(index - 1, index).matches("[A-Za-z0-9_\\-\\\\]")) {
 								ignore = true;
-							} else if (text.substring(index + "TODO".length(), index + "TODO".length() + 1).matches("[A-Za-z0-9_\\-\\\\]")) {
-								ignore = true;
+							} else if (text.length() > index + "TODO".length()) {
+								if (text.substring(index + "TODO".length(), index + "TODO".length() + 1).matches("[A-Za-z0-9_\\-\\\\]")) {
+									ignore = true;
+								}
 							}
 						}
 						final String regex = "^([^\r\n]*)(\r\n?|\n)((.|\r|\n)*)$";

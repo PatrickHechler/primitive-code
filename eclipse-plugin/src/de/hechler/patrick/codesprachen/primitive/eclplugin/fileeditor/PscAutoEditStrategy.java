@@ -45,6 +45,15 @@ public class PscAutoEditStrategy implements IAutoEditStrategy {
 				return;
 			}
 			switch (command.text) {
+			case "\r":
+			case "\n":
+			case "\r\n": {
+				IRegion info = document.getLineInformationOfOffset(command.offset);
+				String line = document.get(info.getOffset(), info.getLength());
+				String start = line.replaceFirst("^(\\s*)[^\\s].*$", "$1");
+				command.text += start;
+				break;
+			}
 			case "'":
 			case "\"": {
 				boolean charString = command.text.equals("'");
