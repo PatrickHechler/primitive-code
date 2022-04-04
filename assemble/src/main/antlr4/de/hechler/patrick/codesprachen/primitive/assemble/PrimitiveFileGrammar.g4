@@ -1029,27 +1029,59 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	}
 
  	(
- 		{boolean add = false;}
+ 		{boolean add = false, fp = false;}
 
  		comment*
  		(
  			(
  				PLUS
- 				{add = true;}
+ 				{
+ 					fp = false;
+ 					add = true;
+ 				}
 
  			)
  			|
  			(
  				MINUS
- 				{add = false;}
+ 				{
+ 					fp = false;
+ 					add = false;
+ 				}
+
+ 			)
+ 			|
+ 			(
+ 				KOMMA_PLUS
+ 				{
+ 					fp = true;
+ 					add = true;
+ 				}
+
+ 			)
+ 			|
+ 			(
+ 				KOMMA_MINUS
+ 				{
+ 					fp = true;
+ 					add = false;
+ 				}
 
  			)
  		) comment* c2 = constBerechnungPunkt [pos, constants, be]
  		{
- 			if (add) {
- 				$num += $c2.num;
+ 			if (fp) {
+	 			if (add) {
+	 				$num = Double.doubleToRawLongBits(Double.longBitsToDouble($num) + Double.longBitsToDouble($c2.num));
+	 			} else {
+	 				$num = Double.doubleToRawLongBits(Double.longBitsToDouble($num) - Double.longBitsToDouble($c2.num));
+	 			}
  			} else {
- 				$num -= $c2.num;
+	 			if (add) {
+	 				$num += $c2.num;
+	 			} else {
+	 				$num -= $c2.num;
+	 			}
  			}
  			if ($c2.are != null) {
  				if ($are != null) {
@@ -1074,7 +1106,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 
  	(
  	{
-		final int type_mal = 1, type_geteilt = 2, type_modulo = 3;
+		final int type_mal = 1, type_geteilt = 2, type_modulo = 3, type_komma_mal = 4, type_komma_geteilt = 5;
 		int type = -1;
 	}
 
@@ -1093,6 +1125,18 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			)
  			|
  			(
+ 				KOMMA_MAL
+ 				{type = type_komma_mal;}
+
+ 			)
+ 			|
+ 			(
+ 				KOMMA_GETEILT
+ 				{type = type_komma_geteilt;}
+
+ 			)
+ 			|
+ 			(
  				MODULO
  				{type = type_modulo;}
 
@@ -1105,6 +1149,12 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 				break;
 			case type_geteilt:
 				$num /= $c2.num; 
+				break;
+			case type_komma_mal:
+				$num = Double.doubleToLongBits(Double.doubleToRawLongBits($num) * Double.doubleToRawLongBits($c2.num)); 
+				break;
+			case type_komma_geteilt:
+				$num = Double.doubleToLongBits(Double.doubleToRawLongBits($num) / Double.doubleToRawLongBits($c2.num)); 
 				break;
 			case type_modulo:
 				$num %= $c2.num; 
@@ -1951,6 +2001,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	'+'
  ;
 
+ KOMMA_PLUS
+ :
+ 	'fp-add'
+ ;
+
  COMMA
  :
  	','
@@ -1971,6 +2026,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	'-'
  ;
 
+ KOMMA_MINUS
+ :
+ 	'fp-sub'
+ ;
+
  MAL
  :
  	'*'
@@ -1979,6 +2039,16 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  GETEILT
  :
  	'/'
+ ;
+
+ KOMMA_MAL
+ :
+ 	'fp-mul'
+ ;
+
+ KOMMA_GETEILT
+ :
+ 	'fp-div'
  ;
 
  MODULO

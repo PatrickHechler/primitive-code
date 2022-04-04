@@ -59,8 +59,7 @@ public class PscHoverProvider implements ITextHover {
 			if (val >= 0) {
 				return text + " : " + val + " [HEX-" + Long.toHexString(val) + "]";
 			} else {
-				return text + " : " + val + " [NHEX" + Long.toString(val, 16) + " = UHEX-"
-						+ Long.toUnsignedString(val, 16) + "]";
+				return text + " : " + val + " [NHEX" + Long.toString(val, 16) + " = UHEX-" + Long.toUnsignedString(val, 16) + "]";
 			}
 		}
 		switch (inf.tn.getSymbol().getType()) {
@@ -70,12 +69,7 @@ public class PscHoverProvider implements ITextHover {
 			String name = inf.tn.getText().replaceFirst("[#@]?([a-zA-Z_]+)", "$1");
 			if (inf.ac.constants.containsKey(name)) {
 				long val = inf.ac.constants.get(name);
-				if (val >= 0) {
-					return "#" + name + " : " + val + " [HEX-" + Long.toHexString(val) + "]";
-				} else {
-					return "#" + name + " : " + val + " [NHEX" + Long.toString(val, 16) + " = UHEX-"
-							+ Long.toUnsignedString(val, 16) + "]";
-				}
+				return constantToString(name, val);
 			} else {
 				Long val = inf.ac.labels.get(name);
 				if (val == null) {
@@ -95,12 +89,7 @@ public class PscHoverProvider implements ITextHover {
 		case PrimitiveFileGrammarLexer.NEG_HEX_NUM:
 		case PrimitiveFileGrammarLexer.NEG_OCT_NUM: {
 			NummerNoConstantContext nncc = (NummerNoConstantContext) inf.tn.getParent();
-			if (nncc.num >= 0) {
-				return nncc.num + " : [HEX-" + Long.toHexString(nncc.num) + "]";
-			} else {
-				return nncc.num + " : [NHEX-" + Long.toString(nncc.num, 16) + " = UHEX-"
-						+ Long.toUnsignedString(nncc.num, 16) + "]";
-			}
+			return constantToString(null, nncc.num);
 		}
 		case PrimitiveFileGrammarLexer.ERROR:
 		case PrimitiveFileGrammarLexer.ERROR_HEX:
@@ -120,15 +109,12 @@ public class PscHoverProvider implements ITextHover {
 						PVMSnapshot sn = docval.currentDebugSession.getSnapshot();
 						byte[] bytes = new byte[24];
 						docval.currentDebugSession.getMem(sn.ip, bytes, 0, 16);
-						docval.currentDebugSession.getMem(
-								Convert.convertByteArrToLong(bytes, 8) + Convert.convertByteArrToLong(bytes, 16), bytes,
-								0, 8);
+						docval.currentDebugSession.getMem(Convert.convertByteArrToLong(bytes, 8) + Convert.convertByteArrToLong(bytes, 16), bytes, 0, 8);
 						long val = Convert.convertByteArrToLong(bytes);
 						if (val >= 0) {
 							value = val + " [HEX-" + Long.toHexString(val) + "]";
 						} else {
-							value = val + " [NHEX" + Long.toString(val, 16) + " = UHEX-"
-									+ Long.toUnsignedString(val, 16) + "]";
+							value = val + " [NHEX" + Long.toString(val, 16) + " = UHEX-" + Long.toUnsignedString(val, 16) + "]";
 						}
 						break;
 					}
@@ -137,14 +123,12 @@ public class PscHoverProvider implements ITextHover {
 						PVMSnapshot sn = docval.currentDebugSession.getSnapshot();
 						byte[] bytes = new byte[16];
 						docval.currentDebugSession.getMem(sn.ip, bytes, 0, 16);
-						docval.currentDebugSession
-								.getMem(Convert.convertByteArrToLong(bytes, 8) + sn.getRegister(bytes[7]), bytes, 0, 8);
+						docval.currentDebugSession.getMem(Convert.convertByteArrToLong(bytes, 8) + sn.getRegister(bytes[7]), bytes, 0, 8);
 						long val = Convert.convertByteArrToLong(bytes);
 						if (val >= 0) {
 							value = val + " [HEX-" + Long.toHexString(val) + "]";
 						} else {
-							value = val + " [NHEX" + Long.toString(val, 16) + " = UHEX-"
-									+ Long.toUnsignedString(val, 16) + "]";
+							value = val + " [NHEX" + Long.toString(val, 16) + " = UHEX-" + Long.toUnsignedString(val, 16) + "]";
 						}
 						break;
 					}
@@ -152,14 +136,12 @@ public class PscHoverProvider implements ITextHover {
 						PVMSnapshot sn = docval.currentDebugSession.getSnapshot();
 						byte[] bytes = new byte[8];
 						docval.currentDebugSession.getMem(sn.ip, bytes, 0, 8);
-						docval.currentDebugSession.getMem(sn.getRegister(bytes[7]) + sn.getRegister(bytes[6]), bytes, 0,
-								8);
+						docval.currentDebugSession.getMem(sn.getRegister(bytes[7]) + sn.getRegister(bytes[6]), bytes, 0, 8);
 						long val = Convert.convertByteArrToLong(bytes);
 						if (val >= 0) {
 							value = val + " [HEX-" + Long.toHexString(val) + "]";
 						} else {
-							value = val + " [NHEX" + Long.toString(val, 16) + " = UHEX-"
-									+ Long.toUnsignedString(val, 16) + "]";
+							value = val + " [NHEX" + Long.toString(val, 16) + " = UHEX-" + Long.toUnsignedString(val, 16) + "]";
 						}
 						break;
 					}
@@ -176,13 +158,15 @@ public class PscHoverProvider implements ITextHover {
 					return "IOException while comunicating with the debugger: " + e.getMessage();
 				}
 			}
-		case PrimitiveFileGrammarLexer.MINUS: {
+		case PrimitiveFileGrammarLexer.MINUS:
+		case PrimitiveFileGrammarLexer.KOMMA_MINUS:
+		case PrimitiveFileGrammarLexer.KOMMA_PLUS: {
 			ConstBerechnungStrichContext cbsc = (ConstBerechnungStrichContext) inf.tn.getParent();
 			Interval i = getTextInterval(cbsc);
 			try {
-				return cbsc.num + " = " + document.get(i.a, i.b + 1 - i.a);
+				return constantToString(null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
 			} catch (BadLocationException e) {
-				return cbsc.num + " = " + cbsc.getText();
+				return constantToString(null, cbsc.num) + " = " + cbsc.getText();
 			}
 		}
 		case PrimitiveFileGrammarLexer.GLEICH_GLEICH:
@@ -190,9 +174,9 @@ public class PscHoverProvider implements ITextHover {
 			ConstBerechnungGleichheitContext cbsc = (ConstBerechnungGleichheitContext) inf.tn.getParent();
 			Interval i = getTextInterval(cbsc);
 			try {
-				return cbsc.num + " = " + document.get(i.a, i.b + 1 - i.a);
+				return constantToString(null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
 			} catch (BadLocationException e) {
-				return cbsc.num + " = " + cbsc.getText();
+				return constantToString(null, cbsc.num) + " = " + cbsc.getText();
 			}
 		}
 		case PrimitiveFileGrammarLexer.GROESSER:
@@ -202,20 +186,22 @@ public class PscHoverProvider implements ITextHover {
 			ConstBerechnungRelativeTestsContext cbsc = (ConstBerechnungRelativeTestsContext) inf.tn.getParent();
 			Interval i = getTextInterval(cbsc);
 			try {
-				return cbsc.num + " = " + document.get(i.a, i.b + 1 - i.a);
+				return constantToString(null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
 			} catch (BadLocationException e) {
-				return cbsc.num + " = " + cbsc.getText();
+				return constantToString(null, cbsc.num) + " = " + cbsc.getText();
 			}
 		}
 		case PrimitiveFileGrammarLexer.MAL:
 		case PrimitiveFileGrammarLexer.GETEILT:
+		case PrimitiveFileGrammarLexer.KOMMA_MAL:
+		case PrimitiveFileGrammarLexer.KOMMA_GETEILT:
 		case PrimitiveFileGrammarLexer.MODULO: {
 			ConstBerechnungPunktContext cbsc = (ConstBerechnungPunktContext) inf.tn.getParent();
 			Interval i = getTextInterval(cbsc);
 			try {
-				return cbsc.num + " = " + document.get(i.a, i.b + 1 - i.a);
+				return constantToString(null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
 			} catch (BadLocationException e) {
-				return cbsc.num + " = " + cbsc.getText();
+				return constantToString(null, cbsc.num) + " = " + cbsc.getText();
 			}
 		}
 		case PrimitiveFileGrammarLexer.FRAGEZEICHEN:
@@ -223,9 +209,9 @@ public class PscHoverProvider implements ITextHover {
 			ConstBerechnungDirektContext cbsc = (ConstBerechnungDirektContext) inf.tn.getParent();
 			Interval i = getTextInterval(cbsc);
 			try {
-				return cbsc.num + " = " + document.get(i.a, i.b + 1 - i.a);
+				return constantToString(null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
 			} catch (BadLocationException e) {
-				return cbsc.num + " = " + cbsc.getText();
+				return constantToString(null, cbsc.num) + " = " + cbsc.getText();
 			}
 		}
 		case PrimitiveFileGrammarLexer.LINKS_SCHUB:
@@ -234,9 +220,9 @@ public class PscHoverProvider implements ITextHover {
 			ConstBerechnungSchubContext cbsc = (ConstBerechnungSchubContext) inf.tn.getParent();
 			Interval i = getTextInterval(cbsc);
 			try {
-				return cbsc.num + " = " + document.get(i.a, i.b + 1 - i.a);
+				return constantToString(null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
 			} catch (BadLocationException e) {
-				return cbsc.num + " = " + cbsc.getText();
+				return constantToString(null, cbsc.num) + " = " + cbsc.getText();
 			}
 		}
 		case PrimitiveFileGrammarLexer.EXIST_CONSTANT:
@@ -245,9 +231,9 @@ public class PscHoverProvider implements ITextHover {
 			ConstBerechnungDirektContext cbsc = (ConstBerechnungDirektContext) inf.tn.getParent();
 			Interval i = getTextInterval(cbsc);
 			try {
-				return cbsc.num + " = " + document.get(i.a, i.b + 1 - i.a);
+				return constantToString(null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
 			} catch (BadLocationException e) {
-				return cbsc.num + " = " + cbsc.getText();
+				return constantToString(null, cbsc.num) + " = " + cbsc.getText();
 			}
 		}
 		case PrimitiveFileGrammarLexer.XNN:
@@ -271,6 +257,21 @@ public class PscHoverProvider implements ITextHover {
 		default:
 			return "";
 		}
+	}
+
+	private String constantToString(String name, long val) {
+		StringBuilder build = new StringBuilder();
+		if (name != null) {
+			build.append('#').append(name).append(" : ");
+		}
+		build.append(val);
+		if (val >= 0) {
+			build.append(" [HEX-").append(Long.toHexString(val));
+		} else {
+			build.append(" [NHEX" + Long.toString(val, 16)).append(" = UHEX-").append(Long.toUnsignedString(val, 16));
+		}
+		build.append(" FP: ").append(Double.longBitsToDouble(val)).append(']');
+		return build.toString();
 	}
 
 	@Override
