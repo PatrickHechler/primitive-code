@@ -52,6 +52,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarPa
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.NummerNoConstantContext;
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ParamContext;
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.SrContext;
+import de.hechler.patrick.codesprachen.primitive.eclplugin.Activator;
 import de.hechler.patrick.codesprachen.primitive.eclplugin.objects.DocumentValue;
 import de.hechler.patrick.codesprachen.primitive.eclplugin.objects.TokenInfo;
 
@@ -71,7 +72,13 @@ public class PscPresentationReconciler extends PresentationReconciler {
 		private int off;
 		private int oldoff;
 		private int end;
-		private TextAttribute[] colors = getTextAttributes();
+		private volatile TextAttribute[] colors = getTextAttributes();
+
+		public PrimTokScanner() {
+			Activator.getDefault().getPreferenceStore().addPropertyChangeListener(event -> {
+				colors = getTextAttributes();
+			});
+		}
 
 		@Override
 		public void setRange(IDocument document, int offset, int length) {
