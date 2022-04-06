@@ -50,7 +50,7 @@ public class PscAutoEditStrategy implements IAutoEditStrategy {
 			case "\r\n": {
 				IRegion info = document.getLineInformationOfOffset(command.offset);
 				String line = document.get(info.getOffset(), info.getLength());
-				String start = line.replaceFirst("^(\\s*)[^\\s].*$", "$1");
+				String start = line.replaceFirst("^(\\s*(\\|(\\>)?\\s*)?)([^\\s].*$)?", "$1");
 				command.text += start;
 				break;
 			}
