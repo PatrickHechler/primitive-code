@@ -28,7 +28,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 }
 
  consts
- [Map<String,Long> constants, Map<String, Long> labels, long pos, boolean alignParam, boolean bailError]
+ [Map<String,PrimitiveConstant> constants, Map<String, Long> labels, long pos, boolean alignParam, boolean bailError]
  returns
  [ConstantPoolCommand pool, boolean align, AssembleRuntimeException are] @init {
  	$pool = new ConstantPoolCommand();
@@ -57,14 +57,14 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  cpanything
- [long pos_, ConstantPoolCommand pool_, boolean align_, Map<String, Long> constants_, Map<String, Long> labels_, boolean be]
+ [long pos_, ConstantPoolCommand pool_, boolean align_, Map<String, PrimitiveConstant> constants_, Map<String, Long> labels_, boolean be]
  returns
- [long pos, ConstantPoolCommand pool, boolean align, Map<String, Long> constants, Map<String, Long> labels, AssembleRuntimeException are]
+ [long pos, ConstantPoolCommand pool, boolean align, Map<String, PrimitiveConstant> constants, Map<String, Long> labels, AssembleRuntimeException are]
  @init {
  	$pos = pos_;
  	$pool = pool_;
  	$align = align_;
- 	$constants = new HashMap<>(constants_);
+ 	$constants = constants_;
  	$labels = labels_;
  }
  :
@@ -368,7 +368,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 
  ;
 
- numconst [ConstantPoolCommand pool, Map<String, Long> constants, boolean be]
+ numconst [ConstantPoolCommand pool, Map<String, PrimitiveConstant> constants, boolean be]
  returns [long num, boolean b, AssembleRuntimeException are] @init {
 	int radix;
 	$b = false;
@@ -459,16 +459,16 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  		(
  			NAME
  			{
-				Long l = constants.get($NAME.getText());
-				if (l == null) {
+				PrimitiveConstant pc = constants.get($NAME.getText());
+				if (pc == null) {
 					if (be) {
 						throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: " + $NAME.getText());
 					} else {
-						l = 0L;
+						pc = new PrimitiveConstant(null, null, 0L);
 						$are = new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: " + $NAME.getText());
 					}
 				}
-				$num = l;
+				$num = pc.value;
 			}
 
  		)

@@ -26,6 +26,7 @@ import org.eclipse.ui.dialogs.WizardNewFileCreationPage;
 
 import de.hechler.patrick.codesprachen.primitive.assemble.enums.PrimitiveFileTypes;
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
+import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveConstant;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.DisasmMode;
 import de.hechler.patrick.codesprachen.primitive.disassemble.objects.PrimitiveDisassembler;
 import de.hechler.patrick.objects.NullOutputStream;
@@ -140,11 +141,9 @@ public class PrimitiveImportWizardPage extends WizardNewFileCreationPage {
 						case primitiveSourceCode:
 							ByteArrayOutputStream baos = new ByteArrayOutputStream();
 							try (PrintStream out = new PrintStream(baos, false, StandardCharsets.UTF_8)) {
-								Map<String, Long> symbols = new LinkedHashMap<>();
-								PrimitiveAssembler.readSymbols("", symbols, new Scanner(in, StandardCharsets.UTF_8));
-								symbols.forEach((symbol, value) -> {
-									out.println("#" + symbol + " UHEX-" + Long.toUnsignedString(value, 16));
-								});
+								Map<String, PrimitiveConstant> symbols = new LinkedHashMap<>();
+								PrimitiveAssembler.readSymbols(null, symbols, new Scanner(in, StandardCharsets.UTF_8));
+								PrimitiveAssembler.export(symbols, out);
 								out.flush();
 							}
 							return new ByteArrayInputStream(baos.toByteArray());

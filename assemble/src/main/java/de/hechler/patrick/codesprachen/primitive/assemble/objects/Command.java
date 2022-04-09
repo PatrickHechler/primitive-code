@@ -36,7 +36,7 @@ public class Command {
 		this.p3 = p3;
 	}
 
-	public static ConstsContext parseCP(String cp, Map<String, Long> constants, Map<String, Long> labels, long pos, boolean align, int line, int posInLine, int charPos, boolean bailError,
+	public static ConstsContext parseCP(String cp, Map<String, PrimitiveConstant> constants, Map<String, Long> labels, long pos, boolean align, int line, int posInLine, int charPos, boolean bailError,
 			ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener) {
 		ANTLRInputStream in = new ANTLRInputStream(cp);
 		ConstantPoolGrammarLexer lexer = new ConstantPoolGrammarLexer(in);

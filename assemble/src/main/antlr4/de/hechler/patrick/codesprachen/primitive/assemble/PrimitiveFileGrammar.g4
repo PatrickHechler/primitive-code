@@ -79,9 +79,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  }
 
  parse
- [long startpos, boolean align, Map<String,Long> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles]
+ [long startpos, boolean align, Map<String,PrimitiveConstant> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles]
  returns
- [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are, boolean enabled, Map<String, Long> exports]
+ [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are, boolean enabled, Map<String, PrimitiveConstant> exports]
  @init {
  	$pos = startpos;
  	$labels = new HashMap<>();
@@ -89,6 +89,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	$commands.add(new CompilerCommandCommand(align ? CompilerCommand.align : CompilerCommand.notAlign));
  	$enabled = true;
  	$exports = new HashMap<>();
+ 	String lastComment = null;
  	int disabledSince = -1;
  	/* 
  	 * use alll three states of the Boolean class (true, false, null)
@@ -110,7 +111,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  :
  	(
  		anything
- 		[$enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp, $exports, asm, antlrin, $thisFile, $readFiles]
+ 		[$enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp, $exports, asm, antlrin, $thisFile, $readFiles, lastComment]
  		{
  			$enabled = $anything.enabled;
  			disabledSince = $anything.disabledSince;
@@ -121,6 +122,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 			$labels = $anything.labels;
 			$pos = $anything.pos;
 			$exports = $anything.exports;
+			lastComment = $anything.lastComment;
 			if ($anything.are != null) {
 				if ($are != null) {
 					$are.addSuppressed($anything.are);
@@ -134,9 +136,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  anything
- [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, Long> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, Map<String, Long> exports_, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles]
+ [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, PrimitiveConstant> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, Map<String, PrimitiveConstant> exports_, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles, String lastComment_]
  returns
- [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, Long> constants, List<Command> commands, Map<String, Long> labels, long pos, Object zusatz, AssembleRuntimeException are, Map<String, Long> exports]
+ [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, PrimitiveConstant> constants, List<Command> commands, Map<String, Long> labels, long pos, Object zusatz, AssembleRuntimeException are, Map<String, PrimitiveConstant> exports, String lastComment]
  @init {
 	$enabled = enabled_;
 	$disabledSince = disabledSince_;
@@ -148,11 +150,15 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 	$pos = pos_;
 	$zusatz = null;
 	$exports = new HashMap<>(exports_);
+	$lastComment = null;
  }
  :
  	(
  		(
- 			comment+
+ 			(
+ 				comment
+ 				{$lastComment = $comment.text;}
+ 			)+
  		)
  		|
  		(
@@ -197,9 +203,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  		|
  		(
  		{
-				String constName = null;
-				boolean export = false;
-			}
+			String constName = null;
+			boolean export = false;
+		}
 
  			(
  				(
@@ -226,9 +232,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  					{
  						if ($enabled) {
 		 					$are = $constBerechnungDirekt.are;
-	 						$constants.put(constName, $constBerechnungDirekt.num);
+	 						$constants.put(constName, new PrimitiveConstant(constName, lastComment_, $constBerechnungDirekt.num));
 	 						if (export) {
-		 						$exports.put(constName, $constBerechnungDirekt.num);
+		 						$exports.put(constName, new PrimitiveConstant(constName, lastComment_, $constBerechnungDirekt.num));
 	 						}
  						}
  					}
@@ -257,7 +263,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 				Boolean isSource = null;
 				String prefix = null;
 				boolean useMyConsts = false;
-				Map<String,Long> addConsts = new HashMap<>();
+				Map <String, PrimitiveConstant> addConsts = new HashMap<>();
 				if ($enabled) {
 					StringBuilder file = new StringBuilder();
 					$are = appendString(file, $STR_STR, be, $are);
@@ -305,7 +311,8 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				(
  					ADD_CONSTANT constBerechnung [$pos, $constants, $be]
  					{
- 						addConsts.put($ADD_CONSTANT.getText().substring(5), $constBerechnung.num);
+ 						String name = $ADD_CONSTANT.getText().substring(5);
+ 						addConsts.put(name, new PrimitiveConstant(name, null, $constBerechnung.num));
  						if ($constBerechnung.are != null)  {
  							if ($are != null) {
  								$are.addSuppressed($constBerechnung.are);
@@ -626,7 +633,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)
  ;
 
- param [long pos, Map<String,Long> constants, boolean be] returns
+ param [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
  [Param p, AssembleRuntimeException are]
  :
  	(
@@ -635,7 +642,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 			if (constants.containsKey($NAME.getText())) {
 				ParamBuilder builder = new ParamBuilder();
  				builder.art = ParamBuilder.A_NUM;
- 				builder.v1 = constants.get($NAME.getText());
+ 				builder.v1 = constants.get($NAME.getText()).value;
  				$p = builder.build();
 			} else {
 				$p = Param.createLabel($NAME.getText());
@@ -738,7 +745,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)
  ;
 
- constBerechnung [long pos, Map<String, Long> constants, boolean be] returns
+ constBerechnung [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
  [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungInclusivoder [pos, constants, be]
@@ -766,7 +773,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  constBerechnungInclusivoder
- [long pos, Map<String, Long> constants, boolean be] returns
+ [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
  [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungExclusivoder [pos, constants, be]
@@ -793,7 +800,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  constBerechnungExclusivoder
- [long pos, Map<String, Long> constants, boolean be] returns
+ [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
  [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungUnd [pos, constants, be]
@@ -818,7 +825,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungUnd [long pos, Map<String, Long> constants, boolean be]
+ constBerechnungUnd [long pos, Map <String, PrimitiveConstant> constants, boolean be]
  returns [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungGleichheit [pos, constants, be]
@@ -843,7 +850,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungGleichheit [long pos, Map<String, Long> constants, boolean be]
+ constBerechnungGleichheit [long pos, Map <String, PrimitiveConstant> constants, boolean be]
  returns [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungRelativeTests [pos, constants, be]
@@ -888,7 +895,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  constBerechnungRelativeTests
- [long pos, Map<String, Long> constants, boolean be] returns
+ [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
  [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungSchub [pos, constants, be]
@@ -958,7 +965,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungSchub [long pos, Map<String, Long> constants, boolean be]
+ constBerechnungSchub [long pos, Map <String, PrimitiveConstant> constants, boolean be]
  returns [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungStrich [pos, constants, be]
@@ -1019,7 +1026,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungStrich [long pos, Map<String, Long> constants, boolean be]
+ constBerechnungStrich [long pos, Map <String, PrimitiveConstant> constants, boolean be]
  returns [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungPunkt [pos, constants, be]
@@ -1095,7 +1102,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungPunkt [long pos, Map<String, Long> constants, boolean be]
+ constBerechnungPunkt [long pos, Map <String, PrimitiveConstant> constants, boolean be]
  returns [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungDirekt [pos, constants, be]
@@ -1174,7 +1181,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungDirekt [long pos, Map<String, Long> constants, boolean be]
+ constBerechnungDirekt [long pos, Map <String, PrimitiveConstant> constants, boolean be]
  returns [long num, AssembleRuntimeException are]
  :
  	(
@@ -1202,7 +1209,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)
  ;
 
- nummer [long pos, Map<String, Long> constants, boolean be] returns
+ nummer [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
  [long num, AssembleRuntimeException are]
  :
  	(
@@ -1214,16 +1221,16 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	(
  		NAME
  		{
- 			Long zw = constants.get($NAME.getText());
+ 			PrimitiveConstant zw = constants.get($NAME.getText());
  			if (zw == null) {
  				if (be) {
 	 				throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
  				} else {
-	 				zw = 0L;
+	 				zw = new PrimitiveConstant(null, null, 0L);
 	 				$are = new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
  				}
  			}
- 			$num = (long) zw;
+ 			$num = zw.value;
  		}
 
  	)
@@ -1384,7 +1391,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  command
- [long pos, Map<String,Long> constants, Map<String,Long> labels, boolean align, boolean be]
+ [long pos, Map <String, PrimitiveConstant> constants, Map<String,Long> labels, boolean align, boolean be]
  returns [Command c] @init {Commands cmd = null;}
  :
  	(
@@ -1706,10 +1713,14 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)
  ;
 
- comment
+ comment returns [String text]
  :
- 	LINE_COMMENT
- 	| BLOCK_COMMENT
+ 	(
+ 		t = LINE_COMMENT
+ 		| t = BLOCK_COMMENT
+ 	)
+ 	{$text = $t.getText();}
+
  ;
 
  CALL
