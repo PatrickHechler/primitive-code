@@ -1043,7 +1043,19 @@ the assembler language for the Primitive-Virtual-Machine
     * `35`: string length
         * `X00` points to the STRING
         * `X00` will be set to the length of the string/ the (byte-)offset of the `'\0'` character
-    * `36`: string to number
+    * `36`: number to string
+        * `X00` is set to the number to convert
+        * `X01` is points to the buffer to be filled with the number in a STRING format
+        * `X02` contains the base of the number system
+            * the minimum base is `2`
+            * the maximum base is `36`
+            * other values lead to undefined behavior
+        * `X00` will be set to the length of the STRING
+    * `37`: floating point number to string
+        * `X00` is set to the number to convert
+        * `X02` contains the maximum amount of digits to be used to represent the floating point number
+        * `X01` is points to the buffer to be filled with the number in a STRING format
+    * `38`: string to number
         * `X00` points to the STRING
         * `X01` points to the base of the number system
             * (for example `10` for the decimal system or `2` for the binary system)
@@ -1052,25 +1064,13 @@ the assembler language for the Primitive-Virtual-Machine
             * this might be the `\0'` terminating character
         * if the STRING contains illegal characters or the base is not valid, the behavior is undefined
         * this function will ignore leading space characters
-    * `37`: string to floating point number
+    * `39`: string to floating point number
         * `X00` points to the STRING
         * `X00` will be set to the converted number
         * `X01` will point to the end of the number-STRING
             * this might be the `\0'` terminating character
         * if the STRING contains illegal characters or the base is not valid, the behavior is undefined
         * this function will ignore leading space characters
-    * `38`: number to string
-        * `X00` is set to the number to convert
-        * `X01` is points to the buffer to be filled with the number in a STRING format
-        * `X02` contains the base of the number system
-            * the minimum base is `2`
-            * the maximum base is `36`
-            * other values lead to undefined behavior
-        * `X00` will be set to the length of the STRING
-    * `39`: floating point number to string
-        * `X00` is set to the number to convert
-        * `X02` contains the maximum amount of digits to be used to represent the floating point number
-        * `X01` is points to the buffer to be filled with the number in a STRING format
     * `40`: format string
         * `X00` is set to the STRING input
         * `X01` contains the buffer for the STRING output

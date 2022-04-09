@@ -235,7 +235,7 @@ static void int_string_to_fpnumber();
 static void int_string_format();
 static void int_load_file();
 
-static void (*defaultinterrupts[])() = {
+void (*defaultinterrupts[])() = {
 	int_errors_illegal_interrupt,
 	int_errors_unknown_command,
 	int_errors_illegal_memory,
@@ -279,6 +279,7 @@ static void (*defaultinterrupts[])() = {
 	int_string_format,
 	int_load_file,
 };
+_Static_assert(sizeof(defaultinterrupts) == (sizeof(void*) * ALL_INTS_INTCNT), "default interrupt array does not have the expected size");
 #else
 extern struct pvm pvm;
 #endif

@@ -86,10 +86,10 @@ public class PrimitiveAssembler {
 		startConstants.put("INT_MEMORY_BSET", (Long) 33L);
 		startConstants.put("INT_MEMORY_SET", (Long) 34L);
 		startConstants.put("INT_STRING_LENGTH", (Long) 35L);
-		startConstants.put("INT_NUMBER_TO_STRING", (Long) 36L);
-		startConstants.put("INT_FPNUMBER_TO_STRING", (Long) 37L);
-		startConstants.put("INT_STRING_TO_NUMBER", (Long) 38L);
-		startConstants.put("INT_STRING_TO_FPNUMBER", (Long) 39L);
+		startConstants.put("INT_STRING_TO_NUMBER", (Long) 36L);
+		startConstants.put("INT_STRING_TO_FPNUMBER", (Long) 37L);
+		startConstants.put("INT_NUMBER_TO_STRING", (Long) 38L);
+		startConstants.put("INT_FPNUMBER_TO_STRING", (Long) 39L);
 		startConstants.put("INT_STRING_FORMAT", (Long) 40L);
 		startConstants.put("INT_LOAD_FILE", (Long) 41L);
 		startConstants.put("INTERRUPT_COUNT", (Long) 42L);
