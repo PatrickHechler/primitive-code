@@ -96,65 +96,65 @@ public class PrimitiveImportWizardPage extends WizardNewFileCreationPage {
 			PrimitiveFileTypes fromType = PrimitiveFileTypes.getTypeFromName(fileName, PrimitiveFileTypes.primitiveSourceCode);
 			PrimitiveFileTypes toType = PrimitiveFileTypes.getTypeFromName(getFileName(), PrimitiveFileTypes.primitiveSourceCode);
 			switch (fromType) {
+			case primitiveMashineCode:
+				switch (toType) {
 				case primitiveMashineCode:
-					switch (toType) {
-						case primitiveMashineCode:
-							break;
-						case primitiveSourceCode: {
-							ByteArrayOutputStream baos = new ByteArrayOutputStream();
-							PrimitiveDisassembler disasm = new PrimitiveDisassembler(DisasmMode.executable, new PrintStream(baos, true, StandardCharsets.UTF_8));
-							disasm.deassemble(0L, in);
-							return new ByteArrayInputStream(baos.toByteArray());
-						}
-						case primitiveSymbolFile:
-							canNotConvert(fromType, toType);
-							break;
-						default:
-							throw new InternalError("unknown PrimitiveFileType: " + fromType.name());
-					}
 					break;
-				case primitiveSourceCode:
-					switch (toType) {
-						case primitiveMashineCode: {
-							ByteArrayOutputStream baos = new ByteArrayOutputStream();
-							PrimitiveAssembler asm = new PrimitiveAssembler(baos, new PrintStream(new NullOutputStream()), null, true, true, false, true);
-							asm.assemble(in, StandardCharsets.UTF_8);
-							return new ByteArrayInputStream(baos.toByteArray());
-						}
-						case primitiveSourceCode:
-							break;
-						case primitiveSymbolFile: {
-							ByteArrayOutputStream baos = new ByteArrayOutputStream();
-							PrimitiveAssembler asm = new PrimitiveAssembler(new NullOutputStream(), new PrintStream(baos), null, true, true, false, true);
-							asm.assemble(in, StandardCharsets.UTF_8);
-							return new ByteArrayInputStream(baos.toByteArray());
-						}
-						default:
-							throw new InternalError("unknown PrimitiveFileType: " + fromType.name());
-					}
-					break;
+				case primitiveSourceCode: {
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					PrimitiveDisassembler disasm = new PrimitiveDisassembler(DisasmMode.executable, new PrintStream(baos, true, StandardCharsets.UTF_8));
+					disasm.deassemble(0L, in);
+					return new ByteArrayInputStream(baos.toByteArray());
+				}
 				case primitiveSymbolFile:
-					switch (toType) {
-						case primitiveMashineCode:
-							canNotConvert(fromType, toType);
-							break;
-						case primitiveSourceCode:
-							ByteArrayOutputStream baos = new ByteArrayOutputStream();
-							try (PrintStream out = new PrintStream(baos, false, StandardCharsets.UTF_8)) {
-								Map<String, PrimitiveConstant> symbols = new LinkedHashMap<>();
-								PrimitiveAssembler.readSymbols(null, symbols, new Scanner(in, StandardCharsets.UTF_8));
-								PrimitiveAssembler.export(symbols, out);
-								out.flush();
-							}
-							return new ByteArrayInputStream(baos.toByteArray());
-						case primitiveSymbolFile:
-							break;
-						default:
-							throw new InternalError("unknown PrimitiveFileType: " + fromType.name());
-					}
+					canNotConvert(fromType, toType);
 					break;
 				default:
 					throw new InternalError("unknown PrimitiveFileType: " + fromType.name());
+				}
+				break;
+			case primitiveSourceCode:
+				switch (toType) {
+				case primitiveMashineCode: {
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					PrimitiveAssembler asm = new PrimitiveAssembler(baos, new PrintStream(new NullOutputStream()), new java.nio.file.Path[]{}, true, true, false, true);
+					asm.assemble(in, StandardCharsets.UTF_8);
+					return new ByteArrayInputStream(baos.toByteArray());
+				}
+				case primitiveSourceCode:
+					break;
+				case primitiveSymbolFile: {
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					PrimitiveAssembler asm = new PrimitiveAssembler(new NullOutputStream(), new PrintStream(baos), new java.nio.file.Path[]{}, true, true, false, true);
+					asm.assemble(in, StandardCharsets.UTF_8);
+					return new ByteArrayInputStream(baos.toByteArray());
+				}
+				default:
+					throw new InternalError("unknown PrimitiveFileType: " + fromType.name());
+				}
+				break;
+			case primitiveSymbolFile:
+				switch (toType) {
+				case primitiveMashineCode:
+					canNotConvert(fromType, toType);
+					break;
+				case primitiveSourceCode:
+					ByteArrayOutputStream baos = new ByteArrayOutputStream();
+					try (PrintStream out = new PrintStream(baos, false, StandardCharsets.UTF_8)) {
+						Map<String, PrimitiveConstant> symbols = new LinkedHashMap<>();
+						PrimitiveAssembler.readSymbols(null, symbols, new Scanner(in, StandardCharsets.UTF_8));
+						PrimitiveAssembler.export(symbols, out);
+						out.flush();
+					}
+					return new ByteArrayInputStream(baos.toByteArray());
+				case primitiveSymbolFile:
+					break;
+				default:
+					throw new InternalError("unknown PrimitiveFileType: " + fromType.name());
+				}
+				break;
+			default:
+				throw new InternalError("unknown PrimitiveFileType: " + fromType.name());
 			}
 			return in;
 		} catch (IOException e) {

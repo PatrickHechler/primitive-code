@@ -65,14 +65,34 @@ public class PscHoverProvider implements ITextHover {
 			}
 		}
 		switch (inf.tn.getSymbol().getType()) {
+		case PrimitiveFileGrammarLexer.EXPORT_CONSTANT:
 		case PrimitiveFileGrammarLexer.CONSTANT:
 		case PrimitiveFileGrammarLexer.LABEL_DECLARATION:
 		case PrimitiveFileGrammarLexer.NAME: {
-			String name = inf.tn.getText().replaceFirst("[#@]?([a-zA-Z_]+)", "$1");
-			if (inf.ac.constants.containsKey(name)) {
+			String text = inf.tn.getText();
+			String start = text.replaceFirst("((#|@|\\#EXP\\~)?)([a-zA-Z_]+)", "$1");
+			String name = text.replaceFirst("(#|@|\\#EXP\\~)?([a-zA-Z_]+)", "$2");
+			Boolean isConst;
+			switch (start) {
+			case "":
+				isConst = null;
+				break;
+			case "@":
+				isConst = false;
+				break;
+			case "#":
+			case "#EXP~":
+				isConst = true;
+				break;
+			default:
+				throw new InternalError("unknown start: '" + start + "'");
+			}
+			boolean canBeConst = inf.ac.constants.containsKey(name);
+			if (isConst == null && canBeConst || isConst != null && isConst) {
 				long val = inf.ac.constants.get(name).value;
 				return constantToString(inf.ac.constants, name, val);
-			} else {
+			}
+			if (isConst == null && !canBeConst || isConst != null && !isConst) {
 				Long val = inf.ac.labels.get(name);
 				if (val == null) {
 					return name + " : unknown";

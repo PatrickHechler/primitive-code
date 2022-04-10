@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Primitive-Code Eclipse-Plugin
 Bundle-SymbolicName: de.hechler.patrick.codesprachen.primitive.eclplugin;singleton:=true
-Bundle-Version: 1.6.0
+Bundle-Version: 1.8.1
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui,
  org.eclipse.jface.text,
@@ -14,7 +14,7 @@ Import-Package: javax.inject
 Automatic-Module-Name: sa
 Bundle-ClassPath: .,
  libs/antlr4-runtime-4.3.jar,
- libs/assemble-8.0.0.jar,
+ libs/assemble-8.1.1.jar,
  libs/disassemble-4.1.0.jar,
  libs/runtime-4.4.1.jar
 Export-Package: de.hechler.patrick.codesprachen.primitive.assemble,

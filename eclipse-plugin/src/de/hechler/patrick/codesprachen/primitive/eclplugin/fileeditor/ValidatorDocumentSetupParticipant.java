@@ -36,7 +36,6 @@ import org.eclipse.core.filebuffers.IDocumentSetupParticipantExtension;
 import org.eclipse.core.filebuffers.LocationKind;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IMarker;
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -64,8 +63,8 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 
 	public static final String MY_ID = "org.eclipse.ui.genericeditor.GenericEditor";
 
-	public static File getProjectFile(IProject project) {
-		IPath path = project.getLocation();
+	public static File getResourceFile(IResource res) {
+		IPath path = res.getRawLocation();
 		return path.toFile();
 	}
 
@@ -333,7 +332,7 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 		private DocumentValue createDocVal(IFile file) {
 			File lookup = null;
 			if (file != null) {
-				lookup = getProjectFile(file.getProject());
+				lookup = getResourceFile(file.getProject());
 			}
 			return new DocumentValue(Collections.unmodifiableList(this.markers), lookup);
 		}
