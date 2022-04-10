@@ -387,7 +387,7 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 								}
 							}
 						}
-						final String regex = "^([^\r\n]*)(\r\n?|\n)((.+|(\r|\n)+)*)$";
+						final String regex = "^([^\r\n]*)(\r\n?|\n)((.*\r*\n*)*)$";
 						String msg = text.substring(index).replaceFirst(regex, "$1");
 						String skip = text.substring(0, index - 1);
 						while (skip.matches(regex)) {
