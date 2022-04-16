@@ -50,6 +50,8 @@ public class PrimitiveAssembler {
 
 	private static final byte[] INERPRETER_START = "#!/bin/pvm        --pmc\n".getBytes(StandardCharsets.US_ASCII);
 
+	public static final Path START_CONSTANTS_PATH = Paths.get("[START_CONSTANTS]");
+
 	static { // @formatter:off
 		Map<String, PrimitiveConstant> startConstants = new LinkedHashMap<>();
 		startConstants.put("INT_ERRORS_ILLEGAL_INTERRUPT", new PrimitiveConstant("INT_ERRORS_ILLEGAL_INTERRUPT",
@@ -58,49 +60,49 @@ public class PrimitiveAssembler {
 				+ "|         * calls the exit interrupt with `(64 + illegal_interrup_number)`\n"
 				+ "|         * if the forbidden interrupt is the exit input, the program exits with `(64 + 4) = 68`, but does not calls the exit interrupt to do so\n"
 				+ "|         * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `63`\n"
-				+ "|:>", 0));
+				+ "|:>", 0, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_ERRORS_UNKNOWN_COMMAND", new PrimitiveConstant("INT_ERRORS_UNKNOWN_COMMAND",
 				  "|:  * `1`: unknown command\n"
 				+ "|         * `X00` contains the illegal command\n"
 				+ "|         * calls the exit interrupt with `62`\n"
-				+ "|:>", 1));
+				+ "|:>", 1, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_ERRORS_ILLEGAL_MEMORY", new PrimitiveConstant("INT_ERRORS_ILLEGAL_MEMORY",
 				  "|:  * `2`: illegal memory\n"
 				+ "|         * calls the exit interrupt with `61`\n"
-				+ "|:>", 2));
+				+ "|:>", 2, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_ERRORS_ARITHMETIC_ERROR", new PrimitiveConstant("INT_ERRORS_ARITHMETIC_ERROR",
 				  "|:  * `3`: arithmetic error\n"
 				+ "|         * calls the exit interrupt with `60`\n"
-				+ "|:>", 3));
+				+ "|:>", 3, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_EXIT", new PrimitiveConstant("INT_EXIT",
 				  "|:  * `4`: exit\n"
 				+ "|         * use `X00` to specify the exit number of the progress\n"
-				+ "|:>", 4));
+				+ "|:>", 4, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_MEMORY_ALLOC", new PrimitiveConstant("INT_MEMORY_ALLOC",
 				  "|:  * `5`: allocate a memory-block\n"
 				+ "|         * `X00` saves the size of the block\n"
 				+ "|         * if the value of `X00` is `-1` after the call the memory-block could not be allocated\n"
 				+ "|         * if the value of `X00` is not `-1`, `X00` points to the first element of the allocated memory-block\n"
-				+ "|:>", 5));
+				+ "|:>", 5, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_MEMORY_REALLOC", new PrimitiveConstant("INT_MEMORY_REALLOC",
 				  "|:  * `6`: reallocate a memory-block\n"
 				+ "|         * `X00` points to the memory-block\n"
 				+ "|         * `X01` saves the new size of the memory-block\n"
 				+ "|         * if the value of `X01` is `-1` after the call the memory-block could not be reallocated, the old memory-block will remain valid and may be used and should be freed if it is not longer needed\n"
 				+ "|         * if the value of `X01` is not `-1`, `X01` points to the first element of the allocated memory-block and the old memory-block was automatically freed, so it should not be used\n"
-				+ "|:>", 6));
+				+ "|:>", 6, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_MEMORY_FREE", new PrimitiveConstant("INT_MEMORY_FREE",
 				  "|:  * `7`: free a memory-block\n"
 				+ "|         * `X00` points to the old memory-block\n"
 				+ "|         * after this the memory-block should not be used\n"
-				+ "|:>", 7));
+				+ "|:>", 7, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_NEW_IN", new PrimitiveConstant("INT_STREAMS_NEW_IN",
 				  "|:  * `8`: open new in stream\n"
 				+ "|         * `X00` contains a pointer to the STRING, which refers to the file which should be read\n"
 				+ "|         * opens a new in stream to the specified file\n"
 				+ "|         * is successfully the STREAM-ID will be saved in the `X00` register, if not `X00` will contain `-1`\n"
 				+ "|         * output operations are not supported on the new stream\n"
-				+ "|:>", 8));
+				+ "|:>", 8, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_NEW_OUT", new PrimitiveConstant("INT_STREAMS_NEW_OUT",
 				  "|:  * `9`: open new out stream\n"
 				+ "|         * `X00` contains a pointer to the STRING, which refers to the file which should be created\n"
@@ -108,35 +110,35 @@ public class PrimitiveAssembler {
 				+ "|         * if the file exist already it's contend will be overwritten\n"
 				+ "|         * is successfully the STREAM-ID will be saved in the `X00` register, if not `X00` will contain `-1`\n"
 				+ "|         * input operations are not supported on the new stream\n"
-				+ "|:>", 9));
+				+ "|:>", 9, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_NEW_APPEND", new PrimitiveConstant("INT_STREAMS_NEW_APPEND",
 				  "|:  * `10`: open new out, append stream\n"
 				+ "|         * `X00` contains a pointer to the STRING, which refers to the file which should be created\n"
 				+ "|         * opens a new out stream to the specified file\n"
 				+ "|         * if the file exist already it's contend will be overwritten\n"
 				+ "|         * is successfully the STREAM-ID will be saved in the `X00` register, if not `X00` will contain `-1`\n"
-				+ "|:>", 10));
+				+ "|:>", 10, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_NEW_IN_OUT", new PrimitiveConstant("INT_STREAMS_NEW_IN_OUT",
 				  "|:  * `11`: open new in/out stream\n"
 				+ "|         * `X00` contains a pointer to the STRING, which refers to the file which should be created\n"
 				+ "|         * opens a new out stream to the specified file\n"
 				+ "|         * if the file exist already it's contend will be overwritten\n"
 				+ "|         * is successfully the STREAM-ID will be saved in the `X00` register, if not `X00` will contain `-1`\n"
-				+ "|:>", 11));
+				+ "|:>", 11, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_NEW_APPEND_IN_OUT", new PrimitiveConstant("INT_STREAMS_NEW_APPEND_IN_OUT",
 				  "|:  * `12`: open new in/out, append stream\n"
 				+ "|         * `X00` contains a pointer to the STRING, which refers to the file which should be created\n"
 				+ "|         * opens a new out stream to the specified file\n"
 				+ "|         * if the file exist already it's contend will be overwritten\n"
 				+ "|         * is successfully the STREAM-ID will be saved in the `X00` register, if not `X00` will contain `-1`\n"
-				+ "|:>", 12));
+				+ "|:>", 12, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_WRITE", new PrimitiveConstant("INT_STREAMS_WRITE",
 				  "|:  * `13`: write\n"
 				+ "|         * `X00` contains the STREAM-ID\n"
 				+ "|         * `X01` contains the number of elements to write\n"
 				+ "|         * `X02` points to the elements to write\n"
 				+ "|         * after execution `X01` will contain the number of written elements or `-1` if an error occurred\n"
-				+ "|:>", 13));
+				+ "|:>", 13, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_READ", new PrimitiveConstant("INT_STREAMS_READ",
 				  "|:  * `14`: read\n"
 				+ "|         * `X00` contains the STREAM-ID\n"
@@ -145,56 +147,56 @@ public class PrimitiveAssembler {
 				+ "|         * after execution `X01` will contain the number of elements, which has been read or `-1` if an error occurred.\n"
 				+ "|         * if `X01` is `0` the end of the stream has reached\n"
 				+ "|         * reading less bytes than expected does not mead that the stream has reached it's end\n"
-				+ "|:>", 14));
+				+ "|:>", 14, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_SYNC_STREAM", new PrimitiveConstant("INT_STREAMS_SYNC_STREAM",
 				  "|:  * `15`: sync stream\n"
 				+ "|         * `X00` contains the STREAM-ID\n"
 				+ "|         * if `X00` is set to `-1`, it will be tried to syncronize everything\n"
 				+ "|         * if the synchronization was successfully `X00` will be set to `1`, if not `0`\n"
-				+ "|:>", 15));
+				+ "|:>", 15, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_CLOSE_STREAM", new PrimitiveConstant("INT_STREAMS_CLOSE_STREAM",
 				  "|:  * `16`: close stream\n"
 				+ "|         * `X00` contains the STREAM-ID\n"
 				+ "|         * if the stream was closed successfully `X00` will contain `1`, if not `0`\n"
-				+ "|:>", 16));
+				+ "|:>", 16, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_GET_POS", new PrimitiveConstant("INT_STREAMS_GET_POS",
 				  "|:  * `17`: get stream pos\n"
 				+ "|         * `X00` contains the STREAM-ID\n"
 				+ "|         * `X01` will contain the position of the stream or `-1` if something went wrong.\n"
-				+ "|:>", 17));
+				+ "|:>", 17, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_SET_POS", new PrimitiveConstant("INT_STREAMS_SET_POS",
 				  "|:  * `18`: set stream pos\n"
 				+ "|         * `X00` contains the STREAM-ID\n"
 				+ "|         * `X01` contains the position to be set.\n"
 				+ "|         * if the stream-ID is the ID of a default stream the behavior is undefined.\n"
 				+ "|         * `X01` will contain the new stream position.\n"
-				+ "|:>", 18));
+				+ "|:>", 18, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_SET_POS_TO_END", new PrimitiveConstant("INT_STREAMS_SET_POS_TO_END",
 				  "|:  * `19`: set stream to end\n"
 				+ "|         * `X00` contains the STREAM-ID\n"
 				+ "|         * this will set the stream position to the end\n"
 				+ "|         * `X01` will the new file pos or `-1` if something went wrong\n"
-				+ "|:>", 19));
+				+ "|:>", 19, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_REM", new PrimitiveConstant("INT_STREAMS_REM",
 				  "|:  * `20`: remove file\n"
 				+ "|         * `X00` contains a pointer of a STRING with the file\n"
 				+ "|         * if the file was successfully removed `X00` will contain `1`, if not `0`\n"
-				+ "|:>", 20));
+				+ "|:>", 20, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_MK_DIR", new PrimitiveConstant("INT_STREAMS_MK_DIR",
 				  "|:  * `21`: make dictionary\n"
 				+ "|         * `X00` contains a pointer of a STRING with the dictionary\n"
 				+ "|         * if the dictionary was successfully created `X00` will contain `1`, if not `0`\n"
-				+ "|:>", 21));
+				+ "|:>", 21, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STREAMS_REM_DIR", new PrimitiveConstant("INT_STREAMS_REM_DIR",
 				  "|:  * `22`: remove dictionary\n"
 				+ "|         * `X00` contains a pointer of a STRING with the dictionary\n"
 				+ "|         * if the dictionary was successfully removed `X00` will contain `1`, if not `0`\n"
 				+ "|         * if the dictionary is not empty this call will fail (and set `X00` to `0`)\n"
-				+ "|:>", 22));
+				+ "|:>", 22, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_TIME_GET", new PrimitiveConstant("INT_TIME_GET",
 				  "|:  * `23`: to get the time in milliseconds\n"
 				+ "|         * `X00` will contain the time in milliseconds or `-1` if not available\n"
-				+ "|:>", 23));
+				+ "|:>", 23, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_TIME_WAIT", new PrimitiveConstant("INT_TIME_WAIT",
 				  "|:  * `24`: to wait the given time in nanoseconds\n"
 				+ "|         * `X00` contain the number of nanoseconds to wait (only values from `0` to `999999999` are allowed)\n"
@@ -204,12 +206,12 @@ public class PrimitiveAssembler {
 				+ "|             * if `X02` is `1` the remaining time will always be `0`\n"
 				+ "|             * if `X02` is `0` the remaining time will be greater `0`\n"
 				+ "|         * `X00` will not be negative if the progress waited too long\n"
-				+ "|:>", 24));
+				+ "|:>", 24, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_SOCKET_CLIENT_CREATE", new PrimitiveConstant("INT_SOCKET_CLIENT_CREATE",
 				  "|:  * `25`: socket client create\n"
 				+ "|         * makes a new client socket\n"
 				+ "|         * `X00` will be set to the SOCKET-ID or `-1` if the operation failed\n"
-				+ "|:>", 25));
+				+ "|:>", 25, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_SOCKET_CLIENT_CONNECT", new PrimitiveConstant("INT_SOCKET_CLIENT_CONNECT",
 				  "|:  * `26`: socket client connect\n"
 				+ "|         * `X00` points to the SOCKET-ID\n"
@@ -219,32 +221,32 @@ public class PrimitiveAssembler {
 				+ "|         * connects an client socket to the host on the port\n"
 				+ "|         * `X01` will be set to the `1` on success and `0` on a fail\n"
 				+ "|         * on success, the SOCKET-ID, can be used as a STREAM-ID\n"
-				+ "|:>", 26));
+				+ "|:>", 26, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_SOCKET_SERVER_CREATE", new PrimitiveConstant("INT_SOCKET_SERVER_CREATE",
 				  "|:  * `27`: socket server create\n"
 				+ "|         * `X00` contains the port\n"
 				+ "|             * the port will be the normal number with the normal byte order\n"
 				+ "|         * makes a new server socket\n"
 				+ "|         * `X00` will be set to the SOCKET-ID or `-1` when the operation fails\n"
-				+ "|:>", 27));
+				+ "|:>", 27, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_SOCKET_SERVER_LISTEN", new PrimitiveConstant("INT_SOCKET_SERVER_LISTEN",
 				  "|:  * `28`: socket server listens\n"
 				+ "|         * `X00` contains the SOCKET-ID\n"
 				+ "|         * `X01` contains the MAX_QUEUE length\n"
 				+ "|         * let a server socket listen\n"
 				+ "|         * `X01` will be set to `1` or `0` when the operation fails\n"
-				+ "|:>", 28));
+				+ "|:>", 28, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_SOCKET_SERVER_ACCEPT", new PrimitiveConstant("INT_SOCKET_SERVER_ACCEPT",
 				  "|:  * `29`: socket server accept\n"
 				+ "|         * `X00` contains the SOCKET-ID\n"
 				+ "|         * let a server socket accept a client\n"
 				+ "|         * this operation will block, until a client connects\n"
 				+ "|         * `X01` will be set a new SOCKET-ID, which can be used as STREAM-ID, or `-1`\n"
-				+ "|:>", 29));
+				+ "|:>", 29, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_RANDOM", new PrimitiveConstant("INT_RANDOM",
 				  "|:  * `30`: random\n"
 				+ "|         * `X00` will be filled with random bits\n"
-				+ "|:>", 30));
+				+ "|:>", 30, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_MEMORY_COPY", new PrimitiveConstant("INT_MEMORY_COPY",
 				  "|:  * `31`: memory copy\n"
 				+ "|         * copies a block of memory\n"
@@ -252,7 +254,7 @@ public class PrimitiveAssembler {
 				+ "|         * `X00` points to the target memory block\n"
 				+ "|         * `X01` points to the source memory block\n"
 				+ "|         * `X02` has the length of bytes to bee copied\n"
-				+ "|:>", 31));
+				+ "|:>", 31, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_MEMORY_MOVE", new PrimitiveConstant("INT_MEMORY_MOVE",
 				  "|:  * `32`: memory move\n"
 				+ "|         * copies a block of memory\n"
@@ -260,26 +262,26 @@ public class PrimitiveAssembler {
 				+ "|         * `X00` points to the target memory block\n"
 				+ "|         * `X01` points to the source memory block\n"
 				+ "|         * `X02` has the length of bytes to bee copied\n"
-				+ "|:>", 32));
+				+ "|:>", 32, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_MEMORY_BSET", new PrimitiveConstant("INT_MEMORY_BSET",
 				  "|:  * `33`: memory byte set\n"
 				+ "|         * sets a memory block to the given byte-value\n"
 				+ "|         * `X00` points to the block\n"
 				+ "|         * `X01` the first byte contains the value to be written to each byte\n"
 				+ "|         * `X02` contains the length in bytes\n"
-				+ "|:>", 33));
+				+ "|:>", 33, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_MEMORY_SET", new PrimitiveConstant("INT_MEMORY_SET",
 				  "|:  * `34`: memory set\n"
 				+ "|         * sets a memory block to the given int64-value\n"
 				+ "|         * `X00` points to the block\n"
 				+ "|         * `X01` contains the value to be written to each element\n"
 				+ "|         * `X02` contains the count of elements to be set\n"
-				+ "|:>", 34));
+				+ "|:>", 34, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STRING_LENGTH", new PrimitiveConstant("INT_STRING_LENGTH",
 				  "|:  * `35`: string length\n"
 				+ "|         * `X00` points to the STRING\n"
 				+ "|         * `X00` will be set to the length of the string/ the (byte-)offset of the `'\\0'` character\n"
-				+ "|:>", 35));
+				+ "|:>", 35, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STRING_TO_NUMBER", new PrimitiveConstant("INT_STRING_TO_NUMBER",
 				  "|:  * `36`: string to number\n"
 				+ "|         * `X00` points to the STRING\n"
@@ -290,7 +292,7 @@ public class PrimitiveAssembler {
 				+ "|             * this might be the `\\0'` terminating character\n"
 				+ "|         * if the STRING contains illegal characters or the base is not valid, the behavior is undefined\n"
 				+ "|         * this function will ignore leading space characters\n"
-				+ "|:>", 36));
+				+ "|:>", 36, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STRING_TO_FPNUMBER", new PrimitiveConstant("INT_STRING_TO_FPNUMBER",
 				  "|:  * `37`: string to floating point number\n"
 				+ "|         * `X00` points to the STRING\n"
@@ -299,7 +301,7 @@ public class PrimitiveAssembler {
 				+ "|             * this might be the `\\0'` terminating character\n"
 				+ "|         * if the STRING contains illegal characters or the base is not valid, the behavior is undefined\n"
 				+ "|         * this function will ignore leading space characters\n"
-				+ "|:>", 37));
+				+ "|:>", 37, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_NUMBER_TO_STRING", new PrimitiveConstant("INT_NUMBER_TO_STRING",
 				  "|:  * `38`: number to string\n"
 				+ "|         * `X00` is set to the number to convert\n"
@@ -309,13 +311,13 @@ public class PrimitiveAssembler {
 				+ "|             * the maximum base is `36`\n"
 				+ "|             * other values lead to undefined behavior\n"
 				+ "|         * `X00` will be set to the length of the STRING\n"
-				+ "|:>", 38));
+				+ "|:>", 38, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_FPNUMBER_TO_STRING", new PrimitiveConstant("INT_FPNUMBER_TO_STRING",
 				  "|:  * `39`: floating point number to string\n"
 				+ "|         * `X00` is set to the number to convert\n"
 				+ "|         * `X02` contains the maximum amount of digits to be used to represent the floating point number\n"
 				+ "|         * `X01` is points to the buffer to be filled with the number in a STRING format\n"
-				+ "|:>", 39));
+				+ "|:>", 39, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_STRING_FORMAT", 
 				  new  PrimitiveConstant("INT_STRING_FORMAT",
 				  "|:  * `40`: format string\n"
@@ -351,25 +353,25 @@ public class PrimitiveAssembler {
 				+ "|             * `%h`: the next argument contains a number, which should be converted to a STRING using the hexadecimal number system and than be inserted here\n"
 				+ "|             * `%b`: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here\n"
 				+ "|             * `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here\n"
-				+ "|:>", 40));
+				+ "|:>", 40, START_CONSTANTS_PATH, -1));
 		startConstants.put("INT_LOAD_FILE", new PrimitiveConstant("INT_LOAD_FILE",
 				  "|:  * `41`: load file\n"
 				+ "|         * `X00` is set to the path (inclusive name) of the file\n"
 				+ "|         * `X00` will point to the memory block, in which the file has been loaded\n"
 				+ "|         * `X01` will be set to the length of the file (and the memory block)\n"
 				+ "|         * when an error occured `X00` will be set to `-1`\n"
-				+ "|:>", 41));
-		startConstants.put("INTERRUPT_COUNT", new PrimitiveConstant("INTERRUPT_COUNT", "|> the number of interrupts activated and implemented by default", 42L));
-		startConstants.put("MAX_VALUE", new PrimitiveConstant("MAX_VALUE", "|> the maximal value (2^63-1)", 0x7FFFFFFFFFFFFFFFL));
-		startConstants.put("MIN_VALUE", new PrimitiveConstant("MIN_VALUE", "|> the minimal value (-2^63)", -0x8000000000000000L));
-		startConstants.put("STD_IN", new PrimitiveConstant("STD_IN", "|> the std-in STREAM-ID", 0L));
-		startConstants.put("STD_OUT", new PrimitiveConstant("STD_OUT", "|> the std-out STREAM-ID", 1L));
-		startConstants.put("STD_LOG", new PrimitiveConstant("STD_LOG", "|> the std-log STREAM-ID", 2L));
-		startConstants.put("FP_NAN", new PrimitiveConstant("FP_NAN", "|> a NaN constant", 0x7FFE000000000000L));
-		startConstants.put("FP_MAX_VALUE", new PrimitiveConstant("FP_MAX_VALUE", "|> the maximal floating point number", 0x7FEFFFFFFFFFFFFFL));
-		startConstants.put("FP_MIN_VALUE", new PrimitiveConstant("FP_MIN_VALUE", "|> the minimal floating point number", 0x0000000000000001L));
-		startConstants.put("FP_POS_INFINITY", new PrimitiveConstant("FP_POS_INFINITY", "|> a floating point containing a positiv infinity value", 0x7FF0000000000000L));
-		startConstants.put("FP_NEG_INFINITY", new PrimitiveConstant("FP_NEG_INFINITY", "|> a floating point containing a negativ infinity value", 0xFFF0000000000000L));
+				+ "|:>", 41, START_CONSTANTS_PATH, -1));
+		startConstants.put("INTERRUPT_COUNT", new PrimitiveConstant("INTERRUPT_COUNT", "|> the number of interrupts activated and implemented by default", 42L, START_CONSTANTS_PATH, -1));
+		startConstants.put("MAX_VALUE", new PrimitiveConstant("MAX_VALUE", "|> the maximal value (2^63-1)", 0x7FFFFFFFFFFFFFFFL, START_CONSTANTS_PATH, -1));
+		startConstants.put("MIN_VALUE", new PrimitiveConstant("MIN_VALUE", "|> the minimal value (-2^63)", -0x8000000000000000L, START_CONSTANTS_PATH, -1));
+		startConstants.put("STD_IN", new PrimitiveConstant("STD_IN", "|> the std-in STREAM-ID", 0L, START_CONSTANTS_PATH, -1));
+		startConstants.put("STD_OUT", new PrimitiveConstant("STD_OUT", "|> the std-out STREAM-ID", 1L, START_CONSTANTS_PATH, -1));
+		startConstants.put("STD_LOG", new PrimitiveConstant("STD_LOG", "|> the std-log STREAM-ID", 2L, START_CONSTANTS_PATH, -1));
+		startConstants.put("FP_NAN", new PrimitiveConstant("FP_NAN", "|> a NaN constant", 0x7FFE000000000000L, START_CONSTANTS_PATH, -1));
+		startConstants.put("FP_MAX_VALUE", new PrimitiveConstant("FP_MAX_VALUE", "|> the maximal floating point number", 0x7FEFFFFFFFFFFFFFL, START_CONSTANTS_PATH, -1));
+		startConstants.put("FP_MIN_VALUE", new PrimitiveConstant("FP_MIN_VALUE", "|> the minimal floating point number", 0x0000000000000001L, START_CONSTANTS_PATH, -1));
+		startConstants.put("FP_POS_INFINITY", new PrimitiveConstant("FP_POS_INFINITY", "|> a floating point containing a positiv infinity value", 0x7FF0000000000000L, START_CONSTANTS_PATH, -1));
+		startConstants.put("FP_NEG_INFINITY", new PrimitiveConstant("FP_NEG_INFINITY", "|> a floating point containing a negativ infinity value", 0xFFF0000000000000L, START_CONSTANTS_PATH, -1));
 		START_CONSTANTS = Collections.unmodifiableMap(startConstants);
 	} // @formatter:on
 
@@ -471,65 +473,69 @@ public class PrimitiveAssembler {
 		this.lookups = lookup == null ? new Path[]{Paths.get("./")} : lookup;
 	}
 
-	public ParseContext preassemble(InputStream in) throws IOException, AssembleError {
-		return preassemble(new InputStreamReader(in));
+	public ParseContext preassemble(Path path) throws IOException, AssembleError {
+		return preassemble(path, Files.newInputStream(path));
+	}
+	
+	public ParseContext preassemble(Path path, InputStream in) throws IOException, AssembleError {
+		return preassemble(path, new InputStreamReader(in));
 	}
 
-	public ParseContext preassemble(InputStream in, Charset cs) throws IOException, AssembleError {
-		return preassemble(new InputStreamReader(in, cs));
+	public ParseContext preassemble(Path path, InputStream in, Charset cs) throws IOException, AssembleError {
+		return preassemble(path, new InputStreamReader(in, cs));
 	}
 
-	public ParseContext preassemble(Reader in) throws IOException, AssembleError {
-		return preassemble(in, new HashMap<>(START_CONSTANTS));
+	public ParseContext preassemble(Path path, Reader in) throws IOException, AssembleError {
+		return preassemble(path, in, new HashMap<>(START_CONSTANTS));
 	}
 
-	public ParseContext preassemble(InputStream in, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
-		return preassemble(new InputStreamReader(in), predefinedConstants);
+	public ParseContext preassemble(Path path, InputStream in, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
+		return preassemble(path, new InputStreamReader(in), predefinedConstants);
 	}
 
-	public ParseContext preassemble(InputStream in, Charset cs, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
-		return preassemble(new InputStreamReader(in, cs), predefinedConstants);
+	public ParseContext preassemble(Path path, InputStream in, Charset cs, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
+		return preassemble(path, new InputStreamReader(in, cs), predefinedConstants);
 	}
 
-	public ParseContext preassemble(Reader in, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
-		return preassemble(new ANTLRInputStream(in), predefinedConstants);
+	public ParseContext preassemble(Path path, Reader in, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
+		return preassemble(path, new ANTLRInputStream(in), predefinedConstants);
 	}
 
-	public ParseContext preassemble(ANTLRInputStream antlrin) throws IOException, AssembleError {
-		return preassemble(antlrin, new HashMap<>(START_CONSTANTS));
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin) throws IOException, AssembleError {
+		return preassemble(path, antlrin, new HashMap<>(START_CONSTANTS));
 	}
 
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
-		return preassemble(antlrin, new HashMap<>(predefinedConstants), true);
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
+		return preassemble(path, antlrin, new HashMap<>(predefinedConstants), true);
 	}
 
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, boolean bailError) throws IOException, AssembleError {
-		return preassemble(antlrin, predefinedConstants, bailError ? new BailErrorStrategy() : null, bailError);
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, boolean bailError) throws IOException, AssembleError {
+		return preassemble(path, antlrin, predefinedConstants, bailError ? new BailErrorStrategy() : null, bailError);
 	}
 
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError)
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError)
 			throws IOException, AssembleError {
-		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, null);
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, null);
 	}
 
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener)
-			throws IOException, AssembleError {
-		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError,
+			ANTLRErrorListener errorListener) throws IOException, AssembleError {
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {
 		});
 	}
 
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener,
-			BiConsumer<Integer, Integer> enterConstPool) throws IOException, AssembleError {
-		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, "[THIS]");
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError,
+			ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool) throws IOException, AssembleError {
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, "[THIS]");
 	}
 
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener,
-			BiConsumer<Integer, Integer> enterConstPool, String thisFile) throws IOException, AssembleError {
-		return preassemble(antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile, new HashMap<>());
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError,
+			ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, String thisFile) throws IOException, AssembleError {
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile, new HashMap<>());
 	}
 
-	public ParseContext preassemble(ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener,
-			BiConsumer<Integer, Integer> enterConstPool, String thisFile, Map<String, List<Map<String, Long>>> readFiles) throws IOException, AssembleError {
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError,
+			ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, String thisFile, Map<String, List<Map<String, Long>>> readFiles) throws IOException, AssembleError {
 		PrimitiveFileGrammarLexer lexer = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
@@ -540,7 +546,7 @@ public class PrimitiveAssembler {
 			parser.addErrorListener(errorListener);
 		}
 		try {
-			return parser.parse(0L, defaultAlign, predefinedConstants, bailError, errorHandler, errorListener, enterConstPool, this, antlrin, thisFile, readFiles);
+			return parser.parse(path, 0L, defaultAlign, predefinedConstants, bailError, errorHandler, errorListener, enterConstPool, this, antlrin, thisFile, readFiles);
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
 			if (cause == null) {
@@ -741,24 +747,27 @@ public class PrimitiveAssembler {
 		}
 	}
 
-	public void assemble(InputStream in) throws IOException, AssembleError {
-		assemble(preassemble(in));
+	public void assemble(Path path) throws IOException, AssembleError {
+		assemble(preassemble(path));
+	}
+	public void assemble(Path path, InputStream in) throws IOException, AssembleError {
+		assemble(preassemble(path, in));
 	}
 
-	public void assemble(InputStream in, Charset cs) throws IOException, AssembleError {
-		assemble(preassemble(in, cs));
+	public void assemble(Path path, InputStream in, Charset cs) throws IOException, AssembleError {
+		assemble(preassemble(path, in, cs));
 	}
 
-	public void assemble(Reader in) throws IOException, AssembleError {
-		assemble(preassemble(in));
+	public void assemble(Path path, Reader in) throws IOException, AssembleError {
+		assemble(preassemble(path, in));
 	}
 
-	public void assemble(ANTLRInputStream antlrin) throws IOException, AssembleError {
-		assemble(preassemble(antlrin));
+	public void assemble(Path path, ANTLRInputStream antlrin) throws IOException, AssembleError {
+		assemble(preassemble(path, antlrin));
 	}
 
-	public void assemble(ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
-		assemble(preassemble(antlrin, predefinedConstants));
+	public void assemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
+		assemble(preassemble(path, antlrin, predefinedConstants));
 	}
 
 	public void assemble(PrimitiveFileGrammarParser.ParseContext parsed) throws IOException {
@@ -789,8 +798,9 @@ public class PrimitiveAssembler {
 		});
 	}
 
-	public static void readSymbols(String prefix, Map<String, PrimitiveConstant> addSymbols, Scanner sc) {
+	public static void readSymbols(String prefix, Map<String, PrimitiveConstant> addSymbols, Scanner sc, Path path) {
 		StringBuilder comment = new StringBuilder();
+		int lineNumber = 1;
 		while (sc.hasNextLine()) {
 			String line = sc.nextLine().trim();
 			if (line.isEmpty()) {
@@ -808,9 +818,9 @@ public class PrimitiveAssembler {
 			long val = Long.parseUnsignedLong(line.replaceFirst(regex, "$2"), 16);
 			PrimitiveConstant value;
 			if (comment.length() == 0) {
-				value = new PrimitiveConstant(constName, null, val);
+				value = new PrimitiveConstant(constName, null, val, path, lineNumber);
 			} else {
-				value = new PrimitiveConstant(constName, comment.toString(), val);
+				value = new PrimitiveConstant(constName, comment.toString(), val, path, lineNumber);
 				comment = new StringBuilder();
 			}
 			if (prefix == null) {
@@ -818,6 +828,7 @@ public class PrimitiveAssembler {
 			} else {
 				addSymbols.put(prefix + constName, value);
 			}
+			lineNumber++;
 		}
 	}
 
@@ -887,13 +898,13 @@ public class PrimitiveAssembler {
 			InputStream in = input;
 			if (isPrimSourceCode) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
-				ParseContext pc = preassemble(new ANTLRInputStream(new InputStreamReader(in, StandardCharsets.UTF_8)), startConsts, be ? new BailErrorStrategy() : null, be, null, (line, charPos) -> {
+				ParseContext pc = preassemble(path, new ANTLRInputStream(new InputStreamReader(in, StandardCharsets.UTF_8)), startConsts, be ? new BailErrorStrategy() : null, be, null, (line, charPos) -> {
 				}, readFile, readFiles);
 				export(pc.exports, new PrintStream(baos, true, "UTF-8"));
 				in = new ByteArrayInputStream(baos.toByteArray());
 			}
 			try (Scanner sc = new Scanner(in, "UTF-8")) {
-				readSymbols(prefix, addSymbols, sc);
+				readSymbols(prefix, addSymbols, sc, path);
 			}
 		}
 		return null;

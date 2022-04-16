@@ -19,11 +19,6 @@ import org.eclipse.jface.text.Region;
 
 import de.hechler.patrick.codesprachen.primitive.assemble.ConstantPoolGrammarLexer;
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarLexer;
-import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ConstBerechnungDirektContext;
-import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ConstBerechnungGleichheitContext;
-import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ConstBerechnungPunktContext;
-import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ConstBerechnungRelativeTestsContext;
-import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ConstBerechnungSchubContext;
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ConstBerechnungStrichContext;
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.NummerNoConstantContext;
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ParamContext;
@@ -46,23 +41,18 @@ public class PscHoverProvider implements ITextHover {
 		try {
 			inf = getTokenInfo(docval, off);
 		} catch (NoSuchElementException nsee) {
-			return "";
+			return null;
 		}
 		if (inf.cpac != null) {
 			if (inf.tn.getSymbol().getType() != ConstantPoolGrammarLexer.NAME) {
-				return "";
+				return null;
 			}
 			String text = inf.tn.getText();
 			PrimitiveConstant primConst = inf.ac.constants.get(text);
 			if (primConst == null) {
 				return text + " : <unknown constant>";
 			}
-			long val = primConst.value;
-			if (val >= 0) {
-				return text + " : " + val + " [HEX-" + Long.toHexString(val) + "]";
-			} else {
-				return text + " : " + val + " [NHEX" + Long.toString(val, 16) + " = UHEX-" + Long.toUnsignedString(val, 16) + "]";
-			}
+			return constantToString(inf.ac.constants, text, primConst.value);
 		}
 		switch (inf.tn.getSymbol().getType()) {
 		case PrimitiveFileGrammarLexer.EXPORT_CONSTANT:
@@ -182,80 +172,38 @@ public class PscHoverProvider implements ITextHover {
 			}
 		case PrimitiveFileGrammarLexer.MINUS:
 		case PrimitiveFileGrammarLexer.KOMMA_MINUS:
-		case PrimitiveFileGrammarLexer.KOMMA_PLUS: {
-			ConstBerechnungStrichContext cbsc = (ConstBerechnungStrichContext) inf.tn.getParent();
-			Interval i = getTextInterval(cbsc);
-			try {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
-			} catch (BadLocationException e) {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + cbsc.getText();
-			}
-		}
+		case PrimitiveFileGrammarLexer.KOMMA_PLUS:
 		case PrimitiveFileGrammarLexer.GLEICH_GLEICH:
-		case PrimitiveFileGrammarLexer.UNGLEICH: {
-			ConstBerechnungGleichheitContext cbsc = (ConstBerechnungGleichheitContext) inf.tn.getParent();
-			Interval i = getTextInterval(cbsc);
-			try {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
-			} catch (BadLocationException e) {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + cbsc.getText();
-			}
-		}
+		case PrimitiveFileGrammarLexer.UNGLEICH:
 		case PrimitiveFileGrammarLexer.GROESSER:
 		case PrimitiveFileGrammarLexer.GROESSER_GLEICH:
 		case PrimitiveFileGrammarLexer.KLEINER_GLEICH:
-		case PrimitiveFileGrammarLexer.KLEINER: {
-			ConstBerechnungRelativeTestsContext cbsc = (ConstBerechnungRelativeTestsContext) inf.tn.getParent();
-			Interval i = getTextInterval(cbsc);
-			try {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
-			} catch (BadLocationException e) {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + cbsc.getText();
-			}
-		}
+		case PrimitiveFileGrammarLexer.KLEINER:
 		case PrimitiveFileGrammarLexer.MAL:
 		case PrimitiveFileGrammarLexer.GETEILT:
 		case PrimitiveFileGrammarLexer.KOMMA_MAL:
 		case PrimitiveFileGrammarLexer.KOMMA_GETEILT:
-		case PrimitiveFileGrammarLexer.MODULO: {
-			ConstBerechnungPunktContext cbsc = (ConstBerechnungPunktContext) inf.tn.getParent();
-			Interval i = getTextInterval(cbsc);
-			try {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
-			} catch (BadLocationException e) {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + cbsc.getText();
-			}
-		}
+		case PrimitiveFileGrammarLexer.MODULO:
 		case PrimitiveFileGrammarLexer.FRAGEZEICHEN:
-		case PrimitiveFileGrammarLexer.DOPPELPUNKT: {
-			ConstBerechnungDirektContext cbsc = (ConstBerechnungDirektContext) inf.tn.getParent();
-			Interval i = getTextInterval(cbsc);
-			try {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
-			} catch (BadLocationException e) {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + cbsc.getText();
-			}
-		}
+		case PrimitiveFileGrammarLexer.DOPPELPUNKT:
 		case PrimitiveFileGrammarLexer.LINKS_SCHUB:
 		case PrimitiveFileGrammarLexer.ARITMETISCHER_RECHTS_SCHUB:
-		case PrimitiveFileGrammarLexer.LOGISCHER_RECHTS_SCHUB: {
-			ConstBerechnungSchubContext cbsc = (ConstBerechnungSchubContext) inf.tn.getParent();
-			Interval i = getTextInterval(cbsc);
-			try {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
-			} catch (BadLocationException e) {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + cbsc.getText();
-			}
-		}
+		case PrimitiveFileGrammarLexer.LOGISCHER_RECHTS_SCHUB:
 		case PrimitiveFileGrammarLexer.EXIST_CONSTANT:
 		case PrimitiveFileGrammarLexer.RND_KL_AUF:
 		case PrimitiveFileGrammarLexer.RND_KL_ZU: {
-			ConstBerechnungDirektContext cbsc = (ConstBerechnungDirektContext) inf.tn.getParent();
-			Interval i = getTextInterval(cbsc);
+			RuleNode rn = (RuleNode) inf.tn.getParent();
+			Interval i = getTextInterval(rn);
+			long num;
 			try {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + document.get(i.a, i.b + 1 - i.a);
+				num = rn.getClass().getField("num").getLong(rn);
+			} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+				return "error: " + e.getClass().getName() + " msg: " + e.getMessage();
+			}
+			try {
+				return constantToString(inf.ac.constants, null, num) + " = " + document.get(i.a, i.b + 1 - i.a);
 			} catch (BadLocationException e) {
-				return constantToString(inf.ac.constants, null, cbsc.num) + " = " + cbsc.getText();
+				return constantToString(inf.ac.constants, null, num) + " = " + rn.getText();
 			}
 		}
 		case PrimitiveFileGrammarLexer.XNN:
@@ -286,11 +234,11 @@ public class PscHoverProvider implements ITextHover {
 		if (name != null) {
 			build.append('#').append(name).append(" : ");
 		}
-		build.append(val);
+		build.append(Long.toString(val));
 		if (val >= 0) {
-			build.append(" [HEX-").append(Long.toHexString(val));
+			build.append(" [HEX-").append(Long.toHexString(val).toUpperCase());
 		} else {
-			build.append(" [NHEX" + Long.toString(val, 16)).append(" = UHEX-").append(Long.toUnsignedString(val, 16));
+			build.append(" [NHEX" + Long.toString(val, 16).toUpperCase()).append(" = UHEX-").append(Long.toUnsignedString(val, 16).toUpperCase());
 		}
 		build.append(" FP: ").append(Double.longBitsToDouble(val)).append(']');
 		if (name != null) {

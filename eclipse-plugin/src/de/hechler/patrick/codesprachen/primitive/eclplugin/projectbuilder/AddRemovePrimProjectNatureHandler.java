@@ -15,8 +15,7 @@ public class AddRemovePrimProjectNatureHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		ISelection selection = HandlerUtil.getCurrentSelection(event);
 		if (selection instanceof IStructuredSelection) {
-			for (Iterator<?> it = ((IStructuredSelection) selection).iterator(); it
-					.hasNext();) {
+			for (Iterator<?> it = ((IStructuredSelection) selection).iterator(); it.hasNext();) {
 				Object element = it.next();
 				IProject project = null;
 				if (element instanceof IProject) {
@@ -28,9 +27,7 @@ public class AddRemovePrimProjectNatureHandler extends AbstractHandler {
 					try {
 						toggleNature(project);
 					} catch (CoreException e) {
-						//TODO log something
-						throw new ExecutionException("Failed to toggle nature",
-								e);
+						throw new ExecutionException("Failed to toggle nature", e);
 					}
 				}
 			}

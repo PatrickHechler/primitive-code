@@ -1,12 +1,12 @@
 package de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor;
 
-import java.io.File;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collections;
@@ -31,6 +31,7 @@ import org.antlr.v4.runtime.misc.IntervalSet;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
+import org.eclipse.core.filebuffers.FileBuffers;
 import org.eclipse.core.filebuffers.IDocumentSetupParticipant;
 import org.eclipse.core.filebuffers.IDocumentSetupParticipantExtension;
 import org.eclipse.core.filebuffers.LocationKind;
@@ -53,6 +54,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarPa
 import de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveFileGrammarParser.ParseContext;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
+import de.hechler.patrick.codesprachen.primitive.eclplugin.Activator;
 import de.hechler.patrick.codesprachen.primitive.eclplugin.objects.DocumentValue;
 import de.hechler.patrick.codesprachen.primitive.eclplugin.objects.TokenInfo;
 
@@ -61,11 +63,17 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 	private static final Map<IFile, DocumentValue> files = new HashMap<>();
 	private static final Map<IDocument, DocumentValue> docs = new HashMap<>();
 
-	public static final String MY_ID = "org.eclipse.ui.genericeditor.GenericEditor";
+	public static final String MY_EDITOR_ID = "org.eclipse.ui.genericeditor.GenericEditor";
+	public static final String MY_PROBLEM_MARKER = Activator.PLUGIN_ID + ".marker.pscProblem";
 
-	public static File getResourceFile(IResource res) {
-		IPath path = res.getRawLocation();
-		return path.toFile();
+	public static Path getResourcePath(IResource res) {
+		IPath rawLoc = res.getRawLocation();
+		return rawLoc.toFile().toPath();
+	}
+
+	public static IFile getPathFile(Path path) {
+		IPath ipath = org.eclipse.core.runtime.Path.fromOSString(path.toString());
+		return FileBuffers.getWorkspaceFileAtLocation(ipath);
 	}
 
 	public static ParseContext getContext(IFile file) {
@@ -74,7 +82,7 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 		} catch (IllegalArgumentException e) {
 			try {
 				String value = new String(file.getContents().readAllBytes(), file.getCharset());
-				return preassemble(value, new PrimitiveAssembler(OutputStream.nullOutputStream()), null, (a, b) -> {
+				return preassemble(getResourcePath(file), value, new PrimitiveAssembler(OutputStream.nullOutputStream()), null, (a, b) -> {
 				});
 			} catch (IOException | CoreException e1) {
 				throw new InternalError(e1);
@@ -93,7 +101,7 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 	public static DocumentValue getDocVal(IDocument doc) throws IllegalArgumentException {
 		DocumentValue docval = docs.get(doc);
 		if (docval == null) {
-			throw new IllegalArgumentException("docval is null, document=" + doc);
+			throw new IllegalArgumentException("docval is null, document=" + doc + ":\n" + doc.get() + "\n known documents: " + docs);
 		}
 		return docval;
 	}
@@ -330,9 +338,9 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 		}
 
 		private DocumentValue createDocVal(IFile file) {
-			File lookup = null;
+			Path lookup = null;
 			if (file != null) {
-				lookup = getResourceFile(file.getProject());
+				lookup = getResourcePath(file.getProject());
 			}
 			return new DocumentValue(Collections.unmodifiableList(this.markers), lookup);
 		}
@@ -455,7 +463,7 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 				return;
 			}
 			try {
-				IMarker marker = file.createMarker(IMarker.PROBLEM);
+				IMarker marker = file.createMarker(MY_PROBLEM_MARKER);
 				marker.setAttribute(IMarker.SEVERITY, severity);
 				marker.setAttribute(IMarker.MESSAGE, msg);
 				marker.setAttribute(IMarker.LINE_NUMBER, line);
@@ -473,14 +481,14 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 		}
 
 		private void preassemble(IDocument document, DocumentValue docval) {
-			docval.context = ValidatorDocumentSetupParticipant.preassemble(document.get(), docval.asm, this.errorListener, this.enterCpPool);
+			docval.context = ValidatorDocumentSetupParticipant.preassemble(getResourcePath(file), document.get(), docval.asm, this.errorListener, this.enterCpPool);
 		}
 
 	}
 
-	private static ParseContext preassemble(String document, PrimitiveAssembler asm, ANTLRErrorListener el, BiConsumer<Integer, Integer> ecp) {
+	private static ParseContext preassemble(Path path, String document, PrimitiveAssembler asm, ANTLRErrorListener el, BiConsumer<Integer, Integer> ecp) {
 		try {
-			return asm.preassemble(new ANTLRInputStream(document), new HashMap<>(PrimitiveAssembler.START_CONSTANTS), null, false, el, ecp);
+			return asm.preassemble(path, new ANTLRInputStream(document), new HashMap<>(PrimitiveAssembler.START_CONSTANTS), null, false, el, ecp);
 		} catch (IOException e) {
 			throw new IOError(e);
 		}
@@ -488,7 +496,7 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 
 	@Override
 	public void setup(IDocument document) {
-		System.err.println("[PSC-WARN]: document loaded without file: " + document);
+		System.err.println("[" + MY_EDITOR_ID + "]: WARNING: document loaded without file: " + document);
 		DocumentValidator listener = new DocumentValidator(null);
 		document.addDocumentListener(listener);
 		initDocVal(null, document, listener);
@@ -504,7 +512,7 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 			listener = new DocumentValidator(file);
 			document.addDocumentListener(listener);
 		} else {
-			System.err.println("[PSC-WARN]: document loaded without file: " + document);
+			System.err.println("[" + MY_EDITOR_ID + "]: WARNING: document loaded without file: " + document);
 			listener = new DocumentValidator(null);
 			document.addDocumentListener(listener);
 		}
@@ -514,11 +522,9 @@ public class ValidatorDocumentSetupParticipant implements IDocumentSetupParticip
 
 	private void initDocVal(IFile file, IDocument document, DocumentValidator dv) {
 		DocumentValue docval = dv.createDocVal(file);
-		DocumentValue old = docs.put(document, docval);
-		assert null == old;
+		docs.put(document, docval);
 		if (file != null) {
-			old = files.put(file, docval);
-			assert null == old;
+			files.put(file, docval);
 			try {
 				file.deleteMarkers(IMarker.PROBLEM, false, IResource.DEPTH_ZERO);
 				file.deleteMarkers(IMarker.TASK, false, IResource.DEPTH_ZERO);

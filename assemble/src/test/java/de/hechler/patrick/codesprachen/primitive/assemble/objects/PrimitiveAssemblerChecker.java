@@ -74,7 +74,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			PrimitiveAssembler pa = new PrimitiveAssembler(out);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_ADD);
-			pa.assemble(helloWorldIn);
+			pa.assemble(null, helloWorldIn);
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
 			System.out.println(hexCodeBytes);
@@ -119,7 +119,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			PrimitiveAssembler pa = new PrimitiveAssembler(out);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_HELLO_WORLD);
-			pa.assemble(helloWorldIn);
+			pa.assemble(null, helloWorldIn);
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
 			System.out.println(hexCodeBytes);
@@ -152,7 +152,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			PrimitiveAssembler pa = new PrimitiveAssembler(out);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_HELLO_WORLD_TO_FILE);
-			pa.assemble(helloWorldIn);
+			pa.assemble(null, helloWorldIn);
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
 			System.out.println(hexCodeBytes);
@@ -183,7 +183,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
 			PrimitiveAssembler pa = new PrimitiveAssembler(out);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_HELLO_WORLD_FROM_FILE);
-			pa.assemble(helloWorldIn);
+			pa.assemble(null, helloWorldIn);
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
 			System.out.println(hexCodeBytes);

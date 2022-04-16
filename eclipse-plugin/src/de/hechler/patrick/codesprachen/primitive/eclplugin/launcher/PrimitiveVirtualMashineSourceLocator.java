@@ -73,7 +73,7 @@ public class PrimitiveVirtualMashineSourceLocator implements ISourceLocator, ISo
 	public String getEditorId(IEditorInput input, Object element) {
 		if (element instanceof IFile || element instanceof ILineBreakpoint || element instanceof LocatedSource
 				|| element instanceof IStackFrame)
-			return ValidatorDocumentSetupParticipant.MY_ID;
+			return ValidatorDocumentSetupParticipant.MY_EDITOR_ID;
 		return null;
 	}
 

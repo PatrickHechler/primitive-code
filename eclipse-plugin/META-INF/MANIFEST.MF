@@ -2,19 +2,20 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Primitive-Code Eclipse-Plugin
 Bundle-SymbolicName: de.hechler.patrick.codesprachen.primitive.eclplugin;singleton:=true
-Bundle-Version: 1.8.2
+Bundle-Version: 3.0.0
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.ui,
  org.eclipse.jface.text,
  org.eclipse.ui.editors,
  org.eclipse.ui.ide,
- org.eclipse.debug.ui;bundle-version="3.15.200"
+ org.eclipse.debug.ui;bundle-version="3.15.200",
+ org.eclipse.ui.workbench.texteditor;bundle-version="3.16.300"
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Import-Package: javax.inject
 Automatic-Module-Name: sa
 Bundle-ClassPath: .,
  libs/antlr4-runtime-4.3.jar,
- libs/assemble-8.1.1.jar,
+ libs/assemble-9.0.0.jar,
  libs/disassemble-4.1.0.jar,
  libs/runtime-4.4.1.jar
 Export-Package: de.hechler.patrick.codesprachen.primitive.assemble,
@@ -31,6 +32,7 @@ Export-Package: de.hechler.patrick.codesprachen.primitive.assemble,
  de.hechler.patrick.codesprachen.primitive.eclplugin.enums,
  de.hechler.patrick.codesprachen.primitive.eclplugin.filecreatewizards,
  de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor,
+ de.hechler.patrick.codesprachen.primitive.eclplugin.hyperlink,
  de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards,
  de.hechler.patrick.codesprachen.primitive.eclplugin.launcher,
  de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.debugelements,

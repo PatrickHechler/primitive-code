@@ -464,7 +464,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 					if (be) {
 						throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: " + $NAME.getText());
 					} else {
-						pc = new PrimitiveConstant(null, null, 0L);
+						pc = new PrimitiveConstant(null, null, 0L, null, -1);
 						$are = new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: " + $NAME.getText());
 					}
 				}

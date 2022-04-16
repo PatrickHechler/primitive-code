@@ -10,6 +10,7 @@
 import java.util.function.*;
 import java.util.*;
 import java.io.*;
+import java.nio.file.*;
 import de.hechler.patrick.codesprachen.primitive.assemble.enums.*;
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.*;
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.Param.*;
@@ -79,7 +80,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  }
 
  parse
- [long startpos, boolean align, Map<String,PrimitiveConstant> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles]
+ [Path path, long startpos, boolean align, Map<String,PrimitiveConstant> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles]
  returns
  [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are, boolean enabled, Map<String, PrimitiveConstant> exports]
  @init {
@@ -111,7 +112,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  :
  	(
  		anything
- 		[$enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp, $exports, asm, antlrin, $thisFile, $readFiles, lastComment]
+ 		[path, $enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp, $exports, asm, antlrin, $thisFile, $readFiles, lastComment]
  		{
  			$enabled = $anything.enabled;
  			disabledSince = $anything.disabledSince;
@@ -136,7 +137,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  ;
 
  anything
- [boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, PrimitiveConstant> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, Map<String, PrimitiveConstant> exports_, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles, String lastComment_]
+ [Path path, boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, PrimitiveConstant> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, Map<String, PrimitiveConstant> exports_, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles, String lastComment_]
  returns
  [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, PrimitiveConstant> constants, List<Command> commands, Map<String, Long> labels, long pos, Object zusatz, AssembleRuntimeException are, Map<String, PrimitiveConstant> exports, String lastComment]
  @init {
@@ -232,9 +233,10 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  					{
  						if ($enabled) {
 		 					$are = $constBerechnungDirekt.are;
-	 						$constants.put(constName, new PrimitiveConstant(constName, lastComment_, $constBerechnungDirekt.num));
+		 					PrimitiveConstant primConst = new PrimitiveConstant(constName, lastComment_, $constBerechnungDirekt.num, path, _localctx.constBerechnungDirekt.getStart().getLine());
+	 						$constants.put(constName, primConst);
 	 						if (export) {
-		 						$exports.put(constName, new PrimitiveConstant(constName, lastComment_, $constBerechnungDirekt.num));
+		 						$exports.put(constName, primConst);
 	 						}
  						}
  					}
@@ -312,7 +314,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  					ADD_CONSTANT constBerechnung [$pos, $constants, $be]
  					{
  						String name = $ADD_CONSTANT.getText().substring(5);
- 						addConsts.put(name, new PrimitiveConstant(name, null, $constBerechnung.num));
+ 						addConsts.put(name, new PrimitiveConstant(name, null, $constBerechnung.num, path, _localctx.constBerechnung.getStart().getLine()));
  						if ($constBerechnung.are != null)  {
  							if ($are != null) {
  								$are.addSuppressed($constBerechnung.are);
@@ -1226,7 +1228,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				if (be) {
 	 				throw new AssembleError($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
  				} else {
-	 				zw = new PrimitiveConstant(null, null, 0L);
+	 				zw = new PrimitiveConstant(null, null, 0L, null, -1);
 	 				$are = new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
  				}
  			}

@@ -4,6 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 
 import org.eclipse.core.resources.IMarker;
@@ -22,7 +24,11 @@ public class DocumentValue {
 	public final List<IMarker> markers;
 
 	public DocumentValue(List<IMarker> markers, File lookup) {
-		this.asm = new PrimitiveAssembler(baos, new PrintStream(exportBaos, true, StandardCharsets.UTF_8), lookup == null ? new File("./") : lookup, true, true, false, true);
+		this(markers, lookup == null ? null : lookup.toPath());
+	}
+
+	public DocumentValue(List<IMarker> markers, Path lookup) {
+		this.asm = new PrimitiveAssembler(baos, new PrintStream(exportBaos, true, StandardCharsets.UTF_8), lookup == null ? Paths.get("./") : lookup, true, true, false, true);
 		this.markers = markers;
 	}
 

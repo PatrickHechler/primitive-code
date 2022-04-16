@@ -1,16 +1,21 @@
 package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
+import java.nio.file.Path;
 
 public class PrimitiveConstant {
 	
 	public final String name;
 	public final String comment;
 	public final long value;
+	public final Path path;
+	public final int line;
 	
-	public PrimitiveConstant(String name, String comment, long value) {
+	public PrimitiveConstant(String name, String comment, long value, Path path, int line) {
 		this.name = name;
 		this.comment = comment;
 		this.value = value;
+		this.path = path;
+		this.line = line;
 	}
 	
 	@Override

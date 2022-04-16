@@ -19,7 +19,7 @@ public class PrimitiveCodeAssembleMain {
 	public static void main(String[] args) {
 		setup(args);
 		try {
-			asm.assemble(input);
+			asm.assemble(null, input);
 			System.out.println("assembled successful");
 		} catch (IOException e) {
 			e.printStackTrace();

@@ -1,13 +1,13 @@
 package de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.io.PrintStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
@@ -65,11 +65,7 @@ public class PrimitiveImportWizardPage extends WizardNewFileCreationPage {
 			IPath path = new Path(PrimitiveImportWizardPage.this.editor.getStringValue());
 			setFileName(path.lastSegment());
 		});
-		String[] extensions = new String[]{"*.psc;*.psf;*.pmc", "*.psc", "*.pmc", "*.psf", "*.*"}; // NON-NLS-1
-																									// //NON-NLS-2
-																									// //NON-NLS-3
-																									// //NON-NLS-4
-																									// //NON-NLS-5
+		String[] extensions = new String[]{"*.psc;*.psf;*.pmc", "*.psc", "*.pmc", "*.psf", "*.*"};
 		editor.setFileExtensions(extensions);
 		fileSelectionArea.moveAbove(null);
 
@@ -92,7 +88,8 @@ public class PrimitiveImportWizardPage extends WizardNewFileCreationPage {
 	protected InputStream getInitialContents() {
 		try {
 			String fileName = editor.getStringValue();
-			FileInputStream in = new FileInputStream(new File(fileName));
+			java.nio.file.Path path = Paths.get(fileName);
+			InputStream in = Files.newInputStream(path);
 			PrimitiveFileTypes fromType = PrimitiveFileTypes.getTypeFromName(fileName, PrimitiveFileTypes.primitiveSourceCode);
 			PrimitiveFileTypes toType = PrimitiveFileTypes.getTypeFromName(getFileName(), PrimitiveFileTypes.primitiveSourceCode);
 			switch (fromType) {
@@ -101,10 +98,12 @@ public class PrimitiveImportWizardPage extends WizardNewFileCreationPage {
 				case primitiveMashineCode:
 					break;
 				case primitiveSourceCode: {
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					PrimitiveDisassembler disasm = new PrimitiveDisassembler(DisasmMode.executable, new PrintStream(baos, true, StandardCharsets.UTF_8));
-					disasm.deassemble(0L, in);
-					return new ByteArrayInputStream(baos.toByteArray());
+					PipedInputStream pin = new PipedInputStream();
+					try (PipedOutputStream pout = new PipedOutputStream(pin)) {
+						PrimitiveDisassembler disasm = new PrimitiveDisassembler(DisasmMode.executable, new PrintStream(pout, true, StandardCharsets.UTF_8));
+						disasm.deassemble(0L, in);
+					}
+					return pin;
 				}
 				case primitiveSymbolFile:
 					canNotConvert(fromType, toType);
@@ -116,18 +115,22 @@ public class PrimitiveImportWizardPage extends WizardNewFileCreationPage {
 			case primitiveSourceCode:
 				switch (toType) {
 				case primitiveMashineCode: {
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					PrimitiveAssembler asm = new PrimitiveAssembler(baos, new PrintStream(new NullOutputStream()), new java.nio.file.Path[]{}, true, true, false, true);
-					asm.assemble(in, StandardCharsets.UTF_8);
-					return new ByteArrayInputStream(baos.toByteArray());
+					PipedInputStream pin = new PipedInputStream();
+					try (PipedOutputStream pout = new PipedOutputStream(pin)) {
+						PrimitiveAssembler asm = new PrimitiveAssembler(pout, new PrintStream(new NullOutputStream()), new java.nio.file.Path[]{}, true, true, false, true);
+						asm.assemble(path, in, StandardCharsets.UTF_8);
+					}
+					return pin;
 				}
 				case primitiveSourceCode:
 					break;
 				case primitiveSymbolFile: {
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					PrimitiveAssembler asm = new PrimitiveAssembler(new NullOutputStream(), new PrintStream(baos), new java.nio.file.Path[]{}, true, true, false, true);
-					asm.assemble(in, StandardCharsets.UTF_8);
-					return new ByteArrayInputStream(baos.toByteArray());
+					PipedInputStream pin = new PipedInputStream();
+					try (PipedOutputStream pout = new PipedOutputStream(pin)) {
+						PrimitiveAssembler asm = new PrimitiveAssembler(new NullOutputStream(), new PrintStream(pout, true, StandardCharsets.UTF_8), new java.nio.file.Path[]{}, true, true, false, true);
+						asm.assemble(path, in, StandardCharsets.UTF_8);
+					}
+					return pin;
 				}
 				default:
 					throw new InternalError("unknown PrimitiveFileType: " + fromType.name());
@@ -139,14 +142,14 @@ public class PrimitiveImportWizardPage extends WizardNewFileCreationPage {
 					canNotConvert(fromType, toType);
 					break;
 				case primitiveSourceCode:
-					ByteArrayOutputStream baos = new ByteArrayOutputStream();
-					try (PrintStream out = new PrintStream(baos, false, StandardCharsets.UTF_8)) {
+					PipedInputStream pin = new PipedInputStream();
+					PipedOutputStream pout = new PipedOutputStream(pin);
+					try (PrintStream out = new PrintStream(pout, false, StandardCharsets.UTF_8)) {
 						Map<String, PrimitiveConstant> symbols = new LinkedHashMap<>();
-						PrimitiveAssembler.readSymbols(null, symbols, new Scanner(in, StandardCharsets.UTF_8));
+						PrimitiveAssembler.readSymbols(null, symbols, new Scanner(in, StandardCharsets.UTF_8), path);
 						PrimitiveAssembler.export(symbols, out);
-						out.flush();
 					}
-					return new ByteArrayInputStream(baos.toByteArray());
+					return pin;
 				case primitiveSymbolFile:
 					break;
 				default:

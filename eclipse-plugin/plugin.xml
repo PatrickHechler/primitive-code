@@ -2,46 +2,46 @@
 <?eclipse version="3.4"?>
 <plugin>
 
-   <extension
-         point="org.eclipse.ui.importWizards">
-      <category
-            id="de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards.sampleCategory"
-            name="Primitive Wizards">
-      </category>
-      <wizard
-            id="de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards.PrimitiveImportWizard"
-            name="Import Primitive File"
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards.PrimitiveImportWizard"
-            category="de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards.sampleCategory"
-            icon="icons/computer.png">
-         <description>
-            Import a primitive code file from the local file system into the workspace.
-         </description>
-      </wizard>
-   </extension>
+	<extension
+			point="org.eclipse.ui.importWizards">
+		<category
+				id="de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards.sampleCategory"
+				name="Primitive Wizards">
+		</category>
+		<wizard
+				id="de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards.PrimitiveImportWizard"
+				name="Import Primitive File"
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards.PrimitiveImportWizard"
+				category="de.hechler.patrick.codesprachen.primitive.eclplugin.importwizards.sampleCategory"
+				icon="icons/computer.png">
+			<description>
+				Import a primitive code file from the local file system into the workspace.
+			</description>
+		</wizard>
+	</extension>
 	<!--does not work with my eclipse-->
 	<debugModelPresentation
 		class="de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeDebugModelPresentation"
-	    id="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeDebugModelPresentation">
-    </debugModelPresentation>
+		 id="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeDebugModelPresentation">
+	 </debugModelPresentation>
 	<!--does not work with my eclipse-->
 	<sourcePathComputer
 		class="de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeSourcePathComputer"
-	    id="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeSourcePathComputer">
-    </sourcePathComputer>
+		 id="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeSourcePathComputer">
+	 </sourcePathComputer>
 	<!--does not work with my eclipse-->
-    <sourceLocator
+	 <sourceLocator
 		name="PVM Source Lookup Director"
 		class="de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeSourceLocatorDirector"
 		id="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeSourceLocatorDirector">
 	</sourceLocator>
 	<!--does not work with my eclipse-->
-    <sourceLocator
+	 <sourceLocator
 		name="PVM Source Lookup Director"
 		class="de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeSourceLocatorDirector"
 		id="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeSourceLocatorDirector">
 	</sourceLocator>
-    
+	 
 	<extension point = "org.eclipse.debug.ui.launchGroups">
 		<launchGroup
 			id = "org.eclipse.ui.externaltools.launchGroup"
@@ -78,264 +78,284 @@
 		</launchGroup> 
 	</extension>
 	<extension point="org.eclipse.debug.ui.launchShortcuts">
-	    <shortcut
-	        id="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeShortcut"
-	        class="de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeLaunchShortcut"
-	        label="Primitive-Code"
-	        icon="icons/computer.png"
-	        modes="run, debug">
-	            <perspective id="org.eclipse.jdt.ui.JavaPerspective"/>
-	            <perspective id="org.eclipse.jdt.ui.JavaHierarchyPerspective"/>
-	            <perspective id="org.eclipse.jdt.ui.JavaBrowsingPerspective"/>
-	            <perspective id="org.eclipse.debug.ui.DebugPerspective"/>
-	    </shortcut>
+		 <shortcut
+			  id="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeShortcut"
+			  class="de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeLaunchShortcut"
+			  label="Primitive-Code"
+			  icon="icons/computer.png"
+			  modes="run, debug">
+					<perspective id="org.eclipse.jdt.ui.JavaPerspective"/>
+					<perspective id="org.eclipse.jdt.ui.JavaHierarchyPerspective"/>
+					<perspective id="org.eclipse.jdt.ui.JavaBrowsingPerspective"/>
+					<perspective id="org.eclipse.debug.ui.DebugPerspective"/>
+		 </shortcut>
 	</extension>
 	<extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
-	    <launchConfigurationTabGroup
-	        type="de.hechler.patrick.codesprachen.primitive.eclplugin.primCodeConfig"
-	        class="de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeTabGroup"
-	        id="de.hechler.patrick.codesprachen.primitive.eclplugin.primCodeConfigGroup">
-	    </launchConfigurationTabGroup>
+		 <launchConfigurationTabGroup
+			  type="de.hechler.patrick.codesprachen.primitive.eclplugin.primCodeConfig"
+			  class="de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeTabGroup"
+			  id="de.hechler.patrick.codesprachen.primitive.eclplugin.primCodeConfigGroup">
+		 </launchConfigurationTabGroup>
 	</extension>
 	<extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
-	    <launchConfigurationTypeImage
-	        icon="icons/computer.png"
-	        configTypeID="de.hechler.patrick.codesprachen.primitive.eclplugin.primCodeConfig"
-	        id="de.hechler.patrick.codesprachen.primitive.eclplugin.primCodeConfigIcon">
-	    </launchConfigurationTypeImage>
+		 <launchConfigurationTypeImage
+			  icon="icons/computer.png"
+			  configTypeID="de.hechler.patrick.codesprachen.primitive.eclplugin.primCodeConfig"
+			  id="de.hechler.patrick.codesprachen.primitive.eclplugin.primCodeConfigIcon">
+		 </launchConfigurationTypeImage>
 	</extension>
 	<extension point="org.eclipse.debug.core.launchConfigurationTypes">
-	    <launchConfigurationType
-	        name="Primitive-Code Launcher"
-	        delegate="de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeLauncerDelegate"
-	        modes="run, debug"
-	        sourcePathComputerId="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeSourcePathComputer"
-	        sourceLocatorDirectorId="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeSourceLocatorDirector"
-	        id="de.hechler.patrick.codesprachen.primitive.eclplugin.primCodeConfig">
-	    </launchConfigurationType>
+		 <launchConfigurationType
+			  name="Primitive-Code Launcher"
+			  delegate="de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.PrimitiveCodeLauncerDelegate"
+			  modes="run, debug"
+			  sourcePathComputerId="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeSourcePathComputer"
+			  sourceLocatorDirectorId="de.hechler.patrick.codesprachen.primitive.eclplugin.PrimitiveCodeSourceLocatorDirector"
+			  id="de.hechler.patrick.codesprachen.primitive.eclplugin.primCodeConfig">
+		 </launchConfigurationType>
 	</extension>
 
-   <extension
-         id="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectBuilder"
-         name="Primitive-Code Project Builder"
-         point="org.eclipse.core.resources.builders">
-      <builder
-            hasNature="true">
-         <run
-               class="de.hechler.patrick.codesprachen.primitive.eclplugin.projectbuilder.PrimProjectBuilder">
-         </run>
-      </builder>
-   </extension>
-   <extension
-         point="org.eclipse.ui.commands">
-      <category
-            id="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectNature.category"
-            name="Primitive-Code Project Nature commands">
-      </category>
-      <command
-            categoryId="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectNature.category"
-            defaultHandler="de.hechler.patrick.codesprachen.primitive.eclplugin.projectbuilder.AddRemovePrimProjectNatureHandler"
-            id="de.hechler.patrick.codesprachen.primitive.eclplugin.addRemovePrimProjectNature"
-            name="Add/RemovePrimitive-Code Project Nature">
-      </command>
-   </extension>
-   <extension
-         id="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectNature"
-         name="Primitive-Code Project Nature"
-         point="org.eclipse.core.resources.natures">
-      <runtime>
-         <run
-               class="de.hechler.patrick.codesprachen.primitive.eclplugin.projectbuilder.PrimProjectNature">
-         </run>
-      </runtime>
-      <builder
-            id="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectBuilder">
-      </builder>
-   </extension>
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution
-            locationURI="popup:org.eclipse.ui.projectConfigure?after=additions">
-         <command
-               label="Disable Primitive-Code builder"
-               commandId="de.hechler.patrick.codesprachen.primitive.eclplugin.addRemovePrimProjectNature"
-               style="push">
-            <visibleWhen
-                  checkEnabled="false">
-               <with
-                     variable="selection">
-                  <count
-                        value="1">
-                  </count>
-                  <iterate>
-                     <adapt
-                           type="org.eclipse.core.resources.IProject">
-                        <test
-                              property="org.eclipse.core.resources.projectNature"
-                              value="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectNature">
-                        </test>
-                     </adapt>
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
-         <command
-               label="Enable Primitive-Code builder"
-               commandId="de.hechler.patrick.codesprachen.primitive.eclplugin.addRemovePrimProjectNature"
-               style="push">
-            <visibleWhen
-                  checkEnabled="false">
-               <with
-                     variable="selection">
-                  <count
-                        value="1">
-                  </count>
-                  <iterate>
-                     <adapt
-                           type="org.eclipse.core.resources.IProject">
-                        <not>
-                           <test
-                                 property="org.eclipse.core.resources.projectNature"
-                                 value="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectNature">
-                           </test>
-                        </not>
-                     </adapt>
-                  </iterate>
-               </with>
-            </visibleWhen>
-         </command>
-      </menuContribution>
-   </extension>
-   <extension
-         id="xmlProblem"
-         name="XML Problem"
-         point="org.eclipse.core.resources.markers">
-      <super
-            type="org.eclipse.core.resources.problemmarker">
-      </super>
-      <persistent
-            value="true">
-      </persistent>
-   </extension>
-   <extension
-         point="org.eclipse.core.contenttype.contentTypes">
-      <content-type
-            id="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc"
-            name="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc"
-            base-type="org.eclipse.core.runtime.text"
-            file-extensions="psc">
-      </content-type>
-   </extension>
-   <extension
-         point="org.eclipse.ui.editors">
-      <editorContentTypeBinding
-            contentTypeId="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc"
-            editorId="org.eclipse.ui.genericeditor.GenericEditor">
-      </editorContentTypeBinding>
-   </extension>
-   <extension
-         point="org.eclipse.ui.genericeditor.presentationReconcilers">
-      <presentationReconciler
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.PscPresentationReconciler"
-            contentType="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc">
-      </presentationReconciler>
-   </extension>
-   <extension
-         point="org.eclipse.ui.genericeditor.hoverProviders">
-      <hoverProvider
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.PscHoverProvider"
-            contentType="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc">
-      </hoverProvider>
-   </extension>
-   <extension
-         point="org.eclipse.ui.genericeditor.contentAssistProcessors">
-      <contentAssistProcessor
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.PscContentAssistProcessor"
-            contentType="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc">
-      </contentAssistProcessor>
-   </extension>
-   <extension
-         point="org.eclipse.ui.genericeditor.autoEditStrategies">
-      <autoEditStrategy
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.PscAutoEditStrategy"
-            contentType="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc">
-      </autoEditStrategy>
-   </extension>
-   <extension
-         point="org.eclipse.ui.genericeditor.reconcilers">
-      <reconciler
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.PscReconciler"
-            contentType="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc">
-      </reconciler>
-   </extension>
-   <extension
-         point="org.eclipse.core.filebuffers.documentSetup">
-      <participant
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.ValidatorDocumentSetupParticipant"
-            contentTypeId="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc"
-            extensions="psc">
-      </participant>
-   </extension>
-   <extension
-         point="org.eclipse.ui.newWizards">
-      <category
-            name="Primitive-Code Wizards"
-            id="primWizard">
-      </category>
-      <wizard
-            id="de.hechler.patrick.codesprachen.primitive.eclplugin.filecreatwizards.PrimNewWizard"
-            name="Primitive-Code Editor file"
-            icon="icons/computer.png"
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.filecreatewizards.PrimNewWizard"
-            category="primWizard">
-      </wizard>
-   </extension>
-   <extension
-         point="org.eclipse.ui.views">
-      <category
-            name="Primitive Code"
-            id="pcv">
-      </category>
-      <view
-            id="de.hechler.patrick.codesprachen.primitive.eclplugin.view.PrimView"
-            name="Primitive-Code View"
-            icon="icons/computer.png"
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.view.PrimView"
-            category="pcv"
-            inject="true">
-      </view>
-   </extension>
-   <extension
-         point="org.eclipse.ui.perspectiveExtensions">
-      <perspectiveExtension
-            targetID="org.eclipse.jdt.ui.JavaPerspective">
-         <view
-               id="de.hechler.patrick.codesprachen.primitive.eclplugin.view.PrimView"
-               relative="org.eclipse.ui.views.ProblemView"
-               relationship="right"
-               ratio="0.5">
-         </view>
-      </perspectiveExtension>
-   </extension>
-   <extension
-         point="org.eclipse.help.contexts">
-      <contexts
-            file="contexts.xml">
-      </contexts>
-   </extension>
-   <extension
-         point="org.eclipse.ui.preferencePages">
-      <page
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.preferences.PrimitiveCodePreferencePage"
-            id="de.hechler.patrick.codesprachen.primitive.eclplugin.preferences.PrimitiveCodePreferencePage"
-            name="primitive_code_color_preferences">
-      </page>
-   </extension>
-   <extension
-         point="org.eclipse.core.runtime.preferences">
-      <initializer
-            class="de.hechler.patrick.codesprachen.primitive.eclplugin.preferences.PreferenceInitializer">
-      </initializer>
-   </extension>
+	<extension
+			id="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectBuilder"
+			name="Primitive-Code Project Builder"
+			point="org.eclipse.core.resources.builders">
+		<builder
+				hasNature="true">
+			<run
+					class="de.hechler.patrick.codesprachen.primitive.eclplugin.projectbuilder.PrimProjectBuilder">
+			</run>
+		</builder>
+	</extension>
+	<extension
+			point="org.eclipse.ui.commands">
+		<category
+				id="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectNature.category"
+				name="Primitive-Code Project Nature commands">
+		</category>
+		<command
+				categoryId="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectNature.category"
+				defaultHandler="de.hechler.patrick.codesprachen.primitive.eclplugin.projectbuilder.AddRemovePrimProjectNatureHandler"
+				id="de.hechler.patrick.codesprachen.primitive.eclplugin.addRemovePrimProjectNature"
+				name="Add/RemovePrimitive-Code Project Nature">
+		</command>
+	</extension>
+	<extension
+			id="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectNature"
+			name="Primitive-Code Project Nature"
+			point="org.eclipse.core.resources.natures">
+		<runtime>
+			<run
+					class="de.hechler.patrick.codesprachen.primitive.eclplugin.projectbuilder.PrimProjectNature">
+			</run>
+		</runtime>
+		<builder
+				id="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectBuilder">
+		</builder>
+	</extension>
+	<extension
+			point="org.eclipse.ui.menus">
+		<menuContribution
+				locationURI="popup:org.eclipse.ui.projectConfigure?after=additions">
+			<command
+					label="Disable Primitive-Code builder"
+					commandId="de.hechler.patrick.codesprachen.primitive.eclplugin.addRemovePrimProjectNature"
+					style="push">
+				<visibleWhen
+						checkEnabled="false">
+					<with
+							variable="selection">
+						<count
+								value="1">
+						</count>
+						<iterate>
+							<adapt
+									type="org.eclipse.core.resources.IProject">
+								<test
+										property="org.eclipse.core.resources.projectNature"
+										value="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectNature">
+								</test>
+							</adapt>
+						</iterate>
+					</with>
+				</visibleWhen>
+			</command>
+			<command
+					label="Enable Primitive-Code builder"
+					commandId="de.hechler.patrick.codesprachen.primitive.eclplugin.addRemovePrimProjectNature"
+					style="push">
+				<visibleWhen
+						checkEnabled="false">
+					<with
+							variable="selection">
+						<count
+								value="1">
+						</count>
+						<iterate>
+							<adapt
+									type="org.eclipse.core.resources.IProject">
+								<not>
+									<test
+											property="org.eclipse.core.resources.projectNature"
+											value="de.hechler.patrick.codesprachen.primitive.eclplugin.primProjectNature">
+										</test>
+									</not>
+								</adapt>
+							</iterate>
+						</with>
+					</visibleWhen>
+				</command>
+		</menuContribution>
+	</extension>
+	<extension
+	      point="org.eclipse.ui.workbench.texteditor.hyperlinkDetectors"> <!-- see: https://www.vogella.com/tutorials/EclipseEditors/article.html#hyperlinks-in-a-source-editor -->
+	      <hyperlinkDetector
+             id="de.hechler.patrick.codesprachen.primitive.eclplugin.primitiveHyperlinkDetector"
+             targetId="org.eclipse.ui.DefaultTextEditor"
+             name="de.hechler.patrick.codesprachen.primitive.eclplugin.hyperlink.PrimitiveHyperlinkDetector"
+             class="de.hechler.patrick.codesprachen.primitive.eclplugin.hyperlink.PrimitiveHyperlinkDetector">
+	      </hyperlinkDetector>
+	</extension>
+	<extension
+			id="de.hechler.patrick.codesprachen.primitive.eclplugin.marker.pscProblem"
+			name="Primitive Source Code Problem"
+			point="org.eclipse.core.resources.markers">
+		<super
+				type="org.eclipse.core.resources.problemmarker">
+		</super>
+		<persistent
+				value="true">
+		</persistent>
+	</extension>
+	<extension
+			id="de.hechler.patrick.codesprachen.primitive.eclplugin.marker.primBuildProblem"
+			name="Primitive Code Building Problem"
+			point="org.eclipse.core.resources.markers">
+		<super
+				type="org.eclipse.core.resources.problemmarker">
+		</super>
+		<persistent
+				value="true">
+		</persistent>
+	</extension>
+	<extension
+			point="org.eclipse.core.contenttype.contentTypes">
+		<content-type
+				id="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc"
+				name="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc"
+				base-type="org.eclipse.core.runtime.text"
+				file-extensions="psc">
+		</content-type>
+	</extension>
+	<extension
+			point="org.eclipse.ui.editors">
+		<editorContentTypeBinding
+				contentTypeId="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc"
+				editorId="org.eclipse.ui.genericeditor.GenericEditor">
+		</editorContentTypeBinding>
+	</extension>
+	<extension
+			point="org.eclipse.ui.genericeditor.presentationReconcilers">
+		<presentationReconciler
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.PscPresentationReconciler"
+				contentType="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc">
+		</presentationReconciler>
+	</extension>
+	<extension
+			point="org.eclipse.ui.genericeditor.hoverProviders">
+		<hoverProvider
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.PscHoverProvider"
+				contentType="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc">
+		</hoverProvider>
+	</extension>
+	<extension
+			point="org.eclipse.ui.genericeditor.contentAssistProcessors">
+		<contentAssistProcessor
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.PscContentAssistProcessor"
+				contentType="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc">
+		</contentAssistProcessor>
+	</extension>
+	<extension
+			point="org.eclipse.ui.genericeditor.autoEditStrategies">
+		<autoEditStrategy
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.PscAutoEditStrategy"
+				contentType="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc">
+		</autoEditStrategy>
+	</extension>
+	<extension
+			point="org.eclipse.ui.genericeditor.reconcilers">
+		<reconciler
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.PscReconciler"
+				contentType="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc">
+		</reconciler>
+	</extension>
+	<extension
+			point="org.eclipse.core.filebuffers.documentSetup">
+		<participant
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.ValidatorDocumentSetupParticipant"
+				contentTypeId="de.hechler.patrick.codesprachen.primitive.eclplugin.fileeditor.psc"
+				extensions="psc">
+		</participant>
+	</extension>
+	<extension
+			point="org.eclipse.ui.newWizards">
+		<category
+				name="Primitive-Code Wizards"
+				id="primWizard">
+		</category>
+		<wizard
+				id="de.hechler.patrick.codesprachen.primitive.eclplugin.filecreatwizards.PrimNewWizard"
+				name="Primitive-Code Editor file"
+				icon="icons/computer.png"
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.filecreatewizards.PrimNewWizard"
+				category="primWizard">
+		</wizard>
+	</extension>
+	<extension
+			point="org.eclipse.ui.views">
+		<category
+				name="Primitive Code"
+				id="pcv">
+		</category>
+		<view
+				id="de.hechler.patrick.codesprachen.primitive.eclplugin.view.PrimView"
+				name="Primitive-Code View"
+				icon="icons/computer.png"
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.view.PrimView"
+				category="pcv"
+				inject="true">
+		</view>
+	</extension>
+	<extension
+			point="org.eclipse.ui.perspectiveExtensions">
+		<perspectiveExtension
+				targetID="org.eclipse.jdt.ui.JavaPerspective">
+			<view
+					id="de.hechler.patrick.codesprachen.primitive.eclplugin.view.PrimView"
+					relative="org.eclipse.ui.views.ProblemView"
+					relationship="right"
+					ratio="0.5">
+			</view>
+		</perspectiveExtension>
+	</extension>
+	<extension
+			point="org.eclipse.help.contexts">
+		<contexts
+				file="contexts.xml">
+		</contexts>
+	</extension>
+	<extension
+			point="org.eclipse.ui.preferencePages">
+		<page
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.preferences.PrimitiveCodePreferencePage"
+				id="de.hechler.patrick.codesprachen.primitive.eclplugin.preferences.PrimitiveCodePreferencePage"
+				name="primitive_code_color_preferences">
+		</page>
+	</extension>
+	<extension
+			point="org.eclipse.core.runtime.preferences">
+		<initializer
+				class="de.hechler.patrick.codesprachen.primitive.eclplugin.preferences.PreferenceInitializer">
+		</initializer>
+	</extension>
 
 </plugin>

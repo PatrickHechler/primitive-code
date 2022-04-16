@@ -123,7 +123,7 @@ public class PrimitiveCodeLauncerDelegate implements ILaunchConfigurationDelegat
 			// DebugUITools.newDebugModelPresentation(
 			// de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.debugelements.PrimitiveCodeDebugTarget.PVM_MODEL_IDENTIFIER);
 			// if (dmp == null) {
-			// // TODO
+			// // todo
 			// }
 			try {
 				PVMDebugingComunicator com = new PVMDebugingComunicator(p, new Socket("localhost", dport));
