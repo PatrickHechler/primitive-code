@@ -1,4 +1,4 @@
-package de.hechler.patrick.codesprachen.primitive.assemble.objects;
+package de.hechler.patrick.codesprachen.primitive.assemble;
 
 public class TestUtils {
 

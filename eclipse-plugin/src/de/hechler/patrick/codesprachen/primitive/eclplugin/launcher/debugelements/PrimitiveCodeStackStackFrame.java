@@ -40,7 +40,7 @@ public class PrimitiveCodeStackStackFrame extends PrimitiveCodeStackFrame {
 		long stack = debug.thread.getStackSize() - stackPos;
 		PVMSnapshot sn;
 		try {
-			sn = debug.com.getSnapshot();
+			sn = debug.thread.com.getSnapshot();
 			stack += sn.sp;
 		} catch (IOException e) {
 			throw new IOError(e);

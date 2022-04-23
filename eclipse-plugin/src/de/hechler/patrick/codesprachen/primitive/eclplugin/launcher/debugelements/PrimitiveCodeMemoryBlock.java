@@ -37,7 +37,7 @@ public class PrimitiveCodeMemoryBlock extends PrimitiveCodeNTDE implements IMemo
 			}
 			int len = (int) this.length;
 			byte[] bytes = new byte[len];
-			this.debug.com.getMem(this.startAddress, bytes, 0, len);
+			this.debug.thread.com.getMem(this.startAddress, bytes, 0, len);
 			return bytes;
 		} catch (IOException e) {
 			throw new IOError(e);
@@ -55,7 +55,7 @@ public class PrimitiveCodeMemoryBlock extends PrimitiveCodeNTDE implements IMemo
 			throw new DebugException(new Status(IStatus.ERROR, getClass(), "off+bytes.len>this.len off=" + offset + " bytes.len=" + bytes.length + " this.len=" + this.length));
 		}
 		try {
-			this.debug.com.setMem(this.startAddress + offset, bytes, 0, bytes.length);
+			this.debug.thread.com.setMem(this.startAddress + offset, bytes, 0, bytes.length);
 		} catch (IOException e) {
 			throw new IOError(e);
 		}

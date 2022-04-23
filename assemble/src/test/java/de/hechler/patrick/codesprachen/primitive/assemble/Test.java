@@ -3,11 +3,10 @@ package de.hechler.patrick.codesprachen.primitive.assemble;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveAssemblerChecker;
-import de.hechler.patrick.zeugs.check.BigCheckResult;
-import de.hechler.patrick.zeugs.check.Checker;
+import de.hechler.patrick.zeugs.check.objects.BigCheckResult;
+import de.hechler.patrick.zeugs.check.objects.BigChecker;
 
-public class PrimitiveCodeAssembleMainTest {
+public class Test {
 	
 	public void testname() throws Exception {
 		main(new String[0]);
@@ -16,7 +15,7 @@ public class PrimitiveCodeAssembleMainTest {
 	public static void main(String[] args) {
 		System.out.println("[J-LOG]: '" + ".\\src\\test\\resources\\readfiles\\helloworld.txt" + "' exists: " + Files.exists(Paths.get(".\\src\\test\\resources\\readfiles\\helloworld.txt")));
 		System.out.println("----- start checks -----");
-		BigCheckResult checked = Checker.checkAll(true, PrimitiveAssemblerChecker.class, QuickSort.class);
+		BigCheckResult checked = BigChecker.tryCheckAll(true, Test.class.getPackage(), Test.class.getClassLoader());
 		System.out.println("----- finished checks -----");
 		checked.print();
 		checked.forAllUnexpectedCheckResults((cls, cr) -> {

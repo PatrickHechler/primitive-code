@@ -33,7 +33,7 @@ public class PrimitiveCodePointedVariable extends PrimitiveCodeVariable implemen
 		try {
 			byte[] bytes = new byte[8];
 			Convert.convertLongToByteArr(bytes, 0, value);
-			debug.com.setMem(this.address, bytes, 0, 8);
+			debug.thread.com.setMem(this.address, bytes, 0, 8);
 		} catch (IOException e) {
 			throw new IOError(e);
 		}
@@ -43,7 +43,7 @@ public class PrimitiveCodePointedVariable extends PrimitiveCodeVariable implemen
 	public long getLongValue() throws IOError {
 		try {
 			byte[] bytes = new byte[8];
-			debug.com.getMem(this.address, bytes, 0, 8);
+			debug.thread.com.getMem(this.address, bytes, 0, 8);
 			return Convert.convertByteArrToLong(bytes, 0);
 		} catch (IOException e) {
 			throw new IOError(e);

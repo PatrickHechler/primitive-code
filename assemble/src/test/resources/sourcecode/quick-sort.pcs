@@ -1,260 +1,81 @@
-$not-align
-JMP main
-:
-#int-illegal_mem-vars-POS --POS--
-    #MAX-VALUE WRITE |> first var is stack pointer
-    #MAX-VALUE WRITE |> second var is max stack size
-    #MAX-VALUE WRITE |> var is for free use
-    #MAX-VALUE WRITE |> var is for free use
-    #MAX-VALUE WRITE |> var is for free use
->
-#ADD_STACK_SIZE 1024
-#INIT_STACK_SIZE #ADD_STACK_SIZE
-#int-illegal_mem-interrupt-POS --POS--
-@int-illegal_mem-interrupt
-#stack_pointer -40
-#max_size -32
-#free_use-BX -24
-#free_use-CX -16
-#free_use-DX -8
-    GET_IP AX
-    ADD [AX + #max_size], #ADD_STACK_SIZE
-    MOV [AX + #free_use-BX], BX
-    MOV [AX + #free_use-CX], CX
-    MOV [AX + #free_use-DX], DX
-    MOV BX , [AX + #max_size]
-    MOV AX , [AX + #stack_pointer]
-    MOV DX , BX
-    INT #INT-MEMORY-REALLOC
-    CMP BX , -1
-    JMPEQ error
-    GET_SP CX
-    SUB CX , [DX + #stack_pointer]
-    ADD BX , CX
-    SET_IP BX
-    MOV BX , [DX + #free_use-BX]
-    MOV CX , [DX + #free_use-CX]
-    MOV DX , [DX + #free_use-DX]
-    IRET
-#stack_pointer ~DEL
-#max_size ~DEL
-#free_use-A ~DEL
-#free_use-B ~DEL
-:
-#main-file-length 1073741824
-#main-file-string-POS --POS--
-    CHARS 'UTF-8' "./input/in.data\0"
->
-$align
+	#DEFAULT_STACK_SIZE 1024
+	CMP SP, -1
+	JMPNE main
+	MOV X00, DEFAULT_STACK_SIZE
 @main
-|>    SET_INTCNT #INTERRUPT_COUNT
-    CMP AX , 1
-    JMPNE error |> arguments are not allowed
-    GET_SP AX
-    CMP AX , -1
-    JMPNE main-skip-stack-init
-    MOV AX , #INIT_STACK_SIZE
-    INT #INT-MEMORY-ALLOC |> endless loop here
-    CMP AX , -1
-    JMPEQ error
-    SET_SP AX
-@main-skip-stack-init
-|> interrupt init
-    GET_INTS AX
-    CMP AX , -1
-    JMPNE main-skip-interrupt-init
-    MOV AX , #INTERRUPT_COUNT
-    LSH AX
-    LSH AX
-    LSH AX
-    MOV DX , AX
-    INT #INT-MEMORY-ALLOC
-    CMP AX , -1
-    JMPEQ error
-@main-interrupt-init-loop
-    SUB DX , 8
-    MOV [AX + DX], -1
-    CMP DX , 0
-    JMPGT main-interrupt-init-loop
-#main-interrupt-init-memInt-Pos --POS--
-    GET_IP DX
-    SUB DX , #main-interrupt-init-memInt-Pos
-    MOV CX , DX
-    ADD CX , #int-illegal_mem-vars-POS
-    GET_SP BX
-    MOV [CX], BX
-    MOV [CX + 8], #INIT_STACK_SIZE |> TODO assembled to 'MOV [CX + 2], 1024'
-    ADD DX , #int-illegal_mem-interrupt-POS
-    MOV BX , #INT-ERRORS-ILLEGAL_MEMORY
-    LSH BX
-    LSH BX
-    LSH BX
-    MOV [AX + BX], DX
-    SET_INTS AX
-@main-skip-interrupt-init 
-    MOV AX , #main-file-length
-    MOV BX , AX
-    INT #INT-MEMORY-ALLOC
-    CMP AX , -1
-    JMPEQ error
-    MOV AX , CX
-#main-get_ip-for_file_name-POS --POS--
-    GET_IP AX
-    SUB AX , #main-get_ip-for_file_name-POS
-    ADD AX , #main-file-string-POS
-    INT #INT-STREAMS-NEW_IN
-    CMP AX , -1
-    JMPEQ error
-    INT #INT-STREAMS-READ
-    CMP BX , #main-file-length
-    JMPNE error
-    MOV DX , CX
-    MOV CX , BX
-    CALL sort
-    MOV AX , 0
-    INT #INT-EXIT
-
-|:
-| DX: points to the array to be sorted
-| CX: has the number of 8-byte-elements in the array
-| 
-| this wraps calls @sort-quick_sort to sort and frees the allocated array
+	~IF #~FOR_ME
+		#MY_INPUT_FILE_POS 0
+	~ELSE
+		~READ_SYM "[THIS]" #MY_ #ADD~FOR_ME 1
+	~ENDIF
+	#REL_POS (--POS-- - MY_INPUT_FILE_POS)
+	INT INT_LOAD_FILE
+	#REL_POS ~DEL
+	CMP X00, -1
+	JMPEQ error
+	ADD X01, X00
+	SUB X01, 8
+|:	sorts the given array
+|	the array starts at X00 and ends at X01
+|	X00: points to the first entry of the array
+|	X01: points to the last entry of the array
 |:>
-@sort
-    SUB CX , 1
-    RASH CX
-    RASH CX
-    RASH CX
-    CALL sort-quick_sort
-    INT #INT-MEMORY-FREE
-    RET
-|:
-|    DX: points to the array to be sorted
-|    CX: has the index of the last index of the array to be sorted
-|       so (CX/8)+1 is the number of 8-byte-elements in the array
-|
-|    DX will be unchanged
-|    CX will be changed
-|    BX will be changed
-|    AX will be set to an array of #SIZE bytes
-|:>
-|>#END_I 0
-#LOW_I 8
-#HIGH_I 16
-#SIZE 24
-@sort-quick_sort
-    MOV AX , #SIZE
-    INT #INT-MEMORY-ALLOC
-    CMP AX , -1
-    JMPEQ error
-|> like @sort-quick_sort, but AX is already (and will be unchanged) set to an array with the size #SIZE
-@sort-quick_sort-allocated
-    |> init [AX + ...]
-    MOV [AX], CX
-    MOV [AX + #HIGH_I], CX
-    MOV [AX + #LOW_I], 0
-|>    set pivot ((zero + mid + last= / 3) to CX
-    RASH CX
-    AND CX , NHEX-0000000000000008 |> BX := BX % 8
-|:
-        CMP [DX], [DX + BX] |> compare zero, mid
-        JMPGT sort-quick_sort-zero_gt_mid
-        CMP [DX + CX], [DX + BX] |> compare last, mid
-        JMPGT sort-quick_sort-pivot_mid
-    |>    zero <= mid >= last
-        CMP [DX + CX], [DX]
-        JMPGT sort-quick_sort-pivot_last
-    |> @sort-quick_sort-pivot_zero
-        MOV CX , 0
-        JMP sort-quick_sort-sort-start
-    @sort-quick_sort-zero_gt_mid
-        CMP [DX], [DX + CX] |> compare zero, last
-        JMPGT sort-quick_sort-zero_great
-        CMP [DX + CX], [DX + BX] |> compare last, mid
-        JMPGT sort-quick_sort-pivot_last |> zero > last > mid
-        JMP sort-quick_sort-pivot_mid
-    @sort-quick_sort-zero_great
-        CMP [DX + BX], [DX + CX]
-        JMPGT sort-quick_sort-pivot_last
-    @sort-quick_sort-pivot_mid
-        MOV CX , BX
-    @sort-quick_sort-pivot_last |> the pivot is CX , which was the last
-:>
-@sort-quick_sort-sort-start |> just start with the left (the direction does not matter)
-@sort-quick_sort-sort-left
-|:
-|    DX: array
-|    CX: pivot
-|    BX: free use
-|    AX:
-|        [AX]: end-index
-|        [AX + #LOW_I]: low-index
-|        [AX + #HIGH_I]: high-index
-|:>
-    MOV BX , [AX + #LOW_I]
-    CMP BX , CX
-    JMPGT sort-quick_sort-sort-right
-    ADD [AX + #LOW_I], 8
-    CMP [DX + BX], [DX + CX]
-    JMPLE sort-quick_sort-sort-left
-    MOV [AX + #LOW_I], [DX + BX] |> (low-index - 8) is in BX , so it can be used to swap
-    MOV [DX + BX], [DX + CX]
-    MOV [DX + CX], [AX + #LOW_I]
-    ADD BX , 8
-    MOV [AX + #LOW_I], BX
-|>    JMP sort-quick_sort-sort-right
-@sort-quick_sort-sort-right
-    MOV BX , [AX + #HIGH_I]
-    CMP BX , CX
-    JMPLT sort-quick_sort-recursive_calls
-    SUB [AX + #HIGH_I], 8
-    CMP [BX], [CX]
-    JMPGE sort-quick_sort-sort-right
-    MOV [AX + #HIGH_I], [DX + BX] |> (high-index + 8) is in BX , so it can be used to swap
-    MOV [DX + BX], [DX + CX]
-    MOV [DX + CX], [AX + #HIGH_I]
-    SUB BX , 8
-    MOV [AX + #HIGH_I], BX
-    JMP sort-quick_sort-sort-left
-@sort-quick_sort-recursive_calls
-|:
-|    DX: the array
-|    BX: free use
-|    CX: pivot
-|    AX:
-|        [AX]: end-index
-|        [AX + #LOW_I]: low-index
-|        [AX + #HIGH_I]: high-index
-|:>
-    CMP CX , 8
-    JMPLE sort-quick_sort-recursive_calls-skip_low_call
-    PUSH CX
-    PUSH [AX]
-    |:
-    |    DX: points to the array to be sorted
-    |    CX: has the index of the last index of the array to be sorted
-    |       so (CX / 8)+1 is the number of 8-byte-elements in the array
-    |:>
-    SUB CX , 8 |> last-index is pivot - 8
-    CALL sort-quick_sort-allocated
-    POP [AX]
-    POP CX
-@sort-quick_sort-recursive_calls-skip_low_call
-    |> if: (end-index - pivot) > 8
-    MOV BX , [AX]
-    SUB BX , CX
-    CMP BX , 8
-    JMPLE return
-    ADD DX , CX
-    ADD DX , 8
-    MOV CX , BX
-    JMP sort-quick_sort-allocated
-#LOW_I ~DEL
-#HIGH_I ~DEL
-|>#END_I ~DEL
-
-@return
-    RET
+@SORT
+	|:	X00: first entry pointer
+	|	X01: last entry pointer
+	|	X02: low pointer
+	|	X03: high pointer
+	|	X04: pivot
+	|:>
+	|> init
+	MOV X02, X00
+	MOV X03, X01
+	MOV X04, X00
+	ADD X04, X01
+	RLSH X04, 1
+	@SORT_LOOP
+		@SORT_LOOP_LOW
+			CMP [X02], X04
+			JMPGT SORT_LOOP_LOW_END
+			CMP X02, X01
+			JMPGE SORT_LOOP_END
+			ADD X02, 8
+			JMP SORT_LOOP_LOW
+		@SORT_LOOP_LOW_END
+		@SORT_LOOP_HIGH
+			CMP [X03], X04
+			JMPLT SORT_LOOP_HIGH_END
+			CMP X02, X03
+			JMPGE SORT_LOOP_END
+			SUB X03, 8
+			JMP SORT_LOOP_HIGH
+		@SORT_LOOP_HIGH_END
+			SWAP [X02], [X03]
+			JMP SORT_LOOP
+	@SORT_LOOP_END
+	MVAD X05, X02, -8
+	CMP X05, X00
+	JMPGE SKIP_LOW_REQ
+		PUSH X01
+		PUSH X02
+		MOV X01, X03
+		CALL SORT
+		POP X02
+		POP X00
+	@SKIP_LOW_REQ
+	MVAD X05, X02, 8
+	CMP X05, X00
+	JMPGE SKIP_LOW_REQ
+		MOV X00, X03
+		CALL SORT
+	@SKIP_LOW_REQ
+	RET
+~IF #~FOR_ME
+	#EXP~INPUT_FILE_POS
+~ENDIF
+:
+	CHARS 'UTF-8' "./input/in.data\0"
+>
 @error
-    MOV AX , 1
-    INT #INT-EXIT
+	MOV X00, 1
+	INT INT_EXIT

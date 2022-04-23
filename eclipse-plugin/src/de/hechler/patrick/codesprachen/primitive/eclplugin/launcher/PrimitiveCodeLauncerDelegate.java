@@ -127,8 +127,9 @@ public class PrimitiveCodeLauncerDelegate implements ILaunchConfigurationDelegat
 			// }
 			try {
 				PVMDebugingComunicator com = new PVMDebugingComunicator(p, new Socket("localhost", dport));
+				PVMDebugingComunicator com2 = new PVMDebugingComunicator(p, new Socket("localhost", dport));
 				de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.debugelements.PrimitiveCodeDebugTarget debug = new de.hechler.patrick.codesprachen.primitive.eclplugin.launcher.debugelements.PrimitiveCodeDebugTarget(
-						p, com, launch, PrimitiveCodeArgumentsTab.getCommandLine(arguments), timestamp, dir, program);
+						p, com, com2, launch, PrimitiveCodeArgumentsTab.getCommandLine(arguments), timestamp, dir, program);
 				debug.addFile(sourcefile, com.getSnapshot().ip);
 				process = debug.process;
 				launch.addDebugTarget(debug);

@@ -27,16 +27,14 @@ public class PrimitiveCodeDebugTarget extends PrimitiveCodeDebugElement implemen
 
 	public final PrimitiveCodeProcess process;
 	public final PrimitiveCodeThread thread;
-	public final PVMDebugingComunicator com;
 	public final ILaunch launch;
 	private final Map<IFile, Long> knownFiles;
 	private final NavigableMap<Long, IFile> knownAddresses;
 	private boolean disconnected;
 
-	public PrimitiveCodeDebugTarget(Process process, PVMDebugingComunicator com, ILaunch launch, String cmdLine, long launchTime, String dir, String path) {
+	public PrimitiveCodeDebugTarget(Process process, PVMDebugingComunicator com, PVMDebugingComunicator com2, ILaunch launch, String cmdLine, long launchTime, String dir, String path) {
 		this.process = new PrimitiveCodeProcess(this, process, cmdLine, launchTime, dir, path);
-		this.thread = new PrimitiveCodeThread(this, com);
-		this.com = com;
+		this.thread = new PrimitiveCodeThread(this, com, com2);
 		this.launch = launch;
 		this.knownFiles = new HashMap<>();
 		this.knownAddresses = new TreeMap<>();
@@ -188,7 +186,7 @@ public class PrimitiveCodeDebugTarget extends PrimitiveCodeDebugElement implemen
 
 	@Override
 	public void disconnect() {
-		this.com.detach();
+		this.thread.com.detach();
 		this.disconnected = true;
 		this.thread.setDisconnect();
 	}

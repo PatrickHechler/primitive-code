@@ -1,26 +1,35 @@
 package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
+import static de.hechler.patrick.zeugs.check.Assert.assertArrayEquals;
+import static de.hechler.patrick.zeugs.check.Assert.assertEquals;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Method;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
+
+import de.hechler.patrick.codesprachen.primitive.assemble.TestUtils;
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMDebugingComunicator;
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMSnapshot;
-import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.anotations.Check;
 import de.hechler.patrick.zeugs.check.anotations.CheckClass;
 import de.hechler.patrick.zeugs.check.anotations.End;
 import de.hechler.patrick.zeugs.check.anotations.MethodParam;
 import de.hechler.patrick.zeugs.check.anotations.Start;
+import de.hechler.patrick.zeugs.check.objects.Checker;
 
-@CheckClass(disabled = true)//checks are not jet updated to the new version
+@CheckClass
 public class PrimitiveAssemblerChecker extends Checker {
 	
 	public final static String INPUT_ADD = "/sourcecode/add.psc";
@@ -51,15 +60,13 @@ public class PrimitiveAssemblerChecker extends Checker {
 			new Thread(() -> {
 				try {
 					pvm.exit();
-				} catch (IOException | RuntimeException e1) {
-				}
+				} catch (IOException | RuntimeException e1) {}
 				t.interrupt();
 			}).start();
 			;
 			try {
 				Thread.sleep(11000);
-			} catch (InterruptedException e1) {
-			}
+			} catch (InterruptedException e1) {}
 			if (pvmexec.isAlive()) {
 				pvmexec.destroyForcibly();
 			}
@@ -68,13 +75,14 @@ public class PrimitiveAssemblerChecker extends Checker {
 		pvmexec = null;
 	}
 	
-	@Check(disabled = false)
+	@Check
 	public void assembleAddTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			PrimitiveAssembler pa = new PrimitiveAssembler(out);
+			PrimitiveAssembler pa = new PrimitiveAssembler(out, false, false);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_ADD);
-			pa.assemble(null, helloWorldIn);
+			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimitiveAssembler.START_CONSTANTS,
+					new BailErrorStrategy(), false));
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
 			System.out.println(hexCodeBytes);
@@ -82,7 +90,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 			System.out.println(hexCodeLongs);
 			
 			new Thread(() -> {
-				while(true) {
+				while (true) {
 					try {
 						pvm.getSnapshot().print(System.out);
 					} catch (IOException e) {
@@ -90,8 +98,7 @@ public class PrimitiveAssemblerChecker extends Checker {
 					}
 					try {
 						Thread.sleep(5000);
-					} catch (InterruptedException e) {
-					}
+					} catch (InterruptedException e) {}
 				}
 			}).start();
 			
@@ -113,13 +120,14 @@ public class PrimitiveAssemblerChecker extends Checker {
 		}
 	}
 	
-	@Check(disabled = false)
+	@Check
 	public void assembleHelloWorldTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			PrimitiveAssembler pa = new PrimitiveAssembler(out);
+			PrimitiveAssembler pa = new PrimitiveAssembler(out, false, false);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_HELLO_WORLD);
-			pa.assemble(null, helloWorldIn);
+			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimitiveAssembler.START_CONSTANTS,
+					new BailErrorStrategy(), false));
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
 			System.out.println(hexCodeBytes);
@@ -146,13 +154,14 @@ public class PrimitiveAssemblerChecker extends Checker {
 		}
 	}
 	
-	@Check(disabled = false)
+	@Check
 	public void assembleHelloWorldToFileTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			PrimitiveAssembler pa = new PrimitiveAssembler(out);
+			PrimitiveAssembler pa = new PrimitiveAssembler(out, false, false);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_HELLO_WORLD_TO_FILE);
-			pa.assemble(null, helloWorldIn);
+			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimitiveAssembler.START_CONSTANTS,
+					new BailErrorStrategy(), false));
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
 			System.out.println(hexCodeBytes);
@@ -177,13 +186,14 @@ public class PrimitiveAssemblerChecker extends Checker {
 		}
 	}
 	
-	@Check(disabled = false)
+	@Check
 	public void assembleHelloWorldFromFileTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			PrimitiveAssembler pa = new PrimitiveAssembler(out);
+			PrimitiveAssembler pa = new PrimitiveAssembler(out, false, true, false);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_HELLO_WORLD_FROM_FILE);
-			pa.assemble(null, helloWorldIn);
+			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimitiveAssembler.START_CONSTANTS,
+					new BailErrorStrategy(), false));
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
 			System.out.println(hexCodeBytes);

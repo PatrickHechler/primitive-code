@@ -28,9 +28,9 @@ public class PrimitivCodeRegister extends PrimitiveCodeVariable implements IRegi
 	@Override
 	public void setValue(long value) {
 		try {
-			PVMSnapshot sn = regGroup.debug.com.getSnapshot();
+			PVMSnapshot sn = regGroup.debug.thread.com.getSnapshot();
 			sn.setRegister(index, value);
-			regGroup.debug.com.setSnapshot(sn);
+			regGroup.debug.thread.com.setSnapshot(sn);
 		} catch (IOException e) {
 			throw new IOError(e);
 		}
@@ -39,7 +39,7 @@ public class PrimitivCodeRegister extends PrimitiveCodeVariable implements IRegi
 	@Override
 	public long getLongValue() {
 		try {
-			PVMSnapshot sn = regGroup.debug.com.getSnapshot();
+			PVMSnapshot sn = regGroup.debug.thread.com.getSnapshot();
 			return sn.getRegister(index);
 		} catch (IOException e) {
 			throw new IOError(e);

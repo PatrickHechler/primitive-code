@@ -34,6 +34,7 @@ public class PrimitiveCodeThread extends PrimitiveCodeNTDE implements IThread {
 	public static final int STATE_DISCONNECTED = 0x10;
 
 	public final PVMDebugingComunicator com;
+	public final PVMDebugingComunicator com2;
 	private final Map<IBreakpoint, Long> breaksJTP;
 	private final Map<Long, IBreakpoint> breaksPTJ;
 	private final List<PrimitiveCodeStackStackFrame> stackFrames;
@@ -42,9 +43,10 @@ public class PrimitiveCodeThread extends PrimitiveCodeNTDE implements IThread {
 	private IBreakpoint hit;
 	private long stacksize;
 
-	public PrimitiveCodeThread(PrimitiveCodeDebugTarget debug, PVMDebugingComunicator com) {
+	public PrimitiveCodeThread(PrimitiveCodeDebugTarget debug, PVMDebugingComunicator com, PVMDebugingComunicator com2) {
 		super(debug);
 		this.com = com;
+		this.com2 = com2;
 		this.breaksJTP = new HashMap<>();
 		this.breaksPTJ = new HashMap<>();
 		this.stackFrames = new ArrayList<>();
@@ -174,35 +176,35 @@ public class PrimitiveCodeThread extends PrimitiveCodeNTDE implements IThread {
 			com.getMem(sn.ip, bytes, 0, 8);
 			int cmdlen = -1;
 			switch (0xFF & bytes[0]) {
-				case CmdNums.CALL :
-					cmdlen = 16;
-				case CmdNums.INT : {
-					sn = com.getSnapshot();
-					long stackPointer = sn.sp;
-					long instPointer = sn.ip;
-					if (cmdlen == -1) {
-						try {
-							ParamBuilder b = new ParamBuilder();
-							b.art = bytes[1];
-							cmdlen = 8 + b.build().length();
-						} catch (NoCommandException e) {
-							throw new AssertionError(e);
-						}
+			case CmdNums.CALL:
+				cmdlen = 16;
+			case CmdNums.INT: {
+				sn = com.getSnapshot();
+				long stackPointer = sn.sp;
+				long instPointer = sn.ip;
+				if (cmdlen == -1) {
+					try {
+						ParamBuilder b = new ParamBuilder();
+						b.art = bytes[1];
+						cmdlen = 8 + b.build().length();
+					} catch (NoCommandException e) {
+						throw new AssertionError(e);
 					}
-					instPointer += cmdlen;
-					do {
-						com.executeNext();
-						sn = com.getSnapshot();
-						IBreakpoint breakpoint = breaksPTJ.get(sn.ip);
-						if (breakpoint != null) {
-							this.hit = breakpoint;
-							return;
-						}
-					} while (state != STATE_CHANGE_REQUESTED && (sn.sp >= stackPointer || sn.ip != instPointer));
-					break;
 				}
-				default :
+				instPointer += cmdlen;
+				do {
 					com.executeNext();
+					sn = com.getSnapshot();
+					IBreakpoint breakpoint = breaksPTJ.get(sn.ip);
+					if (breakpoint != null) {
+						this.hit = breakpoint;
+						return;
+					}
+				} while (state != STATE_CHANGE_REQUESTED && (sn.sp >= stackPointer || sn.ip != instPointer));
+				break;
+			}
+			default:
+				com.executeNext();
 			}
 		} catch (IOException e) {
 			throw new IOError(e);
@@ -366,16 +368,16 @@ public class PrimitiveCodeThread extends PrimitiveCodeNTDE implements IThread {
 	private boolean findNewStackPointerStep(byte[] bytes, PVMSnapshot sn) throws IOException {
 		com.getMem(sn.ip, bytes, 0, 8);
 		switch (0xFF & bytes[0]) {
-			default :
-				if (this.stackMemory + this.stacksize < sn.sp || this.stackMemory > sn.sp) {
-					stackMemory = sn.sp - this.stacksize;
-				}
-				return false;
-			case CmdNums.CALL :
-			case CmdNums.PUSH :
-			case CmdNums.IRET :
-				this.stacksize = -1L;
-				return true;
+		default:
+			if (this.stackMemory + this.stacksize < sn.sp || this.stackMemory > sn.sp) {
+				stackMemory = sn.sp - this.stacksize;
+			}
+			return false;
+		case CmdNums.CALL:
+		case CmdNums.PUSH:
+		case CmdNums.IRET:
+			this.stacksize = -1L;
+			return true;
 		}
 	}
 
@@ -384,13 +386,13 @@ public class PrimitiveCodeThread extends PrimitiveCodeNTDE implements IThread {
 			synchronized (this) {
 				if (this.state == STATE_CHANGE_REQUESTED) {
 					try {
-						Thread.sleep(100);
+						this.wait(100L);
 					} catch (InterruptedException e) {
 					}
 					continue;
 				} else if (0 != (this.state & STATE_FREE_FLAG)) {
 					this.hit = null;
-					type.init.accept(this.com);
+					type.init.accept(this.com2);
 					if (type.dns != -1) {
 						fireEvent(new DebugEvent(caller, type.dns, type.ddns));
 					}
@@ -457,8 +459,11 @@ public class PrimitiveCodeThread extends PrimitiveCodeNTDE implements IThread {
 			throw new IOError(e);
 		} finally {
 			try {
-				if (type.stateNum != STATE_DISCONNECTED && successful) {
+				if (type.stateNum != STATE_DISCONNECTED) {
 					this.state |= STATE_FREE_FLAG;
+				}
+				synchronized (this) {
+					notify();
 				}
 			} catch (Throwable t) {// example: NullPointer(/ThreadDeath)
 				this.state |= STATE_FREE_FLAG;

@@ -1,5 +1,8 @@
 package de.hechler.patrick.codesprachen.primitive.assemble;
 
+import static de.hechler.patrick.zeugs.check.Assert.assertArrayEquals;
+import static de.hechler.patrick.zeugs.check.Assert.assertEquals;
+
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOError;
@@ -14,10 +17,10 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
-import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.anotations.Check;
 import de.hechler.patrick.zeugs.check.anotations.CheckClass;
 import de.hechler.patrick.zeugs.check.anotations.Start;
+
 
 @CheckClass
 public class QuickSort {
@@ -44,12 +47,21 @@ public class QuickSort {
 	}
 	
 	@Check
+	private void simplesorttest() throws IOException {
+		long[] data = new long[] {0L, -100L, 100L, 50L };
+		long[] data2 = data.clone();
+		sort(data);
+		Arrays.sort(data2);
+		assertArrayEquals(data, data2);
+	}
+	
+	@Check
 	private void sorttest() throws IOException {
 		long[] data = read(new FileInputStream(INPUT_FILE));
-		long[] origData = data.clone();
+		long[] data2 = data.clone();
 		sort(data);
-		Arrays.sort(origData);
-		Checker.assertArrayEquals(data, origData);
+		Arrays.sort(data2);
+		assertArrayEquals(data, data2);
 	}
 	
 	@Check
@@ -67,7 +79,7 @@ public class QuickSort {
 	private long[] readBinary(FileInputStream in) throws IOException {
 		long[] res = new long[BINARY_LENGTH / 8];
 		byte[] bytes = new byte[BINARY_LENGTH];
-		Checker.assertEquals(res.length * 8, in.read(bytes));
+		assertEquals(res.length * 8, in.read(bytes));
 		for (int i1 = 0, i2 = 0; i1 < res.length; i1 ++ , i2 += 8) {
 			res[i1] = 0xFFL & bytes[i2];
 			res[i1] |= (0xFFL & bytes[i2 + 1]) << 8;
@@ -107,40 +119,34 @@ public class QuickSort {
 	}
 	
 	private void sort(long[] data, final int lowIndex, final int highIndex) {
-		int pivot;
-		pivot = (highIndex + lowIndex) / 2;
+		long pivot = (data[highIndex] + data[lowIndex]) / 2;
 		int currentLow = lowIndex, currentHigh = highIndex;
-		big_loop: while (true) {
-			for (; currentLow < pivot; currentLow ++ ) {
-				if (data[currentLow] > data[pivot]) {
-					long swap = data[currentLow];
-					data[currentLow] = data[pivot];
-					data[pivot] = swap;
-					pivot = currentLow;
+		while (true) {
+			for (; currentLow < currentHigh; currentLow ++ ) {
+				if (data[currentLow] > pivot) {
 					break;
 				}
 			}
-			for (; currentHigh > pivot; currentHigh -- ) {
-				if (data[currentHigh] < data[pivot]) {
-					long swap = data[currentHigh];
-					data[currentHigh] = data[pivot];
-					data[pivot] = swap;
-					pivot = currentHigh;
-					continue big_loop;
+			for (; currentHigh > currentLow; currentHigh -- ) {
+				if (data[currentHigh] < pivot) {
+					break;
 				}
 			}
-			if (pivot > lowIndex + 1) {
-				sort(data, lowIndex, pivot - 1);
+			if (currentHigh < currentLow) {
+				long swap = data[currentHigh];
+				data[currentHigh] = data[currentLow];
+				data[currentLow] = swap;
+			} else {
+				break;
 			}
-			if (highIndex - pivot > 1) {
-				sort(data, pivot + 1, highIndex);
-			}
-			return;
 		}
-	}
-	
-	public static void main(String[] args) {
-		Checker.check(QuickSort.class).detailedPrint(System.out, 2);
+		if (currentLow > lowIndex) {
+			sort(data, lowIndex, currentLow);
+		}
+		if (currentLow < highIndex) {
+			sort(data, currentLow, highIndex);
+		}
+		return;
 	}
 	
 }

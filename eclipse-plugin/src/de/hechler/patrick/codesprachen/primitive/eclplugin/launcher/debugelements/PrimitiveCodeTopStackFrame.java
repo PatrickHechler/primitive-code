@@ -53,7 +53,7 @@ public class PrimitiveCodeTopStackFrame extends PrimitiveCodeStackStackFrame {
 	@Override
 	public AnythingContext getAnythingContext() {
 		try {
-			PVMSnapshot sn = this.regGroup.debug.com.getSnapshot();
+			PVMSnapshot sn = this.regGroup.debug.thread.com.getSnapshot();
 			long addr = sn.ip;
 			IFile file = debug.getFile(addr);
 			return getAnythingContext(addr, false, file);
@@ -65,7 +65,7 @@ public class PrimitiveCodeTopStackFrame extends PrimitiveCodeStackStackFrame {
 	@Override
 	public IFile getFile() {
 		try {
-			PVMSnapshot sn = this.regGroup.debug.com.getSnapshot();
+			PVMSnapshot sn = this.regGroup.debug.thread.com.getSnapshot();
 			return debug.getFile(sn.ip);
 		} catch (IOException e) {
 			throw new IOError(e);

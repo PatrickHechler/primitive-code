@@ -1,6 +1,7 @@
 package de.hechler.patrick.codesprachen.primitive.assemble;
 
-import static de.hechler.patrick.zeugs.check.Checker.assertEquals;
+import static de.hechler.patrick.zeugs.check.Assert.assertEquals;
+import static de.hechler.patrick.zeugs.check.Assert.assertNotArrayEquals;
 
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,9 +16,9 @@ import java.util.List;
 import java.util.Random;
 import java.util.Scanner;
 
-import de.hechler.patrick.zeugs.check.Checker;
 import de.hechler.patrick.zeugs.check.anotations.Check;
 import de.hechler.patrick.zeugs.check.anotations.CheckClass;
+import de.hechler.patrick.zeugs.check.objects.Checker;
 
 @CheckClass
 public class PrimFinder {
@@ -36,7 +37,7 @@ public class PrimFinder {
 		for (int i = 0; i < data.length; i ++ ) {
 			data[i] = checkPrim(data[i]);
 		}
-		Checker.assertNotArrayEquals(data, otherData);
+		assertNotArrayEquals(data, otherData);
 	}
 	
 	@Check
