@@ -147,6 +147,25 @@ enum debug {
 	 */
 	pvm_debug_executeUntilExit,
 	/*
+	 * adds a breakpoint for the default interrupt
+	 * recieve:
+	 *   64-bit: the number of the interrupt
+	 */
+	pvm_debug_addDefaultInterruptBreak,
+	/*
+	 * removes a breakpoint for the default interrupt
+	 * recieve:
+	 *   64-bit: the number of the interrupt
+	 */
+	pvm_debug_remDefaultInterruptBreak,
+	/*
+	 * returns a list of all default interrupt breakpoints
+	 * the def-interrupt-breakpoint-list:
+	 *  the list of 64-bit interrupt numbers, which are registered as a default-interrupt-breakpoint
+	 *  a -1/0xFFFFFFFFFFFFFFFF num at the end
+	 */
+	pvm_debug_getDefaultInterruptBreaks,
+	/*
 	 * if not other specified the pvm will response with this message
 	 */
 	pvm_debug_executed_command = 0x7F,

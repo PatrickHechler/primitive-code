@@ -800,7 +800,7 @@ static void runNextCommand() {
 					break;
 				}
 			}
-			defaultinterrupts[p1]();
+			defaultinterrupts[p1](p1);
 		}
 		break;
 	}
@@ -955,7 +955,7 @@ static int inline numToStr(num number, char *buffer, int base) {
 	return len + addlen;
 }
 
-static void int_errors_illegal_interrupt() {
+static void int_errors_illegal_interrupt(int intnum) {
 	/*
 	 * exit(EXIT_NUM_ILLEGAL_INTERRUPT_IS_ILLEGAL) is
 	 * called in the interrupt(num) method this happens
@@ -970,45 +970,45 @@ static void int_errors_illegal_interrupt() {
 		pvm.x[0] += EXIT_NUM_ILLEGAL_INTERRUPT_ADD;
 	}
 	if (p1 >= 0) {
-		defaultinterrupts[p1]();
+		defaultinterrupts[p1](p1);
 	}
 }
 
-static void int_errors_unknown_command() {
+static void int_errors_unknown_command(int intnum) {
 	num p1 = interrupt(DEF_INT_EXIT);
 	if (p1 != DEF_INT_ERRORS_ILLEGAL_INTERRUPT && p1 != -2) {
 		pvm.x[0] = EXIT_NUM_UNKNOWN_COMMAND;
 	}
 	if (p1 >= 0) {
-		defaultinterrupts[p1]();
+		defaultinterrupts[p1](p1);
 	}
 }
 
-static void int_errors_illegal_memory() {
+static void int_errors_illegal_memory(int intnum) {
 	num p1 = interrupt(DEF_INT_EXIT);
 	if (p1 != DEF_INT_ERRORS_ILLEGAL_INTERRUPT && p1 != -2) {
 		pvm.x[0] = EXIT_NUM_ILLEGAL_MEMORY;
 	}
 	if (p1 >= 0) {
-		defaultinterrupts[p1]();
+		defaultinterrupts[p1](p1);
 	}
 }
 
-static void int_errors_arithmetic_error() {
+static void int_errors_arithmetic_error(int intnum) {
 	num p1 = interrupt(DEF_INT_EXIT);
 	if (p1 != DEF_INT_ERRORS_ILLEGAL_INTERRUPT && p1 != -2) {
 		pvm.x[0] = EXIT_NUM_ARITHMETIC_ERROR;
 	}
 	if (p1 >= 0) {
-		defaultinterrupts[p1]();
+		defaultinterrupts[p1](p1);
 	}
 }
 
-static void int_exit() {
+static void int_exit(int intnum) {
 	exit(pvm.x[0]);
 }
 
-static void int_memory_alloc() {
+static void int_memory_alloc(int intnum) {
 	void *pntr = malloc(pvm.x[0]);
 	if (pntr == NULL) {
 		pvm.x[0] = -1L;
@@ -1017,7 +1017,7 @@ static void int_memory_alloc() {
 	}
 }
 
-static void int_memory_realloc() {
+static void int_memory_realloc(int intnum) {
 	void *pntr = realloc((void*) pvm.x[0], pvm.x[1]);
 	if (pntr == NULL) {
 		pvm.x[1] = -1L;
@@ -1026,45 +1026,45 @@ static void int_memory_realloc() {
 	}
 }
 
-static void int_memory_free() {
+static void int_memory_free(int intnum) {
 	free((void*) pvm.x[0]);
 }
 
-static void int_streams_new_in() {
+static void int_streams_new_in(int intnum) {
 	const char *cs = (const char*) pvm.x[0];
 	pvm.x[0] = open64(cs, O_LARGEFILE | O_RDONLY);
 }
 
-static void int_streams_new_out() {
+static void int_streams_new_out(int intnum) {
 	const char *cs = (const char*) pvm.x[0];
 	pvm.x[0] = open64(cs, O_LARGEFILE | O_WRONLY);
 }
 
-static void int_streams_new_append() {
+static void int_streams_new_append(int intnum) {
 	const char *cs = (const char*) pvm.x[0];
 	pvm.x[0] = open64(cs, O_LARGEFILE | O_WRONLY | O_APPEND);
 }
 
-static void int_streams_new_in_out() {
+static void int_streams_new_in_out(int intnum) {
 	const char *cs = (const char*) pvm.x[0];
 	pvm.x[0] = open64(cs, O_LARGEFILE | O_RDWR);
 }
 
-static void int_streams_new_append_in_out() {
+static void int_streams_new_append_in_out(int intnum) {
 	const char *cs = (const char*) pvm.x[0];
 	pvm.x[0] = open64(cs, O_LARGEFILE | O_RDWR | O_APPEND);
 }
 
-static void int_streams_write() {
+static void int_streams_write(int intnum) {
 	pvm.x[1] = write(pvm.x[0], (void*) pvm.x[2], pvm.x[1]);
 }
 
-static void int_streams_read() {
+static void int_streams_read(int intnum) {
 	num zw = read(pvm.x[0], (void*) pvm.x[2], pvm.x[1]);
 	pvm.x[1] = zw;
 }
 
-static void int_streams_sync_stream() {
+static void int_streams_sync_stream(int intnum) {
 	int fd = pvm.x[0];
 	if (fd == -1L) {
 		sync(); //sync is always successful
@@ -1074,7 +1074,7 @@ static void int_streams_sync_stream() {
 	}
 }
 
-static void int_streams_close_stream() {
+static void int_streams_close_stream(int intnum) {
 	if (close(pvm.x[0]) == 0) {
 		pvm.x[0] = 1;
 	} else {
@@ -1082,19 +1082,19 @@ static void int_streams_close_stream() {
 	}
 }
 
-static void int_streams_get_pos() {
+static void int_streams_get_pos(int intnum) {
 	pvm.x[1] = lseek64(pvm.x[0], 0, SEEK_CUR);
 }
 
-static void int_streams_set_pos() {
+static void int_streams_set_pos(int intnum) {
 	pvm.x[1] = lseek64(pvm.x[0], pvm.x[1], SEEK_SET);
 }
 
-static void int_streams_set_pos_to_end() {
+static void int_streams_set_pos_to_end(int intnum) {
 	pvm.x[1] = lseek64(pvm.x[0], 0, SEEK_END);
 }
 
-static void int_fs_rem() {
+static void int_fs_rem(int intnum) {
 	const char *cs = (const char*) pvm.x[0];
 	if (unlink(cs) == 0) {
 		pvm.x[0] = 1;
@@ -1103,7 +1103,7 @@ static void int_fs_rem() {
 	}
 }
 
-static void int_fs_mk_dir() {
+static void int_fs_mk_dir(int intnum) {
 	const char *cs = (const char*) pvm.x[0];
 	if (mkdir(cs, S_IRWXU) == 0) {
 		pvm.x[0] = 1;
@@ -1112,7 +1112,7 @@ static void int_fs_mk_dir() {
 	}
 }
 
-static void int_fs_rem_dir() {
+static void int_fs_rem_dir(int intnum) {
 	const char *cs = (const char*) pvm.x[0];
 	if (rmdir(cs) == 0) {
 		pvm.x[0] = 1;
@@ -1121,11 +1121,11 @@ static void int_fs_rem_dir() {
 	}
 }
 
-static void int_time_get() {
+static void int_time_get(int intnum) {
 	pvm.x[0] = time(NULL);
 }
 
-static void int_time_wait() {
+static void int_time_wait(int intnum) {
 	struct timespec time;
 	struct timespec remain;
 	time.tv_sec = pvm.x[0];
@@ -1141,11 +1141,11 @@ static void int_time_wait() {
 	}
 }
 
-static void int_socket_client_create() {
+static void int_socket_client_create(int intnum) {
 	pvm.x[0] = socket(AF_INET, SOCK_STREAM, 0);
 }
 
-static void int_socket_client_connect() {
+static void int_socket_client_connect(int intnum) {
 	struct hostent *hp;
 	const char *cs = (const char*) pvm.x[1];
 	hp = gethostbyname(cs);
@@ -1164,7 +1164,7 @@ static void int_socket_client_connect() {
 	}
 }
 
-static void int_socket_server_create() {
+static void int_socket_server_create(int intnum) {
 	struct sockaddr_in sokadr;
 	sokadr.sin_family = AF_INET;
 	sokadr.sin_addr.s_addr = INADDR_ANY;
@@ -1173,7 +1173,7 @@ static void int_socket_server_create() {
 	bind(pvm.x[0], (const struct sockaddr*) &sokadr, sizeof(struct sockaddr_in));
 }
 
-static void int_socket_server_listen() {
+static void int_socket_server_listen(int intnum) {
 	if (listen(pvm.x[0], pvm.x[1]) == 0) {
 		pvm.x[1] = 1;
 	} else {
@@ -1181,27 +1181,27 @@ static void int_socket_server_listen() {
 	}
 }
 
-static void int_socket_server_accept() {
+static void int_socket_server_accept(int intnum) {
 	pvm.x[1] = accept(pvm.x[0], 0, 0);
 }
 
-static void int_random() {
+static void int_random(int intnum) {
 	pvm.x[0] = ((unum) rand()) | (((unum) rand()) << 31) | (((unum) rand()) << 62);
 }
 
-static void int_memory_copy() {
+static void int_memory_copy(int intnum) {
 	memcpy((void*) pvm.x[0], (void*) pvm.x[1], pvm.x[2]);
 }
 
-static void int_memory_move() {
+static void int_memory_move(int intnum) {
 	memmove((void*) pvm.x[0], (void*) pvm.x[1], pvm.x[2]);
 }
 
-static void int_memory_bset() {
+static void int_memory_bset(int intnum) {
 	memset((void*) pvm.x[0], pvm.x[1], pvm.x[2]);
 }
 
-static void int_memory_set() {
+static void int_memory_set(int intnum) {
 	num *arr = (num*) pvm.x[0];
 	num val = pvm.x[1];
 	num len = pvm.x[2];
@@ -1210,26 +1210,26 @@ static void int_memory_set() {
 	}
 }
 
-static void int_string_length() {
+static void int_string_length(int intnum) {
 	pvm.x[0] = strlen((const char*) pvm.x[0]);
 }
 
-static void int_string_to_number() {
+static void int_string_to_number(int intnum) {
 	pvm.x[0] = strtol((const char*) pvm.x[0], (char**) pvm.x[1], pvm.x[1]);
 }
 
-static void int_string_to_fpnumber() {
+static void int_string_to_fpnumber(int intnum) {
 	pvm.x[0] = strtod((const char*) pvm.x[0], (char**) pvm.x[1]);
 }
 
-static void int_number_to_string() {
+static void int_number_to_string(int intnum) {
 	num number = pvm.x[0];
 	char *buffer = (char*) pvm.x[1];
 	const num base = pvm.x[2];
 	pvm.x[0] = numToStr(number, buffer, base);
 }
 
-static void int_fpnumber_to_string() {
+static void int_fpnumber_to_string(int intnum) {
 	{
 		char *ignore = gcvt(((union pvm_command_union) pvm.x[0]).fpn, pvm.x[1], (char*) pvm.x[2]);
 	}
@@ -1248,7 +1248,7 @@ static void int_fpnumber_to_string() {
 		target_str = ntarget_str;\
 	}
 
-static void int_string_format() {
+static void int_string_format(int intnum) {
 	char *source = (char*) pvm.x[0];
 	num tsize;
 	char *target_str;
@@ -1398,7 +1398,7 @@ static void int_string_format() {
 	pvm.x[1] = (num) target_str;
 }
 
-static void int_load_file() {
+static void int_load_file(int intnum) {
 	const char *cs = (const char*) pvm.x[0];
 	int fd = open64(cs, O_LARGEFILE | O_RDONLY);
 	if (fd == -1) {

@@ -21,10 +21,6 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#ifndef NULL
-#define NULL 0
-#endif
-
 static struct timespec debug_wait_time;
 
 static int waiting = 1;
@@ -35,6 +31,21 @@ extern int errorState;
 
 static int breakpointsEnabled = 1;
 static struct hashset breakoints;
+
+#define NULL5 NULL, NULL, NULL, NULL, NULL
+
+#define NULL10 NULL5, NULL5
+static void (*defIntBreaks[ALL_INTS_INTCNT])(int) = {
+	NULL10, NULL10, NULL10, NULL10, NULL, NULL
+};
+#undef NULL10
+
+#undef NULL5
+
+static void interruptBreak(int);
+
+extern void (*defaultinterrupts[])(int);
+
 
 extern jmp_buf debug_state;
 
@@ -318,6 +329,34 @@ void* pvm_debug_run_debugger(void *sokPNTR) {//TODO: use [waitUntil, waiting, pv
 			writeFinishedCmd
 			pthread_mutex_lock(&debug_mutex);
 			break;
+		case pvm_debug_remDefaultInterruptBreak:
+			safeRead(sok, buffer, sizeof(num));
+			if (buffer[0].num >= 0LL && buffer[0].num < ALL_INTS_INTCNT) {
+				if (defIntBreaks[buffer[0].num] != NULL) {
+					defaultinterrupts[buffer[0].num] = defIntBreaks[buffer[0].num];
+					defaultinterrupts[buffer[0].num] = NULL;
+				}
+			}
+			writeFinishedCmd
+			break;
+		case pvm_debug_addDefaultInterruptBreak:
+			safeRead(sok, buffer, sizeof(num));
+			if (buffer[0].num >= 0LL && buffer[0].num < ALL_INTS_INTCNT) {
+				if (defIntBreaks[buffer[0].num] == NULL) {
+					defIntBreaks[buffer[0].num] = defaultinterrupts[buffer[0].num];
+					defaultinterrupts[buffer[0].num] = interruptBreak;
+				}
+			}
+			writeFinishedCmd
+			break;
+		case pvm_debug_getDefaultInterruptBreaks:
+			for (num i = 0; i < ALL_INTS_INTCNT; i++) {
+				if (defIntBreaks[i] != NULL) {
+					writeSingleNum(i);
+				}
+			}
+			writeSingleNum(-1L);
+			break;
 		default: {
 			int len;
 			ioctl(sok, FIONREAD, &len);
@@ -429,4 +468,11 @@ static int breakpointEqual(void *breakA, void *breakB) {
 
 static int breakpointHash(void *breakA) {
 	return (int) (long) breakA;
+}
+
+extern int asumeRunning;
+
+static void interruptBreak(int intnum) {
+	pvm_debug_notify();
+	defIntBreaks[intnum](intnum);
 }

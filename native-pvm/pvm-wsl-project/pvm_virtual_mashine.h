@@ -192,50 +192,50 @@ enum dmode {
 #ifdef PVM_VM
 struct pvm pvm;
 
-static void int_errors_illegal_interrupt();
-static void int_errors_unknown_command();
-static void int_errors_illegal_memory();
-static void int_errors_arithmetic_error();
-static void int_exit();
-static void int_memory_alloc();
-static void int_memory_realloc();
-static void int_memory_free();
-static void int_streams_new_in();
-static void int_streams_new_out();
-static void int_streams_new_append();
-static void int_streams_new_in_out();
-static void int_streams_new_append_in_out();
-static void int_streams_write();
-static void int_streams_read();
-static void int_streams_sync_stream();
-static void int_streams_close_stream();
-static void int_streams_get_pos();
-static void int_streams_set_pos();
-static void int_streams_set_pos_to_end();
-static void int_fs_rem();
-static void int_fs_mk_dir();
-static void int_fs_rem_dir();
-static void int_time_get();
-static void int_time_wait();
-static void int_socket_client_create();
-static void int_socket_client_connect();
-static void int_socket_server_create();
-static void int_socket_server_listen();
-static void int_socket_server_accept();
-static void int_random();
-static void int_memory_copy();
-static void int_memory_move();
-static void int_memory_bset();
-static void int_memory_set();
-static void int_string_length();
-static void int_number_to_string();
-static void int_fpnumber_to_string();
-static void int_string_to_number();
-static void int_string_to_fpnumber();
-static void int_string_format();
-static void int_load_file();
+static void int_errors_illegal_interrupt(int);
+static void int_errors_unknown_command(int);
+static void int_errors_illegal_memory(int);
+static void int_errors_arithmetic_error(int);
+static void int_exit(int);
+static void int_memory_alloc(int);
+static void int_memory_realloc(int);
+static void int_memory_free(int);
+static void int_streams_new_in(int);
+static void int_streams_new_out(int);
+static void int_streams_new_append(int);
+static void int_streams_new_in_out(int);
+static void int_streams_new_append_in_out(int);
+static void int_streams_write(int);
+static void int_streams_read(int);
+static void int_streams_sync_stream(int);
+static void int_streams_close_stream(int);
+static void int_streams_get_pos(int);
+static void int_streams_set_pos(int);
+static void int_streams_set_pos_to_end(int);
+static void int_fs_rem(int);
+static void int_fs_mk_dir(int);
+static void int_fs_rem_dir(int);
+static void int_time_get(int);
+static void int_time_wait(int);
+static void int_socket_client_create(int);
+static void int_socket_client_connect(int);
+static void int_socket_server_create(int);
+static void int_socket_server_listen(int);
+static void int_socket_server_accept(int);
+static void int_random(int);
+static void int_memory_copy(int);
+static void int_memory_move(int);
+static void int_memory_bset(int);
+static void int_memory_set(int);
+static void int_string_length(int);
+static void int_number_to_string(int);
+static void int_fpnumber_to_string(int);
+static void int_string_to_number(int);
+static void int_string_to_fpnumber(int);
+static void int_string_format(int);
+static void int_load_file(int);
 
-void (*defaultinterrupts[])() = {
+void (*defaultinterrupts[])(int) = {
 	int_errors_illegal_interrupt,
 	int_errors_unknown_command,
 	int_errors_illegal_memory,
