@@ -52,35 +52,646 @@ public class PrimAsmConstants {
 		START_CONSTANTS = Collections.unmodifiableMap(startConsts);
 	}
 	/**
-	 * * `0`: illegal interrupt<br>
-	 * * `X00` contains the number of the illegal interrupt<br>
-	 * * calls the exit interrupt with `(64 + illegal_interrup_number)`<br>
-	 * * if the forbidden interrupt is the exit input, the program exits with `(64 + 4) = 68`, but does not calls the exit interrupt to do so<br>
-	 * * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `63`
+	 * <ul>
+	 * <li><code>0</code>: illegal interrupt
+	 * <ul>
+	 * <li><code>X00</code> contains the number of the illegal interrupt
+	 * <li>calls the exit interrupt with <code>(64 + illegal_interrup_number)</code>
+	 * <li>if the forbidden interrupt is the exit input, the program exits with <code>(64 + 4) = 68</code>, but does not calls the exit interrupt to do so
+	 * <li>if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with <code>63</code>
+	 * </ul>
+	 * </ul>
 	 */
 	@PrimStartConstant
 	public static final long INT_ERRORS_ILLEGAL_INTERRUPT = 0L;
 	/**
-	 * * `1`: unknown command<br>
-	 * * `X00` contains the illegal command<br>
-	 * * calls the exit interrupt with `62`
+	 * <ul>
+	 * <li><code>1</code>: unknown command<br>
+	 * <ul>
+	 * <li><code>X00</code> contains the illegal command<br>
+	 * <li>calls the exit interrupt with <code>62</code>
+	 * </ul>
+	 * </ul>
 	 */
 	@PrimStartConstant
 	public static final long INT_ERRORS_UNKNOWN_COMMAND   = 1L;
 	/**
-	 * * `2`: illegal memory<br>
-	 * * calls the exit interrupt with `61`
+	 * <ul>
+	 * <li><code>2</code>: illegal memory<br>
+	 * <ul>
+	 * <li>calls the exit interrupt with <code>61</code>
+	 * </ul>
+	 * </ul>
 	 */
 	@PrimStartConstant
 	public static final long INT_ERRORS_ILLEGAL_MEMORY    = 2L;
 	/**
-	 * * `3`: arithmetic error<br>
-	 * * calls the exit interrupt with `60`
+	 * <ul>
+	 * <li><code>3</code>: arithmetic error<br>
+	 * <ul>
+	 * <li>calls the exit interrupt with <code>60</code>
+	 * </ul>
+	 * </ul>
 	 */
 	@PrimStartConstant
 	public static final long INT_ERRORS_ARITHMETIC_ERROR  = 3L;
 	
+	/**
+	 * <ul>
+	 * <li><code>11</code>: get fs-file
+	 * <ul>
+	 * <li><code>X00</code> contains a pointer of a STRING with the file
+	 * <li><code>X00</code> will point to a fs-element of the file
+	 * <li>on failure <code>X00</code> will be set to <code>-1</code>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed because the element is not of the correct type (file expected, but folder)
+	 * <li>if the element exists, but is a folder and no file
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist
+	 * <li>if the element does not exists
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <li>if some IO error occurred
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory could be allocated
+	 * <li>the system could not allocate enough memory for the fs-element
+	 * <li>if the specified element is a link to a file, the target file of the link is returned instead of the actual link
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_GET_FILE    = 11L;
+	/**
+	 * <ul>
+	 * <li><code>12</code>: get fs-folder
+	 * <ul>
+	 * <li><code>X00</code> contains a pointer of a STRING with the dictionary
+	 * <li><code>X00</code> will point to a fs-element of the folder
+	 * <li>on failure <code>X00</code> will be set to <code>-1</code>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed because the element is not of the correct type (folder expected, but file)
+	 * <li>if the element exists, but is a file and no folder
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist
+	 * <li>if the element does not exists
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <li>if some IO error occurred
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory could be allocated
+	 * <li>the system could not allocate enough memory for the fs-element
+	 * <li>if the specified element is a link to a folder, the target folder of the link is returned instead of the actual link
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_GET_FOLDER  = 12L;
+	/**
+	 * <ul>
+	 * <li><code>13</code>: get fs-link
+	 * <ul>
+	 * <li><code>X00</code> contains a pointer of a STRING with the link
+	 * <li><code>X00</code> will point to a fs-element of the link
+	 * <li>on failure <code>X00</code> will be set to <code>-1</code>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed because the element is not of the correct type (link expected, but file or folder)
+	 * <li>if the element exists, but is a file and no folder
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist
+	 * <li>if the element does not exists
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <li>if some IO error occurred
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory could be allocated
+	 * <li>the system could not allocate enough memory for the fs-element
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_GET_LINK    = 13L;
+	/**
+	 * <ul>
+	 * <li><code>14</code>: get fs-element
+	 * <ul>
+	 * <li><code>X00</code> contains a pointer of a STRING with the element
+	 * <li><code>X00</code> will point to the fs-element
+	 * <li>on failure <code>X00</code> will be set to <code>-1</code>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist
+	 * <li>if the element does not exists
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <li>if some IO error occurred
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory could be allocated
+	 * <li>the system could not allocate enough memory for the fs-element
+	 * <li>if the specified element is a link the actual link is returned
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_GET_ELEMENT = 14L;
+	
+	/**
+	 * <ul>
+	 * <li><code>18</code>: get create date
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element
+	 * <li><code>X01</code> will be set to the create time of the element
+	 * <li><code>X00</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_ELEMENT_GET_CREATE        = 18L;
+	/**
+	 * <ul>
+	 * <li><code>19</code>: get last mod date
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element
+	 * <li><code>X01</code> will be set to the last modify time of the element
+	 * <li><code>X00</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_ELEMENT_GET_LAST_MOD      = 19L;
+	/**
+	 * <ul>
+	 * <li><code>20</code>: get last meta mod date
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element
+	 * <li><code>X01</code> will be set to the last meta mod time of the element
+	 * <li><code>X00</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_ELEMENT_GET_LAST_META_MOD = 20L;
+	/**
+	 * <ul>
+	 * <li><code>21</code>: set create date
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element
+	 * <li><code>X01</code> contains the new create date
+	 * <li><code>X00</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: operation was denied because of read-only
+	 * <ul>
+	 * <li>if the element is marked as read-only
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with <code>LOCK_NO_META_CHANGE_ALLOWED_LOCK</code> : <code>UHEX-0000000800000000</code>
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_ELEMENT_SET_CREATE        = 21L;
+	/**
+	 * <ul>
+	 * <li><code>22</code>: set last mod date
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element
+	 * <li><code>X01</code> contains the new last mod date
+	 * <li><code>X00</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: operation was denied because of read-only
+	 * <ul>
+	 * <li>if the element is marked as read-only
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with <code>LOCK_NO_META_CHANGE_ALLOWED_LOCK</code> : <code>UHEX-0000000800000000</code>
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_ELEMENT_SET_LAST_MOD      = 22L;
+	/**
+	 * <ul>
+	 * <li><code>23</code>: set last meta mod date
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element
+	 * <li><code>X01</code> contains the new last meta mod date
+	 * <li><code>X00</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: operation was denied because of read-only
+	 * <ul>
+	 * <li>if the element is marked as read-only
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with <code>LOCK_NO_META_CHANGE_ALLOWED_LOCK</code> : <code>UHEX-0000000800000000</code>
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * <li>note: when changing all dates change this date at last, because it will bee automatically changed on meta changes like the change of the create or last mod date
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_ELEMENT_SET_LAST_META_MOD = 23L;
+	/**
+	 * <ul>
+	 * <li><code>33</code>: get child element from index
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element folder
+	 * <li><code>X01</code> contains the index of the child element
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the child element
+	 * <li><code>X01</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type
+	 * <ul>
+	 * <li>if the given element is no folder
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with a different lock
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * <li>or if the index is out of range (negative or greater or equal to the child element count of the given folder)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_FOLDER_GET_CHILD_OF_INDEX = 33L;
+	/**
+	 * <ul>
+	 * <li><code>34</code>: get child element from name
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element folder
+	 * <li><code>X01</code> points to the STRING name of the child element
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the child element
+	 * <li><code>X01</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type
+	 * <ul>
+	 * <li>if the given element is no folder
+	 * </ul>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: the folder does not contain a child with the given name
+	 * <ul>
+	 * <li>if there is no child with the given name
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with a different lock
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_FOLDER_GET_CHILD_OF_NAME  = 34L;
+	/**
+	 * <ul>
+	 * <li><code>35</code>: add folder
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element folder
+	 * <li><code>X01</code> points to the STRING name of the new child element
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the new child element folder
+	 * <li><code>X01</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type
+	 * <ul>
+	 * <li>if the given element is no folder
+	 * </ul>
+	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: the folder already contain a child with the given name
+	 * <ul>
+	 * <li>if there is already child with the given name
+	 * </ul>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only
+	 * <ul>
+	 * <li>if the element is marked as read-only
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with a different lock
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * <li>the folder will automatically removed the sorted flag (<code>HEX-00000040</code> : <code>FLAG_FOLDER_SORTED</code>)
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_FOLDER_ADD_FOLDER         = 35L;
+	/**
+	 * <ul>
+	 * <li><code>36</code>: add file
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element folder
+	 * <li><code>X01</code> points to the STRING name of the new child element
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the new child element file
+	 * <li><code>X01</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type
+	 * <ul>
+	 * <li>if the given element is no folder
+	 * </ul>
+	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: the folder already contain a child with the given name
+	 * <ul>
+	 * <li>if there is already child with the given name
+	 * </ul>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only
+	 * <ul>
+	 * <li>if the element is marked as read-only
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with a different lock
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * <li>the folder will automatically remove the sorted flag (<code>HEX-00000040</code> : <code>FLAG_FOLDER_SORTED</code>)
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_FOLDER_ADD_FILE           = 36L;
+	/**
+	 * <ul>
+	 * <li><code>37</code>: add link
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element folder
+	 * <li><code>X01</code> points to the STRING name of the new child element
+	 * <li><code>X02</code> points to the fs-element of the target element
+	 * <ul>
+	 * <li>the target element is not allowed to be a link
+	 * </ul>
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the new child element link
+	 * <li><code>X01</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type
+	 * <ul>
+	 * <li>if the given element is no folder
+	 * </ul>
+	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: the folder already contain a child with the given name
+	 * <ul>
+	 * <li>if there is already child with the given name
+	 * </ul>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only
+	 * <ul>
+	 * <li>if the element is marked as read-only
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with a different lock
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * <li>the folder will automatically remove the sorted flag (<code>HEX-00000040</code> : <code>FLAG_FOLDER_SORTED</code>)
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_FOLDER_ADD_LINK           = 37L;
+	
+	/**
+	 * <ul>
+	 * <li><code>40</code>: file read
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element file
+	 * <li><code>X01</code> contains the offset from the file
+	 * <li><code>X02</code> contains the number of bytes to read
+	 * <li><code>X03</code> points to a memory block to which the file data should be filled
+	 * <li><code>X02</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type
+	 * <ul>
+	 * <li>if the given element is no file
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with a different lock
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or the offset / read count is invalid
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * <li>or if the read count or file offset is negative
+	 * <li>or if the read count + file offset is larger than the file length
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_FILE_READ                 = 40L;
+	/**
+	 * <ul>
+	 * <li><code>41</code>: file write
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element file
+	 * <li><code>X01</code> contains the offset from the file
+	 * <li><code>X02</code> contains the number of bytes to write
+	 * <li><code>X03</code> points to the memory block with the data to write
+	 * <li><code>X02</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type
+	 * <ul>
+	 * <li>if the given element is no file
+	 * </ul>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only
+	 * <ul>
+	 * <li>if the element is marked as read-only
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with a different lock
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or the offset / read count is invalid
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * <li>or if the write count or file offset is negative
+	 * <li>or if the write count + file offset is larger than the file length
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_FILE_WRITE                = 41L;
+	/**
+	 * <ul>
+	 * <li><code>42</code>: file append
+	 * <ul>
+	 * <li><code>X00</code> points to the fs-element file
+	 * <li><code>X01</code> contains the number of bytes to append
+	 * <li><code>X02</code> points to the memory block with the data to write
+	 * <li><code>X01</code> will be set to <code>-1</code> on error
+	 * <ul>
+	 * <li>the <code>STATUS</code> register will be flagged:
+	 * <ul>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type
+	 * <ul>
+	 * <li>if the given element is no file
+	 * </ul>
+	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed because the there could not be allocated enough space for the larger file
+	 * <ul>
+	 * <li>the file system could either not allocate enough blocks for the new larger file
+	 * <li>or the file system could not allocate enough space for the larger file system entry of the file
+	 * </ul>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only
+	 * <ul>
+	 * <li>if the element is marked as read-only
+	 * </ul>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock
+	 * <ul>
+	 * <li>if the element is locked with a different lock
+	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred
+	 * <ul>
+	 * <li>if some IO error occurred
+	 * </ul>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or the offset / read count is invalid
+	 * <ul>
+	 * <li>if the given ID of the fs-element is invalid (because it was deleted)
+	 * <li>or if the write count or file offset is negative
+	 * <li>or if the write count + file offset is larger than the file length
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FS_FILE_APPEND               = 42L;
+	
 	/** the total number of default interrupts */
+	@PrimStartConstant
 	public static final long INTERRUPT_COUNT = 65L;
 	
 	/**
@@ -204,16 +815,16 @@ public class PrimAsmConstants {
 	/** open option: open file for write access */
 	@PrimStartConstant
 	public static final long OPEN_WRITE                   = 2L;
-	/** open option: open file for append access (implicit set of `OPEN_WRITE`) */
+	/** open option: open file for append access (implicit set of <code>OPEN_WRITE</code>) */
 	@PrimStartConstant
 	public static final long OPEN_APPEND                  = 4L;
-	/** open option: open file or create file (needs `OPEN_WRITE`, not compatible with `OPEN_NEW_FILE`) */
+	/** open option: open file or create file (needs <code>OPEN_WRITE</code>, not compatible with <code>OPEN_NEW_FILE</code>) */
 	@PrimStartConstant
 	public static final long OPEN_CREATE                  = 8L;
-	/** open option: fail if file already exists or create the file (needs `OPEN_WRITE`, not compatible with `OPEN_CREATE`) */
+	/** open option: fail if file already exists or create the file (needs <code>OPEN_WRITE</code>, not compatible with <code>OPEN_CREATE</code>) */
 	@PrimStartConstant
 	public static final long OPEN_NEW_FILE                = 16L;
-	/** open option: if the file already exists, remove its content (needs `OPEN_WRITE`) */
+	/** open option: if the file already exists, remove its content (needs <code>OPEN_WRITE</code>) */
 	@PrimStartConstant
 	public static final long OPEN_TRUNCATE                = 32L;
 	/**

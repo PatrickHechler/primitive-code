@@ -1,18 +1,19 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.*;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
 
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.*;
-
 import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.PrimitiveErrror;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.PVM;
+import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.functional.Interrupt;
 import de.hechler.patrick.pfs.exception.ElementLockedException;
 import de.hechler.patrick.pfs.exception.ElementReadOnlyException;
 import de.hechler.patrick.pfs.exception.OutOfSpaceException;
@@ -42,19 +43,19 @@ public class PVMImpl implements PVM {
 		num -> defIntOpenNewStream(),
 		num -> defIntWrite(),
 		num -> defIntRead(),
-		num -> defIntGetFSElement(1),
-		num -> defIntGetFSElement(2),
-		num -> defIntGetFSElement(3),
-		num -> defIntGetFSElement(4),
+		num -> defIntGetFSElement(num),
+		num -> defIntGetFSElement(num),
+		num -> defIntGetFSElement(num),
+		num -> defIntGetFSElement(num),
 		num -> defIntDuplicateFSElementHandle(),
 		num -> defIntGetParent(),
 		num -> defIntFromID(),
-		num -> defIntGetSomeDate(1),
-		num -> defIntGetSomeDate(2),
-		num -> defIntGetSomeDate(3),
-		num -> defIntSetSomeDate(1),
-		num -> defIntSetSomeDate(2),
-		num -> defIntSetSomeDate(3),
+		num -> defIntGetSomeDate(num),
+		num -> defIntGetSomeDate(num),
+		num -> defIntGetSomeDate(num),
+		num -> defIntSetSomeDate(num),
+		num -> defIntSetSomeDate(num),
+		num -> defIntSetSomeDate(num),
 		num -> defIntGetLockData(),
 		num -> defIntGetLockDate(),
 		num -> defIntLockElement(),
@@ -62,6 +63,19 @@ public class PVMImpl implements PVM {
 		num -> defIntDeleteElement(),
 		num -> defIntMoveElement(),
 		num -> defIntGetElementFlags(),
+		num -> defIntGetElementFlags(),
+		num -> defIntModifyElementFlags(),
+		num -> defIntGetFolderChildElementCount(),
+		num -> defIntGetChildElement(num),
+		num -> defIntGetChildElement(num),
+		num -> defIntAddElement(num),
+		num -> defIntAddElement(num),
+		num -> defIntAddElement(num),
+		num -> defIntFileLength(),
+		num -> defIntFileHash(),
+		num -> defIntFileRWA(num),
+		num -> defIntFileRWA(num),
+		num -> defIntFileRWA(num),
 	};
 	private final PatrFileSysImpl fs;
 	
@@ -649,10 +663,213 @@ public class PVMImpl implements PVM {
 		return new String(bytes, 0, len, StandardCharsets.UTF_8);
 	}
 	
-	public static interface Interrupt {
-		
-		void execute(int intNum) throws PrimitiveErrror;
-		
+	private void defIntFileRWA(int intNum) throws PrimitiveErrror {
+		final long address = data.regs[X_ADD],
+			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
+			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
+			final long length = data.regs[X_ADD + 1],
+				addr = data.regs[X_ADD + 2];
+			byte[] bytes = new byte[(int) Math.min(length, 1 << 30)];
+			long copied;
+			for (copied = 0L; copied < length;) {
+				int cpy = (int) Math.min(bytes.length, length - copied);
+				switch (intNum) {
+				case (int) INT_FS_FILE_READ:
+					e.getContent(bytes, data.regs[X_ADD + 3], 0, cpy, lock);
+					// FIXME optimize
+					for (int i = 0; i < cpy; i ++ ) {
+						mem.set(addr + i, 0xFF & bytes[i]);
+					}
+					break;
+				case (int) INT_FS_FILE_WRITE:
+				case (int) INT_FS_FILE_APPEND:
+					// FIXME optimize
+					for (int i = 0; i < cpy; i ++ ) {
+						bytes[i] = (byte) mem.get(addr + i);
+					}
+					if (intNum == (int) INT_FS_FILE_APPEND) {
+						e.appendContent(bytes, 0, cpy, lock);
+					} else {
+						e.setContent(bytes, data.regs[X_ADD + 3], 0, cpy, lock);
+					}
+					break;
+				default:
+					throw new InternalError();
+				}
+			}
+		} catch (OutOfSpaceException e) {
+			fail(X_ADD + 1, STATUS_OUT_OF_SPACE);
+		} catch (ElementReadOnlyException e) {
+			fail(X_ADD + 1, STATUS_READ_ONLY);
+		} catch (ElementLockedException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalStateException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD + 1, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntFileHash() throws PrimitiveErrror {
+		final long address = data.regs[X_ADD],
+			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
+			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
+			final long addr = data.regs[X_ADD + 1];
+			byte[] bytes = e.getHashCode(lock);
+			for (int i = 0; i < bytes.length; i ++ ) {
+				mem.setByte(addr + i, 0xFF & bytes[i]);
+			}
+		} catch (ElementLockedException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalStateException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD + 1, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntFileLength() throws PrimitiveErrror {
+		final long address = data.regs[X_ADD],
+			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
+			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
+			data.regs[X_ADD + 1] = e.length(lock);
+		} catch (ElementLockedException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalStateException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD + 1, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntAddElement(int intNum) throws PrimitiveErrror {
+		final long address = data.regs[X_ADD],
+			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
+			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			PatrFolder e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFolder();
+			String name = getU16String(data.regs[X_ADD + 1]);
+			PatrFileSysElement child;
+			switch (intNum) {
+			case (int) INT_FS_FOLDER_ADD_FILE:
+				child = e.addFile(name, lock);
+				break;
+			case (int) INT_FS_FOLDER_ADD_FOLDER:
+				child = e.addFolder(name, lock);
+				break;
+			case (int) INT_FS_FOLDER_ADD_LINK: {
+				final long taddress = data.regs[X_ADD + 2],
+					tid = mem.get(taddress + FS_ELEMENT_OFFSET_ID);
+				PatrFolder te = fs.fromID(new PatrID(fs, tid, fs.getStartTime())).getFolder();
+				child = e.addLink(name, te, lock);
+				break;
+			}
+			default:
+				throw new InternalError();
+			}
+			mem.set(address + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) child).id);
+			mem.set(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
+		} catch (FileAlreadyExistsException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_ALREADY_EXIST);
+		} catch (ElementReadOnlyException e) {
+			fail(X_ADD + 1, STATUS_READ_ONLY);
+		} catch (ElementLockedException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalStateException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD + 1, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntGetChildElement(int intNum) throws PrimitiveErrror {
+		final long address = data.regs[X_ADD],
+			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
+			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			PatrFolder e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFolder();
+			PatrFileSysElement child;
+			switch (intNum) {
+			case (int) INT_FS_FOLDER_GET_CHILD_OF_INDEX: {
+				int index = (int) data.regs[X_ADD + 1];
+				if (index != data.regs[X_ADD + 1]) {
+					fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+					return;
+				}
+				child = e.getElement(index, lock);
+				break;
+			}
+			case (int) INT_FS_FOLDER_GET_CHILD_OF_NAME: {
+				String name = getU16String(data.regs[X_ADD + 1]);
+				child = e.getElement(name, lock);
+				break;
+			}
+			default:
+				throw new InternalError();
+			}
+			mem.set(address + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) child).id);
+			mem.set(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
+		} catch (ElementLockedException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalStateException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD + 1, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntGetFolderChildElementCount() throws PrimitiveErrror {
+		final long address = data.regs[X_ADD],
+			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
+			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			PatrFolder e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFolder();
+			data.regs[X_ADD + 1] = e.elementCount(lock);
+		} catch (ElementLockedException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalStateException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD + 1, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntModifyElementFlags() throws PrimitiveErrror {
+		final long address = data.regs[X_ADD],
+			id = mem.get(address + FS_ELEMENT_OFFSET_ID);
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
+			((PatrFileSysElementImpl) e).flag((int) data.regs[X_ADD + 1], (int) data.regs[X_ADD + 2]);
+		} catch (IllegalStateException | IllegalArgumentException e) {
+			fail(X_ADD, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD, STATUS_IO_ERR);
+		}
 	}
 	
 	private void defIntGetElementFlags() throws PrimitiveErrror {
@@ -791,21 +1008,21 @@ public class PVMImpl implements PVM {
 		}
 	}
 	
-	private void defIntSetSomeDate(int type) throws PrimitiveErrror {
+	private void defIntSetSomeDate(int intNum) throws PrimitiveErrror {
 		final long address = data.regs[X_ADD],
 			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
 			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
 			fs.setLock(data.regs[FS_LOCK]);
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
-			switch (type) {
-			case 1:
+			switch (intNum) {
+			case (int) INT_FS_ELEMENT_SET_CREATE:
 				e.setCreateTime(data.regs[X_ADD + 1], lock);
 				break;
-			case 2:
+			case (int) INT_FS_ELEMENT_SET_LAST_MOD:
 				e.setLastModTime(data.regs[X_ADD + 1], lock);
 				break;
-			case 3:
+			case (int) INT_FS_ELEMENT_SET_LAST_META_MOD:
 				e.setLastMetaModTime(data.regs[X_ADD + 1], lock);
 				break;
 			default:
@@ -820,20 +1037,20 @@ public class PVMImpl implements PVM {
 		}
 	}
 	
-	private void defIntGetSomeDate(int type) throws PrimitiveErrror {
+	private void defIntGetSomeDate(int itnNum) throws PrimitiveErrror {
 		final long address = data.regs[X_ADD],
 			id = mem.get(address + FS_ELEMENT_OFFSET_ID);
 		try {
 			fs.setLock(data.regs[FS_LOCK]);
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
-			switch (type) {
-			case 1:
+			switch (itnNum) {
+			case (int) INT_FS_ELEMENT_GET_CREATE:
 				data.regs[X_ADD + 1] = e.getCreateTime();
 				break;
-			case 2:
+			case (int) INT_FS_ELEMENT_GET_LAST_MOD:
 				data.regs[X_ADD + 1] = e.getLastModTime();
 				break;
-			case 3:
+			case (int) INT_FS_ELEMENT_GET_LAST_META_MOD:
 				data.regs[X_ADD + 1] = e.getLastMetaModTime();
 				break;
 			default:
@@ -887,7 +1104,7 @@ public class PVMImpl implements PVM {
 		}
 	}
 	
-	private void defIntGetFSElement(int type) throws PrimitiveErrror {
+	private void defIntGetFSElement(int intNum) throws PrimitiveErrror {
 		String path = getU16String(data.regs[X_ADD]);
 		String[] names = path.split("\\/");
 		try {
@@ -896,25 +1113,25 @@ public class PVMImpl implements PVM {
 				parent = parent.getElement(names[i], NO_LOCK).getFolder();
 			}
 			PatrFileSysElement file = parent.getElement(names[names.length - 1], NO_LOCK);
-			switch (type) {
-			case 1:
+			switch (intNum) {
+			case (int) INT_FS_GET_FILE:
 				if ( !file.isFile()) {
 					fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
 					return;
 				}
 				break;
-			case 2:
+			case (int) INT_FS_GET_FOLDER:
 				if ( !file.isFolder()) {
 					fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
 					return;
 				}
 				break;
-			case 3:
+			case (int) INT_FS_GET_LINK:
 				if ( !file.isLink()) {
 					fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
 					return;
 				}
-			case 4:
+			case (int) INT_FS_GET_ELEMENT:
 				break;
 			default:
 				throw new AssertionError();

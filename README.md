@@ -961,7 +961,7 @@ the assembler language for the Primitive-Virtual-Machine
                     * or if the given ID  of the fs-element is invalid (because it was deleted)
     * `17`: fs-element from ID
         * `X00` is set to the ID of the element
-        * `X00` will be set to a fs-element of the element with the given id
+        * `X01` will be set to a fs-element of the element with the given id
         * on failiure `X00` will be set to `-1`
             * the `STATUS` register will be flagged:
                 * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
@@ -1003,8 +1003,6 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` contains the new create date
         * `X00` will be set to `-1` on error
             * the `STATUS` register will be flagged:
-                * `UHEX-0400000000000000` : `STATUS_READ_ONLY`: operation was denied because of read-only
-                    * if the element is marked as read-only
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is locked with `LOCK_NO_META_CHANGE_ALLOWED_LOCK` : `UHEX-0000000800000000`
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1016,8 +1014,6 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` contains the new last mod date
         * `X00` will be set to `-1` on error
             * the `STATUS` register will be flagged:
-                * `UHEX-0400000000000000` : `STATUS_READ_ONLY`: operation was denied because of read-only
-                    * if the element is marked as read-only
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is locked with `LOCK_NO_META_CHANGE_ALLOWED_LOCK` : `UHEX-0000000800000000`
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1029,8 +1025,6 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` contains the new last meta mod date
         * `X00` will be set to `-1` on error
             * the `STATUS` register will be flagged:
-                * `UHEX-0400000000000000` : `STATUS_READ_ONLY`: operation was denied because of read-only
-                    * if the element is marked as read-only
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is locked with `LOCK_NO_META_CHANGE_ALLOWED_LOCK` : `UHEX-0000000800000000`
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1067,7 +1061,7 @@ the assembler language for the Primitive-Virtual-Machine
             * the lock should be released like a exclusive lock, when it is no longer needed
             * a shared lock does not give you any permissions, it just blocks operations for all (also for those with the lock)
         * if the given lock is not flagged with `UHEX-8000000000000000` : `LOCK_LOCKED_LOCK`, it will be automatically be flagged with `UHEX-8000000000000000`: `LOCK_LOCKED_LOCK`
-        * `X00` will be set to `-1` on error
+        * `X01` will be set to `-1` on error
             * the `STATUS` register will be flagged:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is already locked
@@ -1084,7 +1078,8 @@ the assembler language for the Primitive-Virtual-Machine
         * if the element is locked with a shared lock:
             * if this is the last lock, the shared lock will be removed
             * else the shared lock counter will be decremented
-        * `X00` will be set to `-1` on error
+        * `X01` will be set to `1` on success
+        * `X01` will be set to `0` on error
             * the `STATUS` register will be flagged:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is locked with a diffrent lock
@@ -1124,12 +1119,16 @@ the assembler language for the Primitive-Virtual-Machine
             * note that both operations (set parent folder and set name) are optional
         * `X00` will be set to `-1` on error
             * the `STATUS` register will be flagged:
+                * `UHEX-0040000000000000` : `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the parent is not of the correct type (folder expected, but file)
+                    * if the parent element exists, but is a file and no folder
                 * `UHEX-0400000000000000` : `STATUS_READ_ONLY`: operation was denied because of read-only
                     * if the element, its (old) parent or its (not) new parent is marked as read-only
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element, its (old) parent or its (not) new parent is locked with a diffrent lock
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
                     * if some IO error occurred
+                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
+                    * if the given ID of the fs-element is invalid (because it was deleted)
     * `30`: get element flags
         * `X00` points to the fs-element
         * `X01` will be set to the flags of the element
@@ -1146,7 +1145,9 @@ the assembler language for the Primitive-Virtual-Machine
     * `31`: modify element flags
         * `X00` points to the fs-element
         * `X01` contains the flags to add to the element
+            * only the 32 low bits are used and the 32 high bits are ignored
         * `X02` contains the flags to remove from the element
+            * only the 32 low bits are used and the 32 high bits are ignored
         * note that the flags wich specify if the element is a folder, file or link are not allowed to be set/removed
         * on error `X01` will be set to `-1`
             * the `STATUS` register will be flagged:
@@ -1156,8 +1157,7 @@ the assembler language for the Primitive-Virtual-Machine
                         * `HEX-00000001` : `FLAG_FOLDER`
                         * `HEX-00000002``: `FLAG_FILE`
                         * `HEX-00000004` : `FLAG_LINK`
-        * bits out of the 32-bit range will be ignored
-            * the 32-bit with less value are used (`UHEX-00000000FFFFFFFF`)
+        * bits out of the low 32-bit range will be ignored
     * `32`: get folder child element count
         * `X00` points to the fs-element folder
         * `X01` will be set to the child element count of the given folder
@@ -1173,6 +1173,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element folder
         * `X01` contains the index of the child element
         * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the child element
+        * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set to `UHEX-0000000000000000` : `LOCK_NO_LOCK`
         * `X01` will be set to `-1` on error
             * the `STATUS` register will be flagged:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
@@ -1188,6 +1189,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element folder
         * `X01` points to the STRING name of the child element
         * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the child element
+        * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set to `UHEX-0000000000000000` : `LOCK_NO_LOCK`
         * `X01` will be set to `-1` on error
             * the `STATUS` register will be flagged:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
@@ -1274,7 +1276,7 @@ the assembler language for the Primitive-Virtual-Machine
                     * if the given ID of the fs-element is invalid (because it was deleted)
     * `19`: file hash
         * `X00` points to the fs-element file
-        * `X01` points to a at least 256-byte large memory block
+        * `X01` points to a at least 32-byte large memory block (256-bits : 32-bytes)
             * the memory block from `X01` will be filled with the SHA-256 hash code of the file
         * `X01` will be set to `-1` on error
             * the `STATUS` register will be flagged:
@@ -1288,9 +1290,9 @@ the assembler language for the Primitive-Virtual-Machine
                     * if the given ID of the fs-element is invalid (because it was deleted)
     * `40`: file read
         * `X00` points to the fs-element file
-        * `X01` contains the offset from the file
-        * `X02` contains the number of bytes to read
-        * `X03` points to a memory block to which the file data should be filled
+        * `X01` contains the number of bytes to read
+        * `X01` points to a memory block to which the file data should be filled
+        * `X03` contains the offset from the file
         * `X02` will be set to `-1` on error
             * the `STATUS` register will be flagged:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
@@ -1305,9 +1307,9 @@ the assembler language for the Primitive-Virtual-Machine
                     * or if the read count + file offset is larger than the file length
     * `41`: file write
         * `X00` points to the fs-element file
-        * `X01` contains the offset from the file
-        * `X02` contains the number of bytes to write
-        * `X03` points to the memory block with the data to write
+        * `X01` contains the number of bytes to write
+        * `X02` points to the memory block with the data to write
+        * `X03` contains the offset from the file
         * `X02` will be set to `-1` on error
             * the `STATUS` register will be flagged:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
