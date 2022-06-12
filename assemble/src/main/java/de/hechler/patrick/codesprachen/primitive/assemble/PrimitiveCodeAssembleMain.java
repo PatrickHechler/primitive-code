@@ -1,20 +1,22 @@
 package de.hechler.patrick.codesprachen.primitive.assemble;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
 
 public class PrimitiveCodeAssembleMain {
 	
 	private static PrimitiveAssembler asm;
-	private static Reader input;
+	private static Reader             input;
 	
 	public static void main(String[] args) {
 		setup(args);
@@ -82,9 +84,10 @@ public class PrimitiveCodeAssembleMain {
 			if (cs == null) {
 				cs = StandardCharsets.UTF_8;
 			}
-			input = new InputStreamReader(new FileInputStream(inFile), cs);
+			input = Files.newBufferedReader(Paths.get(inFile), cs);
+			OutputStream outFileStream = new FileOutputStream(outFile);
 			if (ne) {
-				asm = new PrimitiveAssembler(new FileOutputStream(outFile), sw);
+				asm = new PrimitiveAssembler(outFileStream, null, new Path[] {Paths.get(".") }, sw, true);
 			} else {
 				String exportFile;
 				if (outFile.endsWith(".pmc")) {
@@ -92,7 +95,8 @@ public class PrimitiveCodeAssembleMain {
 				} else {
 					exportFile = outFile + ".psf";
 				}
-				asm = new PrimitiveAssembler(new FileOutputStream(outFile), new PrintStream(new FileOutputStream(exportFile), true, "UTF-8"), sw);
+				OutputStream exportOutStream = Files.newOutputStream(Paths.get(exportFile));
+				asm = new PrimitiveAssembler(outFileStream, new PrintStream(exportOutStream, true, cs), new Path[] {Paths.get(".") }, sw, true);
 			}
 		} catch (Exception e) {
 			crash(args, -1, e.getMessage());

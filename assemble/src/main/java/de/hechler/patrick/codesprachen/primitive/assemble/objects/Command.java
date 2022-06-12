@@ -17,6 +17,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.ConstantPoolGrammarPar
 import de.hechler.patrick.codesprachen.primitive.assemble.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
+import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
 
 public class Command {
 
@@ -175,8 +176,6 @@ public class Command {
 		case CMD_NOT:
 		case CMD_NTFP:
 		case CMD_FPTN:
-		case CMD_ISINF:
-		case CMD_ISNAN:
 			switch (p1.art) {
 			case Param.ART_ANUM_BNUM:
 				return 24;

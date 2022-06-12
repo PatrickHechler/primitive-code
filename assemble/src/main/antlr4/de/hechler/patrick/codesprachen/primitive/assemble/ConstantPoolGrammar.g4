@@ -9,6 +9,7 @@ import java.math.*;
 import java.nio.charset.*;
 import de.hechler.patrick.codesprachen.primitive.assemble.enums.*;
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.*;
+import de.hechler.patrick.codesprachen.primitive.core.objects.*;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 }

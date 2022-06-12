@@ -1,54 +1,48 @@
 package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
+
 public class Param {
-
+	
 	public static final int ART_LABEL = -1;
-
-	private static final int BASE = 0x01;
-	private static final int A_NUM = 0x00;
-	private static final int A_SR = 0x02;
-	private static final int NO_B = 0x00;
-	private static final int B_REG = 0x04;
-	private static final int B_NUM = 0x08;
-	private static final int B_SR = 0x0C;
-
-	public static final int ART_ANUM = BASE | A_NUM | NO_B;
-	public static final int ART_ASR = BASE | A_SR | NO_B;
-	public static final int ART_ANUM_BREG = BASE | A_NUM | B_REG;
-	public static final int ART_ASR_BREG = BASE | A_SR | B_REG;
-	public static final int ART_ANUM_BNUM = BASE | A_NUM | B_NUM;
-	public static final int ART_ASR_BNUM = BASE | A_SR | B_NUM;
-	public static final int ART_ANUM_BSR = BASE | A_NUM | B_SR;
-	public static final int ART_ASR_BSR = BASE | A_SR | B_SR;
-
+	
+	public static final int ART_ANUM      = PARAM_ART_ANUM;
+	public static final int ART_ASR       = PARAM_ART_ASR;
+	public static final int ART_ANUM_BREG = PARAM_ART_ANUM_BREG;
+	public static final int ART_ASR_BREG  = PARAM_ART_ASR_BREG;
+	public static final int ART_ANUM_BNUM = PARAM_ART_ANUM_BNUM;
+	public static final int ART_ASR_BNUM  = PARAM_ART_ASR_BNUM;
+	public static final int ART_ANUM_BSR  = PARAM_ART_ANUM_BSR;
+	public static final int ART_ASR_BSR   = PARAM_ART_ASR_BSR;
+	
 	public final String label;
-	public final long num;
-	public final long off;
-	public final int art;
-
+	public final long   num;
+	public final long   off;
+	public final int    art;
+	
 	private Param(String label, long num, long off, int art) {
 		this.label = label;
 		this.num = num;
 		this.off = off;
 		this.art = art;
 	}
-
+	
 	public static Param createLabel(String label) {
 		return new Param(label, 0L, 0L, ART_LABEL);
 	}
-
+	
 	/**
 	 * can Build all non Label {@link Param}s.
 	 */
 	public static class ParamBuilder {
-
-		//@formatter:off
-		public static final int SR_IP     = 0;
-		public static final int SR_SP     = 1;
-		public static final int SR_STATUS = 2;
-		public static final int SR_INTCNT = 3;
-		public static final int SR_INTP   = 4;
-		public static final int SR_X_ADD  = 5;
+		
+		public static final int SR_IP      = IP;
+		public static final int SR_SP      = SP;
+		public static final int SR_STATUS  = STATUS;
+		public static final int SR_INTCNT  = INTCNT;
+		public static final int SR_INTP    = INTP;
+		public static final int SR_FS_LOCK = FS_LOCK;
+		public static final int SR_X_ADD   = X_ADD;
 		
 		public static final int A_NUM = 0x00000001;
 		public static final int A_SR  = 0x00000002;
@@ -59,17 +53,16 @@ public class Param {
 		private static final int BUILD_ANUM      = A_NUM;
 		private static final int BUILD_ASR       = A_SR;
 		private static final int BUILD_ANUM_BREG = A_NUM | B_REG;
-		private static final int BUILD_ASR_BREG  = A_SR  | B_REG;
+		private static final int BUILD_ASR_BREG  = A_SR | B_REG;
 		private static final int BUILD_ANUM_BNUM = A_NUM | B_NUM;
-		private static final int BUILD_ASR_BNUM  = A_SR  | B_NUM;
+		private static final int BUILD_ASR_BNUM  = A_SR | B_NUM;
 		private static final int BUILD_ANUM_BAX  = A_NUM | B_SR;
-		private static final int BUILD_AAX_BAX   = A_SR  | B_SR;
-		//@formatter:on
-
-		public int art = 0;
-		public long v1 = 0;
-		public long v2 = 0;
-
+		private static final int BUILD_AAX_BAX   = A_SR | B_SR;
+		
+		public int  art = 0;
+		public long v1  = 0;
+		public long v2  = 0;
+		
 		public boolean isValid() {
 			try {
 				build();
@@ -78,7 +71,7 @@ public class Param {
 				return false;
 			}
 		}
-
+		
 		public Param build() {
 			switch (art) {
 			case BUILD_ANUM:
@@ -107,9 +100,9 @@ public class Param {
 				throw new IllegalStateException("art=" + Integer.toHexString(art));
 			}
 		}
-
+		
 	}
-
+	
 	public static String artToString(int art) {
 		switch (art) {
 		case ART_ANUM:
@@ -132,13 +125,13 @@ public class Param {
 			return "<INVALID[" + art + "]>";
 		}
 	}
-
+	
 	public static void checkSR(long num) {
 		if (num > 0xFF) {
 			throw new IllegalStateException("this num is no SR: num=0x" + Long.toHexString(num));
 		}
 	}
-
+	
 	public static String toSRString(long sr) {
 		assert sr < 0xFF;
 		int reg = (int) sr;
@@ -154,11 +147,11 @@ public class Param {
 		case ParamBuilder.SR_INTP:
 			return "INTP";
 		default:
-			return "X" + ((sr < 0x10) ? ("0" + Integer.toHexString(reg - ParamBuilder.SR_X_ADD).toUpperCase())
-					: Integer.toHexString(reg - ParamBuilder.SR_X_ADD).toUpperCase());
+			return "X" + ( (sr < 0x10) ? ("0" + Integer.toHexString(reg - ParamBuilder.SR_X_ADD).toUpperCase())
+				: Integer.toHexString(reg - ParamBuilder.SR_X_ADD).toUpperCase());
 		}
 	}
-
+	
 	@Override
 	public String toString() {
 		if (label != null) {
@@ -185,5 +178,5 @@ public class Param {
 			throw new InternalError("unknown param art: " + art);
 		}
 	}
-
+	
 }

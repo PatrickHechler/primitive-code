@@ -15,11 +15,14 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.BailErrorStrategy;
 
 import de.hechler.patrick.codesprachen.primitive.assemble.TestUtils;
+import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants;
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMDebugingComunicator;
 import de.hechler.patrick.codesprachen.primitive.runtime.objects.PVMSnapshot;
 import de.hechler.patrick.zeugs.check.anotations.Check;
@@ -79,9 +82,9 @@ public class PrimitiveAssemblerChecker extends Checker {
 	public void assembleAddTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			PrimitiveAssembler pa = new PrimitiveAssembler(out, false, false);
+			PrimitiveAssembler pa = new PrimitiveAssembler(out, null, new Path[] {Paths.get(".")}, false, true);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_ADD);
-			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimitiveAssembler.START_CONSTANTS,
+			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimAsmConstants.START_CONSTANTS,
 					new BailErrorStrategy(), false));
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
@@ -124,9 +127,9 @@ public class PrimitiveAssemblerChecker extends Checker {
 	public void assembleHelloWorldTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			PrimitiveAssembler pa = new PrimitiveAssembler(out, false, false);
+			PrimitiveAssembler pa = new PrimitiveAssembler(out, null, new Path[] {Paths.get(".")}, false, true);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_HELLO_WORLD);
-			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimitiveAssembler.START_CONSTANTS,
+			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimAsmConstants.START_CONSTANTS,
 					new BailErrorStrategy(), false));
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
@@ -158,9 +161,9 @@ public class PrimitiveAssemblerChecker extends Checker {
 	public void assembleHelloWorldToFileTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			PrimitiveAssembler pa = new PrimitiveAssembler(out, false, false);
+			PrimitiveAssembler pa = new PrimitiveAssembler(out, null, new Path[] {Paths.get(".")}, false, true);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_HELLO_WORLD_TO_FILE);
-			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimitiveAssembler.START_CONSTANTS,
+			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimAsmConstants.START_CONSTANTS,
 					new BailErrorStrategy(), false));
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);
@@ -190,9 +193,9 @@ public class PrimitiveAssemblerChecker extends Checker {
 	public void assembleHelloWorldFromFileTest() {
 		try {
 			ByteArrayOutputStream out = new ByteArrayOutputStream();
-			PrimitiveAssembler pa = new PrimitiveAssembler(out, false, true, false);
+			PrimitiveAssembler pa = new PrimitiveAssembler(out, null, new Path[] {Paths.get(".")}, false, true);
 			InputStream helloWorldIn = getClass().getResourceAsStream(INPUT_HELLO_WORLD_FROM_FILE);
-			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimitiveAssembler.START_CONSTANTS,
+			pa.assemble(pa.preassemble(null, new ANTLRInputStream(new InputStreamReader(helloWorldIn, StandardCharsets.UTF_8)), PrimAsmConstants.START_CONSTANTS,
 					new BailErrorStrategy(), false));
 			byte[] code = out.toByteArray();
 			String hexCodeBytes = TestUtils.toHexCode(code);

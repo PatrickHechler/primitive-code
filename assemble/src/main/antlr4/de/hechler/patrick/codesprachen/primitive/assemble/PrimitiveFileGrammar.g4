@@ -13,6 +13,8 @@ import java.io.*;
 import java.nio.file.*;
 import de.hechler.patrick.codesprachen.primitive.assemble.enums.*;
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.*;
+import de.hechler.patrick.codesprachen.primitive.core.objects.*;
+import de.hechler.patrick.codesprachen.primitive.core.utils.*;
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.Param.*;
 import de.hechler.patrick.codesprachen.primitive.assemble.ConstantPoolGrammarParser.ConstsContext;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
@@ -159,6 +161,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			(
  				comment
  				{$lastComment = $comment.text;}
+
  			)+
  		)
  		|
@@ -360,7 +363,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			)* GROESSER
  			{
  				if ($enabled) {
-	 				addConsts.putAll(useMyConsts ? $constants : PrimitiveAssembler.START_CONSTANTS);
+	 				addConsts.putAll(useMyConsts ? $constants : PrimAsmConstants.START_CONSTANTS);
 	 				try {
 		 				AssembleRuntimeException sare = asm.readSymbols(readFile, isSource, prefix, addConsts, $constants, antlrin, be && $enabled, $READ_SYM, $thisFile, $readFiles);
 		 				if (sare != null) {
@@ -629,14 +632,20 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)
  	|
  	(
+ 		FS_LOCK
+ 		{$srnum = ParamBuilder.SR_FS_LOCK;}
+
+ 	)
+ 	|
+ 	(
  		XNN
  		{$srnum= ParamBuilder.SR_X_ADD + Integer.parseInt($XNN.getText().substring(1), 16);}
 
  	)
  ;
 
- param [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [Param p, AssembleRuntimeException are]
+ param [long pos, Map <String, PrimitiveConstant> constants, boolean be]
+ returns [Param p, AssembleRuntimeException are]
  :
  	(
  		NAME
@@ -747,7 +756,8 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)
  ;
 
- constBerechnung [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+ constBerechnung
+ [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
  [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungInclusivoder [pos, constants, be]
@@ -827,8 +837,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungUnd [long pos, Map <String, PrimitiveConstant> constants, boolean be]
- returns [long num, AssembleRuntimeException are]
+ constBerechnungUnd
+ [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+ [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungGleichheit [pos, constants, be]
  	{
@@ -852,8 +863,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungGleichheit [long pos, Map <String, PrimitiveConstant> constants, boolean be]
- returns [long num, AssembleRuntimeException are]
+ constBerechnungGleichheit
+ [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+ [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungRelativeTests [pos, constants, be]
  	{
@@ -967,8 +979,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungSchub [long pos, Map <String, PrimitiveConstant> constants, boolean be]
- returns [long num, AssembleRuntimeException are]
+ constBerechnungSchub
+ [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+ [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungStrich [pos, constants, be]
  	{
@@ -1028,8 +1041,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungStrich [long pos, Map <String, PrimitiveConstant> constants, boolean be]
- returns [long num, AssembleRuntimeException are]
+ constBerechnungStrich
+ [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+ [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungPunkt [pos, constants, be]
  	{
@@ -1104,8 +1118,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungPunkt [long pos, Map <String, PrimitiveConstant> constants, boolean be]
- returns [long num, AssembleRuntimeException are]
+ constBerechnungPunkt
+ [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+ [long num, AssembleRuntimeException are]
  :
  	c1 = constBerechnungDirekt [pos, constants, be]
  	{
@@ -1183,8 +1198,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)*
  ;
 
- constBerechnungDirekt [long pos, Map <String, PrimitiveConstant> constants, boolean be]
- returns [long num, AssembleRuntimeException are]
+ constBerechnungDirekt
+ [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+ [long num, AssembleRuntimeException are]
  :
  	(
  		nummer [pos, constants, be]
@@ -1211,8 +1227,8 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	)
  ;
 
- nummer [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
+ nummer [long pos, Map <String, PrimitiveConstant> constants, boolean be]
+ returns [long num, AssembleRuntimeException are]
  :
  	(
  		nummerNoConstant [pos, be]
@@ -1398,311 +1414,327 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  :
  	(
  		(
- 			(
- 				MVAD
- 				{cmd = Commands.CMD_MVAD;}
+ 			MVAD
+ 			{cmd = Commands.CMD_MVAD;}
 
- 			) comment* p1 = param [pos, constants, be] comment* COMMA comment* p2 =
- 			param [pos, constants, be] comment* COMMA comment* p3 = param
- 			[pos, constants, be]
- 			{$c = new Command(cmd, $p1.p, $p2.p, $p3.p);}
+ 		) comment* p1 = param [pos, constants, be] comment* COMMA //
+ 		comment* p2 = param [pos, constants, be] comment* COMMA //
+ 		comment* p3 = param [pos, constants, be] //
+ 		{$c = new Command(cmd, $p1.p, $p2.p, $p3.p);}
 
- 		)
- 		|
+ 	)
+ 	|
+ 	(
  		(
  			(
- 				(
- 					MOV
- 					{cmd = Commands.CMD_MOV;}
+ 				MOV
+ 				{cmd = Commands.CMD_MOV;}
 
- 				)
- 				|
- 				(
- 					LEA
- 					{cmd = Commands.CMD_LEA;}
-
- 				)
- 				|
- 				(
- 					SWAP
- 					{cmd = Commands.CMD_SWAP;}
-
- 				)
- 				|
- 				(
- 					ADD
- 					{cmd = Commands.CMD_ADD;}
-
- 				)
- 				|
- 				(
- 					SUB
- 					{cmd = Commands.CMD_SUB;}
-
- 				)
- 				|
- 				(
- 					ADDC
- 					{cmd = Commands.CMD_ADDC;}
-
- 				)
- 				|
- 				(
- 					SUBC
- 					{cmd = Commands.CMD_SUBC;}
-
- 				)
- 				|
- 				(
- 					ADDFP
- 					{cmd = Commands.CMD_ADDFP;}
-
- 				)
- 				|
- 				(
- 					SUBFP
- 					{cmd = Commands.CMD_SUBFP;}
-
- 				)
- 				|
- 				(
- 					MULFP
- 					{cmd = Commands.CMD_MULFP;}
-
- 				)
- 				|
- 				(
- 					DIVFP
- 					{cmd = Commands.CMD_DIVFP;}
-
- 				)
- 				|
- 				(
- 					MUL
- 					{cmd = Commands.CMD_MUL;}
-
- 				)
- 				|
- 				(
- 					DIV
- 					{cmd = Commands.CMD_DIV;}
-
- 				)
- 				|
- 				(
- 					AND
- 					{cmd = Commands.CMD_AND;}
-
- 				)
- 				|
- 				(
- 					OR
- 					{cmd = Commands.CMD_OR;}
-
- 				)
- 				|
- 				(
- 					XOR
- 					{cmd = Commands.CMD_XOR;}
-
- 				)
- 				|
- 				(
- 					CMP
- 					{cmd = Commands.CMD_CMP;}
-
- 				)
- 				|
- 				(
- 					RASH
- 					{cmd = Commands.CMD_RASH;}
-
- 				)
- 				|
- 				(
- 					RLSH
- 					{cmd = Commands.CMD_RLSH;}
-
- 				)
- 				|
- 				(
- 					LSH
- 					{cmd = Commands.CMD_LSH;}
-
- 				)
- 				|
- 				(
- 					CALO
- 					{cmd = Commands.CMD_LSH;}
-
- 				)
- 			) comment* p1 = param [pos, constants, be] comment* COMMA comment* p2 =
- 			param [pos, constants, be]
- 			{$c = new Command(cmd, $p1.p, $p2.p);}
-
- 		)
- 		|
- 		(
- 			(
- 				(
- 					RET
- 					{cmd = Commands.CMD_RET;}
-
- 				)
- 				|
- 				(
- 					IRET
- 					{cmd = Commands.CMD_IRET;}
-
- 				)
  			)
- 			{$c = new Command(cmd, null, null);}
+ 			|
+ 			(
+ 				ADD
+ 				{cmd = Commands.CMD_ADD;}
 
- 		)
- 		|
+ 			)
+ 			|
+ 			(
+ 				SUB
+ 				{cmd = Commands.CMD_SUB;}
+
+ 			)
+ 			|
+ 			(
+ 				MUL
+ 				{cmd = Commands.CMD_MUL;}
+
+ 			)
+ 			|
+ 			(
+ 				DIV
+ 				{cmd = Commands.CMD_DIV;}
+
+ 			)
+ 			|
+ 			(
+ 				AND
+ 				{cmd = Commands.CMD_AND;}
+
+ 			)
+ 			|
+ 			(
+ 				OR
+ 				{cmd = Commands.CMD_OR;}
+
+ 			)
+ 			|
+ 			(
+ 				XOR
+ 				{cmd = Commands.CMD_XOR;}
+
+ 			)
+ 			|
+ 			(
+ 				LSH
+ 				{cmd = Commands.CMD_LSH;}
+
+ 			)
+ 			|
+ 			(
+ 				RLSH
+ 				{cmd = Commands.CMD_RLSH;}
+
+ 			)
+ 			|
+ 			(
+ 				RASH
+ 				{cmd = Commands.CMD_RASH;}
+
+ 			)
+ 			|
+ 			(
+ 				CMP
+ 				{cmd = Commands.CMD_CMP;}
+
+ 			)
+ 			|
+ 			(
+ 				SWAP
+ 				{cmd = Commands.CMD_SWAP;}
+
+ 			)
+ 			|
+ 			(
+ 				LEA
+ 				{cmd = Commands.CMD_LEA;}
+
+ 			)
+ 			|
+ 			(
+ 				CALO
+ 				{cmd = Commands.CMD_CALO;}
+
+ 			)
+ 			|
+ 			(
+ 				BCP
+ 				{cmd = Commands.CMD_BCP;}
+
+ 			)
+ 			|
+ 			(
+ 				CMPFP
+ 				{cmd = Commands.CMD_CMPFP;}
+
+ 			)
+ 			|
+ 			(
+ 				ADDC
+ 				{cmd = Commands.CMD_ADDC;}
+
+ 			)
+ 			|
+ 			(
+ 				SUBC
+ 				{cmd = Commands.CMD_SUBC;}
+
+ 			)
+ 			|
+ 			(
+ 				ADDFP
+ 				{cmd = Commands.CMD_ADDFP;}
+
+ 			)
+ 			|
+ 			(
+ 				SUBFP
+ 				{cmd = Commands.CMD_SUBFP;}
+
+ 			)
+ 			|
+ 			(
+ 				MULFP
+ 				{cmd = Commands.CMD_MULFP;}
+
+ 			)
+ 			|
+ 			(
+ 				DIVFP
+ 				{cmd = Commands.CMD_DIVFP;}
+
+ 			)
+ 			|
+ 			(
+ 				UMUL
+ 				{cmd = Commands.CMD_UMUL;}
+
+ 			)
+ 			|
+ 			(
+ 				UDIV
+ 				{cmd = Commands.CMD_UDIV;}
+
+ 			)
+ 		) comment* p1 = param [pos, constants, be] comment* COMMA //
+ 		comment* p2 = param [pos, constants, be] //
+ 		{$c = new Command(cmd, $p1.p, $p2.p);}
+
+ 	)
+ 	|
+ 	(
  		(
  			(
- 				(
- 					ISNAN
- 					{cmd = Commands.CMD_ISNAN;}
+ 				DEC
+ 				{cmd = Commands.CMD_DEC;}
 
- 				)
- 				|
- 				(
- 					ISINF
- 					{cmd = Commands.CMD_ISINF;}
+ 			)
+ 			|
+ 			(
+ 				INC
+ 				{cmd = Commands.CMD_INC;}
 
- 				)
- 				|
- 				(
- 					INC
- 					{cmd = Commands.CMD_INC;}
+ 			)
+ 			|
+ 			(
+ 				JMP
+ 				{cmd = Commands.CMD_JMP;}
 
- 				)
- 				|
- 				(
- 					DEC
- 					{cmd = Commands.CMD_DEC;}
+ 			)
+ 			|
+ 			(
+ 				JMPEQ
+ 				{cmd = Commands.CMD_JMPEQ;}
 
- 				)
- 				|
- 				(
- 					NTFP
- 					{cmd = Commands.CMD_NTFP;}
+ 			)
+ 			|
+ 			(
+ 				JMPNE
+ 				{cmd = Commands.CMD_JMPNE;}
 
- 				)
- 				|
- 				(
- 					FPTN
- 					{cmd = Commands.CMD_FPTN;}
+ 			)
+ 			|
+ 			(
+ 				JMPGT
+ 				{cmd = Commands.CMD_JMPGT;}
 
- 				)
- 				|
- 				(
- 					INT
- 					{cmd = Commands.CMD_INT;}
+ 			)
+ 			|
+ 			(
+ 				JMPGE
+ 				{cmd = Commands.CMD_JMPGE;}
 
- 				)
- 				|
- 				(
- 					NOT
- 					{cmd = Commands.CMD_NOT;}
+ 			)
+ 			|
+ 			(
+ 				JMPLT
+ 				{cmd = Commands.CMD_JMPLT;}
 
- 				)
- 				|
- 				(
- 					NEG
- 					{cmd = Commands.CMD_NEG;}
+ 			)
+ 			|
+ 			(
+ 				JMPLE
+ 				{cmd = Commands.CMD_JMPLE;}
 
- 				)
- 				|
- 				(
- 					PUSH
- 					{cmd = Commands.CMD_PUSH;}
+ 			)
+ 			|
+ 			(
+ 				JMPCS
+ 				{cmd = Commands.CMD_JMPCS;}
 
- 				)
- 				|
- 				(
- 					POP
- 					{cmd = Commands.CMD_POP;}
+ 			)
+ 			|
+ 			(
+ 				JMPCC
+ 				{cmd = Commands.CMD_JMPCC;}
 
- 				)
- 				|
- 				(
- 					JMP
- 					{cmd = Commands.CMD_JMP;}
+ 			)
+ 			|
+ 			(
+ 				JMPZS
+ 				{cmd = Commands.CMD_JMPZS;}
 
- 				)
- 				|
- 				(
- 					JMPEQ
- 					{cmd = Commands.CMD_JMPEQ;}
+ 			)
+ 			|
+ 			(
+ 				JMPZC
+ 				{cmd = Commands.CMD_JMPZC;}
 
- 				)
- 				|
- 				(
- 					JMPNE
- 					{cmd = Commands.CMD_JMPNE;}
+ 			)
+ 			|
+ 			(
+ 				CALL
+ 				{cmd = Commands.CMD_CALL;}
 
- 				)
- 				|
- 				(
- 					JMPGT
- 					{cmd = Commands.CMD_JMPGT;}
+ 			)
+ 			|
+ 			(
+ 				INT
+ 				{cmd = Commands.CMD_INT;}
 
- 				)
- 				|
- 				(
- 					JMPGE
- 					{cmd = Commands.CMD_JMPGE;}
+ 			)
+ 			|
+ 			(
+ 				PUSH
+ 				{cmd = Commands.CMD_PUSH;}
 
- 				)
- 				|
- 				(
- 					JMPLT
- 					{cmd = Commands.CMD_JMPLT;}
+ 			)
+ 			|
+ 			(
+ 				POP
+ 				{cmd = Commands.CMD_POP;}
 
- 				)
- 				|
- 				(
- 					JMPLE
- 					{cmd = Commands.CMD_JMPLE;}
+ 			)
+ 			|
+ 			(
+ 				CHKFP
+ 				{cmd = Commands.CMD_CHKFP;}
 
- 				)
- 				|
- 				(
- 					JMPCS
- 					{cmd = Commands.CMD_JMPCS;}
+ 			)
+ 			|
+ 			(
+ 				NTFP
+ 				{cmd = Commands.CMD_NTFP;}
 
- 				)
- 				|
- 				(
- 					JMPCC
- 					{cmd = Commands.CMD_JMPCC;}
+ 			)
+ 			|
+ 			(
+ 				FPTN
+ 				{cmd = Commands.CMD_FPTN;}
 
- 				)
- 				|
- 				(
- 					JMPZS
- 					{cmd = Commands.CMD_JMPZS;}
+ 			)
+ 			|
+ 			(
+ 				NOT
+ 				{cmd = Commands.CMD_NOT;}
 
- 				)
- 				|
- 				(
- 					JMPZC
- 					{cmd = Commands.CMD_JMPZC;}
+ 			)
+ 			|
+ 			(
+ 				NEG
+ 				{cmd = Commands.CMD_NEG;}
 
- 				)
- 				|
- 				(
- 					CALL
- 					{cmd = Commands.CMD_CALL;}
+ 			)
+ 		) comment* p1 = param [pos, constants, be] //
+ 		{$c = new Command(cmd, $p1.p, null);}
 
- 				)
- 			) comment* p1 = param [pos, constants, be]
- 			{$c = new Command(cmd, $p1.p, null);}
+ 	)
+ 	|
+ 	(
+ 		(
+ 			(
+ 				RET
+ 				{cmd = Commands.CMD_RET;}
 
+ 			)
+ 			|
+ 			(
+ 				IRET
+ 				{cmd = Commands.CMD_IRET;}
+
+ 			)
  		)
+ 		{$c = new Command(cmd, null, null);}
+
  	)
  	|
  	(
@@ -1725,89 +1757,54 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 
  ;
 
- CALL
+ MOV
  :
- 	'CALL'
+ 	'MOV'
  ;
 
- CALO
+ ADD
  :
- 	'CALO'
+ 	'ADD'
  ;
 
- JMPZC
+ SUB
  :
- 	'JMPZC'
+ 	'SUB'
  ;
 
- JMPZS
+ MUL
  :
- 	'JMPZS'
+ 	'MUL'
  ;
 
- JMPCC
+ DIV
  :
- 	'JMPCC'
+ 	'DIV'
  ;
 
- JMPCS
+ AND
  :
- 	'JMPCS'
+ 	'AND'
  ;
 
- JMPLE
+ OR
  :
- 	'JMPLE'
+ 	'OR'
  ;
 
- JMPLT
+ XOR
  :
- 	'JMPLT'
- ;
-
- JMPGE
- :
- 	'JMPGE'
- ;
-
- JMPGT
- :
- 	'JMPGT'
- ;
-
- JMPNE
- :
- 	'JMPNE'
- ;
-
- JMPEQ
- :
- 	'JMPEQ'
- ;
-
- JMP
- :
- 	'JMP'
- ;
-
- POP
- :
- 	'POP'
- ;
-
- PUSH
- :
- 	'PUSH'
- ;
-
- NEG
- :
- 	'NEG'
+ 	'XOR'
  ;
 
  NOT
  :
  	'NOT'
+ ;
+
+ NEG
+ :
+ 	'NEG'
  ;
 
  LSH
@@ -1825,91 +1822,6 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	'RASH'
  ;
 
- CMP
- :
- 	'CMP'
- ;
-
- XOR
- :
- 	'XOR'
- ;
-
- OR
- :
- 	'OR'
- ;
-
- AND
- :
- 	'AND'
- ;
-
- DIV
- :
- 	'DIV'
- ;
-
- MUL
- :
- 	'MUL'
- ;
-
- SUBC
- :
- 	'SUBC'
- ;
-
- ADDC
- :
- 	'ADDC'
- ;
-
- SUB
- :
- 	'SUB'
- ;
-
- ADD
- :
- 	'ADD'
- ;
-
- MOV
- :
- 	'MOV'
- ;
-
- MVAD
- :
- 	'MVAD'
- ;
-
- LEA
- :
- 	'LEA'
- ;
-
- SWAP
- :
- 	'SWAP'
- ;
-
- RET
- :
- 	'RET'
- ;
-
- IRET
- :
- 	'IRET'
- ;
-
- INT
- :
- 	'INT'
- ;
-
  DEC
  :
  	'DEC'
@@ -1918,6 +1830,151 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  INC
  :
  	'INC'
+ ;
+
+ JMP
+ :
+ 	'JMP'
+ ;
+
+ JMPEQ
+ :
+ 	'JMPEQ'
+ ;
+
+ JMPNE
+ :
+ 	'JMPNE'
+ ;
+
+ JMPGT
+ :
+ 	'JMPGT'
+ ;
+
+ JMPGE
+ :
+ 	'JMPGE'
+ ;
+
+ JMPLT
+ :
+ 	'JMPLT'
+ ;
+
+ JMPLE
+ :
+ 	'JMPLE'
+ ;
+
+ JMPCS
+ :
+ 	'JMPCS'
+ ;
+
+ JMPCC
+ :
+ 	'JMPCC'
+ ;
+
+ JMPZS
+ :
+ 	'JMPZS'
+ ;
+
+ JMPZC
+ :
+ 	'JMPZC'
+ ;
+
+ JMPNAN
+ :
+ 	'JMPNAN'
+ ;
+
+ JMPAN
+ :
+ 	'JMPAN'
+ ;
+
+ CALL
+ :
+ 	'CALL'
+ ;
+
+ CMP
+ :
+ 	'CMP'
+ ;
+
+ RET
+ :
+ 	'RET'
+ ;
+
+ INT
+ :
+ 	'INT'
+ ;
+
+ PUSH
+ :
+ 	'PUSH'
+ ;
+
+ POP
+ :
+ 	'POP'
+ ;
+
+ IRET
+ :
+ 	'IRET'
+ ;
+
+ SWAP
+ :
+ 	'SWAP'
+ ;
+
+ LEA
+ :
+ 	'LEA'
+ ;
+
+ MVAD
+ :
+ 	'MVAD'
+ ;
+
+ CALO
+ :
+ 	'CALO'
+ ;
+
+ BCP
+ :
+ 	'BCP'
+ ;
+
+ CMPFP
+ :
+ 	'CMPFP'
+ ;
+
+ CHKFP
+ :
+ 	'CHKFP'
+ ;
+
+ ADDC
+ :
+ 	'ADDC'
+ ;
+
+ SUBC
+ :
+ 	'SUBC'
  ;
 
  ADDFP
@@ -1950,6 +2007,16 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	'FPTN'
  ;
 
+ UMUL
+ :
+ 	'UMUL'
+ ;
+
+ UDIV
+ :
+ 	'UDIV'
+ ;
+
  IP
  :
  	'IP'
@@ -1975,14 +2042,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	'INTP'
  ;
 
- ISNAN
+ FS_LOCK
  :
- 	'ISNAN'
- ;
-
- ISINF
- :
- 	'ISINF'
+ 	'FS_LOCK'
  ;
 
  XNN
@@ -1994,7 +2056,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  		)
  		|
  		(
- 			'F' [0-9A]
+ 			'F' [0-9]
  		)
  	)
  ;
