@@ -1,7 +1,7 @@
 |: 
-| Hello World code which adds the values of AX and BX and returns the result in CX
+| Hello World code which adds the values of X00 and X01 and returns the result in X02
 :>
-ADD AX, BX
-MOV CX, AX
-MOV AX, 0 |> EXIT-SUCCESS
-INT #INT-EXIT
+ADD X00, X01
+MOV X02, X00
+MOV X00, 0 |> EXIT-SUCCESS
+INT INT_EXIT

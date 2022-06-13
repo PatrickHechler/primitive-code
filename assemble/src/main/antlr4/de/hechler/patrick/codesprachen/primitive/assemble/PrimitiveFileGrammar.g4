@@ -1565,12 +1565,6 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			)
  			|
  			(
- 				UMUL
- 				{cmd = Commands.CMD_UMUL;}
-
- 			)
- 			|
- 			(
  				UDIV
  				{cmd = Commands.CMD_UDIV;}
 
@@ -2005,11 +1999,6 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  FPTN
  :
  	'FPTN'
- ;
-
- UMUL
- :
- 	'UMUL'
  ;
 
  UDIV

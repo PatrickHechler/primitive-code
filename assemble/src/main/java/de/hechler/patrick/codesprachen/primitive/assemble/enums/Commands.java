@@ -7,7 +7,7 @@ public enum Commands {
 	//@formatter:off
 	CMD_MOV(MOV, 2, 1), CMD_ADD(ADD, 2, 1), CMD_SUB(SUB, 2, 1), CMD_MUL(MUL, 2, 1), CMD_DIV(DIV, 2, 2),
 	CMD_AND(AND, 2, 1), CMD_OR(OR, 2, 1), CMD_XOR(XOR, 2, 1),
-	CMD_NOT(NOT, 2, 1), CMD_NEG(NEG, 2, 1),
+	CMD_NOT(NOT, 1, 1), CMD_NEG(NEG, 1, 1),
 	CMD_LSH(LSH, 2, 1), CMD_RLSH(RLSH, 2, 1), CMD_RASH(RASH, 2, 1),
 	CMD_DEC(DEC, 1, 1), CMD_INC(INC, 1, 1),
 	
@@ -27,7 +27,7 @@ public enum Commands {
 	CMD_ADDC(ADDC, 2, 1), CMD_SUBC(SUBC, 2, 1),
 	CMD_ADDFP(ADDFP, 2, 1), CMD_SUBFP(SUBFP, 2, 1), CMD_MULFP(MULFP, 2, 1), CMD_DIVFP(DIVFP, 2, 1),
 	CMD_NTFP(NTFP, 1, 1), CMD_FPTN(FPTN, 1, 1),
-	CMD_UMUL(UMUL, 2, 1), CMD_UDIV(UDIV, 2, 2),
+	CMD_UDIV(UDIV, 2, 1),
 	;//@formatter:on
 	
 	public final int num;

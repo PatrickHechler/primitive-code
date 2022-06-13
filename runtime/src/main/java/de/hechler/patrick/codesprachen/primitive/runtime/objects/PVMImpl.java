@@ -1,20 +1,97 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.*;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_ELEMENT_OFFSET_ID;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_ELEMENT_OFFSET_LOCK;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_LOCK;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_STREAM_OFFSET_FILE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_STREAM_OFFSET_POS;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INTCNT;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INTERRUPT_COUNT;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INTP;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_ERRORS_ILLEGAL_INTERRUPT;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_ERRORS_UNKNOWN_COMMAND;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FPNUMBER_TO_STRING;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_GET_CREATE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_GET_LAST_META_MOD;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_GET_LAST_MOD;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_SET_CREATE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_SET_LAST_META_MOD;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_SET_LAST_MOD;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FILE_APPEND;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FILE_READ;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FILE_WRITE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FOLDER_ADD_FILE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FOLDER_ADD_FOLDER;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FOLDER_ADD_LINK;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FOLDER_GET_CHILD_OF_INDEX;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FOLDER_GET_CHILD_OF_NAME;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_GET_ELEMENT;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_GET_FILE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_GET_FOLDER;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_GET_LINK;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_NUMBER_TO_STRING;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_STRING_TO_FPNUMBER;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_STRING_TO_NUMBER;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_STR_TO_U8STR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_U8STR_TO_STR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.IP;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.MAX_STD_STREAM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_APPEND;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_CREATE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_NEW_FILE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_READ;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_TRUNCATE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_WRITE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BNUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BREG;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BSR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BNUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BREG;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BSR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.SP;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ALL_BITS;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_CARRY;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ELEMENT_ALREADY_EXIST;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ELEMENT_LOCKED;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ELEMENT_NOT_EXIST;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ELEMENT_WRONG_TYPE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_EQUAL;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_GREATHER;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ILLEGAL_ARG;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_IO_ERR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_LOWER;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_NAN;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_NONE_BITS;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_OUT_OF_MEMORY;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_OUT_OF_SPACE;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_READ_ONLY;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_SOME_BITS;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ZERO;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STD_IN;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STD_LOG;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STD_OUT;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.X_ADD;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
+import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands;
 import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.PrimitiveErrror;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.PVM;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.functional.Interrupt;
+import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.functional.PVMCommand;
 import de.hechler.patrick.pfs.exception.ElementLockedException;
 import de.hechler.patrick.pfs.exception.ElementReadOnlyException;
 import de.hechler.patrick.pfs.exception.OutOfSpaceException;
@@ -35,6 +112,7 @@ public class PVMImpl implements PVM {
 	private final MemoryContainer mem;
 	private final PVMData         data;
 	private final Interrupt[]     defaultInts;
+	private final PVMCommand[]    commands;
 	private final PatrFileSysImpl fs;
 	
 	private long    cmd;
@@ -123,6 +201,50 @@ public class PVMImpl implements PVM {
 		if (this.defaultInts.length != INTERRUPT_COUNT) {
 			throw new AssertionError("expected int-count=" + INTERRUPT_COUNT + " int-count=" + this.defaultInts.length);
 		}
+		PVMCommand uc = () -> interrupt(INT_ERRORS_UNKNOWN_COMMAND);
+		this.commands = new PVMCommand[] {
+			// @formatter:off
+			uc,         new MOV(),   new ADD(),   new SUB(),   new MUL(),   new DIV(),   new AND(),   new OR(),    new XOR(),   new NOT(),   new NEG(),   new LSH(),    new RLSH(),  new RASH(), new DEC(), new INC(),
+			new JMP(),  new JMPEQ(), new JMPNE(), new JMPGT(), new JMPGE(), new JMPLT(), new JMPLE(), new JMPCS(), new JMPCC(), new JMPZS(), new JMPZC(), new JMPNAN(), new JMPAN(), uc,          uc,       uc,
+			new CALL(), new CMP(),   new RET(),   new INT(),   new PUSH(),  new POP(),   new IRET(),  new SWAP(),  new LEA(),   new MVAD(),  new CALO(),  new BCP(),    new CMPFP(), new CHKFP(), uc,       uc,
+			new ADDC(), new SUBC(),  new ADDFP(), new SUBFP(), new MULFP(), new DIVFP(), new NTFP(),  new FPTN(),  new UDIV(),  uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			// @formatter:on
+		};
+		if (this.commands.length != 256) {
+			throw new AssertionError("expected command-length=256 command-length=" + this.commands.length);
+		}
+		Map <String, Field> fields = new HashMap <>();
+		for (Field f : PrimAsmCommands.class.getFields()) {
+			fields.put(f.getName(), f);
+		}
+		for (int i = 0; i < this.commands.length; i ++ ) {
+			PVMCommand c = this.commands[i];
+			if (c == uc) continue;
+			Field f = fields.remove(c.getClass().getSimpleName());
+			try {
+				int val = f.getInt(null);
+				if (val != i) {
+					throw new AssertionError("command at 0x" + Integer.toHexString(val) + " was not of the correct type! expected: " + f.getName() + " but got type: " + c.getClass().getSimpleName());
+				}
+			} catch (IllegalArgumentException | IllegalAccessException e) {
+				throw new AssertionError(e);
+			}
+		}
+		if ( !fields.isEmpty()) {
+			throw new AssertionError("I do not suppoert all commands! missing: " + fields.values());
+		}
 	}
 	
 	@Override
@@ -133,366 +255,19 @@ public class PVMImpl implements PVM {
 	}
 	
 	protected void execute() {
-		len = 8;
-		off1 = true;
-		off2 = 0;
-		off3 = -8;
 		try {
+			len = 8;
+			off1 = true;
+			off2 = 0;
+			off3 = -8;
 			cmd = mem.get(data.regs[IP]);
-			switch ((int) ( (cmd >> 56) & 0xFF)) {
-			case ADD:
-				add();
-				break;
-			case ADDC:
-				addc();
-				break;
-			case ADDFP:
-				addfp();
-				break;
-			case AND:
-				and();
-				break;
-			case BCP:
-				bcp();
-				break;
-			case CALL:
-				call();
-				break;
-			case CALO:
-				calo();
-				break;
-			case CHKFP:
-				chkfp();
-				break;
-			case CMP:
-				cmp();
-				break;
-			case CMPFP:
-				cmpfp();
-				break;
-			case DEC:
-				dec();
-				break;
-			case DIV:
-				div();
-				break;
-			case DIVFP:
-				divfp();
-				break;
-			case FPTN:
-				fptn();
-				break;
-			case INC:
-				inc();
-				break;
-			case INT:
-				INT();
-				break;
-			case IRET:
-				break;
-			case JMP:
-				break;
-			case JMPAN:
-				break;
-			case JMPCC:
-				break;
-			case JMPCS:
-				break;
-			case JMPEQ:
-				break;
-			case JMPGE:
-				break;
-			case JMPGT:
-				break;
-			case JMPLE:
-				break;
-			case JMPLT:
-				break;
-			case JMPNAN:
-				break;
-			case JMPNE:
-				break;
-			case JMPZC:
-				break;
-			case JMPZS:
-				break;
-			case LEA:
-				break;
-			case LSH:
-				break;
-			case MOV:
-				break;
-			case MUL:
-				break;
-			case MULFP:
-				break;
-			case MVAD:
-				break;
-			case NEG:
-				break;
-			case NOT:
-				break;
-			case NTFP:
-				break;
-			case OR:
-				break;
-			case POP:
-				break;
-			case PUSH:
-				break;
-			case RASH:
-				break;
-			case RET:
-				break;
-			case RLSH:
-				break;
-			case SUB:
-				break;
-			case SUBC:
-				break;
-			case SUBFP:
-				break;
-			case SWAP:
-				break;
-			case UDIV:
-				break;
-			case UMUL:
-				break;
-			case XOR:
-				break;
-			default:
-				throw new PrimitiveErrror(INT_ERRORS_UNKNOWN_COMMAND);
-			}
-			data.regs[IP] += len;
+			this.commands[(int) (cmd & 0xFF)].execute();
 		} catch (PrimitiveErrror e) {
 			interrupt(e.intNum);
 		}
 	}
 	
-	private void INT() throws PrimitiveErrror {
-		long p1 = getConstParam();
-		interrupt(p1);
-	}
-	
-	private void inc() throws PrimitiveErrror {
-		long p1 = getConstParam();
-		long p1v = getNoConstVal(p1);
-		long res = p1v + 1L;
-		if (res == Long.MIN_VALUE) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_ZERO)) | STATUS_CARRY;
-		} else if (res == 0L) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_CARRY)) | STATUS_ZERO;
-		} else {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_ZERO | STATUS_CARRY));
-		}
-		setNoConstVal(p1, res);
-	}
-	
-	private void fptn() throws PrimitiveErrror {
-		long p1 = getNoConstParam();
-		double p1v = Double.longBitsToDouble(getNoConstVal(p1));
-		long res;
-		try {
-			res = (long) p1v;
-		} catch (ArithmeticException e) {
-			throw new PrimitiveErrror(INT_ERRORS_ARITHMETIC_ERROR);
-		}
-		setNoConstVal(p1, res);
-	}
-	
-	private void divfp() throws PrimitiveErrror {
-		long p1 = getNoConstParam();
-		boolean isregp1 = isreg;
-		long p2 = getConstParam();
-		double p1v = Double.longBitsToDouble(getNoConstVal(isregp1, p1));
-		double p2v = Double.longBitsToDouble(getNoConstVal(p2));
-		double res1 = (p1v) / (p2v);
-		double res2 = (p1v) % (p2v);
-		setNoConstVal(isregp1, p1, Double.doubleToRawLongBits(res1));
-		setNoConstVal(p2, Double.doubleToRawLongBits(res2));
-	}
-	
-	private void div() throws PrimitiveErrror {
-		long p1 = getNoConstParam();
-		boolean isregp1 = isreg;
-		long p2 = getConstParam();
-		long p1v = getNoConstVal(isregp1, p1);
-		long p2v = getNoConstVal(p2);
-		long res1;
-		long res2;
-		try {
-			res1 = (p1v) / (p2v);
-			res2 = (p1v) % (p2v);
-		} catch (ArithmeticException e) {
-			throw new PrimitiveErrror(INT_ERRORS_ARITHMETIC_ERROR);
-		}
-		setNoConstVal(isregp1, p1, res1);
-		setNoConstVal(p2, res2);
-	}
-	
-	private void dec() throws PrimitiveErrror {
-		long p1 = getConstParam();
-		long p1v = getNoConstVal(p1);
-		long res = p1v - 1L;
-		if (res == Long.MAX_VALUE) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_ZERO)) | STATUS_CARRY;
-		} else if (res == 0L) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_CARRY)) | STATUS_ZERO;
-		} else {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_ZERO | STATUS_CARRY));
-		}
-		setNoConstVal(p1, res);
-	}
-	
-	private void cmpfp() throws PrimitiveErrror {
-		double p1 = Double.longBitsToDouble(getConstParam());
-		double p2 = Double.longBitsToDouble(getConstParam());
-		if (p1 > p2) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_LOWER | STATUS_EQUAL | STATUS_NAN)) | STATUS_GREATHER;
-		} else if (p1 < p2) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_GREATHER | STATUS_EQUAL | STATUS_NAN)) | STATUS_LOWER;
-		} else if (Double.isNaN(p1) || Double.isNaN(p2)) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_LOWER | STATUS_GREATHER | STATUS_EQUAL)) | STATUS_NAN;
-		} else {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_LOWER | STATUS_GREATHER | STATUS_NAN)) | STATUS_EQUAL;
-		}
-	}
-	
-	private void cmp() throws PrimitiveErrror {
-		long p1 = getConstParam();
-		long p2 = getConstParam();
-		if (p1 > p2) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_LOWER | STATUS_EQUAL)) | STATUS_GREATHER;
-		} else if (p1 < p2) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_GREATHER | STATUS_EQUAL)) | STATUS_LOWER;
-		} else {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_LOWER | STATUS_GREATHER)) | STATUS_EQUAL;
-		}
-	}
-	
-	private void chkfp() throws PrimitiveErrror {
-		double p1 = Double.longBitsToDouble(getConstParam());
-		if (p1 == Double.POSITIVE_INFINITY) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_LOWER | STATUS_NAN | STATUS_ZERO)) | STATUS_GREATHER;
-		} else if (p1 == Double.NEGATIVE_INFINITY) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_GREATHER | STATUS_NAN | STATUS_ZERO)) | STATUS_LOWER;
-		} else if (Double.isNaN(p1)) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_LOWER | STATUS_GREATHER | STATUS_ZERO)) | STATUS_NAN;
-		} else {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_LOWER | STATUS_NAN | STATUS_GREATHER)) | STATUS_ZERO;
-		}
-	}
-	
-	private void calo() throws PrimitiveErrror {
-		long p1 = getConstParam();
-		long p2 = mem.get(data.regs[IP] + len);
-		mem.set(data.regs[SP], data.regs[IP]);
-		data.regs[SP] += 8;
-		data.regs[IP] = p1 + p2;
-	}
-	
-	private void call() throws PrimitiveErrror {
-		mem.set(data.regs[SP], data.regs[IP]);
-		data.regs[SP] += 8;
-		data.regs[IP] += mem.get(data.regs[IP] + 8);
-	}
-	
-	private void bcp() throws PrimitiveErrror {
-		long p1 = getConstParam();
-		long p2 = getConstParam();
-		long and = (p1) & (p2);
-		if (and == 0L) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_ALL_BITS | STATUS_SOME_BITS)) | STATUS_NONE_BITS;
-		} else if (and == p2) {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_NONE_BITS)) | STATUS_ALL_BITS | STATUS_SOME_BITS;
-		} else {
-			data.regs[STATUS] = (data.regs[STATUS] & ~ (STATUS_NONE_BITS | STATUS_ALL_BITS)) | STATUS_SOME_BITS;
-		}
-	}
-	
-	private void and() throws PrimitiveErrror {
-		long p1 = getNoConstParam();
-		long p2 = getConstParam();
-		long p1v = getNoConstVal(p1);
-		long res = (p1v) & (p2);
-		setNoConstVal(p1, res);
-	}
-	
-	private void addfp() throws PrimitiveErrror {
-		long p1 = getNoConstParam();
-		long p2 = getConstParam();
-		long p1v = getNoConstVal(p1);
-		long res = Double.doubleToRawLongBits(Double.longBitsToDouble(p1v) + Double.longBitsToDouble(p2));
-		if (p1v > 0L && p2 > 0L) {
-			if (res < 0L) {
-				data.regs[STATUS] |= STATUS_CARRY;
-			} else {
-				data.regs[STATUS] &= ~STATUS_CARRY;
-			}
-		} else if (p1v < 0L && p2 < 0L) {
-			if (res > 0L) {
-				data.regs[STATUS] |= STATUS_CARRY;
-			} else {
-				data.regs[STATUS] &= ~STATUS_CARRY;
-			}
-		} else {
-			data.regs[STATUS] &= ~STATUS_CARRY;
-		}
-		setNoConstVal(p1, res);
-	}
-	
-	private void addc() throws PrimitiveErrror {
-		long p1 = getNoConstParam();
-		long p2 = getConstParam();
-		long p1v = getNoConstVal(p1);
-		long res;
-		if ( (data.regs[STATUS] & STATUS_CARRY) != 0) {
-			res = p1v + p2 + 1;
-		} else {
-			res = p1v + p2;
-		}
-		if (p1v > 0L && p2 > 0L) {
-			if (res < 0L) {
-				data.regs[STATUS] |= STATUS_CARRY;
-			} else {
-				data.regs[STATUS] &= ~STATUS_CARRY;
-			}
-		} else if (p1v < 0L && p2 < 0L) {
-			if (res > 0L) {
-				data.regs[STATUS] |= STATUS_CARRY;
-			} else {
-				data.regs[STATUS] &= ~STATUS_CARRY;
-			}
-		} else {
-			data.regs[STATUS] &= ~STATUS_CARRY;
-		}
-		setNoConstVal(p1, res);
-	}
-	
-	private void add() throws PrimitiveErrror {
-		long p1 = getNoConstParam();
-		long p2 = getConstParam();
-		long p1v = getNoConstVal(p1);
-		long res = p1v + p2;
-		if (p1v > 0L && p2 > 0L) {
-			if (res < 0L) {
-				data.regs[STATUS] |= STATUS_CARRY;
-			} else {
-				data.regs[STATUS] &= ~STATUS_CARRY;
-			}
-		} else if (p1v < 0L && p2 < 0L) {
-			if (res > 0L) {
-				data.regs[STATUS] |= STATUS_CARRY;
-			} else {
-				data.regs[STATUS] &= ~STATUS_CARRY;
-			}
-		} else {
-			data.regs[STATUS] &= ~STATUS_CARRY;
-		}
-		setNoConstVal(p1, res);
-	}
-	
-	private long getNoConstVal(long p) throws PrimitiveErrror {
+	private long getNC(long p) throws PrimitiveErrror {
 		if (isreg) {
 			assert p == (int) p;
 			return data.regs[(int) p];
@@ -501,7 +276,7 @@ public class PVMImpl implements PVM {
 		}
 	}
 	
-	private void setNoConstVal(long p, long val) throws PrimitiveErrror {
+	private void setNC(long p, long val) throws PrimitiveErrror {
 		if (isreg) {
 			assert p == (int) p;
 			data.regs[(int) p] = val;
@@ -510,7 +285,7 @@ public class PVMImpl implements PVM {
 		}
 	}
 	
-	private long getNoConstVal(boolean isreg, long p) throws PrimitiveErrror {
+	private long getNC(boolean isreg, long p) throws PrimitiveErrror {
 		if (isreg) {
 			assert p == (int) p;
 			return data.regs[(int) p];
@@ -519,7 +294,7 @@ public class PVMImpl implements PVM {
 		}
 	}
 	
-	private void setNoConstVal(boolean isreg, long p, long val) throws PrimitiveErrror {
+	private void setNC(boolean isreg, long p, long val) throws PrimitiveErrror {
 		if (isreg) {
 			assert p == (int) p;
 			data.regs[(int) p] = val;
@@ -1783,5 +1558,923 @@ public class PVMImpl implements PVM {
 		else data.regs[ -markingRegister] = 0L;
 		data.regs[STATUS] |= newStatusFlag;
 	}
+	
+	private abstract class Cmd_1CP_AL implements PVMCommand {
+		
+		@Override
+		public void execute() throws PrimitiveErrror {
+			long p1 = getConstParam();
+			exec(p1);
+			data.regs[IP] += len;
+		}
+		
+		protected abstract void exec(long p1) throws PrimitiveErrror;
+		
+	}
+	
+	private abstract class Cmd_2CP_AL implements PVMCommand {
+		
+		@Override
+		public void execute() throws PrimitiveErrror {
+			long p1 = getConstParam(),
+				p2 = getConstParam();
+			exec(p1, p2);
+			data.regs[IP] += len;
+		}
+		
+		protected abstract void exec(long p1, long p2) throws PrimitiveErrror;
+		
+	}
+	
+	private abstract class Cmd_1NCP_AL implements PVMCommand {
+		
+		@Override
+		public void execute() throws PrimitiveErrror {
+			long p1 = getNoConstParam();
+			exec(p1);
+			data.regs[IP] += len;
+		}
+		
+		protected abstract void exec(long p1) throws PrimitiveErrror;
+		
+	}
+	
+	private abstract class Cmd_2NCP_AL implements PVMCommand {
+		
+		protected boolean isregp1;
+		
+		@Override
+		public void execute() throws PrimitiveErrror {
+			long p1 = getNoConstParam();
+			isregp1 = isreg;
+			long p2 = getNoConstParam();
+			exec(p1, p2);
+			data.regs[IP] += len;
+		}
+		
+		protected abstract void exec(long p1, long p2) throws PrimitiveErrror;
+		
+	}
+	
+	private abstract class Cmd_1NCP_1CP_AL implements PVMCommand {
+		
+		@Override
+		public void execute() throws PrimitiveErrror {
+			long p1 = getNoConstParam();
+			long p2 = getConstParam();
+			exec(p1, p2);
+			data.regs[IP] += len;
+		}
+		
+		protected abstract void exec(long p1, long p2) throws PrimitiveErrror;
+		
+	}
+	
+	private abstract class Cmd_1LP_IL implements PVMCommand {
+		
+		@Override
+		public void execute() throws PrimitiveErrror {
+			long p1 = mem.get(data.regs[IP] + 1L);
+			exec(p1);
+		}
+		
+		protected abstract void exec(long p1) throws PrimitiveErrror;
+		
+	}
+	
+	private abstract class Cmd_1CP_1LP_NL implements PVMCommand {
+		
+		@Override
+		public void execute() throws PrimitiveErrror {
+			long p1 = getConstParam(),
+				p2 = mem.get(data.regs[IP] + 1L);
+			exec(p1, p2);
+		}
+		
+		protected abstract void exec(long p1, long p2) throws PrimitiveErrror;
+		
+	}
+	
+	private class MOV extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			setNC(p1, p2);
+		}
+		
+	}
+	
+	private class ADD extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v + p2;
+			setNC(p1, res);
+			if (p1v > 0L && p2 > 0L) {
+				if (res < 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					// } else if (res == 0L) { //not possible
+					// data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				}
+			} else if (p1v < 0L && p2 < 0L) {
+				if (res > 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+				} else if (res == 0L) { // only with (MIN + MIN)
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				}
+			} else if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+			}
+		}
+		
+	}
+	
+	private class SUB extends Cmd_1NCP_1CP_AL {
+		
+		@SuppressWarnings("unused")
+		static final long l = Long.MIN_VALUE - Long.MAX_VALUE;
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v - p2;
+			setNC(p1, res);
+			if (p1v > 0L && p2 < 0L) {
+				if (res < 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					// } else if (res == 0L) {
+					// data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				}
+			} else if (p1v < 0L && p2 > 0L) {
+				if (res > 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					// } else if (res == 0L) { // not possible
+					// data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				}
+			} else if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+			}
+		}
+		
+	}
+	
+	private class MUL extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v * p2;
+			setNC(p1, res);
+			if (p1v > 0L && p2 > 0L) {
+				if (res < 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+				} else if (res == 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				}
+			} else if (p1v < 0L && p2 < 0L) {
+				if (res > 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+				} else if (res == 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				}
+			} else if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+			}
+		}
+		
+	}
+	
+	private class DIV extends Cmd_2NCP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(isregp1, p1);
+			long p2v = getNC(p2);
+			setNC(p1, p1v / p2v);
+			setNC(isregp1, p2, p1v % p2v);
+		}
+		
+	}
+	
+	private class AND extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v & p2;
+			setNC(p1, res);
+			if (res == 0L) {
+				data.regs[STATUS] |= STATUS_ZERO;
+			} else {
+				data.regs[STATUS] &= ~STATUS_ZERO;
+			}
+		}
+		
+	}
+	
+	private class OR extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v | p2;
+			setNC(p1, res);
+			if (res == 0L) {
+				data.regs[STATUS] |= STATUS_ZERO;
+			} else {
+				data.regs[STATUS] &= ~STATUS_ZERO;
+			}
+		}
+		
+	}
+	
+	private class XOR extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v ^ p2;
+			setNC(p1, res);
+			if (res == 0L) {
+				data.regs[STATUS] |= STATUS_ZERO;
+			} else {
+				data.regs[STATUS] &= ~STATUS_ZERO;
+			}
+		}
+		
+	}
+	
+	private class NOT extends Cmd_1NCP_AL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = ~p1v;
+			setNC(p1, res);
+			if (res == 0L) {
+				data.regs[STATUS] |= STATUS_ZERO;
+			} else {
+				data.regs[STATUS] &= ~STATUS_ZERO;
+			}
+		}
+		
+	}
+	
+	private class NEG extends Cmd_1NCP_AL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = -p1v;
+			setNC(p1, res);
+			if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+			} else if (res == Long.MIN_VALUE) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_CARRY | STATUS_ZERO);
+			}
+		}
+		
+	}
+	
+	private class LSH extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v << p2;
+			setNC(p1, res);
+			if (res >>> p2 != p1) {
+				if (res == 0L) {
+					data.regs[STATUS] |= STATUS_CARRY | STATUS_ZERO;
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~STATUS_ZERO;
+				}
+			} else if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~STATUS_CARRY;
+			} else {
+				data.regs[STATUS] &= ~ (STATUS_CARRY | STATUS_ZERO);
+			}
+		}
+		
+	}
+	
+	private class RLSH extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v >>> p2;
+			setNC(p1, res);
+			if (res << p2 != p1) {
+				if (res == 0L) {
+					data.regs[STATUS] |= STATUS_CARRY | STATUS_ZERO;
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~STATUS_ZERO;
+				}
+			} else if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~STATUS_CARRY;
+			} else {
+				data.regs[STATUS] &= ~ (STATUS_CARRY | STATUS_ZERO);
+			}
+		}
+		
+	}
+	
+	
+	private class RASH extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v >> p2;
+			setNC(p1, res);
+			if (res << p2 != p1) {
+				if (res == 0L) {
+					data.regs[STATUS] |= STATUS_CARRY | STATUS_ZERO;
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~STATUS_ZERO;
+				}
+			} else if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~STATUS_CARRY;
+			} else {
+				data.regs[STATUS] &= ~ (STATUS_CARRY | STATUS_ZERO);
+			}
+		}
+		
+	}
+	
+	private class DEC extends Cmd_1NCP_AL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v - 1;
+			setNC(p1, res);
+			if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+			} else if (res == Long.MAX_VALUE) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_CARRY | STATUS_ZERO);
+			}
+		}
+		
+	}
+	
+	private class INC extends Cmd_1NCP_AL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v + 1;
+			setNC(p1, res);
+			if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+			} else if (res == Long.MIN_VALUE) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_CARRY | STATUS_ZERO);
+			}
+		}
+		
+	}
+	
+	// uc, new MOV(), new ADD(), new SUB(), new MUL(), new DIV(), new AND(), new OR(), new XOR(), new NOT(), new NEG(), new LSH(), new RLSH(), new RASH(), new DEC(), new INC(),
+	
+	private class JMP extends Cmd_1LP_IL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			data.regs[IP] += p1;
+		}
+		
+	}
+	
+	private abstract class PosCondJmp extends Cmd_1LP_IL {
+		
+		private final long cond;
+		
+		private PosCondJmp(long cond) {
+			this.cond = cond;
+		}
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			if ( (data.regs[STATUS] & cond) != 0) {
+				data.regs[IP] += p1;
+			} else {
+				data.regs[IP] += len;
+			}
+		}
+		
+	}
+	
+	private abstract class NegCondJmp extends Cmd_1LP_IL {
+		
+		private final long cond;
+		
+		private NegCondJmp(long cond) {
+			this.cond = cond;
+		}
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			if ( (data.regs[STATUS] & cond) == 0) {
+				data.regs[IP] += p1;
+			} else {
+				data.regs[IP] += len;
+			}
+		}
+		
+	}
+	
+	private class JMPEQ extends PosCondJmp {
+		
+		public JMPEQ() {
+			super(STATUS_EQUAL);
+		}
+		
+	}
+	
+	private class JMPNE extends NegCondJmp {
+		
+		public JMPNE() {
+			super(STATUS_EQUAL);
+		}
+		
+	}
+	
+	private class JMPGT extends PosCondJmp {
+		
+		public JMPGT() {
+			super(STATUS_GREATHER);
+		}
+		
+	}
+	
+	private class JMPGE extends PosCondJmp {
+		
+		public JMPGE() {
+			super(STATUS_EQUAL | STATUS_GREATHER);
+		}
+		
+	}
+	
+	private class JMPLT extends PosCondJmp {
+		
+		public JMPLT() {
+			super(STATUS_LOWER);
+		}
+		
+	}
+	
+	private class JMPLE extends PosCondJmp {
+		
+		public JMPLE() {
+			super(STATUS_EQUAL | STATUS_LOWER);
+		}
+		
+	}
+	
+	private class JMPCS extends PosCondJmp {
+		
+		public JMPCS() {
+			super(STATUS_CARRY);
+		}
+		
+	}
+	
+	private class JMPCC extends NegCondJmp {
+		
+		public JMPCC() {
+			super(STATUS_CARRY);
+		}
+		
+	}
+	
+	private class JMPZS extends PosCondJmp {
+		
+		public JMPZS() {
+			super(STATUS_ZERO);
+		}
+		
+	}
+	
+	private class JMPZC extends NegCondJmp {
+		
+		public JMPZC() {
+			super(STATUS_ZERO);
+		}
+		
+	}
+	
+	private class JMPNAN extends PosCondJmp {
+		
+		public JMPNAN() {
+			super(STATUS_NAN);
+		}
+		
+	}
+	
+	private class JMPAN extends NegCondJmp {
+		
+		public JMPAN() {
+			super(STATUS_NAN);
+		}
+		
+	}
+	
+	// new JMP(), new JMPEQ(), new JMPNE(), new JMPGT(), new JMPGE(), new JMPLT(), new JMPLE(), new JMPCS(), new JMPCC(), new JMPZS(), new JMPZC(), new JMPNAN(), new JMPAN(), uc, uc, uc,
+	
+	private class CALL extends Cmd_1LP_IL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			mem.set(data.regs[SP], data.regs[IP]);
+			data.regs[SP] += 8;
+			data.regs[IP] += p1;
+		}
+		
+	}
+	
+	private class CMP extends Cmd_2CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			if (p1 > p2) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_GREATHER) & ~ (STATUS_EQUAL | STATUS_LOWER);
+			} else if (p1 < p2) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_LOWER) & ~ (STATUS_EQUAL | STATUS_GREATHER);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_EQUAL) & ~ (STATUS_GREATHER | STATUS_LOWER);
+			}
+		}
+		
+	}
+	
+	private class RET implements PVMCommand {
+		
+		@Override
+		public void execute() throws PrimitiveErrror {
+			data.regs[SP] -= 8;
+			data.regs[IP] = mem.get(data.regs[SP]);
+		}
+		
+	}
+	
+	private class INT extends Cmd_1CP_AL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			interrupt(p1);
+		}
+		
+	}
+	
+	private class PUSH extends Cmd_1CP_AL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			mem.set(data.regs[SP], p1);
+			data.regs[SP] += 8;
+		}
+		
+	}
+	
+	private class POP extends Cmd_1NCP_AL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			data.regs[SP] -= 8;
+			setNC(data.regs[SP], p1);
+		}
+		
+	}
+	
+	private class IRET implements PVMCommand {
+		
+		@Override
+		public void execute() throws PrimitiveErrror {
+			long zw = data.regs[X_ADD + 0x09];
+			data.regs[IP] = mem.get(zw);
+			data.regs[SP] = mem.get(zw + 8);
+			data.regs[STATUS] = mem.get(zw + 16);
+			data.regs[INTCNT] = mem.get(zw + 24);
+			data.regs[INTP] = mem.get(zw + 32);
+			data.regs[FS_LOCK] = mem.get(zw + 40);
+			data.regs[X_ADD] = mem.get(zw + 48);
+			data.regs[X_ADD + 1] = mem.get(zw + 56);
+			data.regs[X_ADD + 2] = mem.get(zw + 64);
+			data.regs[X_ADD + 3] = mem.get(zw + 72);
+			data.regs[X_ADD + 4] = mem.get(zw + 80);
+			data.regs[X_ADD + 5] = mem.get(zw + 88);
+			data.regs[X_ADD + 6] = mem.get(zw + 96);
+			data.regs[X_ADD + 7] = mem.get(zw + 104);
+			data.regs[X_ADD + 8] = mem.get(zw + 112);
+			data.regs[X_ADD + 9] = mem.get(zw + 120);
+		}
+		
+	}
+	
+	private class SWAP extends Cmd_2NCP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(isregp1, p1),
+				p2v = getNC(p2);
+			setNC(isregp1, p1, p2v);
+			setNC(p2, p1v);
+		}
+		
+	}
+	
+	private class LEA extends Cmd_2NCP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			setNC(p1, p2 + data.regs[IP]);
+		}
+		
+	}
+	
+	private class MVAD extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p3 = mem.get(data.regs[IP] + len);
+			len += 8;
+			setNC(p1, p2 + p3);
+		}
+		
+	}
+	
+	private class CALO extends Cmd_1CP_1LP_NL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			mem.set(data.regs[SP], data.regs[IP]);
+			data.regs[SP] += 8;
+			data.regs[IP] = p1 + p2;
+		}
+		
+	}
+	
+	private class BCP extends Cmd_2CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long res = p1 & p2;
+			if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NONE_BITS) & ~ (STATUS_SOME_BITS | STATUS_ALL_BITS);
+			} else if (res == p2) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ALL_BITS | STATUS_SOME_BITS) & ~ (STATUS_NONE_BITS);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_SOME_BITS) & ~ (STATUS_NONE_BITS | STATUS_ALL_BITS);
+			}
+		}
+		
+	}
+	
+	private class CMPFP extends Cmd_2CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			double fp1 = Double.longBitsToDouble(p1),
+				fp2 = Double.longBitsToDouble(p2);
+			if (fp1 > fp2) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_GREATHER) & ~ (STATUS_EQUAL | STATUS_LOWER | STATUS_NAN);
+			} else if (fp1 < fp2) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_LOWER) & ~ (STATUS_GREATHER | STATUS_EQUAL | STATUS_NAN);
+			} else if (fp1 != fp2) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_GREATHER | STATUS_EQUAL | STATUS_LOWER);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_EQUAL) & ~ (STATUS_GREATHER | STATUS_LOWER | STATUS_NAN);
+			}
+		}
+		
+	}
+	
+	private class CHKFP extends Cmd_1CP_AL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			double fp1 = Double.longBitsToDouble(p1);
+			if (fp1 == Double.POSITIVE_INFINITY) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_GREATHER) & ~ (STATUS_ZERO | STATUS_LOWER | STATUS_NAN);
+			} else if (fp1 == Double.NEGATIVE_INFINITY) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_LOWER) & ~ (STATUS_GREATHER | STATUS_ZERO | STATUS_NAN);
+			} else if (fp1 != fp1) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_GREATHER | STATUS_ZERO | STATUS_LOWER);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_EQUAL) & ~ (STATUS_ZERO | STATUS_LOWER | STATUS_NAN);
+			}
+		}
+		
+	}
+	
+	// new CALL(), new CMP(), new RET(), new INT(), new PUSH(), new POP(), new IRET(), new SWAP(), new LEA(), new MVAD(), new CALO(), new BCP(), new CMPFP(), new CHKFP(), uc, uc,
+	
+	private class ADDC extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v + p2;
+			if ( (data.regs[STATUS] & STATUS_CARRY) != 0) {
+				res ++ ;
+			}
+			setNC(p1, res);
+			if (p1v > 0L && p2 > 0L) {
+				if (res < 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+				} else if (res == 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				}
+			} else if (p1v < 0L && p2 < 0L) {
+				if (res > 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+				} else if (res == 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				}
+			} else if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+			}
+		}
+		
+	}
+	
+	private class SUBC extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(p1);
+			long res = p1v - p2;
+			if ( (data.regs[STATUS] & STATUS_CARRY) != 0) {
+				res -- ;
+			}
+			setNC(p1, res);
+			if (p1v > 0L && p2 < 0L) {
+				if (res < 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+				} else if (res == 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				}
+			} else if (p1v < 0L && p2 > 0L) {
+				if (res > 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+				} else if (res == 0L) {
+					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+				} else {
+					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				}
+			} else if (res == 0L) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+			}
+		}
+		
+	}
+	
+	private class ADDFP extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			double fp1v = Double.longBitsToDouble(getNC(p1)),
+				fp2 = Double.longBitsToDouble(p2);
+			double fpres = fp1v + fp2;
+			setNC(p1, Double.doubleToRawLongBits(fpres));
+			if (fpres == 0.0D) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_NAN);
+			} else if (fpres != fpres) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_ZERO);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_NAN | STATUS_ZERO);
+			}
+		}
+		
+	}
+	
+	private class SUBFP extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			double fp1v = Double.longBitsToDouble(getNC(p1)),
+				fp2 = Double.longBitsToDouble(p2);
+			double fpres = fp1v - fp2;
+			setNC(p1, Double.doubleToRawLongBits(fpres));
+			if (fpres == 0.0D) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_NAN);
+			} else if (fpres != fpres) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_ZERO);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_NAN | STATUS_ZERO);
+			}
+		}
+		
+	}
+	
+	private class MULFP extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			double fp1v = Double.longBitsToDouble(getNC(p1)),
+				fp2 = Double.longBitsToDouble(p2);
+			double fpres = fp1v * fp2;
+			setNC(p1, Double.doubleToRawLongBits(fpres));
+			if (fpres == 0.0D) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_NAN);
+			} else if (fpres != fpres) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_ZERO);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_NAN | STATUS_ZERO);
+			}
+		}
+		
+	}
+	
+	private class DIVFP extends Cmd_1NCP_1CP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			double fp1v = Double.longBitsToDouble(getNC(p1)),
+				fp2 = Double.longBitsToDouble(p2);
+			double fpres = fp1v / fp2;
+			setNC(p1, Double.doubleToRawLongBits(fpres));
+			if (fpres == 0.0D) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_NAN);
+			} else if (fpres != fpres) {
+				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_ZERO);
+			} else {
+				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_NAN | STATUS_ZERO);
+			}
+		}
+		
+	}
+	
+	private class NTFP extends Cmd_1NCP_AL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			double fpres = (double) getNC(p1);
+			setNC(p1, Double.doubleToRawLongBits(fpres));
+		}
+		
+	}
+	
+	private class FPTN extends Cmd_1NCP_AL {
+		
+		@Override
+		protected void exec(long p1) throws PrimitiveErrror {
+			long res = (long) Double.longBitsToDouble(getNC(p1));
+			setNC(p1, res);
+		}
+		
+	}
+	
+	private class UDIV extends Cmd_2NCP_AL {
+		
+		@Override
+		protected void exec(long p1, long p2) throws PrimitiveErrror {
+			long p1v = getNC(isregp1, p1),
+				p2v = getNC(p2);
+			long np1 = Long.divideUnsigned(p1v, p2v),
+				np2 = Long.remainderUnsigned(p1v, p2v);
+			setNC(isregp1, p1, np1);
+			setNC(p2, np2);
+		}
+		
+	}
+	
+	// new ADDC(), new SUBC(), new ADDFP(), new SUBFP(), new MULFP(), new DIVFP(), new NTFP(), new FPTN(), new UDIV(), uc, uc, uc, uc, uc, uc, uc,
 	
 }

@@ -1,47 +1,36 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.enums;
 
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.*;
+
 import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoCommandException;
 
 public enum Commands {
 	
-	//@formatter:off
-	CMD_MOV(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.MOV),
-	CMD_ADD(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.ADD), CMD_SUB(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.SUB),
-	CMD_MUL(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.MUL), CMD_DIV(ParamArt.twoParamsNoConsts, CmdNums.DIV),
-	CMD_AND(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.AND), CMD_OR(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.OR), CMD_XOR(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.XOR),
-	CMD_NOT(ParamArt.oneParamNoConst, CmdNums.NOT), CMD_NEG(ParamArt.oneParamNoConst, CmdNums.NEG),
-	CMD_LSH(ParamArt.oneParamNoConst, CmdNums.LSH), CMD_RLSH(ParamArt.oneParamNoConst, CmdNums.RLSH), CMD_RASH(ParamArt.oneParamNoConst, CmdNums.RASH),
-	CMD_DEC(ParamArt.oneParamNoConst, CmdNums.DEC), CMD_INC(ParamArt.oneParamNoConst, CmdNums.INC),
+	CMD_MOV(ParamArt.twoParamsP1NoConstP2AllowConst, MOV), CMD_ADD(ParamArt.twoParamsP1NoConstP2AllowConst, ADD), CMD_SUB(ParamArt.twoParamsP1NoConstP2AllowConst, SUB),
+	CMD_MUL(ParamArt.twoParamsP1NoConstP2AllowConst, MUL), CMD_DIV(ParamArt.twoParamsNoConsts, DIV), CMD_AND(ParamArt.twoParamsP1NoConstP2AllowConst, AND), CMD_OR(ParamArt.twoParamsP1NoConstP2AllowConst, OR),
+	CMD_XOR(ParamArt.twoParamsP1NoConstP2AllowConst, XOR), CMD_NOT(ParamArt.oneParamNoConst, NOT), CMD_NEG(ParamArt.oneParamNoConst, NEG), CMD_LSH(ParamArt.twoParamsP1NoConstP2AllowConst, LSH),
+	CMD_RLSH(ParamArt.twoParamsP1NoConstP2AllowConst, RLSH), CMD_RASH(ParamArt.twoParamsP1NoConstP2AllowConst, RASH), CMD_DEC(ParamArt.oneParamNoConst, DEC), CMD_INC(ParamArt.oneParamNoConst, INC),
 	
 	
-	CMD_JMP(ParamArt.label, CmdNums.JMP), CMD_JMPEQ(ParamArt.label, CmdNums.JMPEQ), CMD_JMPNE(ParamArt.label, CmdNums.JMPNE), CMD_JMPGT(ParamArt.label, CmdNums.JMPGT),
-	CMD_JMPGE(ParamArt.label, CmdNums.JMPGE), CMD_JMPLT(ParamArt.label, CmdNums.JMPLT), CMD_JMPLE(ParamArt.label, CmdNums.JMPLE),
-	CMD_JMPCS(ParamArt.label, CmdNums.JMPCS), CMD_JMPCC(ParamArt.label, CmdNums.JMPCC), CMD_JMPZS(ParamArt.label, CmdNums.JMPZS), CMD_JMPZC(ParamArt.label, CmdNums.JMPZC),
-	
-	CMD_CALL(ParamArt.label, CmdNums.CALL),
-	
-	CMD_CMP(ParamArt.twoParamsAllowConsts, CmdNums.CMP),
-	CMD_RET(ParamArt.noParams, CmdNums.RET), CMD_INT(ParamArt.oneParamAllowConst, CmdNums.INT),
-	CMD_PUSH(ParamArt.oneParamAllowConst, CmdNums.PUSH), CMD_POP(ParamArt.oneParamNoConst, CmdNums.POP),
-	CMD_SET_IP(ParamArt.oneParamAllowConst, CmdNums.SET_IP), CMD_SET_SP(ParamArt.oneParamAllowConst, CmdNums.SET_SP),
-	CMD_GET_IP(ParamArt.oneParamNoConst, CmdNums.GET_IP), CMD_GET_SP(ParamArt.oneParamNoConst, CmdNums.GET_SP),
-	CMD_GET_INTS(ParamArt.oneParamNoConst, CmdNums.GET_INTS),
-	CMD_SET_INTS(ParamArt.oneParamAllowConst, CmdNums.SET_INTS),
-	CMD_IRET(ParamArt.noParams, CmdNums.IRET),
-	CMD_GET_INTCNT(ParamArt.oneParamNoConst, CmdNums.GET_INTCNT), CMD_SET_INTCNT(ParamArt.oneParamAllowConst, CmdNums.SET_INTCNT),
-	CMD_SWAP(ParamArt.twoParamsNoConsts, CmdNums.SWAP),
+	CMD_JMP(ParamArt.label, JMP), CMD_JMPEQ(ParamArt.label, JMPEQ), CMD_JMPNE(ParamArt.label, JMPNE), CMD_JMPGT(ParamArt.label, JMPGT), CMD_JMPGE(ParamArt.label, JMPGE), CMD_JMPLT(ParamArt.label, JMPLT),
+	CMD_JMPLE(ParamArt.label, JMPLE), CMD_JMPCS(ParamArt.label, JMPCS), CMD_JMPCC(ParamArt.label, JMPCC), CMD_JMPZS(ParamArt.label, JMPZS), CMD_JMPZC(ParamArt.label, JMPZC), CMD_JMPNAN(ParamArt.label, JMPNAN),
+	CMD_JMPAN(ParamArt.label, JMPAN),
 	
 	
-	CMD_ADDC(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.ADDC), CMD_SUBC(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.SUBC),
-	CMD_ADDFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.ADDFP), CMD_SUBFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.SUBFP),
-	CMD_MULFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.MULFP), CMD_DIVFP(ParamArt.twoParamsP1NoConstP2AllowConst, CmdNums.DIVFP),
-	CMD_NTFP(ParamArt.oneParamNoConst, CmdNums.NTFP), CMD_FPTN(ParamArt.oneParamNoConst, CmdNums.FPTN),
+	CMD_CALL(ParamArt.label, CALL), CMD_CMP(ParamArt.twoParamsAllowConsts, CMP), CMD_RET(ParamArt.noParams, RET), CMD_INT(ParamArt.oneParamAllowConst, INT), CMD_PUSH(ParamArt.oneParamAllowConst, PUSH),
+	CMD_POP(ParamArt.oneParamNoConst, POP), CMD_IRET(ParamArt.noParams, IRET), CMD_SWAP(ParamArt.twoParamsNoConsts, SWAP), CMD_LEA(ParamArt.twoParamsP1NoConstP2AllowConst, LEA),
+	CMD_MVAD(ParamArt.threeParamsP1NoConstP2AllowConstP3CompileConst, MVAD), CMD_CALO(ParamArt.twoParamsP1NoConstP2CompileConst, CALO), CMD_BCP(ParamArt.twoParamsAllowConsts, BCP),
+	CMD_CMPFP(ParamArt.twoParamsAllowConsts, CMPFP), CMD_CHKFP(ParamArt.oneParamAllowConst, CHKFP),
+	
+	
+	CMD_ADDC(ParamArt.twoParamsP1NoConstP2AllowConst, ADDC), CMD_SUBC(ParamArt.twoParamsP1NoConstP2AllowConst, SUBC), CMD_ADDFP(ParamArt.twoParamsP1NoConstP2AllowConst, ADDFP),
+	CMD_SUBFP(ParamArt.twoParamsP1NoConstP2AllowConst, SUBFP), CMD_MULFP(ParamArt.twoParamsP1NoConstP2AllowConst, MULFP), CMD_DIVFP(ParamArt.twoParamsP1NoConstP2AllowConst, DIVFP),
+	CMD_NTFP(ParamArt.oneParamNoConst, NTFP), CMD_FPTN(ParamArt.oneParamAllowConst, FPTN), CMD_UDIV(ParamArt.twoParamsNoConsts, UDIV),
 	
 	;
-	//@formatter:on
 	
 	public final ParamArt art;
-	public final int num;
+	public final int      num;
 	
 	private Commands(ParamArt art, int num) {
 		this.art = art;
@@ -55,7 +44,10 @@ public enum Commands {
 		
 		oneParamNoConst, oneParamAllowConst,
 		
-		twoParamsNoConsts, twoParamsP1NoConstP2AllowConst, twoParamsAllowConsts
+		twoParamsNoConsts, twoParamsP1NoConstP2AllowConst, twoParamsAllowConsts, twoParamsP1NoConstP2CompileConst,
+		
+		threeParamsP1NoConstP2AllowConstP3CompileConst,
+	
 	}
 	
 	@Override
@@ -67,110 +59,37 @@ public enum Commands {
 		return this.num;
 	}
 	
-	public static Commands get(byte b) throws NoCommandException {
-		switch (0xFF & b) {
-		case CmdNums.MOV:
-			return Commands.CMD_MOV;
-		case CmdNums.ADD:
-			return Commands.CMD_ADD;
-		case CmdNums.SUB:
-			return Commands.CMD_SUB;
-		case CmdNums.MUL:
-			return Commands.CMD_MUL;
-		case CmdNums.DIV:
-			return Commands.CMD_DIV;
-		case CmdNums.AND:
-			return Commands.CMD_AND;
-		case CmdNums.OR:
-			return Commands.CMD_OR;
-		case CmdNums.XOR:
-			return Commands.CMD_XOR;
-		case CmdNums.NOT:
-			return Commands.CMD_NOT;
-		case CmdNums.NEG:
-			return Commands.CMD_NEG;
-		case CmdNums.LSH:
-			return Commands.CMD_LSH;
-		case CmdNums.RLSH:
-			return Commands.CMD_RLSH;
-		case CmdNums.RASH:
-			return Commands.CMD_RASH;
-		case CmdNums.DEC:
-			return Commands.CMD_DEC;
-		case CmdNums.INC:
-			return Commands.CMD_INC;
-		case CmdNums.JMP:
-			return Commands.CMD_JMP;
-		case CmdNums.JMPEQ:
-			return Commands.CMD_JMPEQ;
-		case CmdNums.JMPNE:
-			return Commands.CMD_JMPNE;
-		case CmdNums.JMPGT:
-			return Commands.CMD_JMPGT;
-		case CmdNums.JMPGE:
-			return Commands.CMD_JMPGE;
-		case CmdNums.JMPLT:
-			return Commands.CMD_JMPLT;
-		case CmdNums.JMPLE:
-			return Commands.CMD_JMPLE;
-		case CmdNums.JMPCS:
-			return Commands.CMD_JMPCS;
-		case CmdNums.JMPCC:
-			return Commands.CMD_JMPCC;
-		case CmdNums.JMPZS:
-			return Commands.CMD_JMPZS;
-		case CmdNums.JMPZC:
-			return Commands.CMD_JMPZC;
-		case CmdNums.CALL:
-			return Commands.CMD_CALL;
-		case CmdNums.CMP:
-			return Commands.CMD_CMP;
-		case CmdNums.RET:
-			return Commands.CMD_RET;
-		case CmdNums.INT:
-			return Commands.CMD_INT;
-		case CmdNums.PUSH:
-			return Commands.CMD_PUSH;
-		case CmdNums.POP:
-			return Commands.CMD_POP;
-		case CmdNums.SET_IP:
-			return Commands.CMD_SET_IP;
-		case CmdNums.SET_SP:
-			return Commands.CMD_SET_SP;
-		case CmdNums.GET_IP:
-			return Commands.CMD_GET_IP;
-		case CmdNums.GET_SP:
-			return Commands.CMD_GET_SP;
-		case CmdNums.GET_INTS:
-			return Commands.CMD_GET_INTS;
-		case CmdNums.SET_INTS:
-			return Commands.CMD_SET_INTS;
-		case CmdNums.IRET:
-			return Commands.CMD_IRET;
-		case CmdNums.GET_INTCNT:
-			return Commands.CMD_GET_INTCNT;
-		case CmdNums.SET_INTCNT:
-			return Commands.CMD_SET_INTCNT;
-		case CmdNums.SWAP:
-			return Commands.CMD_SWAP;
-		case CmdNums.ADDC:
-			return Commands.CMD_ADDC;
-		case CmdNums.SUBC:
-			return Commands.CMD_SUBC;
-		case CmdNums.ADDFP:
-			return Commands.CMD_ADDFP;
-		case CmdNums.SUBFP:
-			return Commands.CMD_SUBFP;
-		case CmdNums.MULFP:
-			return Commands.CMD_MULFP;
-		case CmdNums.DIVFP:
-			return Commands.CMD_DIVFP;
-		case CmdNums.NTFP:
-			return Commands.CMD_NTFP;
-		case CmdNums.FPTN:
-			return Commands.CMD_FPTN;
+	private static final Commands[] COMMANDS = new Commands[] {
+		null, CMD_MOV, CMD_ADD, CMD_SUB, CMD_MUL, CMD_DIV, CMD_AND, CMD_OR, CMD_XOR, CMD_NOT, CMD_NEG, CMD_LSH, CMD_RLSH, CMD_RASH, CMD_DEC, CMD_INC,
+		CMD_JMP, CMD_JMPEQ, CMD_JMPNE, CMD_JMPGT, CMD_JMPGE, CMD_JMPLT, CMD_JMPLE, CMD_JMPCS, CMD_JMPCC, CMD_JMPZS, CMD_JMPZC, CMD_JMPNAN, CMD_JMPAN, null, null, null,
+		CMD_CALL, CMD_CMP, CMD_RET, CMD_INT, CMD_PUSH, CMD_POP, CMD_IRET, CMD_SWAP, CMD_LEA, CMD_MVAD, CMD_CALO, CMD_BCP, CMD_CMPFP, CMD_CHKFP, null, null,
+		CMD_ADDC, CMD_SUBC, CMD_ADDFP, CMD_SUBFP, CMD_MULFP, CMD_DIVFP, CMD_NTFP, CMD_FPTN, CMD_UDIV, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+		null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null,
+	};
+	
+	static {
+		if (COMMANDS.length != 256) {
+			throw new AssertionError("commands length != 256: " + COMMANDS.length);
 		}
-		throw new NoCommandException("this byte does not show a command! byte=0x" + Integer.toHexString(0xFF & b));
+	}
+	
+	public static Commands get(byte b) throws NoCommandException {
+		Commands cmd = COMMANDS[0xFF & b];
+		if (cmd == null) {
+			throw new NoCommandException("this byte does not show a command! byte=0x" + Integer.toHexString(0xFF & b));
+		}
+		return cmd;
 	}
 	
 }

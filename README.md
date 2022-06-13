@@ -119,133 +119,133 @@ the assembler language for the Primitive-Virtual-Machine
         * then it will be deleted as normal and as export constant
     * to change a normal constant to an export constant, just redefine it: `#EXP~<NAME> <NAME>`
 * predefined constants:
-<code><pre>
-        --POS--                               the actual length of the binary code in bytes
-        INT_ERRORS_ILLEGAL_INTERRUPT          0
-        INT_ERRORS_UNKNOWN_COMMAND            1
-        INT_ERRORS_ILLEGAL_MEMORY             2
-        INT_ERRORS_ARITHMETIC_ERROR           3
-        INT_EXIT                              4
-        INT_MEMORY_ALLOC                      5
-        INT_MEMORY_REALLOC                    6
-        INT_MEMORY_FREE                       7
-        INT_STREAMS_NEW_IN                    8
-        INT_STREAMS_NEW_OUT                   9
-        INT_STREAMS_NEW_APPEND                10
-        INT_STREAMS_NEW_IN_OUT                11
-        INT_STREAMS_NEW_IN_APPEND             12
-        INT_STREAMS_WRITE                     13
-        INT_STREAMS_READ                      14
-        INT_STREAMS_CLOSE_STREAM              15
-        INT_FS_GET_FILE                       16
-        INT_FS_GET_FOLDER                     17
-        INT_FS_GET_LINK                       18
-        INT_FS_IS_FILE                        19
-        INT_FS_IS_FOLDER                      20
-        INT_FS_IS_LINK                        21
-        INT_FS_ELEMENT_GET_PARENT             22
-        INT_FS_ELEMENT_GET_PARENT_ID          23
-        INT_FS_ELEMENT_FROM_ID                24
-        INT_FS_ELEMENT_GET_CREATE             25
-        INT_FS_ELEMENT_GET_LAST_MOD           26
-        INT_FS_ELEMENT_GET_LAST_META_MOD      27
-        INT_FS_ELEMENT_SET_CREATE             28
-        INT_FS_ELEMENT_SET_LAST_MOD           29
-        INT_FS_ELEMENT_SET_LAST_META_MOD      30
-        INT_FS_ELEMENT_GET_LOCK_DATA          31
-        INT_FS_ELEMENT_GET_LOCK_TIME          32
-        INT_FS_ELEMENT_LOCK                   33
-        INT_FS_ELEMENT_UNLOCK                 34
-        INT_FS_ELEMENT_DELETE                 35
-        INT_FS_ELEMENT_MOVE                   36
-        INT_FS_ELEMENT_GET_FLAGS              37
-        INT_FS_ELEMENT_MOD_FLAGS              38
-        INT_FS_FOLDER_CHILD_COUNT             39
-        INT_FS_FOLDER_GET_CHILD_OF_INDEX      40
-        INT_FS_FOLDER_GET_CHILD_OF_NAME       41
-        INT_FS_FOLDER_ADD_FOLDER              42
-        INT_FS_FOLDER_ADD_FILE                43
-        INT_FS_FOLDER_ADD_LINK                44
-        INT_FS_FILE_LENGTH                    45
-        INT_FS_FILE_HASH                      46
-        INT_FS_FILE_READ                      47
-        INT_FS_FILE_WRITE                     48
-        INT_FS_FILE_APPEND                    49
-        INT_FS_FILE_REM_CONTENT               50
-        INT_FS_FILE_TRUNCATE                  51
-        INT_FS_LINK_GET_TARGET                52
-        INT_FS_LINK_SET_TARGET                53
-        INT_FS_FILE_CREATE                    54
-        INT_FS_FOLDER_CREATE                  55
-        INT_FS_LINK_CREATE                    56
-        INT_FS_LOCK                           57
-        INT_FS_UNLOCK                         58
-        INT_FS_BLOCK                          59
-        INT_FS_UNBLOCK                        60
-        INT_TIME_GET                          61
-        INT_TIME_WAIT                         62
-        INT_RANDOM                            63
-        INT_MEMORY_COPY                       64
-        INT_MEMORY_MOVE                       65
-        INT_MEMORY_BSET                       66
-        INT_MEMORY_SET                        67
-        INT_STRING_LENGTH                     68
-        INT_STRING_COMPARE                    69
-        INT_NUMBER_TO_STRING                  70
-        INT_FPNUMBER_TO_STRING                71
-        INT_STRING_TO_NUMBER                  72
-        INT_STRING_TO_FPNUMBER                73
-        INT_STRING_FORMAT                     74
-        INT_LOAD_FILE                         75
-        INTERRUPT_COUNT                       76
-        MAX_VALUE                         HEX-7FFFFFFFFFFFFFFF
-        MIN_VALUE                        NHEX-8000000000000000
-        STD_IN                                0
-        STD_OUT                               1
-        STD_LOG                               2
-        FS_STREAM_OFFSET_FILE                 0
-        FS_STREAM_OFFSET_POS                  8
-        FS_ELEMENT_OFFSET_ID                  0
-        FS_ELEMENT_OFFSET_LOCK                8
-        LOCK_NO_READ_ALLOWED             UHEX-0000000100000000
-        LOCK_NO_WRITE_ALLOWED_LOCK       UHEX-0000000200000000
-        LOCK_NO_DELETE_ALLOWED_LOCK      UHEX-0000000400000000
-        LOCK_NO_META_CHANGE_ALLOWED_LOCK UHEX-0000000800000000
-        LOCK_SHARED_LOCK                 UHEX-4000000000000000
-        LOCK_LOCKED_LOCK                 UHEX-8000000000000000
-        LOCK_NO_LOCK                     UHEX-0000000000000000
-        FLAG_FOLDER                       HEX-00000001
-        FLAG_FILE                         HEX-00000002
-        FLAG_LINK                         HEX-00000004
-        FLAG_READ_ONLY                    HEX-00000008
-        FLAG_EXECUTABLE                   HEX-00000010
-        FLAG_HIDDEN                       HEX-00000020
-        FLAG_FOLDER_SORTED                HEX-00000040
-        FLAG_FILE_ENCRYPTED               HEX-00000080
-        FP_NAN                           UHEX-7FFE000000000000
-        FP_MAX_VALUE                     UHEX-7FEFFFFFFFFFFFFF
-        FP_MIN_VALUE                     UHEX-0000000000000001
-        FP_POS_INFINITY                  UHEX-7FF0000000000000
-        FP_NEG_INFINITY                  UHEX-FFF0000000000000
-        STATUS_LOWER                     UHEX-0000000000000001
-        STATUS_GREATHER                  UHEX-0000000000000002
-        STATUS_EQUAL                     UHEX-0000000000000004
-        STATUS_CARRY                     UHEX-0000000000000008
-        STATUS_ZERO                      UHEX-0000000000000010
-        STATUS_NAN                       UHEX-0000000000000020
-        STATUS_ALL_BITS                  UHEX-0000000000000040
-        STATUS_SOME_BITS                 UHEX-0000000000000080
-        STATUS_NONE_BITS                 UHEX-0000000000000100
-        STATUS_ELEMENT_WRONG_TYPE        UHEX-0040000000000000
-        STATUS_ELEMENT_NOT_EXIST         UHEX-0080000000000000
-        STATUS_ELEMENT_ALREADY_EXIST     UHEX-0100000000000000
-        STATUS_OUT_OF_SPACE              UHEX-0200000000000000
-        STATUS_READ_ONLY                 UHEX-0400000000000000
-        STATUS_ELEMENT_LOCKED            UHEX-0800000000000000
-        STATUS_IO_ERR                    UHEX-1000000000000000
-        STATUS_ILLEGAL_ARG               UHEX-2000000000000000
-        STATUS_OUT_OF_MEMORY             UHEX-4000000000000000
-        STATUS_ERROR                     UHEX-8000000000000000
+<pre><code>
+    --POS--                               the actual length of the binary code in bytes
+    INT_ERRORS_ILLEGAL_INTERRUPT          0
+    INT_ERRORS_UNKNOWN_COMMAND            1
+    INT_ERRORS_ILLEGAL_MEMORY             2
+    INT_ERRORS_ARITHMETIC_ERROR           3
+    INT_EXIT                              4
+    INT_MEMORY_ALLOC                      5
+    INT_MEMORY_REALLOC                    6
+    INT_MEMORY_FREE                       7
+    INT_STREAMS_NEW_IN                    8
+    INT_STREAMS_NEW_OUT                   9
+    INT_STREAMS_NEW_APPEND                10
+    INT_STREAMS_NEW_IN_OUT                11
+    INT_STREAMS_NEW_IN_APPEND             12
+    INT_STREAMS_WRITE                     13
+    INT_STREAMS_READ                      14
+    INT_STREAMS_CLOSE_STREAM              15
+    INT_FS_GET_FILE                       16
+    INT_FS_GET_FOLDER                     17
+    INT_FS_GET_LINK                       18
+    INT_FS_IS_FILE                        19
+    INT_FS_IS_FOLDER                      20
+    INT_FS_IS_LINK                        21
+    INT_FS_ELEMENT_GET_PARENT             22
+    INT_FS_ELEMENT_GET_PARENT_ID          23
+    INT_FS_ELEMENT_FROM_ID                24
+    INT_FS_ELEMENT_GET_CREATE             25
+    INT_FS_ELEMENT_GET_LAST_MOD           26
+    INT_FS_ELEMENT_GET_LAST_META_MOD      27
+    INT_FS_ELEMENT_SET_CREATE             28
+    INT_FS_ELEMENT_SET_LAST_MOD           29
+    INT_FS_ELEMENT_SET_LAST_META_MOD      30
+    INT_FS_ELEMENT_GET_LOCK_DATA          31
+    INT_FS_ELEMENT_GET_LOCK_TIME          32
+    INT_FS_ELEMENT_LOCK                   33
+    INT_FS_ELEMENT_UNLOCK                 34
+    INT_FS_ELEMENT_DELETE                 35
+    INT_FS_ELEMENT_MOVE                   36
+    INT_FS_ELEMENT_GET_FLAGS              37
+    INT_FS_ELEMENT_MOD_FLAGS              38
+    INT_FS_FOLDER_CHILD_COUNT             39
+    INT_FS_FOLDER_GET_CHILD_OF_INDEX      40
+    INT_FS_FOLDER_GET_CHILD_OF_NAME       41
+    INT_FS_FOLDER_ADD_FOLDER              42
+    INT_FS_FOLDER_ADD_FILE                43
+    INT_FS_FOLDER_ADD_LINK                44
+    INT_FS_FILE_LENGTH                    45
+    INT_FS_FILE_HASH                      46
+    INT_FS_FILE_READ                      47
+    INT_FS_FILE_WRITE                     48
+    INT_FS_FILE_APPEND                    49
+    INT_FS_FILE_REM_CONTENT               50
+    INT_FS_FILE_TRUNCATE                  51
+    INT_FS_LINK_GET_TARGET                52
+    INT_FS_LINK_SET_TARGET                53
+    INT_FS_FILE_CREATE                    54
+    INT_FS_FOLDER_CREATE                  55
+    INT_FS_LINK_CREATE                    56
+    INT_FS_LOCK                           57
+    INT_FS_UNLOCK                         58
+    INT_FS_BLOCK                          59
+    INT_FS_UNBLOCK                        60
+    INT_TIME_GET                          61
+    INT_TIME_WAIT                         62
+    INT_RANDOM                            63
+    INT_MEMORY_COPY                       64
+    INT_MEMORY_MOVE                       65
+    INT_MEMORY_BSET                       66
+    INT_MEMORY_SET                        67
+    INT_STRING_LENGTH                     68
+    INT_STRING_COMPARE                    69
+    INT_NUMBER_TO_STRING                  70
+    INT_FPNUMBER_TO_STRING                71
+    INT_STRING_TO_NUMBER                  72
+    INT_STRING_TO_FPNUMBER                73
+    INT_STRING_FORMAT                     74
+    INT_LOAD_FILE                         75
+    INTERRUPT_COUNT                       76
+    MAX_VALUE                         HEX-7FFFFFFFFFFFFFFF
+    MIN_VALUE                        NHEX-8000000000000000
+    STD_IN                                0
+    STD_OUT                               1
+    STD_LOG                               2
+    FS_STREAM_OFFSET_FILE                 0
+    FS_STREAM_OFFSET_POS                  8
+    FS_ELEMENT_OFFSET_ID                  0
+    FS_ELEMENT_OFFSET_LOCK                8
+    LOCK_NO_READ_ALLOWED             UHEX-0000000100000000
+    LOCK_NO_WRITE_ALLOWED_LOCK       UHEX-0000000200000000
+    LOCK_NO_DELETE_ALLOWED_LOCK      UHEX-0000000400000000
+    LOCK_NO_META_CHANGE_ALLOWED_LOCK UHEX-0000000800000000
+    LOCK_SHARED_LOCK                 UHEX-4000000000000000
+    LOCK_LOCKED_LOCK                 UHEX-8000000000000000
+    LOCK_NO_LOCK                     UHEX-0000000000000000
+    FLAG_FOLDER                       HEX-00000001
+    FLAG_FILE                         HEX-00000002
+    FLAG_LINK                         HEX-00000004
+    FLAG_READ_ONLY                    HEX-00000008
+    FLAG_EXECUTABLE                   HEX-00000010
+    FLAG_HIDDEN                       HEX-00000020
+    FLAG_FOLDER_SORTED                HEX-00000040
+    FLAG_FILE_ENCRYPTED               HEX-00000080
+    FP_NAN                           UHEX-7FFE000000000000
+    FP_MAX_VALUE                     UHEX-7FEFFFFFFFFFFFFF
+    FP_MIN_VALUE                     UHEX-0000000000000001
+    FP_POS_INFINITY                  UHEX-7FF0000000000000
+    FP_NEG_INFINITY                  UHEX-FFF0000000000000
+    STATUS_LOWER                     UHEX-0000000000000001
+    STATUS_GREATHER                  UHEX-0000000000000002
+    STATUS_EQUAL                     UHEX-0000000000000004
+    STATUS_CARRY                     UHEX-0000000000000008
+    STATUS_ZERO                      UHEX-0000000000000010
+    STATUS_NAN                       UHEX-0000000000000020
+    STATUS_ALL_BITS                  UHEX-0000000000000040
+    STATUS_SOME_BITS                 UHEX-0000000000000080
+    STATUS_NONE_BITS                 UHEX-0000000000000100
+    STATUS_ELEMENT_WRONG_TYPE        UHEX-0040000000000000
+    STATUS_ELEMENT_NOT_EXIST         UHEX-0080000000000000
+    STATUS_ELEMENT_ALREADY_EXIST     UHEX-0100000000000000
+    STATUS_OUT_OF_SPACE              UHEX-0200000000000000
+    STATUS_READ_ONLY                 UHEX-0400000000000000
+    STATUS_ELEMENT_LOCKED            UHEX-0800000000000000
+    STATUS_IO_ERR                    UHEX-1000000000000000
+    STATUS_ILLEGAL_ARG               UHEX-2000000000000000
+    STATUS_OUT_OF_MEMORY             UHEX-4000000000000000
+    STATUS_ERROR                     UHEX-8000000000000000
 </code></pre>
 
 ## STRINGS
@@ -268,12 +268,12 @@ the assembler language for the Primitive-Virtual-Machine
 `~ELSE-IF [CONST_EXPRESSION]`
 * to end and start a conditional block
     * this can only be used when the code is currently in a `~IF` or `~ELSE-IF` block
-    * the code in the block will be ignored if the `[CONST_EXPRESSION]` is `zero` or if any previosly block in the currently `~IF` `~ELSE-IF *` row was not ignored
+    * the code in the block will be ignored if the `[CONST_EXPRESSION]` is `zero` or if any previously block in the currently `~IF [COND] ... (~ELSE-IF [COND] ...) *` row was not ignored
 
 `~ELSE`
 * to end and start a conditional block
     * this can only be used when the code is currently in a `~IF` or `~ELSE-IF` block
-    * the code in the block will be ignored if any previosly block in the currently `~IF` `~ELSE-IF *` row was not ignored
+    * the code in the block will be ignored if any previously block in the currently `~IF [COND] ... (~ELSE-IF [COND] ...) *` row was not ignored
 
 `~ENDIF`
 * to end a conditional block
@@ -442,7 +442,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `if p1 = 0`
         * `CARRY <- 0`
         * `ZERO <- 1`
-    * `if p1 = #MIN-VALUE`
+    * `if p1 = UHEX-8000000000000000`
         * `CARRY <- 1`
         * `ZERO <- 0`
     * `else`
@@ -458,7 +458,7 @@ the assembler language for the Primitive-Virtual-Machine
 `LSH <NO_CONST_PARAM>, <PARAM>`
 * shifts bits of the parameter logically left
 * definition:
-    * `if ((p1 << p2) >> p2) = p1`
+    * `if ((p1 << p2) >>> p2) = p1`
         * `CARRY <- 0`
     * `else`
         * `CARRY <- 1`
@@ -788,7 +788,6 @@ the assembler language for the Primitive-Virtual-Machine
         * exits with `(128 + illegal_interrup_number)` (without calling the exit interrupt)
         * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `128`
     * `1`: unknown command
-        * `X00` contains the illegal command
         * exits with `7` (without calling the exit interrupt)
     * `2`: illegal memory
         * exits with `6` (without calling the exit interrupt)
@@ -1621,23 +1620,23 @@ the assembler language for the Primitive-Virtual-Machine
 `IRET`
 * returns from an interrupt
 * definition:
-    * `ZW     <- X0A`
-    * `IP     <- [X0A]`
-    * `SP     <- [X0A + 8]`
-    * `STATUS <- [X0A + 16]`
-    * `INTCNT <- [X0A + 24]`
-    * `INTP   <- [X0A + 32]`
-    * `X00    <- [X0A + 40]`
-    * `X01    <- [X0A + 48]`
-    * `X02    <- [X0A + 56]`
-    * `X03    <- [X0A + 64]`
-    * `X04    <- [X0A + 72]`
-    * `X05    <- [X0A + 80]`
-    * `X06    <- [X0A + 88]`
-    * `X07    <- [X0A + 98]`
-    * `X08    <- [X0A + 104]`
-    * `X09    <- [X0A + 112]`
-    * `X0A    <- [X0A + 120]`
+    * `ZW      <- X09`
+    * `IP      <- [X09]`
+    * `SP      <- [X09 + 8]`
+    * `STATUS  <- [X09 + 16]`
+    * `INTCNT  <- [X09 + 24]`
+    * `INTP    <- [X09 + 32]`
+    * `FS_LOCK <- [X09 + 40]`
+    * `X00     <- [X09 + 48]`
+    * `X01     <- [X09 + 56]`
+    * `X02     <- [X09 + 64]`
+    * `X03     <- [X09 + 72]`
+    * `X04     <- [X09 + 80]`
+    * `X05     <- [X09 + 88]`
+    * `X06     <- [X09 + 98]`
+    * `X07     <- [X09 + 104]`
+    * `X08     <- [X09 + 112]`
+    * `X09     <- [X09 + 120]`
     * `FREE ZW`
         * this does not use the free interrupt, but works like the default free interrupt (without calling the interrupt (what could cause an infinite recursion))
 * binary:
@@ -1702,7 +1701,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `ALL_BITS <- 0`
         * `SOME_BITS <- 0`
         * `NONE_BITS <- 1`
-    * `else if (p1 & p2) = p2
+    * `else if (p1 & p2) = p2`
         * `ALL_BITS <- 1`
         * `SOME_BITS <- 1`
         * `NONE_BITS <- 0`
@@ -1749,7 +1748,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P2.OFF_NUM]`
 
 `CHKFP <PARAM>`
-* checks weater the floating point param is a positive and negative infinity and for NaN
+* checks if the floating point param is a positive, negative infinity, NaN or normal value
 * definition:
     * `if p1 is positive-infinity`
         * `GREATHER <- 1`
@@ -1780,11 +1779,12 @@ the assembler language for the Primitive-Virtual-Machine
 `ADDC <NO_CONST_PARAM> , <PARAM>`
 * adds the values of both parameters and the carry flag and stores the sum in the first parameter
 * definition:
+	* `ZW <- p1 + (p2 + CARRY)`
     * `if ((p1 > 0) & ((p2 + CARRY) > 0) & ((p1 + p2 + CARRY) < 0)) | ((p1 < 0) & ((p2 + CARRY) < 0) & ((p1 + (p2 + CARRY)) > 0))`
         * `CARRY <- 1`
     * `else`
         * `CARRY <- 0`
-    * `p1 <- p1 + (p2 + CARRY)`
+    * `p1 <- ZW`
     * `if p1 = 0`
         * `ZERO <- 1`
     * `else`
@@ -1800,11 +1800,12 @@ the assembler language for the Primitive-Virtual-Machine
 `SUBC <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second parameter with the carry flag from the first parameter and stores the result in the first parameter
 * definition:
+    * `ZW <- p1 - (p2 + CARRY)`
     * `if (p1 > 0) & ((p2 + CARRY) < 0) & ((p1 - (p2 + CARRY)) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - (p2 + CARRY)) > 0))`
         * `CARRY <- 1`
     * `else`
         * `CARRY <- 0`
-    * `p1 <- p1 - (p2 + CARRY)`
+    * `p1 <- ZW`
     * `if p1 = 0`
         * `ZERO <- 1`
     * `else`
@@ -1920,22 +1921,6 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
-`UMUL <NO_CONST_PARAM> , <PARAM>`
-* like MUL, but uses the parameters as unsigned parameters
-* definition:
-    * `p1 <- p1 u-mul p2`
-        * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `38 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
 `UDIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
 * like DIV, but uses the parameters as unsigned parameters
 * definition:
@@ -1943,7 +1928,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p2 <- p1 umod p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `39 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `38 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`

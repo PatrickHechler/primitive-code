@@ -5,7 +5,6 @@
 |       * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `63`
 INT_ERRORS_ILLEGAL_INTERRUPT=0
 |   * `1`: unknown command
-|       * `X00` contains the illegal command
 |       * calls the exit interrupt with `62`
 INT_ERRORS_UNKNOWN_COMMAND=1
 |   * `2`: illegal memory

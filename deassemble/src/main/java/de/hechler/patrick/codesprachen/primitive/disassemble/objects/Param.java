@@ -1,38 +1,40 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
+
 import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoCommandException;
 
 public class Param {
 	
-	public static final int PARAM_BASE = 0x01;
-	public static final int PARAM_A_NUM = 0x00;
-	public static final int PARAM_A_SR = 0x02;
-	public static final int PARAM_NO_B = 0x00;
-	public static final int PARAM_B_REG = 0x04;
-	public static final int PARAM_B_NUM = 0x08;
-	public static final int PARAM_B_SR = 0x0C;
+//	public static final int PARAM_BASE  = PARAM_PART_BASE;
+//	public static final int PARAM_A_NUM = PARAM_PART_A_NUM;
+//	public static final int PARAM_A_SR  = PARAM_PART_A_SR;
+//	public static final int PARAM_NO_B  = PARAM_PART_NO_B;
+//	public static final int PARAM_B_REG = PARAM_PART_B_REG;
+//	public static final int PARAM_B_NUM = PARAM_PART_B_NUM;
+//	public static final int PARAM_B_SR  = PARAM_PART_B_SR;
 	
-	public static final int ART_ANUM = PARAM_BASE | PARAM_A_NUM | PARAM_NO_B;
-	public static final int ART_ASR = PARAM_BASE | PARAM_A_SR | PARAM_NO_B;
-	public static final int ART_ANUM_BREG = PARAM_BASE | PARAM_A_NUM | PARAM_B_REG;
-	public static final int ART_ASR_BREG = PARAM_BASE | PARAM_A_SR | PARAM_B_REG;
-	public static final int ART_ANUM_BNUM = PARAM_BASE | PARAM_A_NUM | PARAM_B_NUM;
-	public static final int ART_ASR_BNUM = PARAM_BASE | PARAM_A_SR | PARAM_B_NUM;
-	public static final int ART_ANUM_BSR = PARAM_BASE | PARAM_A_NUM | PARAM_B_SR;
-	public static final int ART_ASR_BSR = PARAM_BASE | PARAM_A_SR | PARAM_B_SR;
+	public static final int ART_ANUM      = PARAM_ART_ANUM;
+	public static final int ART_ASR       = PARAM_ART_ASR;
+	public static final int ART_ANUM_BREG = PARAM_ART_ANUM_BREG;
+	public static final int ART_ASR_BREG  = PARAM_ART_ASR_BREG;
+	public static final int ART_ANUM_BNUM = PARAM_ART_ANUM_BNUM;
+	public static final int ART_ASR_BNUM  = PARAM_ART_ASR_BNUM;
+	public static final int ART_ANUM_BSR  = PARAM_ART_ANUM_BSR;
+	public static final int ART_ASR_BSR   = PARAM_ART_ASR_BSR;
 	
 	
-	public static final int SR_IP = 0;
-	public static final int SR_SP = 1;
+	public static final int SR_IP     = 0;
+	public static final int SR_SP     = 1;
 	public static final int SR_STATUS = 2;
 	public static final int SR_INTCNT = 3;
-	public static final int SR_INTP = 4;
-	public static final int SR_X_SUB = 5;
+	public static final int SR_INTP   = 4;
+	public static final int SR_X_SUB  = 5;
 	
 	
 	public final long num;
 	public final long off;
-	public final int art;
+	public final int  art;
 	
 	
 	
@@ -47,9 +49,9 @@ public class Param {
 	 */
 	public static class ParamBuilder {
 		
-		public int art = 0;
-		public long v1 = 0;
-		public long v2 = 0;
+		public int  art = 0;
+		public long v1  = 0;
+		public long v2  = 0;
 		
 		public boolean isValid() {
 			try {

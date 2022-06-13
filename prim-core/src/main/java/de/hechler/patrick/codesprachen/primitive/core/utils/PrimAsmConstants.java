@@ -3,9 +3,7 @@ package de.hechler.patrick.codesprachen.primitive.core.utils;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
-import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -102,7 +100,6 @@ public class PrimAsmConstants {
 	 * <ul>
 	 * <li><code>1</code>: unknown command<br>
 	 * <ul>
-	 * <li><code>X00</code> contains the illegal command<br>
 	 * <li>calls the exit interrupt with <code>62</code>
 	 * </ul>
 	 * </ul>
@@ -1021,13 +1018,13 @@ public class PrimAsmConstants {
 	
 	
 	
-	private static final int PARAM_BASE  = 0x01;
-	private static final int PARAM_A_NUM = 0x00;
-	private static final int PARAM_A_SR  = 0x02;
-	private static final int PARAM_NO_B  = 0x00;
-	private static final int PARAM_B_REG = 0x04;
-	private static final int PARAM_B_NUM = 0x08;
-	private static final int PARAM_B_SR  = 0x0C;
+	public static final int PARAM_BASE  = 0x01;
+	public static final int PARAM_A_NUM = 0x00;
+	public static final int PARAM_A_SR  = 0x02;
+	public static final int PARAM_NO_B  = 0x00;
+	public static final int PARAM_B_REG = 0x04;
+	public static final int PARAM_B_NUM = 0x08;
+	public static final int PARAM_B_SR  = 0x0C;
 	
 	public static final int PARAM_ART_ANUM      = PARAM_BASE | PARAM_A_NUM | PARAM_NO_B;
 	public static final int PARAM_ART_ASR       = PARAM_BASE | PARAM_A_SR | PARAM_NO_B;

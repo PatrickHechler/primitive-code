@@ -1,5 +1,7 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -22,9 +24,9 @@ import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Conver
 
 public class PrimitiveDisassembler {
 	
-	private final PrintStream out;
+	private final PrintStream        out;
 	private final LabelNameGenerator lng;
-	private final DisasmMode mode;
+	private final DisasmMode         mode;
 	
 	public PrimitiveDisassembler(PrintStream out) {
 		this(DisasmMode.analysable, t -> convertLongToHexString("L_", t), out);
@@ -62,7 +64,7 @@ public class PrimitiveDisassembler {
 	}
 	
 	private void write(long pos, List <Command> cmds, Set <Long> labels) {
-		switch(mode) {
+		switch (mode) {
 		case analysable:
 			break;
 		case executable:
@@ -147,19 +149,19 @@ public class PrimitiveDisassembler {
 				case oneParamNoConst: {
 					bytes[1] = (byte) cmd.p1.art;
 					int off = 7;
-					if ( (cmd.p1.art & Param.PARAM_A_SR) != 0) {
+					if ( (cmd.p1.art & PARAM_A_SR) != 0) {
 						bytes[off -- ] = (byte) cmd.p1.num;
 					}
-					if ( (cmd.p1.art & Param.PARAM_B_SR) == Param.PARAM_B_SR) {
+					if ( (cmd.p1.art & PARAM_B_SR) == PARAM_B_SR) {
 						bytes[off -- ] = (byte) cmd.p1.off;
 					}
 					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = " + cmd.toString())));
 					long ipos = pos + 8;
-					if ( (cmd.p1.art & Param.PARAM_A_SR) == 0) {
+					if ( (cmd.p1.art & PARAM_A_SR) == 0) {
 						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p-num]")));
 						ipos += 8;
 					}
-					if ( (cmd.p1.art & Param.PARAM_B_SR) == Param.PARAM_B_NUM) {
+					if ( (cmd.p1.art & PARAM_B_SR) == PARAM_B_NUM) {
 						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p-offset]")));
 					}
 					break;
@@ -169,33 +171,33 @@ public class PrimitiveDisassembler {
 				case twoParamsP1NoConstP2AllowConst: {
 					bytes[1] = (byte) cmd.p1.art;
 					int off = 7;
-					if ( (cmd.p1.art & Param.PARAM_A_SR) != 0) {
+					if ( (cmd.p1.art & PARAM_A_SR) != 0) {
 						bytes[off -- ] = (byte) cmd.p1.num;
 					}
-					if ( (cmd.p1.art & Param.PARAM_B_SR) == Param.PARAM_B_SR) {
+					if ( (cmd.p1.art & PARAM_B_SR) == PARAM_B_SR) {
 						bytes[off -- ] = (byte) cmd.p1.off;
 					}
-					if ( (cmd.p2.art & Param.PARAM_A_SR) != 0) {
+					if ( (cmd.p2.art & PARAM_A_SR) != 0) {
 						bytes[off -- ] = (byte) cmd.p2.num;
 					}
-					if ( (cmd.p2.art & Param.PARAM_B_SR) == Param.PARAM_B_SR) {
+					if ( (cmd.p2.art & PARAM_B_SR) == PARAM_B_SR) {
 						bytes[off -- ] = (byte) cmd.p2.off;
 					}
 					out.println(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = " + cmd.toString())));
 					long ipos = pos;
-					if ( (cmd.p1.art & Param.PARAM_A_SR) == 0) {
+					if ( (cmd.p1.art & PARAM_A_SR) == 0) {
 						ipos += 8;
 						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p1-num]")));
 					}
-					if ( (cmd.p1.art & Param.PARAM_B_SR) == Param.PARAM_B_NUM) {
+					if ( (cmd.p1.art & PARAM_B_SR) == PARAM_B_NUM) {
 						ipos += 8;
 						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p1-offset]")));
 					}
-					if ( (cmd.p2.art & Param.PARAM_A_SR) == 0) {
+					if ( (cmd.p2.art & PARAM_A_SR) == 0) {
 						ipos += 8;
 						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.num, "   | [p2-num]")));
 					}
-					if ( (cmd.p2.art & Param.PARAM_B_SR) == Param.PARAM_B_NUM) {
+					if ( (cmd.p2.art & PARAM_B_SR) == PARAM_B_NUM) {
 						ipos += 8;
 						out.println(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.off, "   | [p2-offset]")));
 					}
