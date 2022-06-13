@@ -10,6 +10,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NoSuchFileException;
 import java.util.Arrays;
+import java.util.Random;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.PrimitiveErrror;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.PVM;
@@ -20,6 +21,7 @@ import de.hechler.patrick.pfs.exception.OutOfSpaceException;
 import de.hechler.patrick.pfs.interfaces.PatrFile;
 import de.hechler.patrick.pfs.interfaces.PatrFileSysElement;
 import de.hechler.patrick.pfs.interfaces.PatrFolder;
+import de.hechler.patrick.pfs.interfaces.PatrLink;
 import de.hechler.patrick.pfs.objects.fs.PatrFileImpl;
 import de.hechler.patrick.pfs.objects.fs.PatrFileSysElementImpl;
 import de.hechler.patrick.pfs.objects.fs.PatrFileSysImpl;
@@ -28,55 +30,11 @@ import de.hechler.patrick.pfs.utils.PatrFileSysConstants;
 
 public class PVMImpl implements PVM {
 	
-	private static final long     NO_LOCK     = PatrFileSysConstants.NO_LOCK;
-	private final MemoryContainer mem         = new MemoryContainer();
-	private final PVMData         data        = new PVMData(mem);
-	private final Interrupt[]     defaultInts = new Interrupt[] {
-		num -> System.exit((int) (128 + data.regs[X_ADD])),
-		num -> System.exit(7),
-		num -> System.exit(6),
-		num -> System.exit(5),
-		num -> System.exit((int) data.regs[X_ADD]),
-		num -> data.regs[X_ADD] = mem.malloc(data.regs[X_ADD]),
-		num -> data.regs[X_ADD + 1] = mem.realloc(data.regs[X_ADD], data.regs[X_ADD + 1]),
-		num -> mem.free(data.regs[X_ADD]),
-		num -> defIntOpenNewStream(),
-		num -> defIntWrite(),
-		num -> defIntRead(),
-		num -> defIntGetFSElement(num),
-		num -> defIntGetFSElement(num),
-		num -> defIntGetFSElement(num),
-		num -> defIntGetFSElement(num),
-		num -> defIntDuplicateFSElementHandle(),
-		num -> defIntGetParent(),
-		num -> defIntFromID(),
-		num -> defIntGetSomeDate(num),
-		num -> defIntGetSomeDate(num),
-		num -> defIntGetSomeDate(num),
-		num -> defIntSetSomeDate(num),
-		num -> defIntSetSomeDate(num),
-		num -> defIntSetSomeDate(num),
-		num -> defIntGetLockData(),
-		num -> defIntGetLockDate(),
-		num -> defIntLockElement(),
-		num -> defIntUnlockElement(),
-		num -> defIntDeleteElement(),
-		num -> defIntMoveElement(),
-		num -> defIntGetElementFlags(),
-		num -> defIntGetElementFlags(),
-		num -> defIntModifyElementFlags(),
-		num -> defIntGetFolderChildElementCount(),
-		num -> defIntGetChildElement(num),
-		num -> defIntGetChildElement(num),
-		num -> defIntAddElement(num),
-		num -> defIntAddElement(num),
-		num -> defIntAddElement(num),
-		num -> defIntFileLength(),
-		num -> defIntFileHash(),
-		num -> defIntFileRWA(num),
-		num -> defIntFileRWA(num),
-		num -> defIntFileRWA(num),
-	};
+	private static final long NO_LOCK = PatrFileSysConstants.NO_LOCK;
+	
+	private final MemoryContainer mem;
+	private final PVMData         data;
+	private final Interrupt[]     defaultInts;
 	private final PatrFileSysImpl fs;
 	
 	private long    cmd;
@@ -86,12 +44,85 @@ public class PVMImpl implements PVM {
 	private int     len;
 	private boolean isreg;
 	
-	
 	public PVMImpl(PatrFileSysImpl fs) {
+		this(fs, new Random());
+	}
+	
+	public PVMImpl(PatrFileSysImpl fs, final Random rnd) {
+		this.mem = new MemoryContainer();
+		this.data = new PVMData(mem);
+		this.fs = fs;
+		this.defaultInts = new Interrupt[] {
+			num -> System.exit((int) (128 + this.data.regs[X_ADD])),
+			num -> System.exit(7),
+			num -> System.exit(6),
+			num -> System.exit(5),
+			num -> System.exit((int) this.data.regs[X_ADD]),
+			num -> this.data.regs[X_ADD] = this.mem.malloc(this.data.regs[X_ADD]),
+			num -> this.data.regs[X_ADD + 1] = this.mem.realloc(this.data.regs[X_ADD], this.data.regs[X_ADD + 1]),
+			num -> this.mem.free(this.data.regs[X_ADD]),
+			num -> defIntOpenNewStream(),
+			num -> defIntWrite(),
+			num -> defIntRead(),
+			num -> defIntGetFSElement(num),
+			num -> defIntGetFSElement(num),
+			num -> defIntGetFSElement(num),
+			num -> defIntGetFSElement(num),
+			num -> defIntDuplicateFSElementHandle(),
+			num -> defIntGetParent(),
+			num -> defIntFromID(),
+			num -> defIntGetSomeDate(num),
+			num -> defIntGetSomeDate(num),
+			num -> defIntGetSomeDate(num),
+			num -> defIntSetSomeDate(num),
+			num -> defIntSetSomeDate(num),
+			num -> defIntSetSomeDate(num),
+			num -> defIntGetLockData(),
+			num -> defIntGetLockDate(),
+			num -> defIntLockElement(),
+			num -> defIntUnlockElement(),
+			num -> defIntDeleteElement(),
+			num -> defIntMoveElement(),
+			num -> defIntGetElementFlags(),
+			num -> defIntGetElementFlags(),
+			num -> defIntModifyElementFlags(),
+			num -> defIntGetFolderChildElementCount(),
+			num -> defIntGetChildElement(num),
+			num -> defIntGetChildElement(num),
+			num -> defIntAddElement(num),
+			num -> defIntAddElement(num),
+			num -> defIntAddElement(num),
+			num -> defIntFileLength(),
+			num -> defIntFileHash(),
+			num -> defIntFileRWA(num),
+			num -> defIntFileRWA(num),
+			num -> defIntFileRWA(num),
+			num -> defIntFileTruncate(),
+			num -> defIntLinkGetTarget(),
+			num -> defIntLinkSetTarget(),
+			num -> defIntFSLock(),
+			num -> defIntFSUnlock(),
+			num -> this.data.regs[X_ADD] = System.currentTimeMillis(),
+			num -> defIntSleep(),
+			num -> this.data.regs[X_ADD] = rnd.nextLong(),
+			num -> this.mem.copy(this.data.regs[X_ADD + 1], this.data.regs[X_ADD], this.data.regs[X_ADD + 2]),
+			num -> this.mem.move(this.data.regs[X_ADD + 1], this.data.regs[X_ADD], this.data.regs[X_ADD + 2]),
+			num -> this.mem.membset(this.data.regs[X_ADD], this.data.regs[X_ADD + 2], (int) (0xFF & this.data.regs[X_ADD + 1])),
+			num -> this.mem.memset(this.data.regs[X_ADD], this.data.regs[X_ADD + 2], this.data.regs[X_ADD + 1]),
+			num -> this.data.regs[X_ADD] = getU16String(this.data.regs[X_ADD]).length() << 1,
+			num -> this.data.regs[X_ADD] = getU16String(this.data.regs[X_ADD]).compareTo(getU16String(this.data.regs[X_ADD + 1])),
+			num -> defIntAnyNumberToString(num),
+			num -> defIntAnyNumberToString(num),
+			num -> defIntStringToAnyNumber(num),
+			num -> defIntStringToAnyNumber(num),
+			num -> defIntFormattString(),
+			num -> defIntStringConvert(num),
+			num -> defIntStringConvert(num),
+			num -> defIntLoadFile(),
+		};
 		if (this.defaultInts.length != INTERRUPT_COUNT) {
 			throw new AssertionError("expected int-count=" + INTERRUPT_COUNT + " int-count=" + this.defaultInts.length);
 		}
-		this.fs = fs;
 	}
 	
 	@Override
@@ -618,7 +649,7 @@ public class PVMImpl implements PVM {
 					}
 				}
 			} catch (PrimitiveErrror e) {
-				interrupt(e.intNum);
+				intNum = e.intNum;
 				continue;
 			}
 			break;
@@ -645,7 +676,7 @@ public class PVMImpl implements PVM {
 				break;
 			}
 		}
-		return new String(bytes, 0, len, StandardCharsets.UTF_16);
+		return new String(bytes, 0, len, StandardCharsets.UTF_16BE);
 	}
 	
 	private String getU8String(long address) throws PrimitiveErrror {
@@ -661,6 +692,335 @@ public class PVMImpl implements PVM {
 			}
 		}
 		return new String(bytes, 0, len, StandardCharsets.UTF_8);
+	}
+	
+	private void defIntLoadFile() throws PrimitiveErrror {
+		String[] names = getU16String(data.regs[X_ADD]).split("\\/");
+		try {
+			PatrFolder parent = fs.getRoot();
+			for (int i = names[0].isEmpty() ? 1 : 0; i < names.length - 1; i ++ ) {
+				parent = parent.getElement(names[i], NO_LOCK).getFolder();
+			}
+			PatrFile file = parent.getElement(names[names.length - 1], NO_LOCK).getFile();
+			long len = file.length(NO_LOCK);
+			long addr = mem.malloc(len);
+			if (addr == -1L) {
+				fail(X_ADD, STATUS_OUT_OF_MEMORY);
+				return;
+			}
+			byte[] bytes = new byte[(int) Math.min(1 << 30, len)];
+			for (long wrote = 0L; wrote < len;) {
+				int cpy = (int) Math.min(bytes.length, len - wrote);
+				file.getContent(bytes, wrote, 0, cpy, NO_LOCK);
+				// FIXME optimize
+				for (int si = 0; si < cpy; si ++ ) {
+					mem.setByte(addr + wrote + si, bytes[si]);
+				}
+			}
+			data.regs[X_ADD] = addr;
+			data.regs[X_ADD + 1] = len;
+		} catch (OutOfMemoryError e) {
+			fail(X_ADD, STATUS_OUT_OF_MEMORY);
+		} catch (IllegalStateException e) {
+			fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (NoSuchFileException e) {
+			fail(X_ADD, STATUS_ELEMENT_NOT_EXIST);
+		} catch (ElementLockedException e) {
+			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+		} catch (IOException e) {
+			fail(X_ADD, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntStringConvert(int intNum) throws PrimitiveErrror {
+		boolean toU8;
+		switch (intNum) {
+		case (int) INT_STR_TO_U8STR:
+			toU8 = true;
+			break;
+		case (int) INT_U8STR_TO_STR:
+			toU8 = false;
+			break;
+		default:
+			throw new InternalError();
+		}
+		String input = toU8 ? getU16String(data.regs[X_ADD]) : getU8String(data.regs[X_ADD]);
+		byte[] result = input.getBytes(toU8 ? StandardCharsets.UTF_8 : StandardCharsets.UTF_16BE);
+		long len = result.length + (toU8 ? 1L : 2L);
+		if (data.regs[X_ADD + 2] < len) {
+			if (data.regs[X_ADD + 2] == 0L) {
+				data.regs[X_ADD + 1] = mem.malloc(len);
+			} else if (data.regs[X_ADD + 2] > 0L) {
+				data.regs[X_ADD + 1] = mem.realloc(data.regs[X_ADD + 1], len);
+			} else {
+				fail(X_ADD + 3, STATUS_ILLEGAL_ARG);
+				return;
+			}
+			data.regs[X_ADD + 2] = len;
+		}
+		for (int i = 0; i < result.length; i ++ ) {
+			mem.setByte(data.regs[X_ADD + 1] + i, result[i]);
+		}
+		mem.setByte(data.regs[X_ADD + 1] + result.length, 0);
+		if ( !toU8) {
+			mem.setByte(data.regs[X_ADD + 1] + result.length + 1, 0);
+		}
+		data.regs[X_ADD + 3] = data.regs[X_ADD + 1] + result.length;
+	}
+	
+	private void defIntFormattString() throws PrimitiveErrror {
+		String input = getU16String(data.regs[X_ADD]);
+		char[] cs = input.toCharArray();
+		StringBuilder result = new StringBuilder();
+		int argN = X_ADD + 3;
+		for (int i = 0; i < input.length();) {
+			int index = input.indexOf('%', i);
+			result.append(cs, i, index - i);
+			if (index + 1 >= input.length()) {
+				fail(X_ADD, STATUS_ILLEGAL_ARG);
+				return;
+			}
+			char c = input.charAt(index + 1);
+			if (c == '%') {
+				result.append('%');
+				continue;
+			}
+			if (argN >= data.regs.length) {
+				fail(X_ADD, STATUS_ILLEGAL_ARG);
+				return;
+			}
+			long arg = data.regs[argN ++ ];
+			switch (c) {
+			case 's':
+				result.append(getU16String(arg));
+				break;
+			case 'c':
+				result.append((char) arg);
+				break;
+			case 'B':
+				result.append((char) (byte) arg);
+				break;
+			case 'd':
+				result.append(Long.toString(arg, 10));
+				break;
+			case 'f':
+				result.append(Double.toString(Double.longBitsToDouble(arg)));
+				break;
+			case 'p':
+				if (arg == -1L) {
+					result.append("p-inval");
+				} else {
+					result.append("p-").append(Long.toHexString(arg));
+				}
+				break;
+			case 'h':
+				result.append(Long.toString(arg, 16));
+				break;
+			case 'b':
+				result.append(Long.toString(arg, 2));
+				break;
+			case 'o':
+				result.append(Long.toString(arg, 8));
+				break;
+			default:
+				fail(X_ADD, STATUS_ILLEGAL_ARG);
+				return;
+			}
+			i = index + 2;
+		}
+		byte[] bytes = result.toString().getBytes(StandardCharsets.UTF_16BE);
+		if (data.regs[X_ADD + 2] < bytes.length + 2L) {
+			if (data.regs[X_ADD + 2] == 0L) {
+				data.regs[X_ADD + 1] = mem.malloc(bytes.length + 2L);
+			} else if (data.regs[X_ADD + 2] > 0L) {
+				data.regs[X_ADD + 1] = mem.realloc(data.regs[X_ADD + 1], bytes.length + 2L);
+			} else {
+				fail(X_ADD, STATUS_ILLEGAL_ARG);
+				return;
+			}
+			data.regs[X_ADD + 2] = bytes.length + 2L;
+		}
+		// FIXME optimize
+		for (int i = 0; i < bytes.length; i ++ ) {
+			mem.setByte(data.regs[X_ADD + 1] + i, bytes[i]);
+		}
+		mem.setByte(data.regs[X_ADD + 1] + bytes.length, 0);
+		mem.setByte(data.regs[X_ADD + 1] + bytes.length + 1, 0);
+	}
+	
+	private void defIntStringToAnyNumber(int intNum) throws PrimitiveErrror {
+		String str = getU16String(data.regs[X_ADD]).trim();
+		try {
+			switch (intNum) {
+			case (int) INT_STRING_TO_NUMBER: {
+				int numsys = (int) data.regs[X_ADD + 1];
+				if ( ((long) numsys) != data.regs[X_ADD + 1] || numsys < 2 || numsys > 36) {
+					fail( -X_ADD - 1, STATUS_ILLEGAL_ARG);
+					return;
+				}
+				data.regs[X_ADD] = Long.parseLong(str, numsys);
+				break;
+			}
+			case (int) INT_STRING_TO_FPNUMBER: {
+				data.regs[X_ADD] = Double.doubleToRawLongBits(Double.parseDouble(str));
+				break;
+			}
+			default:
+				throw new InternalError();
+			}
+		} catch (NumberFormatException nfe) {
+			fail( -X_ADD - 1, STATUS_ILLEGAL_ARG);
+		}
+	}
+	
+	private void defIntAnyNumberToString(int intNum) throws PrimitiveErrror {
+		byte[] bytes;
+		int lenOff;
+		switch (intNum) {
+		case (int) INT_NUMBER_TO_STRING:
+			if (data.regs[X_ADD + 2] > 36L || data.regs[X_ADD + 2] < 2L) {
+				fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+				return;
+			}
+			bytes = Long.toString(data.regs[X_ADD], (int) data.regs[X_ADD + 2]).toUpperCase().getBytes(StandardCharsets.UTF_16BE);
+			lenOff = X_ADD + 3;
+			break;
+		case (int) INT_FPNUMBER_TO_STRING:
+			bytes = Double.toString(Double.longBitsToDouble(data.regs[X_ADD])).getBytes(StandardCharsets.UTF_16BE);
+			lenOff = X_ADD + 2;
+			break;
+		default:
+			throw new InternalError();
+		}
+		long addr = data.regs[X_ADD + 1];
+		if (bytes.length + 2L > data.regs[lenOff]) {
+			if (data.regs[lenOff] == 0L) {
+				addr = mem.malloc(bytes.length + 2L);
+			} else if (data.regs[lenOff] > 0L) {
+				addr = mem.realloc(addr, bytes.length + 2L);
+			} else {
+				fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+				return;
+			}
+			data.regs[lenOff] = bytes.length + 2L;
+		}
+		// FIXME optimize
+		for (int i = 0; i < bytes.length; i ++ ) {
+			mem.setByte(addr + i, 0xFF & bytes[i]);
+		}
+		mem.setByte(addr + bytes.length, 0);
+		mem.setByte(addr + bytes.length + 1, 0);
+	}
+	
+	private void defIntSleep() {
+		long start = System.nanoTime();
+		try {
+			Thread.sleep( (data.regs[X_ADD + 2] * 1000) + (data.regs[X_ADD + 1] / 1000000), (int) data.regs[X_ADD + 1]);
+			data.regs[X_ADD + 1] = data.regs[X_ADD + 2] = 0L;
+		} catch (InterruptedException e) {
+			long remain = System.nanoTime() - start;
+			data.regs[X_ADD + 1] = remain % 1000000000L;
+			data.regs[X_ADD + 2] = remain / 1000000000L;
+		}
+	}
+	
+	private void defIntFSUnlock() throws PrimitiveErrror {
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			fs.removeLock();
+		} catch (ElementLockedException e) {
+			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntFSLock() throws PrimitiveErrror {
+		try {
+			data.regs[FS_LOCK] = fs.lock(data.regs[X_ADD]);
+		} catch (ElementLockedException e) {
+			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntLinkSetTarget() throws PrimitiveErrror {
+		final long address = data.regs[X_ADD],
+			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
+			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK),
+			ntaddress = data.regs[X_ADD + 1],
+			ntid = mem.get(ntaddress + FS_ELEMENT_OFFSET_ID);
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			PatrLink e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getLink();
+			PatrFileSysElement nt = fs.fromID(new PatrID(fs, ntid, fs.getStartTime()));
+			e.setTarget(nt, lock);
+		} catch (OutOfSpaceException e) {
+			fail(X_ADD + 1, STATUS_OUT_OF_SPACE);
+		} catch (ElementReadOnlyException e) {
+			fail(X_ADD + 1, STATUS_READ_ONLY);
+		} catch (ElementLockedException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalStateException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD + 1, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntLinkGetTarget() throws PrimitiveErrror {
+		final long address = data.regs[X_ADD],
+			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
+			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getLink().getTarget(lock);
+			mem.set(address + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) e).id);
+			mem.set(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
+		} catch (OutOfSpaceException e) {
+			fail(X_ADD + 1, STATUS_OUT_OF_SPACE);
+		} catch (ElementReadOnlyException e) {
+			fail(X_ADD + 1, STATUS_READ_ONLY);
+		} catch (ElementLockedException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalStateException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD + 1, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntFileTruncate() throws PrimitiveErrror {
+		final long address = data.regs[X_ADD],
+			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
+			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		try {
+			fs.setLock(data.regs[FS_LOCK]);
+			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
+			long newLen = data.regs[X_ADD + 1];
+			e.truncate(newLen, lock);
+		} catch (OutOfSpaceException e) {
+			fail(X_ADD + 1, STATUS_OUT_OF_SPACE);
+		} catch (ElementReadOnlyException e) {
+			fail(X_ADD + 1, STATUS_READ_ONLY);
+		} catch (ElementLockedException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+		} catch (IllegalStateException e) {
+			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (IllegalArgumentException e) {
+			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+		} catch (IOException e) {
+			fail(X_ADD + 1, STATUS_IO_ERR);
+		}
 	}
 	
 	private void defIntFileRWA(int intNum) throws PrimitiveErrror {

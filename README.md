@@ -1464,7 +1464,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X02` contains the count of elements to be set
     * `55`: string length
         * `X00` points to the STRING
-        * `X00` will be set to the length of the string/ the (byte-)offset of the `'\0'` character
+        * `X00` will be set to the length of the string/ the (byte-)offset of the first byte from the `'\0'` character
     * `56`: string compare
         * `X00` points to the first STRING
         * `X01` points to the second STRING
@@ -1477,59 +1477,80 @@ the assembler language for the Primitive-Virtual-Machine
             * the minimum base is `2`
             * the maximum base is `36`
             * other values lead to undefined behavior
+        * `X03` is set to the length of the buffer
+            * `0` when the buffer should be allocated by this interrupt
         * `X00` will be set to the length of the STRING
+        * `X03` will be set to the new length of the buffer
+            * the new length will be the old length or if the old length is smaller than the length of the STRING (with `\0`) than the length of the STRING (with `\0`)
+        * on error `X01` will be set to `-1`
+            * the `STATUS` register will be flagged:
+                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X02` is an invalid number system or an invalid buffer size
+                    * if the given number system is smaller than `2` or larger than `36`
+                    * or if the buffer size is negative
+                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
+                    * the system tries to allocate some memory but was not able to allocate the needed memory
     * `58`: floating point number to string
         * `X00` is set to the number to convert
-        * `X02` contains the maximum amount of digits to be used to represent the floating point number
-        * `X01` is points to the buffer to be filled with the number in a STRING format
+        * `X01` points to the buffer to be filled with the number in a STRING format
+        * `X02` is set to the current size of the buffer
+            * `0` when the buffer should be allocated by this interrupt
+        * on error `X01` will be set to `-1`
+            * the `STATUS` register will be flagged:
+                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X02` is an invalid number system
+                    * if the buffer size is negative
+                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
+                    * the system tries to allocate some memory but was not able to allocate the needed memory
     * `59`: string to number
         * `X00` points to the STRING
         * `X01` points to the base of the number system
             * (for example `10` for the decimal system or `2` for the binary system)
         * `X00` will be set to the converted number
-        * `X01` will point to the end of the number-STRING
-            * this might be the `\0` terminating character
-        * if the STRING contains illegal characters or the base is not valid, the behavior is undefined
-        * this function will ignore leading space characters
+        * this function will ignore leading and following white-space characters
+        * on success `X01` will be set to `1`
+        * on error `X01` will be set to `0`
+            * the STRING contains illegal characters
+            * or the base is not valid
     * `60`: string to floating point number
         * `X00` points to the STRING
         * `X00` will be set to the converted number
-        * `X01` will point to the end of the number-STRING
-            * this might be the `\0` terminating character
         * if the STRING contains illegal characters or the base is not valid, the behavior is undefined
-        * this function will ignore leading space characters
+        * this function will ignore leading and following white-space characters
+        * on success `X01` will be set to `1`
+        * on error `X01` will be set to `0`
+            * the STRING contains illegal characters
+            * or the base is not valid
     * `61`: format string
         * `X00` is set to the STRING input
         * `X01` contains the buffer for the STRING output
         * `X02` is the current size of the buffer in bytes
-        * the register `X03..XNN` are for the formatting parameters
-            * if there are mor parameters used then there are registers the behavior is undefined.
-                * that leads to a maximum of 248 parameters.
+        * the register `X03..XNN` are for the formatting arguments
+            * if there are mor arguments used then there are registers the behavior is undefined.
+                * that leads to a maximum of 248 arguments
         * `X00` will be set to the length of the output string
         * `X01` will be set to the output buffer
         * `X02` will be set to the new buffer size in bytes
-        * if the buffer could not be resized, `X00` will be set to `-1`
+        * if an error occured `X00` will be set to `-1`
+            * the `STATUS` register will be flagged:
+                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: operation failed because if invalid arguments
+                    * if the last charactet of the input string is a `%` character
+                    * or if there are invalid formatting characters
+                        * a `%` is not followed by a `%`, `s`, `c`, `B`, `d`, `f`, `p`, `h`, `b` or `o` character
+                    * or if there are too many arguments needed
+                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
+                    * if the buffer could not be resized
             * `X02` will be set to the current size of the buffer
         * formatting:
-            * everything, which can not be formatted, will be delegated to the target buffer
+            * `%%`: to escape an `%` character (only one `%` will be in teh formatted STRING)
             * `%s`: the next argument points to a STRING, which should be inserted here
-            * `%c`: the next argument points to a character, which should be inserted here
-                * note that characters may contain more than one byte
-                    * `BIN-0.......` -> one byte (equivalent to an ASCII character)
-                    * `BIN-10......` -> invalid, treated as one byte
-                    * `BIN-110.....` -> two bytes
-                    * `BIN-1110....` -> three bytes
-                    * `BIN-11110...` -> four bytes
-                    * `BIN-111110..` -> invalid, treated as five byte
-                    * `BIN-1111110.` -> invalid, treated as six byte
-                    * `BIN-11111110` -> invalid, treated as seven byte
-                    * `BIN-11111111` -> invalid, treated as eight byte
-            * `%B`: the next argument points to a byte, which should be inserted here (without being converted to a STRING)
+            * `%c`: the next argument starts with a UTF-16 character, which should be inserted here
+                * note that UTF-16 characters contain always two bytes
+            * `%B`: the next argument starts with a byte, which should be inserted here (without being converted to a valid STRING character)
+                * note that if the argument starts with a zero byte an `\0` character will be inserted in the middle of the output STRING
             * `%d`: the next argument contains a number, which should be converted to a STRING using the decimal number system and than be inserted here
             * `%f`: the next argument contains a floating point number, which should be converted to a STRING and than be inserted here
             * `%p`: the next argument contains a pointer, which should be converted to a STRING
-                * if not the pointer will be converted by placing a `"p-"` and then the pointer-number converted to a STRING using the hexadecimal number system
-                * if the pointer is `-1` it will be converted to the STRING `"---"`
+                * if not the pointer will be converted by placing a `"p-"` and then the unsigned pointer-number converted to a STRING using the hexadecimal number system
+                * if the pointer is `-1` it will be converted to the STRING `"p-inval"`
             * `%h`: the next argument contains a number, which should be converted to a STRING using the hexadecimal number system and than be inserted here
             * `%b`: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here
             * `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here
@@ -1540,6 +1561,12 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` will point to the U8-STRING
         * `X02` will be set to the U8-STRING buffer size
         * `X03` will point to the `\0` character of the U8-STRING
+        * on error `X03` will be set to `-1`
+            * the `STATUS` register will be flagged:
+                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: operation failed because if invalid arguments
+                    * if the old buffer length is negative
+                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
+                    * if the buffer could not be resized
     * `63`: U8-STRING to STRING
         * `X00` contains the U8-STRING
         * `X01` points to a buffer for the SRING
@@ -1552,6 +1579,18 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` will point to the memory block, in which the file has been loaded
         * `X01` will be set to the length of the file (and the memory block)
         * when an error occured `X00` will be set to `-1`
+            * the `STATUS` register will be flagged:
+                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
+                    * if the given element is no file
+                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
+                    * if the given file does not exists
+                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
+                    * if the file system is locked with a diffrent lock or not locked at all
+                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
+                    * if some IO error occurred
+                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
+                    * if the buffer could not be resized
+
 * binary:
     * `23 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`

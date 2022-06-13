@@ -336,7 +336,7 @@ public final class MemoryContainer implements Cloneable, Serializable {
 		}
 	}
 	
-	public final void memset(long address, long length, int bval) throws PrimitiveErrror {
+	public final void membset(long address, long length, int bval) throws PrimitiveErrror {
 		assert ( ((int) bval) & 0xFF) == (int) bval;
 		if ( ( (address | length) & 7) != 0) {
 			for (; length > 0; length -- , address ++ ) {

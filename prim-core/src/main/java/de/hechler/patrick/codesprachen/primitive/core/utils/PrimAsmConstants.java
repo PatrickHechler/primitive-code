@@ -3,7 +3,9 @@ package de.hechler.patrick.codesprachen.primitive.core.utils;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
+import java.lang.annotation.Repeatable;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
@@ -38,7 +40,39 @@ public class PrimAsmConstants {
 						int index = line.indexOf('=');
 						String name = line.substring(0, index);
 						String num = line.substring(index + 1);
-						long val = Long.parseLong(num);
+						long val;
+						if (num.matches("\\-?[0-9]+")) {
+							val = Long.parseLong(num);
+						} else if (num.startsWith("HEX-")) {
+							num = num.substring(4);
+							val = Long.parseLong(num, 16);
+						} else if (num.startsWith("NHEX-")) {
+							num = num.substring(4);
+							val = Long.parseLong(num, 16);
+						} else if (num.startsWith("UHEX-")) {
+							num = num.substring(4);
+							val = Long.parseUnsignedLong(num, 16);
+						} else if (num.startsWith("BIN-")) {
+							num = num.substring(4);
+							val = Long.parseLong(num, 2);
+						} else if (num.startsWith("NBIN-")) {
+							num = num.substring(4);
+							val = Long.parseLong(num, 2);
+						} else if (num.startsWith("OCT-")) {
+							num = num.substring(4);
+							val = Long.parseLong(num, 8);
+						} else if (num.startsWith("NOCT-")) {
+							num = num.substring(4);
+							val = Long.parseLong(num, 8);
+						} else if (num.startsWith("DEC-")) {
+							num = num.substring(4);
+							val = Long.parseLong(num);
+						} else if (num.startsWith("NDEC-")) {
+							num = num.substring(4);
+							val = Long.parseLong(num);
+						} else {
+							throw new InternalError();
+						}
 						PrimitiveConstant primConst = new PrimitiveConstant(name, build.toString(), val, START_CONSTANTS_PATH, lineNum);
 						PrimitiveConstant old = startConsts.put(num, primConst);
 						assert old == null;
@@ -602,7 +636,7 @@ public class PrimAsmConstants {
 	 * </ul>
 	 */
 	@PrimStartConstant
-	public static final long INT_FS_FILE_READ                 = 40L;
+	public static final long INT_FS_FILE_READ       = 40L;
 	/**
 	 * <ul>
 	 * <li><code>41</code>: file write
@@ -643,7 +677,7 @@ public class PrimAsmConstants {
 	 * </ul>
 	 */
 	@PrimStartConstant
-	public static final long INT_FS_FILE_WRITE                = 41L;
+	public static final long INT_FS_FILE_WRITE      = 41L;
 	/**
 	 * <ul>
 	 * <li><code>42</code>: file append
@@ -688,7 +722,97 @@ public class PrimAsmConstants {
 	 * </ul>
 	 */
 	@PrimStartConstant
-	public static final long INT_FS_FILE_APPEND               = 42L;
+	public static final long INT_FS_FILE_APPEND     = 42L;
+	/**
+	 * <ul>
+	 * <li><code>57</code>: number to string
+	 * <ul>
+	 * <li><code>X00</code> is set to the number to convert
+	 * <li><code>X01</code> is points to the buffer to be filled with the number in a STRING format
+	 * <li><code>X02</code> contains the base of the number system
+	 * <ul>
+	 * <li>the minimum base is <code>2</code>
+	 * <li>the maximum base is <code>36</code>
+	 * <li>other values lead to undefined behavior
+	 * </ul>
+	 * <li><code>X00</code> will be set to the length of the STRING
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_NUMBER_TO_STRING   = 57L;
+	/**
+	 * <ul>
+	 * <li><code>58</code>: floating point number to string
+	 * <ul>
+	 * <li><code>X00</code> is set to the number to convert
+	 * <li><code>X02</code> contains the maximum amount of digits to be used to represent the floating point number
+	 * <li><code>X01</code> is points to the buffer to be filled with the number in a STRING format
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_FPNUMBER_TO_STRING = 58L;
+	/**
+	 * <ul>
+	 * <li><code>59</code>: string to number
+	 * <ul>
+	 * <li><code>X00</code> points to the STRING
+	 * <li><code>X01</code> points to the base of the number system
+	 * <ul>
+	 * <li>(for example <code>10</code> for the decimal system or <code>2</code> for the binary system)
+	 * </ul>
+	 * <li><code>X00</code> will be set to the converted number
+	 * <li><code>X01</code> will point to the end of the number-STRING
+	 * <ul>
+	 * <li>this might be the <code>\0</code> terminating character
+	 * </ul>
+	 * <li>if the STRING contains illegal characters or the base is not valid, the behavior is undefined
+	 * <li>this function will ignore leading space characters
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_STRING_TO_NUMBER   = 59L;
+	/**
+	 * <ul>
+	 * <li><code>60</code>: string to floating point number
+	 * <ul>
+	 * <li><code>X00</code> points to the STRING
+	 * <li><code>X00</code> will be set to the converted number
+	 * <li><code>X01</code> will point to the end of the number-STRING
+	 * <ul>
+	 * <li>this might be the <code>\0</code> terminating character
+	 * </ul>
+	 * <li>if the STRING contains illegal characters or the base is not valid, the behavior is undefined
+	 * <li>this function will ignore leading space characters
+	 * </ul>
+	 * </ul>
+	 */
+	@PrimStartConstant
+	public static final long INT_STRING_TO_FPNUMBER = 60L;
+	/**
+	 * <li><code>%1</code>: STRING to U8-STRING
+	 * <li><code>%1</code> contains the STRING
+	 * <li><code>%1</code> points to a buffer for the U8-SRING
+	 * <li><code>%1</code> is set to the size of the size of the buffer
+	 * <li><code>%1</code> will point to the U8-STRING
+	 * <li><code>%1</code> will be set to the U8-STRING buffer size
+	 * <li><code>%1</code> will point to the <code>%1</code> character of the U8-STRING
+	 */
+	@PrimStartConstant
+	public static final long INT_STR_TO_U8STR       = 62L;
+	/**
+	 * <li><code>%1</code>: U8-STRING to STRING
+	 * <li><code>%1</code> contains the U8-STRING
+	 * <li><code>%1</code> points to a buffer for the SRING
+	 * <li><code>%1</code> is set to the size of the size of the buffer
+	 * <li><code>%1</code> will point to the STRING
+	 * <li><code>%1</code> will be set to the STRING buffer size
+	 * <li><code>%1</code> will point to the <code>%1</code> character of the STRING
+	 */
+	@PrimStartConstant
+	public static final long INT_U8STR_TO_STR       = 63L;
 	
 	/** the total number of default interrupts */
 	@PrimStartConstant
