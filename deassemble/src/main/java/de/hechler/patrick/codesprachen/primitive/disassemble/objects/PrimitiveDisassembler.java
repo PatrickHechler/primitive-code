@@ -1,5 +1,6 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
+import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.*;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
 
 import java.io.ByteArrayInputStream;
@@ -19,8 +20,6 @@ import de.hechler.patrick.codesprachen.primitive.disassemble.interfaces.LabelNam
 import de.hechler.patrick.codesprachen.primitive.disassemble.objects.Command.ConstantPoolCmd;
 import de.hechler.patrick.codesprachen.primitive.disassemble.objects.Param.ParamBuilder;
 import de.hechler.patrick.codesprachen.primitive.disassemble.utils.LongArrayInputStream;
-
-import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.*;
 
 public class PrimitiveDisassembler {
 	

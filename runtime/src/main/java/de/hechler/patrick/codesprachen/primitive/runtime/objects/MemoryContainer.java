@@ -1,23 +1,19 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_ERRORS_ILLEGAL_MEMORY;
 
-import java.io.Serializable;
 import java.util.Arrays;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.PrimitiveErrror;
 
-public final class MemoryContainer implements Cloneable, Serializable {
-	
-	/** UID */
-	private static final long serialVersionUID = 1716481830148341263L;
+public final class MemoryContainer {
 	
 	private static final long DEFAULT_FREE_SPACE = 1024L;
 	private static final long MIN_FREE_SPACE     = 8L;
 	
-	private long[]   starts;
-	private long[][] blocks;
-	private int      length;
+	private long[]   starts = new long[16];
+	private long[][] blocks = new long[16][];
+	private int      length = 0;
 	
 	public MemoryContainer() {}
 	
@@ -309,7 +305,7 @@ public final class MemoryContainer implements Cloneable, Serializable {
 		this.blocks[index][off] = val;
 	}
 	
-	// FIXME make these methods faster and not just use get/set/getByte/setByte
+	// FIXME make these methods faster and not just use get/set/getByte/setByte (use System.arraycopy(...) where possible)
 	public final void copy(long fromAddress, long toAddress, long length) throws PrimitiveErrror {
 		if ( ( (fromAddress | toAddress | length) & 7) != 0) {
 			for (; length > 0L; length -- , fromAddress ++ , toAddress ++ ) {
@@ -354,22 +350,14 @@ public final class MemoryContainer implements Cloneable, Serializable {
 		if ( ( (address | length) & 7) != 0) {
 			int b1 = (int) (val & 0xFF), b2 = (int) ( (val >> 8) & 0xFF), b3 = (int) ( (val >> 16) & 0xFF), b4 = (int) ( (val >> 24) & 0xFF),
 				b5 = (int) ( (val >> 32) & 0xFF), b6 = (int) ( (val >> 40) & 0xFF), b7 = (int) ( (val >> 48) & 0xFF), b8 = (int) ( (val >> 56) & 0xFF);
-			for (;;) {
-				if (length -- < 0) break;
+			for (; length > 0; length -- ) {
 				setByte(address ++ , b1);
-				if (length -- < 0) break;
 				setByte(address ++ , b2);
-				if (length -- < 0) break;
 				setByte(address ++ , b3);
-				if (length -- < 0) break;
 				setByte(address ++ , b4);
-				if (length -- < 0) break;
 				setByte(address ++ , b5);
-				if (length -- < 0) break;
 				setByte(address ++ , b6);
-				if (length -- < 0) break;
 				setByte(address ++ , b7);
-				if (length -- < 0) break;
 				setByte(address ++ , b8);
 			}
 		} else {

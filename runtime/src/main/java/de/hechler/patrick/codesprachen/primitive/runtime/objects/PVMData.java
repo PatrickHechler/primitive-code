@@ -10,7 +10,7 @@ import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConsta
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_GREATHER;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_LOWER;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.X_ADD;
-import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.convertLongToHexString;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertLongToHexString;
 
 import java.io.PrintStream;
 

@@ -8,7 +8,6 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import java.lang.reflect.Field;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
@@ -28,7 +27,7 @@ public class PrimAsmConstants {
 		Map <String, PrimitiveConstant> startConsts = new HashMap <>();
 		int lineNum = 1;
 		try (InputStream in = PrimAsmConstants.class.getResourceAsStream("/de/hechler/patrick/codesprachen/primitive/core/default-constants.psf")) {
-			try (Scanner sc = new Scanner(in, StandardCharsets.UTF_8)) {
+			try (Scanner sc = new Scanner(in, "UTF-8")) {
 				StringBuilder build = new StringBuilder();
 				while (sc.hasNextLine()) {
 					String line = sc.nextLine();

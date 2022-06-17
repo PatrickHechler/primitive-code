@@ -1,6 +1,6 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_ELEMENT_OFFSET_ID;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_ELEMENT_OFFSET_LOCK;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_LOCK;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_STREAM_OFFSET_FILE;
@@ -79,6 +79,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Field;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.NoSuchFileException;
@@ -104,15 +105,46 @@ import de.hechler.patrick.pfs.objects.fs.PatrFileSysElementImpl;
 import de.hechler.patrick.pfs.objects.fs.PatrFileSysImpl;
 import de.hechler.patrick.pfs.objects.fs.PatrID;
 import de.hechler.patrick.pfs.utils.PatrFileSysConstants;
+import sun.misc.Unsafe;
 
-public class PVMImpl implements PVM {
+@SuppressWarnings("restriction")
+public class PVMUnsafeImpl implements PVM {
+	
+	private static final Charset STRING_U16 = StandardCharsets.UTF_16LE;
+	
+	private static final Unsafe U;
+	
+	static {
+		try {
+			Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
+			theUnsafe.setAccessible(true);
+			U = (Unsafe) theUnsafe.get(null);
+		} catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException e) {
+			throw new InternalError(e);
+		}
+		if (Unsafe.ARRAY_BYTE_INDEX_SCALE != 1 || Unsafe.ARRAY_CHAR_INDEX_SCALE != 2) {
+			throw new AssertionError();
+		}
+	}
 	
 	private static final int MAX_BUFFER = 2048;
 	
 	private static final long NO_LOCK = PatrFileSysConstants.NO_LOCK;
 	
-	private final MemoryContainer mem;
-	private final PVMData         data;
+	private static final long IP_OFF      = 8L * (long) IP;
+	private static final long SP_OFF      = 8L * (long) SP;
+	private static final long STATUS_OFF  = 8L * (long) STATUS;
+	private static final long INTCNT_OFF  = 8L * (long) INTCNT;
+	private static final long INTP_OFF    = 8L * (long) INTP;
+	private static final long FS_LOCK_OFF = 8L * (long) FS_LOCK;
+	private static final long X00_OFF     = 8L * (long) X_ADD;
+	private static final long X01_OFF     = 8L * ( ((long) X_ADD) + 1L);
+	private static final long X02_OFF     = 8L * ( ((long) X_ADD) + 2L);
+	private static final long X03_OFF     = 8L * ( ((long) X_ADD) + 3L);
+	private static final long X09_OFF     = 8L * ( ((long) X_ADD) + 9L);
+	
+	private final MemoryChecker   mem;
+	private final long            regs = U.allocateMemory(256L * 8L);
 	private final Interrupt[]     defaultInts;
 	private final PVMCommand[]    commands;
 	private final PatrFileSysImpl fs;
@@ -121,89 +153,160 @@ public class PVMImpl implements PVM {
 	private boolean off1;
 	private int     off2;
 	private int     off3;
+	private long    avl;
 	private int     len;
 	private boolean isreg;
 	
-	public PVMImpl(PatrFileSysImpl fs) {
+	public PVMUnsafeImpl(PatrFileSysImpl fs) {
 		this(fs, new Random());
 	}
 	
-	public PVMImpl(PatrFileSysImpl fs, final Random rnd) {
-		this.mem = new MemoryContainer();
-		this.data = new PVMData(mem);
+	public PVMUnsafeImpl(PatrFileSysImpl fs, final Random rnd) {
+		this.mem = new MemoryChecker(U);
+		U.putLong(regs + IP_OFF, -1L);
+		U.putLong(regs + SP_OFF, -1L);
+		U.putLong(regs, STATUS_OFF, 0L);
+		U.putLong(regs + INTCNT_OFF, INTERRUPT_COUNT);
+		long addr = U.allocateMemory(INTERRUPT_COUNT << 3);
+		mem.malloc(addr, INTERRUPT_COUNT << 3);
+		U.putLong(regs + INTP_OFF, addr);
+		U.setMemory(null, addr, INTERRUPT_COUNT << 3, (byte) -1);
+		U.putLong(regs + FS_LOCK_OFF, NO_LOCK);
 		this.fs = fs;
-		this.defaultInts = new Interrupt[] {
-			num -> System.exit((int) (128 + this.data.regs[X_ADD])),
-			num -> System.exit(7),
-			num -> System.exit(6),
+		this.defaultInts = new Interrupt[] {num -> System.exit((int) (128L + U.getLong(regs + X00_OFF))), //
+			num -> System.exit(7), //
+			num -> System.exit(6), //
 			num -> System.exit(5),
-			num -> System.exit((int) this.data.regs[X_ADD]),
-			num -> this.data.regs[X_ADD] = this.mem.malloc(this.data.regs[X_ADD]),
-			num -> this.data.regs[X_ADD + 1] = this.mem.realloc(this.data.regs[X_ADD], this.data.regs[X_ADD + 1]),
-			num -> this.mem.free(this.data.regs[X_ADD]),
-			num -> defIntOpenNewStream(),
-			num -> defIntWrite(),
-			num -> defIntRead(),
+			num -> System.exit((int) U.getLong(regs + X00_OFF)), //
+			num -> {
+				long l = U.getLong(regs, X00_OFF);
+				long a = U.allocateMemory(l);
+				mem.malloc(a, l);
+				U.putLong(regs + X00_OFF, a);
+			}, //
+			num -> {
+				long oa = U.getLong(regs, X00_OFF);
+				long l = U.getLong(regs, X01_OFF);
+				mem.chackAllocated(oa, l);
+				long a = U.reallocateMemory(oa, l);
+				mem.realloc(oa, a, l);
+			}, //
+			num -> {
+				long a = U.getLong(regs, X00_OFF);;
+				mem.chackAllocated(a);
+				U.freeMemory(a);
+				mem.free(a);
+			}, //
+			num -> defIntOpenNewStream(), //
+			num -> defIntWrite(), //
+			num -> defIntRead(), //
+			num -> defIntGetFSElement(num), //
 			num -> defIntGetFSElement(num),
-			num -> defIntGetFSElement(num),
-			num -> defIntGetFSElement(num),
-			num -> defIntGetFSElement(num),
-			num -> defIntDuplicateFSElementHandle(),
-			num -> defIntGetParent(),
+			num -> defIntGetFSElement(num), //
+			num -> defIntGetFSElement(num), //
+			num -> defIntDuplicateFSElementHandle(), //
+			num -> defIntGetParent(), //
 			num -> defIntFromID(),
-			num -> defIntGetSomeDate(num),
-			num -> defIntGetSomeDate(num),
-			num -> defIntGetSomeDate(num),
+			num -> defIntGetSomeDate(num), //
+			num -> defIntGetSomeDate(num), //
+			num -> defIntGetSomeDate(num), //
+			num -> defIntSetSomeDate(num), //
 			num -> defIntSetSomeDate(num),
-			num -> defIntSetSomeDate(num),
-			num -> defIntSetSomeDate(num),
-			num -> defIntGetLockData(),
-			num -> defIntGetLockDate(),
-			num -> defIntLockElement(),
+			num -> defIntSetSomeDate(num), //
+			num -> defIntGetLockData(), //
+			num -> defIntGetLockDate(), //
+			num -> defIntLockElement(), //
 			num -> defIntUnlockElement(),
-			num -> defIntDeleteElement(),
-			num -> defIntMoveElement(),
-			num -> defIntGetElementFlags(),
-			num -> defIntGetElementFlags(),
+			num -> defIntDeleteElement(), //
+			num -> defIntMoveElement(), //
+			num -> defIntGetElementFlags(), //
+			num -> defIntGetElementFlags(), //
 			num -> defIntModifyElementFlags(),
-			num -> defIntGetFolderChildElementCount(),
-			num -> defIntGetChildElement(num),
-			num -> defIntGetChildElement(num),
+			num -> defIntGetFolderChildElementCount(), //
+			num -> defIntGetChildElement(num), //
+			num -> defIntGetChildElement(num), //
 			num -> defIntAddElement(num),
-			num -> defIntAddElement(num),
-			num -> defIntAddElement(num),
-			num -> defIntFileLength(),
-			num -> defIntFileHash(),
+			num -> defIntAddElement(num), //
+			num -> defIntAddElement(num), //
+			num -> defIntFileLength(), //
+			num -> defIntFileHash(), //
 			num -> defIntFileRWA(num),
-			num -> defIntFileRWA(num),
-			num -> defIntFileRWA(num),
-			num -> defIntFileTruncate(),
-			num -> defIntLinkGetTarget(),
+			num -> defIntFileRWA(num), //
+			num -> defIntFileRWA(num), //
+			num -> defIntFileTruncate(), //
+			num -> defIntLinkGetTarget(), //
 			num -> defIntLinkSetTarget(),
-			num -> defIntFSLock(),
-			num -> defIntFSUnlock(),
-			num -> this.data.regs[X_ADD] = System.currentTimeMillis(),
+			num -> defIntFSLock(), //
+			num -> defIntFSUnlock(), //
+			num -> U.putLong(regs, X00_OFF, System.currentTimeMillis()), //
 			num -> defIntSleep(),
-			num -> this.data.regs[X_ADD] = rnd.nextLong(),
-			num -> this.mem.copy(this.data.regs[X_ADD + 1], this.data.regs[X_ADD], this.data.regs[X_ADD + 2]),
-			num -> this.mem.move(this.data.regs[X_ADD + 1], this.data.regs[X_ADD], this.data.regs[X_ADD + 2]),
-			num -> this.mem.membset(this.data.regs[X_ADD], this.data.regs[X_ADD + 2], (int) (0xFF & this.data.regs[X_ADD + 1])),
-			num -> this.mem.memset(this.data.regs[X_ADD], this.data.regs[X_ADD + 2], this.data.regs[X_ADD + 1]),
-			num -> this.data.regs[X_ADD] = getU16String(this.data.regs[X_ADD]).length() << 1,
-			num -> this.data.regs[X_ADD] = getU16String(this.data.regs[X_ADD]).compareTo(getU16String(this.data.regs[X_ADD + 1])),
-			num -> defIntAnyNumberToString(num),
-			num -> defIntAnyNumberToString(num),
+			num -> U.putLong(regs + X00_OFF, rnd.nextLong()), //
+			num -> U.copyMemory(null, U.getLong(regs, X01_OFF), null, U.getLong(regs, X00_OFF), U.getLong(regs, X02_OFF)),
+			num -> U.copyMemory(null, U.getLong(regs, X01_OFF), null, U.getLong(regs, X00_OFF), U.getLong(regs, X02_OFF)),
+			num -> U.setMemory(null, U.getLong(regs + X00_OFF), U.getLong(regs + X02_OFF), (byte) U.getLong(regs + X01_OFF)), //
+			num -> {
+				long a = U.getLong(regs + X00_OFF), l = U.getLong(regs + X02_OFF), v = U.getLong(regs + X01_OFF);
+				long bv = v & 0xFF;
+				long bl = l << 3;
+				if (bl != l) {
+					throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+				}
+				mem.check(a, bl);
+				if (bv != ( (v >>> 8) & 0xFF) || bv != ( (v >>> 16) & 0xFF) || bv != ( (v >>> 24) & 0xFF) || bv != ( (v >>> 32) & 0xFF) || bv != ( (v >>> 40) & 0xFF)
+					|| bv != ( (v >>> 48) & 0xFF) || bv != ( (v >>> 56) & 0xFF)) {
+					for (; l > 0L; l -- ) {
+						U.putLong(a ++ , v);
+					}
+				} else {
+					U.setMemory(null, a, bl, (byte) bv);
+				}
+			}, //
+			num -> {
+				// this.regs[X_ADD] = getU16String(this.regs[X_ADD]).length() << 1,
+				long sa, a;
+				sa = a = U.getLong(regs + X00_OFF);
+				long avl = mem.avl(sa);
+				for (char c;; a += 2L, avl -= 2) {
+					if (avl < 2L) {
+						throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+					}
+					c = U.getChar(a);
+					if (c == '\0') break;
+				}
+				U.putLong(regs + X00_OFF, a - sa);
+			}, //
+			num -> {
+				// num -> this.regs[X_ADD] = getU16String(this.regs[X_ADD]).compareTo(getU16String(this.regs[X_ADD +
+				// 1])),
+				long a = U.getLong(regs + X00_OFF), a2 = U.getLong(regs + X01_OFF);
+				long avl = Math.min(mem.avl(a), mem.avl(a2));
+				for (char c, c2;; a += 2L, a2 += 2, avl -= 2) {
+					if (avl < 2L) {
+						throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+					}
+					c = U.getChar(a);
+					c2 = U.getChar(a2);
+					if (c == '\0') {
+						U.putLong(regs + X00_OFF, - (0xFFFFL & c2)); // if c2 is also '\0' 0 is correct, else its negative
+					} else if (c == c2) {
+						continue;
+					} else {
+						U.putLong(regs + X00_OFF, (0xFFFFL & c) - (0xFFFFL & c2));
+					}
+				}
+			}, //
+			num -> defIntAnyNumberToString(num), //
+			num -> defIntAnyNumberToString(num), //
+			num -> defIntStringToAnyNumber(num), //
 			num -> defIntStringToAnyNumber(num),
-			num -> defIntStringToAnyNumber(num),
-			num -> defIntFormattString(),
-			num -> defIntStringConvert(num),
-			num -> defIntStringConvert(num),
-			num -> defIntLoadFile(),
-		};
+			num -> defIntFormattString(), //
+			num -> defIntStringConvert(num), //
+			num -> defIntStringConvert(num), //
+			num -> defIntLoadFile(), };
 		if (this.defaultInts.length != INTERRUPT_COUNT) {
 			throw new AssertionError("expected int-count=" + INTERRUPT_COUNT + " int-count=" + this.defaultInts.length);
 		}
-		PVMCommand uc = () -> interrupt(INT_ERRORS_UNKNOWN_COMMAND);
+		PVMCommand uc = () -> { throw new PrimitiveErrror(INT_ERRORS_UNKNOWN_COMMAND); };
 		this.commands = new PVMCommand[] {
 			// @formatter:off
 			uc,         new MOV(),   new ADD(),   new SUB(),   new MUL(),   new DIV(),   new AND(),   new OR(),    new XOR(),   new NOT(),   new NEG(),   new LSH(),    new RLSH(),  new RASH(), new DEC(), new INC(),
@@ -238,7 +341,8 @@ public class PVMImpl implements PVM {
 			try {
 				int val = f.getInt(null);
 				if (val != i) {
-					throw new AssertionError("command at 0x" + Integer.toHexString(val) + " was not of the correct type! expected: " + f.getName() + " but got type: " + c.getClass().getSimpleName());
+					throw new AssertionError("command at 0x" + Integer.toHexString(val) + " was not of the correct type! expected: " + f.getName() + " but got type: "
+						+ c.getClass().getSimpleName());
 				}
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				throw new AssertionError(e);
@@ -262,83 +366,119 @@ public class PVMImpl implements PVM {
 			off1 = true;
 			off2 = 0;
 			off3 = -8;
-			cmd = mem.get(data.regs[IP]);
+			long ip = U.getLong(regs + IP_OFF);
+			avl = mem.avl(ip);
+			if (avl < len) {
+				interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+				return;
+			}
+			cmd = U.getLong(ip);
 			this.commands[(int) (cmd & 0xFF)].execute();
 		} catch (PrimitiveErrror e) {
 			interrupt(e.intNum);
 		}
 	}
 	
+	/*
+	 * the getNC()/setNC() methods will not make any memory check!
+	 * 
+	 * so all memory checks has to be done before!
+	 */
 	private long getNC(long p) throws PrimitiveErrror {
 		if (isreg) {
-			assert p == (int) p;
-			return data.regs[(int) p];
+			assert (p & 0xFFL) == p;
+			return U.getLong(regs + p);
 		} else {
-			return mem.get(p);
+			return U.getLong(p);
 		}
 	}
 	
 	private void setNC(long p, long val) throws PrimitiveErrror {
 		if (isreg) {
-			assert p == (int) p;
-			data.regs[(int) p] = val;
+			assert (p & 0xFFL) == p;
+			U.putLong(regs + p, val);
 		} else {
-			mem.set(p, val);
+			U.putLong(p, val);
 		}
 	}
 	
 	private long getNC(boolean isreg, long p) throws PrimitiveErrror {
 		if (isreg) {
-			assert p == (int) p;
-			return data.regs[(int) p];
+			assert (p & 0xFFL) == p;
+			return U.getLong(regs + p);
 		} else {
-			return mem.get(p);
+			return U.getLong(p);
 		}
 	}
 	
 	private void setNC(boolean isreg, long p, long val) throws PrimitiveErrror {
 		if (isreg) {
-			assert p == (int) p;
-			data.regs[(int) p] = val;
+			assert (p & 0xFFL) == p;
+			U.putLong(regs + p, val);
 		} else {
-			mem.set(p, val);
+			U.putLong(p, val);
 		}
 	}
 	
 	private long getConstParam() throws PrimitiveErrror {
+		long ip = U.getLong(regs + IP_OFF);
 		switch ((int) (0xFF & (cmd >> (off1 ? 48 : 40)))) {
 		case PARAM_ART_ANUM:
 			len += 8;
-			return mem.get(data.regs[IP] + off2 ++ );
+			if (avl < len) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			return U.getLong(ip + off2 ++ );
 		case PARAM_ART_ANUM_BNUM:
 			len += 16;
-			long a = mem.get(data.regs[IP] + (off2 += 8));
-			long b = mem.get(data.regs[IP] + (off2 += 8));
-			return mem.get(a + b);
+			if (avl < len) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			long a = U.getLong(ip + (off2 += 8));
+			long b = U.getLong(ip + (off2 += 8));
+			long addr = a + b;
+			mem.check(addr, 8L);
+			return U.getLong(addr);
 		case PARAM_ART_ANUM_BREG:
 			len += 8;
-			a = mem.get(data.regs[IP] + (off2 += 8));
-			return mem.get(a);
+			if (avl < len) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			a = U.getLong(ip + (off2 += 8));
+			mem.check(a, 8L);
+			return U.getLong(a);
 		case PARAM_ART_ANUM_BSR:
 			len += 8;
-			a = mem.get(data.regs[IP] + (off2 += 8));
-			b = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
-			return mem.get(a + b);
+			if (avl < len) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			a = U.getLong(ip + (off2 += 8));
+			b = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
+			addr = a + b;
+			mem.check(addr, 8L);
+			return U.getLong(addr);
 		case PARAM_ART_ASR:
-			a = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
+			a = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
 			return a;
 		case PARAM_ART_ASR_BNUM:
 			len += 8;
-			a = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
-			b = mem.get(data.regs[IP] + (off2 += 8));
-			return mem.get(a + b);
+			if (avl < len) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			a = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
+			b = U.getLong(ip + (off2 += 8));
+			addr = a + b;
+			mem.check(addr, 8L);
+			return U.getLong(addr);
 		case PARAM_ART_ASR_BREG:
-			a = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
-			return mem.get(a);
+			a = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
+			return U.getLong(a);
 		case PARAM_ART_ASR_BSR:
-			a = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
-			b = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
-			return mem.get(a + b);
+			a = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
+			b = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
+			addr = a + b;
+			mem.check(addr, 8L);
+			return U.getLong(addr);
 		default:
 			throw new PrimitiveErrror(INT_ERRORS_UNKNOWN_COMMAND);
 		}
@@ -346,40 +486,65 @@ public class PVMImpl implements PVM {
 	
 	private long getNoConstParam() throws PrimitiveErrror {
 		isreg = false;
+		long ip = U.getLong(regs + IP_OFF);
 		switch ((int) (0xFF & (cmd >> (off1 ? 48 : 40)))) {
 		case PARAM_ART_ANUM:
 			len += 8;
-			return mem.get(data.regs[IP] + off2 ++ );
+			if (avl < len) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			return U.getLong(ip + off2 ++ );
 		case PARAM_ART_ANUM_BNUM:
 			len += 16;
-			long a = mem.get(data.regs[IP] + (off2 += 8));
-			long b = mem.get(data.regs[IP] + (off2 += 8));
-			return (a + b);
+			if (avl < len) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			long a = U.getLong(ip + (off2 += 8));
+			long b = U.getLong(ip + (off2 += 8));
+			long addr = a + b;
+			mem.check(addr, 8L);
+			return addr;
 		case PARAM_ART_ANUM_BREG:
 			len += 8;
-			a = mem.get(data.regs[IP] + (off2 += 8));
+			if (avl < len) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			a = U.getLong(ip + (off2 += 8));
+			mem.check(a, 8L);
 			return (a);
 		case PARAM_ART_ANUM_BSR:
 			len += 8;
-			a = mem.get(data.regs[IP] + (off2 += 8));
-			b = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
-			return (a + b);
+			if (avl < len) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			a = U.getLong(ip + (off2 += 8));
+			b = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
+			addr = a + b;
+			mem.check(addr, 8L);
+			return addr;
 		case PARAM_ART_ASR:
 			a = (cmd >> (off3 += 8) & 0xFF);
 			isreg = true;
 			return a;
 		case PARAM_ART_ASR_BNUM:
 			len += 8;
-			a = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
-			b = mem.get(data.regs[IP] + (off2 += 8));
-			return (a + b);
+			if (avl < len) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			a = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
+			b = U.getLong(ip + (off2 += 8));
+			addr = a + b;
+			mem.check(addr, 8L);
+			return addr;
 		case PARAM_ART_ASR_BREG:
-			a = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
+			a = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
 			return (a);
 		case PARAM_ART_ASR_BSR:
-			a = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
-			b = data.regs[(int) (cmd >> (off3 += 8) & 0xFF)];
-			return (a + b);
+			a = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
+			b = U.getLong(regs + ( (cmd >> (off3 += 8) & 0xFF) << 3));
+			addr = a + b;
+			mem.check(addr, 8L);
+			return addr;
 		default:
 			throw new PrimitiveErrror(INT_ERRORS_UNKNOWN_COMMAND);
 		}
@@ -388,41 +553,30 @@ public class PVMImpl implements PVM {
 	private void interrupt(long intNum) {
 		while (true) {
 			try {
-				if (intNum < 0L || intNum >= data.regs[INTCNT]) {
-					if (data.regs[INTCNT] > 0L) {
-						long old = data.regs[X_ADD];
-						data.regs[X_ADD] = intNum;
+				long intcnt = U.getLong(regs + INTCNT_OFF);
+				if (intNum < 0L || intNum >= intcnt) {
+					if (intcnt > 0L) {
 						interrupt(INT_ERRORS_ILLEGAL_INTERRUPT);
-						data.regs[X_ADD] = old;
 					} else {
 						System.exit(128);
 					}
-				} else if (data.regs[INTP] == -1L) {
-					defInt(intNum);
 				} else {
-					long address = mem.get(data.regs[INTP] + (intNum << 3));
-					if (address == -1L) {
+					long intp = U.getLong(regs + INTP_OFF);
+					if (intp == -1L) {
 						defInt(intNum);
 					} else {
-						long save = mem.malloc(128);
-						mem.set(save, data.regs[IP]);
-						mem.set(save + 8L, data.regs[SP]);
-						mem.set(save + 16L, data.regs[STATUS]);
-						mem.set(save + 24L, data.regs[INTCNT]);
-						mem.set(save + 32L, data.regs[INTP]);
-						mem.set(save + 40L, data.regs[FS_LOCK]);
-						mem.set(save + 48L, data.regs[X_ADD]);
-						mem.set(save + 56L, data.regs[X_ADD + 1]);
-						mem.set(save + 64L, data.regs[X_ADD + 2]);
-						mem.set(save + 72L, data.regs[X_ADD + 3]);
-						mem.set(save + 80L, data.regs[X_ADD + 4]);
-						mem.set(save + 88L, data.regs[X_ADD + 5]);
-						mem.set(save + 86L, data.regs[X_ADD + 6]);
-						mem.set(save + 88L, data.regs[X_ADD + 7]);
-						mem.set(save + 112L, data.regs[X_ADD + 8]);
-						mem.set(save + 120L, data.regs[X_ADD + 9]);
-						data.regs[X_ADD + 9] = save;
-						data.regs[IP] = address;
+						long addr = intp + (intNum << 3);
+						mem.check(addr, 8L);
+						long address = U.getLong(addr);
+						if (address == -1L) {
+							defInt(intNum);
+						} else {
+							long save = U.allocateMemory(128L);
+							mem.malloc(save, 128L);
+							U.copyMemory(null, regs, null, save, 128L);
+							U.putLong(regs + X09_OFF, save);
+							U.putLong(regs + IP_OFF, address);
+						}
 					}
 				}
 			} catch (PrimitiveErrror e) {
@@ -442,51 +596,99 @@ public class PVMImpl implements PVM {
 	}
 	
 	private String getU16String(long address) throws PrimitiveErrror {
-		byte[] bytes = new byte[16];
+		char[] cs = new char[16];
 		int len;
-		for (len = 0;; len ++ ) {
-			if (len >= bytes.length) {
-				bytes = Arrays.copyOf(bytes, len + len >> 1);
+		long off;
+		long avl = mem.avl(address);
+		for (len = 0, off = Unsafe.ARRAY_CHAR_BASE_OFFSET;; len ++ , off += 2, address += 2L, avl -= 2L) {
+			if (avl < 2L) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
 			}
-			bytes[len] = (byte) mem.getByte(address + len);
-			if (bytes[len] == 0 && len > 0 && bytes[len - 1] == 0) {
-				break;
+			if (len > cs.length) {
+				char[] o = cs;
+				cs = new char[cs.length + cs.length >>> 1];
+				U.copyMemory(o, Unsafe.ARRAY_CHAR_BASE_OFFSET, cs, Unsafe.ARRAY_CHAR_BASE_OFFSET, off - Unsafe.ARRAY_CHAR_BASE_OFFSET);
 			}
+			char c = U.getChar(address);
+			if (c == '\0') break;
+			U.putChar(cs, off, c);
 		}
-		return new String(bytes, 0, len, StandardCharsets.UTF_16BE);
+		return new String(cs, 0, len);
 	}
 	
 	private String getU8String(long address) throws PrimitiveErrror {
 		byte[] bytes = new byte[16];
 		int len;
-		for (len = 0;; len ++ ) {
+		long off = Unsafe.ARRAY_BYTE_BASE_OFFSET;
+		long avl = mem.avl(address);
+		for (len = 0;; len ++ , off ++ , avl -= 2L) {
+			if (avl < 2L) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
 			if (len >= bytes.length) {
 				bytes = Arrays.copyOf(bytes, len + len >> 1);
 			}
-			bytes[len] = (byte) mem.getByte(address + len);
+			byte b = U.getByte(address + len);
 			if (bytes[len] == 0) {
 				break;
 			}
+			U.putByte(bytes, off, b);
 		}
 		return new String(bytes, 0, len, StandardCharsets.UTF_8);
 	}
 	
-	private void setFromByteArray(long addr, byte[] bytes, int len) throws PrimitiveErrror {
-		// FIXME optimize
-		for (int i = 0; i < len; i ++ ) {
-			mem.setByte(addr + i, bytes[i]);
-		}
-	}
 	
-	private void getToByteArray(long addr, byte[] bytes, int len) throws PrimitiveErrror {
-		// FIXME optimize
-		for (int i = 0; i < len; i ++ ) {
-			bytes[i] = (byte) mem.getByte(addr + i);
+	private String[] getPathNames(long address) throws PrimitiveErrror {
+		String[] s = new String[4];
+		int sl = 0;
+		long so = ((long) Unsafe.ARRAY_OBJECT_BASE_OFFSET);
+		char[] cs = new char[16];
+		int len;
+		long off;
+		long avl = mem.avl(address);
+		for (len = 0, off = Unsafe.ARRAY_CHAR_BASE_OFFSET;; len ++ , off += 2, address += 2L, avl -= 2L) {
+			if (avl < 2L) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			if (len > cs.length) {
+				char[] o = cs;
+				cs = new char[cs.length + cs.length >>> 1];
+				U.copyMemory(o, Unsafe.ARRAY_CHAR_BASE_OFFSET, cs, Unsafe.ARRAY_CHAR_BASE_OFFSET, off - Unsafe.ARRAY_CHAR_BASE_OFFSET);
+			}
+			char c = U.getChar(address);
+			if (c == '\0') break;
+			if (c == '/') {
+				if (sl >= s.length) {
+					String[] o = s;
+					s = new String[s.length + s.length >>> 1];
+					U.copyMemory(o, Unsafe.ARRAY_OBJECT_BASE_OFFSET, s, Unsafe.ARRAY_OBJECT_BASE_OFFSET, so - Unsafe.ARRAY_OBJECT_BASE_OFFSET);
+				}
+				U.putObject(s, so, new String(cs, 0, len));
+				off = Unsafe.ARRAY_CHAR_BASE_OFFSET;
+				len = 0;
+				so += Unsafe.ARRAY_OBJECT_INDEX_SCALE;
+				continue;
+			}
+			U.putChar(cs, off, c);
 		}
+		if (sl >= s.length) {
+			String[] o = s;
+			s = new String[s.length + 1];
+			U.copyMemory(o, Unsafe.ARRAY_OBJECT_BASE_OFFSET, s, Unsafe.ARRAY_OBJECT_BASE_OFFSET, so - Unsafe.ARRAY_OBJECT_BASE_OFFSET);
+			U.putObject(s, so, new String(cs, 0, len));
+			return s;
+		}
+		U.putObject(s, so, new String(cs, 0, len));
+		if (sl + 1 != s.length) {
+			String[] res = new String[sl + 1];
+			U.copyMemory(res, Unsafe.ARRAY_OBJECT_BASE_OFFSET, s, Unsafe.ARRAY_OBJECT_BASE_OFFSET, so - Unsafe.ARRAY_OBJECT_BASE_OFFSET + Unsafe.ARRAY_OBJECT_INDEX_SCALE);
+			return res;
+		}
+		return s;
 	}
 	
 	private void defIntLoadFile() throws PrimitiveErrror {
-		String[] names = getU16String(data.regs[X_ADD]).split("\\/");
+		String[] names = getPathNames(U.getLong(regs + X00_OFF));
 		try {
 			PatrFolder parent = fs.getRoot();
 			for (int i = names[0].isEmpty() ? 1 : 0; i < names.length - 1; i ++ ) {
@@ -494,29 +696,26 @@ public class PVMImpl implements PVM {
 			}
 			PatrFile file = parent.getElement(names[names.length - 1], NO_LOCK).getFile();
 			long len = file.length(NO_LOCK);
-			long addr = mem.malloc(len);
-			if (addr == -1L) {
-				fail(X_ADD, STATUS_OUT_OF_MEMORY);
-				return;
-			}
+			long addr = U.allocateMemory(len);
+			mem.malloc(addr, len);
 			byte[] bytes = new byte[(int) Math.min(MAX_BUFFER, len)];
 			for (long wrote = 0L; wrote < len;) {
 				int cpy = (int) Math.min(bytes.length, len - wrote);
 				file.getContent(bytes, wrote, 0, cpy, NO_LOCK);
-				setFromByteArray(addr + wrote, bytes, cpy);
+				U.copyMemory(bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, null, addr + wrote, cpy);
 			}
-			data.regs[X_ADD] = addr;
-			data.regs[X_ADD + 1] = len;
+			U.putLong(regs + X00_OFF, addr);
+			U.putLong(regs + X01_OFF, len);
 		} catch (OutOfMemoryError e) {
-			fail(X_ADD, STATUS_OUT_OF_MEMORY);
+			fail(X00_OFF, STATUS_OUT_OF_MEMORY);
 		} catch (IllegalStateException e) {
-			fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X00_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (NoSuchFileException e) {
-			fail(X_ADD, STATUS_ELEMENT_NOT_EXIST);
+			fail(X00_OFF, STATUS_ELEMENT_NOT_EXIST);
 		} catch (ElementLockedException e) {
-			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+			fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
@@ -532,40 +731,50 @@ public class PVMImpl implements PVM {
 		default:
 			throw new InternalError();
 		}
-		String input = toU8 ? getU16String(data.regs[X_ADD]) : getU8String(data.regs[X_ADD]);
-		byte[] result = input.getBytes(toU8 ? StandardCharsets.UTF_8 : StandardCharsets.UTF_16BE);
+		String input = toU8 ? getU16String(U.getLong(regs + X00_OFF)) : getU8String(U.getLong(regs + X00_OFF));
+		byte[] result = input.getBytes(toU8 ? StandardCharsets.UTF_8 : STRING_U16);
 		long len = result.length + (toU8 ? 1L : 2L);
-		if (data.regs[X_ADD + 2] < len) {
-			if (data.regs[X_ADD + 2] == 0L) {
-				data.regs[X_ADD + 1] = mem.malloc(len);
-			} else if (data.regs[X_ADD + 2] > 0L) {
-				data.regs[X_ADD + 1] = mem.realloc(data.regs[X_ADD + 1], len);
+		long x02 = U.getLong(regs + X02_OFF);
+		long x01 = U.getLong(regs + X01_OFF);
+		if (x02 < len) {
+			long addr;
+			if (x02 == 0L) {
+				addr = U.allocateMemory(len);
+				mem.malloc(addr, len);
+				U.putLong(regs + X01_OFF, addr);
+				x01 = addr;
+			} else if (x02 > 0L) {
+				addr = U.reallocateMemory(x01, len);
+				mem.malloc(addr, len);
+				U.putLong(regs + X01_OFF, addr);
+				x01 = addr;
 			} else {
-				fail(X_ADD + 3, STATUS_ILLEGAL_ARG);
+				fail(X03_OFF, STATUS_ILLEGAL_ARG);
 				return;
 			}
-			data.regs[X_ADD + 2] = len;
+			U.putLong(regs + X02_OFF, len);
 		}
 		for (int i = 0; i < result.length; i ++ ) {
-			mem.setByte(data.regs[X_ADD + 1] + i, result[i]);
+			U.putByte(x01 + i, result[i]);
 		}
-		mem.setByte(data.regs[X_ADD + 1] + result.length, 0);
-		if ( !toU8) {
-			mem.setByte(data.regs[X_ADD + 1] + result.length + 1, 0);
+		if (toU8) {
+			U.putByte(x01 + result.length, (byte) 0);
+		} else {
+			U.putChar(x01 + result.length, '\0');
 		}
-		data.regs[X_ADD + 3] = data.regs[X_ADD + 1] + result.length;
+		U.putLong(regs + X03_OFF, x01 + result.length);
 	}
 	
 	private void defIntFormattString() throws PrimitiveErrror {
-		String input = getU16String(data.regs[X_ADD]);
+		String input = getU16String(U.getLong(regs + X00_OFF));
 		char[] cs = input.toCharArray();
 		StringBuilder result = new StringBuilder();
-		int argN = X_ADD + 3;
+		long argOff = X03_OFF;
 		for (int i = 0; i < input.length();) {
 			int index = input.indexOf('%', i);
 			result.append(cs, i, index - i);
 			if (index + 1 >= input.length()) {
-				fail(X_ADD, STATUS_ILLEGAL_ARG);
+				fail(X00_OFF, STATUS_ILLEGAL_ARG);
 				return;
 			}
 			char c = input.charAt(index + 1);
@@ -573,11 +782,12 @@ public class PVMImpl implements PVM {
 				result.append('%');
 				continue;
 			}
-			if (argN >= data.regs.length) {
-				fail(X_ADD, STATUS_ILLEGAL_ARG);
+			if (argOff >= 256L << 3) {
+				fail(X00_OFF, STATUS_ILLEGAL_ARG);
 				return;
 			}
-			long arg = data.regs[argN ++ ];
+			long arg = U.getLong(regs + argOff);
+			argOff += 8L;
 			switch (c) {
 			case 's':
 				result.append(getU16String(arg));
@@ -611,297 +821,332 @@ public class PVMImpl implements PVM {
 				result.append(Long.toString(arg, 8));
 				break;
 			default:
-				fail(X_ADD, STATUS_ILLEGAL_ARG);
+				fail(X00_OFF, STATUS_ILLEGAL_ARG);
 				return;
 			}
 			i = index + 2;
 		}
-		byte[] bytes = result.toString().getBytes(StandardCharsets.UTF_16BE);
-		if (data.regs[X_ADD + 2] < bytes.length + 2L) {
-			if (data.regs[X_ADD + 2] == 0L) {
-				data.regs[X_ADD + 1] = mem.malloc(bytes.length + 2L);
-			} else if (data.regs[X_ADD + 2] > 0L) {
-				data.regs[X_ADD + 1] = mem.realloc(data.regs[X_ADD + 1], bytes.length + 2L);
+		char[] CS = result.toString().toCharArray();
+		long addr;
+		long x02 = U.getLong(regs + X02_OFF);
+		long length = ((long) CS.length) << 1 + 2L;
+		if (x02 < length) {
+			if (x02 == 0L) {
+				addr = U.allocateMemory(length);
+				mem.malloc(addr, CS.length + 2L);
+				U.putLong(regs + X01_OFF, addr);
+			} else if (x02 > 0L) {
+				long oadr = U.getLong(regs + X01_OFF);
+				addr = U.reallocateMemory(oadr, length);
+				mem.realloc(oadr, addr, length);
+				U.putLong(regs + X02_OFF, addr);
 			} else {
-				fail(X_ADD, STATUS_ILLEGAL_ARG);
+				fail(X00_OFF, STATUS_ILLEGAL_ARG);
 				return;
 			}
-			data.regs[X_ADD + 2] = bytes.length + 2L;
+			U.putLong(regs + X02_OFF, CS.length + 2L);
+		} else {
+			addr = U.getLong(regs + X01_OFF);
 		}
-		setFromByteArray(data.regs[X_ADD + 1], bytes, bytes.length);
-		mem.setByte(data.regs[X_ADD + 1] + bytes.length, 0);
-		mem.setByte(data.regs[X_ADD + 1] + bytes.length + 1, 0);
+		U.copyMemory(cs, Unsafe.ARRAY_CHAR_BASE_OFFSET, null, addr, length - 2L);
+		U.putChar(addr + length - 2L, '\0');
 	}
 	
 	private void defIntStringToAnyNumber(int intNum) throws PrimitiveErrror {
-		String str = getU16String(data.regs[X_ADD]).trim();
+		String str = getU16String(U.getLong(regs + X00_OFF)).trim();
 		try {
 			switch (intNum) {
 			case (int) INT_STRING_TO_NUMBER: {
-				int numsys = (int) data.regs[X_ADD + 1];
-				if ( ((long) numsys) != data.regs[X_ADD + 1] || numsys < 2 || numsys > 36) {
-					fail( -X_ADD - 1, STATUS_ILLEGAL_ARG);
+				long x01 = U.getLong(regs + X01_OFF);
+				int numsys = (int) x01;
+				if ( ((long) numsys) != x01 || numsys < 2 || numsys > 36) {
+					fail( -X01_OFF, STATUS_ILLEGAL_ARG);
 					return;
 				}
-				data.regs[X_ADD] = Long.parseLong(str, numsys);
+				U.putLong(regs + X00_OFF, Long.parseLong(str, numsys));
 				break;
 			}
 			case (int) INT_STRING_TO_FPNUMBER: {
-				data.regs[X_ADD] = Double.doubleToRawLongBits(Double.parseDouble(str));
+				U.putLong(regs + X00_OFF, Double.doubleToRawLongBits(Double.parseDouble(str)));
 				break;
 			}
 			default:
 				throw new InternalError();
 			}
 		} catch (NumberFormatException nfe) {
-			fail( -X_ADD - 1, STATUS_ILLEGAL_ARG);
+			fail( -X01_OFF, STATUS_ILLEGAL_ARG);
 		}
 	}
 	
 	private void defIntAnyNumberToString(int intNum) throws PrimitiveErrror {
 		byte[] bytes;
-		int lenOff;
+		long lenOff;
 		switch (intNum) {
-		case (int) INT_NUMBER_TO_STRING:
-			if (data.regs[X_ADD + 2] > 36L || data.regs[X_ADD + 2] < 2L) {
-				fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+		case (int) INT_NUMBER_TO_STRING: {
+			long x02 = U.getLong(regs + X02_OFF);
+			if (x02 > 36L || x02 < 2L) {
+				fail(X01_OFF, STATUS_ILLEGAL_ARG);
 				return;
 			}
-			bytes = Long.toString(data.regs[X_ADD], (int) data.regs[X_ADD + 2]).toUpperCase().getBytes(StandardCharsets.UTF_16BE);
-			lenOff = X_ADD + 3;
+			bytes = Long.toString(U.getLong(regs + X00_OFF), (int) x02).toUpperCase().getBytes(STRING_U16);
+			lenOff = regs + X03_OFF;
 			break;
+		}
 		case (int) INT_FPNUMBER_TO_STRING:
-			bytes = Double.toString(Double.longBitsToDouble(data.regs[X_ADD])).getBytes(StandardCharsets.UTF_16BE);
-			lenOff = X_ADD + 2;
+			bytes = Double.toString(Double.longBitsToDouble(U.getLong(regs + X00_OFF))).getBytes(STRING_U16);
+			lenOff = regs + X02_OFF;
 			break;
 		default:
 			throw new InternalError();
 		}
-		long addr = data.regs[X_ADD + 1];
-		if (bytes.length + 2L > data.regs[lenOff]) {
-			if (data.regs[lenOff] == 0L) {
-				addr = mem.malloc(bytes.length + 2L);
-			} else if (data.regs[lenOff] > 0L) {
-				addr = mem.realloc(addr, bytes.length + 2L);
+		long addr = U.getLong(regs + X01_OFF);
+		long lenOffVal = U.getLong(lenOff);
+		if (bytes.length + 2L > lenOffVal) {
+			if (lenOffVal == 0L) {
+				addr = U.allocateMemory(bytes.length + 2L);
+				mem.malloc(addr, bytes.length + 2L);
+			} else if (lenOffVal > 0L) {
+				long oaddr = addr;
+				addr = U.reallocateMemory(addr, bytes.length + 2L);
+				mem.realloc(oaddr, addr, bytes.length + 2L);
 			} else {
-				fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+				fail(X01_OFF, STATUS_ILLEGAL_ARG);
 				return;
 			}
-			data.regs[lenOff] = bytes.length + 2L;
+			U.putLong(lenOff, bytes.length + 2L);
 		}
-		setFromByteArray(addr, bytes, bytes.length);
-		mem.setByte(addr + bytes.length, 0);
-		mem.setByte(addr + bytes.length + 1, 0);
+		U.copyMemory(bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, null, addr, bytes.length);
+		U.putChar(addr + bytes.length, '\0');
 	}
 	
 	private void defIntSleep() {
 		long start = System.nanoTime();
 		try {
-			Thread.sleep( (data.regs[X_ADD + 2] * 1000) + (data.regs[X_ADD + 1] / 1000000), (int) data.regs[X_ADD + 1]);
-			data.regs[X_ADD + 1] = data.regs[X_ADD + 2] = 0L;
+			long secs = U.getLong(regs + X02_OFF);
+			long nanos = U.getLong(regs + X01_OFF),
+				millis2 = nanos / 1000000L;
+			int nanosi = (int) (nanos % 1000000L);
+			Thread.sleep( (secs * 1000L) + millis2, nanosi);
+			U.putLong(regs + X01_OFF, 0L);
+			U.putLong(regs + X02_OFF, 0L);
 		} catch (InterruptedException e) {
 			long remain = System.nanoTime() - start;
-			data.regs[X_ADD + 1] = remain % 1000000000L;
-			data.regs[X_ADD + 2] = remain / 1000000000L;
+			long r1 = remain / 1000000000L;
+			long r2 = remain % 1000000000L;
+			U.putLong(regs + X01_OFF, r1);
+			U.putLong(regs + X01_OFF, r2);
 		}
 	}
 	
 	private void defIntFSUnlock() throws PrimitiveErrror {
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			fs.removeLock();
+			U.putLong(regs + FS_LOCK_OFF, NO_LOCK);
 		} catch (ElementLockedException e) {
-			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+			fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntFSLock() throws PrimitiveErrror {
 		try {
-			data.regs[FS_LOCK] = fs.lock(data.regs[X_ADD]);
+			U.putLong(regs + FS_LOCK_OFF, fs.lock(U.getLong(regs + X00_OFF)));
 		} catch (ElementLockedException e) {
-			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+			fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntLinkSetTarget() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK),
-			ntaddress = data.regs[X_ADD + 1],
-			ntid = mem.get(ntaddress + FS_ELEMENT_OFFSET_ID);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK),
+			ntaddress = U.getLong(regs + X01_OFF);
+		// mem.check(ntaddress, 16L); // lock is ignored here
+		mem.check(ntaddress, 8L);
+		long ntid = U.getLong(ntaddress + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrLink e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getLink();
 			PatrFileSysElement nt = fs.fromID(new PatrID(fs, ntid, fs.getStartTime()));
 			e.setTarget(nt, lock);
 		} catch (OutOfSpaceException e) {
-			fail(X_ADD + 1, STATUS_OUT_OF_SPACE);
+			fail(X01_OFF, STATUS_OUT_OF_SPACE);
 		} catch (ElementReadOnlyException e) {
-			fail(X_ADD + 1, STATUS_READ_ONLY);
+			fail(X01_OFF, STATUS_READ_ONLY);
 		} catch (ElementLockedException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+			fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X01_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+			fail(X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD + 1, STATUS_IO_ERR);
+			fail(X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntLinkGetTarget() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getLink().getTarget(lock);
-			mem.set(address + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) e).id);
-			mem.set(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
+			U.putLong(address + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) e).id);
+			U.putLong(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
 		} catch (OutOfSpaceException e) {
-			fail(X_ADD + 1, STATUS_OUT_OF_SPACE);
+			fail(X01_OFF, STATUS_OUT_OF_SPACE);
 		} catch (ElementReadOnlyException e) {
-			fail(X_ADD + 1, STATUS_READ_ONLY);
+			fail(X01_OFF, STATUS_READ_ONLY);
 		} catch (ElementLockedException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+			fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X01_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+			fail(X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD + 1, STATUS_IO_ERR);
+			fail(X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntFileTruncate() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
-			long newLen = data.regs[X_ADD + 1];
+			long newLen = U.getLong(regs + X01_OFF);
 			e.truncate(newLen, lock);
 		} catch (OutOfSpaceException e) {
-			fail(X_ADD + 1, STATUS_OUT_OF_SPACE);
+			fail(X01_OFF, STATUS_OUT_OF_SPACE);
 		} catch (ElementReadOnlyException e) {
-			fail(X_ADD + 1, STATUS_READ_ONLY);
+			fail(X01_OFF, STATUS_READ_ONLY);
 		} catch (ElementLockedException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+			fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X01_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+			fail(X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD + 1, STATUS_IO_ERR);
+			fail(X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntFileRWA(int intNum) throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
-			final long length = data.regs[X_ADD + 1],
-				addr = data.regs[X_ADD + 2];
+			final long length = U.getLong(regs + X01_OFF);
+			long addr = U.getLong(regs + X02_OFF);
+			mem.check(addr, length);
 			byte[] bytes = new byte[(int) Math.min(length, MAX_BUFFER)];
 			long copied;
+			long x03 = U.getLong(regs + X03_OFF);
 			for (copied = 0L; copied < length;) {
 				int cpy = (int) Math.min(bytes.length, length - copied);
 				switch (intNum) {
 				case (int) INT_FS_FILE_READ:
-					e.getContent(bytes, data.regs[X_ADD + 3], 0, cpy, lock);
-					setFromByteArray(addr + copied, bytes, cpy);
+					e.getContent(bytes, x03, 0, cpy, lock);
+					U.copyMemory(bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, null, addr, cpy);
 					break;
 				case (int) INT_FS_FILE_WRITE:
 				case (int) INT_FS_FILE_APPEND:
-					getToByteArray(addr + copied, bytes, cpy);
+					U.copyMemory(null, addr, bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, cpy);
 					if (intNum == (int) INT_FS_FILE_APPEND) {
 						e.appendContent(bytes, 0, cpy, lock);
 					} else {
-						e.setContent(bytes, data.regs[X_ADD + 3], 0, cpy, lock);
+						e.setContent(bytes, x03, 0, cpy, lock);
 					}
 					break;
 				default:
 					throw new InternalError();
 				}
+				addr += cpy;
 			}
 			assert copied == length;
 		} catch (OutOfSpaceException e) {
-			fail(X_ADD + 1, STATUS_OUT_OF_SPACE);
+			fail(X01_OFF, STATUS_OUT_OF_SPACE);
 		} catch (ElementReadOnlyException e) {
-			fail(X_ADD + 1, STATUS_READ_ONLY);
+			fail(X01_OFF, STATUS_READ_ONLY);
 		} catch (ElementLockedException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+			fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X01_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+			fail(X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD + 1, STATUS_IO_ERR);
+			fail(X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntFileHash() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
-			final long addr = data.regs[X_ADD + 1];
+			final long addr = U.getLong(regs + X01_OFF);
 			byte[] bytes = e.getHashCode(lock);
-			for (int i = 0; i < bytes.length; i ++ ) {
-				mem.setByte(addr + i, 0xFF & bytes[i]);
-			}
+			assert bytes.length == 32;
+			mem.check(address, bytes.length);
+			U.copyMemory(bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, null, addr, bytes.length);
 		} catch (ElementLockedException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+			fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X01_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+			fail(X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD + 1, STATUS_IO_ERR);
+			fail(X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntFileLength() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
-			data.regs[X_ADD + 1] = e.length(lock);
+			U.putLong(regs + X01_OFF, e.length(lock));
 		} catch (ElementLockedException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+			fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X01_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+			fail(X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD + 1, STATUS_IO_ERR);
+			fail(X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntAddElement(int intNum) throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK));
 			PatrFolder e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFolder();
-			String name = getU16String(data.regs[X_ADD + 1]);
+			String name = getU16String(U.getLong(regs + X01_OFF));
 			PatrFileSysElement child;
 			switch (intNum) {
 			case (int) INT_FS_FOLDER_ADD_FILE:
@@ -911,8 +1156,9 @@ public class PVMImpl implements PVM {
 				child = e.addFolder(name, lock);
 				break;
 			case (int) INT_FS_FOLDER_ADD_LINK: {
-				final long taddress = data.regs[X_ADD + 2],
-					tid = mem.get(taddress + FS_ELEMENT_OFFSET_ID);
+				final long taddress = U.getLong(regs + X02_OFF);
+				mem.check(taddress, 8L); // lock ignored
+				final long tid = U.getLong(taddress + FS_ELEMENT_OFFSET_ID);
 				PatrFolder te = fs.fromID(new PatrID(fs, tid, fs.getStartTime())).getFolder();
 				child = e.addLink(name, te, lock);
 				break;
@@ -920,330 +1166,354 @@ public class PVMImpl implements PVM {
 			default:
 				throw new InternalError();
 			}
-			mem.set(address + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) child).id);
-			mem.set(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
+			U.putLong(address + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) child).id);
+			U.putLong(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
 		} catch (FileAlreadyExistsException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_ALREADY_EXIST);
+			fail(X01_OFF, STATUS_ELEMENT_ALREADY_EXIST);
 		} catch (ElementReadOnlyException e) {
-			fail(X_ADD + 1, STATUS_READ_ONLY);
+			fail(X01_OFF, STATUS_READ_ONLY);
 		} catch (ElementLockedException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+			fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X01_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+			fail(X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD + 1, STATUS_IO_ERR);
+			fail(X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntGetChildElement(int intNum) throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFolder e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFolder();
 			PatrFileSysElement child;
+			long x01 = U.getLong(regs + X01_OFF);
 			switch (intNum) {
 			case (int) INT_FS_FOLDER_GET_CHILD_OF_INDEX: {
-				int index = (int) data.regs[X_ADD + 1];
-				if (index != data.regs[X_ADD + 1]) {
-					fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+				int index = (int) x01;
+				if (index != x01) {
+					fail(X01_OFF, STATUS_ILLEGAL_ARG);
 					return;
 				}
 				child = e.getElement(index, lock);
 				break;
 			}
 			case (int) INT_FS_FOLDER_GET_CHILD_OF_NAME: {
-				String name = getU16String(data.regs[X_ADD + 1]);
+				String name = getU16String(x01);
 				child = e.getElement(name, lock);
 				break;
 			}
 			default:
 				throw new InternalError();
 			}
-			mem.set(address + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) child).id);
-			mem.set(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
+			U.putLong(address + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) child).id);
+			U.putLong(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
 		} catch (ElementLockedException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+			fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X01_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+			fail(X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD + 1, STATUS_IO_ERR);
+			fail(X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntGetFolderChildElementCount() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID), lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFolder e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFolder();
-			data.regs[X_ADD + 1] = e.elementCount(lock);
+			U.putLong(regs + X01_OFF, e.elementCount(lock));
 		} catch (ElementLockedException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+			fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X01_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+			fail(X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD + 1, STATUS_IO_ERR);
+			fail(X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntModifyElementFlags() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
-			((PatrFileSysElementImpl) e).flag(lock, (int) data.regs[X_ADD + 1], (int) data.regs[X_ADD + 2]);
+			((PatrFileSysElementImpl) e).flag(lock, (int) U.getLong(regs + X01_OFF), (int) U.getLong(regs + X02_OFF));
+		} catch (ElementLockedException e) {
+			fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntGetElementFlags() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 8L); // lock ignored
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
-			data.regs[X_ADD + 1] = ((PatrFileSysElementImpl) e).getFlags();
+			U.putLong(regs + X00_OFF, 0x00000000FFFFFFFFL & ((PatrFileSysElementImpl) e).getFlags());
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntMoveElement() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK),
-			npaddress = data.regs[X_ADD + 1];
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK),
+			npaddress = U.getLong(regs + X01_OFF);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			if (npaddress != -1L) {
-				final long npid = mem.get(npaddress + FS_ELEMENT_OFFSET_ID),
-					nplock = mem.get(npaddress + FS_ELEMENT_OFFSET_LOCK);
+				mem.check(npaddress, 16L);
+				final long npid = U.getLong(npaddress + FS_ELEMENT_OFFSET_ID),
+					nplock = U.getLong(npaddress + FS_ELEMENT_OFFSET_LOCK);
 				PatrFolder np = fs.fromID(new PatrID(fs, npid, fs.getStartTime())).getFolder();
-				e.setParent(np, lock, data.regs[X_ADD + 3], nplock);
+				e.setParent(np, lock, U.getLong(regs + X03_OFF), nplock);
 			}
-			if (data.regs[X_ADD + 2] != -1L) {
-				String newName = getU16String(data.regs[X_ADD + 2]);
+			long x02 = U.getLong(regs + X02_OFF);
+			if (x02 != -1L) {
+				String newName = getU16String(x02);
 				e.setName(newName, lock);
 			}
 		} catch (OutOfSpaceException e) {
-			fail(X_ADD, STATUS_OUT_OF_SPACE);
+			fail(X00_OFF, STATUS_OUT_OF_SPACE);
 		} catch (ElementReadOnlyException e) {
-			fail(X_ADD, STATUS_READ_ONLY);
+			fail(X00_OFF, STATUS_READ_ONLY);
 		} catch (ElementLockedException e) {
-			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+			fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException e) {
-			fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X00_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntDeleteElement() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
-			e.delete(lock, data.regs[X_ADD + 1]);
+			e.delete(lock, U.getLong(regs + X01_OFF));
 			mem.free(address);
+			U.freeMemory(address);
 		} catch (OutOfSpaceException e) {
-			fail(X_ADD, STATUS_OUT_OF_SPACE);
+			fail(X00_OFF, STATUS_OUT_OF_SPACE);
 		} catch (ElementReadOnlyException e) {
-			fail(X_ADD, STATUS_READ_ONLY);
+			fail(X00_OFF, STATUS_READ_ONLY);
 		} catch (ElementLockedException e) {
-			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+			fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntUnlockElement() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			e.removeLock(lock);
-			mem.set(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
-			data.regs[X_ADD + 1] = 1L;
+			U.putLong(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
+			U.putLong(regs + X01_OFF, 1L);
 		} catch (ElementLockedException e) {
-			fail( -X_ADD - 1, STATUS_ELEMENT_LOCKED);
+			fail( -X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail( -X_ADD - 1, STATUS_ILLEGAL_ARG);
+			fail( -X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail( -X_ADD - 1, STATUS_IO_ERR);
+			fail( -X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntLockElement() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L); // lock set
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
-			mem.set(address + FS_ELEMENT_OFFSET_LOCK, e.lock(data.regs[X_ADD + 1]));
+			U.putLong(address + FS_ELEMENT_OFFSET_LOCK, e.lock(U.getLong(regs + X01_OFF)));
 		} catch (ElementLockedException e) {
-			fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+			fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+			fail(X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD + 1, STATUS_IO_ERR);
+			fail(X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntGetLockDate() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 8L); // lock not used
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
-			data.regs[X_ADD + 1] = e.getLockTime();
+			U.putLong(regs + X01_OFF, e.getLockTime());
 		} catch (ElementLockedException e) {
-			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+			fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntGetLockData() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 8L); // lock not used
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
-			data.regs[X_ADD] = e.getLockData();
+			U.putLong(regs + X00_OFF, e.getLockData());
 		} catch (ElementLockedException e) {
-			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+			fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntSetSomeDate(int intNum) throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID),
-			lock = mem.get(address + FS_ELEMENT_OFFSET_LOCK);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 16L);
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID),
+			lock = U.getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			switch (intNum) {
 			case (int) INT_FS_ELEMENT_SET_CREATE:
-				e.setCreateTime(data.regs[X_ADD + 1], lock);
+				e.setCreateTime(U.getLong(regs + X01_OFF), lock);
 				break;
 			case (int) INT_FS_ELEMENT_SET_LAST_MOD:
-				e.setLastModTime(data.regs[X_ADD + 1], lock);
+				e.setLastModTime(U.getLong(regs + X01_OFF), lock);
 				break;
 			case (int) INT_FS_ELEMENT_SET_LAST_META_MOD:
-				e.setLastMetaModTime(data.regs[X_ADD + 1], lock);
+				e.setLastMetaModTime(U.getLong(regs + X01_OFF), lock);
 				break;
 			default:
 				throw new InternalError();
 			}
 		} catch (ElementLockedException e) {
-			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+			fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
-	private void defIntGetSomeDate(int itnNum) throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID);
+	private void defIntGetSomeDate(int intNum) throws PrimitiveErrror {
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 8L); // lock not used
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
-			switch (itnNum) {
+			switch (intNum) {
 			case (int) INT_FS_ELEMENT_GET_CREATE:
-				data.regs[X_ADD + 1] = e.getCreateTime();
+				U.putLong(regs + X01_OFF, e.getCreateTime());
 				break;
 			case (int) INT_FS_ELEMENT_GET_LAST_MOD:
-				data.regs[X_ADD + 1] = e.getLastModTime();
+				U.getLong(regs + X01_OFF, e.getLastModTime());
 				break;
 			case (int) INT_FS_ELEMENT_GET_LAST_META_MOD:
-				data.regs[X_ADD + 1] = e.getLastMetaModTime();
+				U.getLong(regs + X01_OFF, e.getLastMetaModTime());
 				break;
 			default:
 				throw new InternalError();
 			}
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntFromID() throws PrimitiveErrror {
-		final long id = data.regs[X_ADD];
+		final long id = U.getLong(regs + X00_OFF);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK));
 			fs.fromID(new PatrID(fs, id, fs.getStartTime()));
-			long addr = mem.malloc(16L);
-			mem.set(addr + FS_ELEMENT_OFFSET_ID, id);
-			mem.set(addr + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
-			data.regs[X_ADD] = addr;
+			long addr = U.allocateMemory(16L);
+			mem.malloc(addr, 16L);
+			U.putLong(addr + FS_ELEMENT_OFFSET_ID, id);
+			U.putLong(addr + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
+			U.putLong(regs + X00_OFF, addr);
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail(X_ADD, STATUS_ILLEGAL_ARG);
+			fail(X00_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntGetParent() throws PrimitiveErrror {
-		final long address = data.regs[X_ADD],
-			id = mem.get(address + FS_ELEMENT_OFFSET_ID);
+		final long address = U.getLong(regs + X00_OFF);
+		mem.check(address, 8L); // lock not used
+		final long id = U.getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(data.regs[FS_LOCK]);
+			fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			PatrFolder parent = e.getParent();
-			data.regs[X_ADD] = ((PatrFileSysElementImpl) parent).id;
-			data.regs[X_ADD + 1] = 1L;
+			U.putLong(regs + X00_OFF, ((PatrFileSysElementImpl) parent).id);
+			U.putLong(regs + X01_OFF, 1L);
 		} catch (IllegalStateException | IllegalArgumentException e) {
-			fail( -X_ADD - 1, STATUS_ILLEGAL_ARG);
+			fail( -X01_OFF, STATUS_ILLEGAL_ARG);
 		} catch (IOException e) {
-			fail( -X_ADD - 1, STATUS_IO_ERR);
+			fail( -X01_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntDuplicateFSElementHandle() throws PrimitiveErrror {
-		long address = data.regs[X_ADD];
-		long dup = mem.malloc(16L);
-		data.regs[X_ADD] = dup;
-		if (dup != -1L) {
-			mem.copy(address, dup, 16L);
+		try {
+			long address = U.getLong(regs + X00_OFF),
+				dupAddr;
+			mem.check(address, 16L);
+			dupAddr = U.allocateMemory(16L);
+			mem.malloc(dupAddr, 16L);
+			U.copyMemory(null, address, null, dupAddr, 16L);
+			U.putLong(regs + X00_OFF, dupAddr);
+		} catch (OutOfMemoryError e) {
+			fail( -X00_OFF, STATUS_OUT_OF_MEMORY);
 		}
 	}
 	
 	private void defIntGetFSElement(int intNum) throws PrimitiveErrror {
-		String path = getU16String(data.regs[X_ADD]);
+		String path = getU16String(U.getLong(regs + X00_OFF));
 		String[] names = path.split("\\/");
 		try {
 			PatrFolder parent = fs.getRoot();
@@ -1254,19 +1524,19 @@ public class PVMImpl implements PVM {
 			switch (intNum) {
 			case (int) INT_FS_GET_FILE:
 				if ( !file.isFile()) {
-					fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
+					fail(X00_OFF, STATUS_ELEMENT_WRONG_TYPE);
 					return;
 				}
 				break;
 			case (int) INT_FS_GET_FOLDER:
 				if ( !file.isFolder()) {
-					fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
+					fail(X00_OFF, STATUS_ELEMENT_WRONG_TYPE);
 					return;
 				}
 				break;
 			case (int) INT_FS_GET_LINK:
 				if ( !file.isLink()) {
-					fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
+					fail(X00_OFF, STATUS_ELEMENT_WRONG_TYPE);
 					return;
 				}
 			case (int) INT_FS_GET_ELEMENT:
@@ -1274,64 +1544,63 @@ public class PVMImpl implements PVM {
 			default:
 				throw new AssertionError();
 			}
-			long addr = mem.malloc(16L);
-			mem.set(addr + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) file).id);
-			mem.set(addr + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
-			data.regs[X_ADD] = addr;
+			long addr = U.allocateMemory(16L);
+			mem.malloc(addr, 16L);
+			U.putLong(addr + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) file).id);
+			U.putLong(addr + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
+			U.putLong(regs + X00_OFF, addr);
 		} catch (OutOfMemoryError e) {
-			fail(X_ADD, STATUS_OUT_OF_MEMORY);
+			fail(X00_OFF, STATUS_OUT_OF_MEMORY);
 		} catch (IllegalStateException e) {
-			fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
+			fail(X00_OFF, STATUS_ELEMENT_WRONG_TYPE);
 		} catch (NoSuchFileException e) {
-			fail(X_ADD, STATUS_ELEMENT_NOT_EXIST);
+			fail(X00_OFF, STATUS_ELEMENT_NOT_EXIST);
 		} catch (ElementLockedException e) {
-			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+			fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 		}
 	}
 	
 	private void defIntRead() throws PrimitiveErrror {
-		final long id = data.regs[X_ADD],
-			len = data.regs[X_ADD + 1],
-			addr = data.regs[X_ADD + 2];
+		final long id = U.getLong(regs + X00_OFF),
+			len = U.getLong(regs + X01_OFF),
+			addr = U.getLong(regs + X02_OFF);
+		mem.check(addr, len);
 		if (id <= MAX_STD_STREAM) {
 			InputStream in;
 			if (id == STD_IN) {
 				in = System.in;
 			} else {
-				fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+				fail(X01_OFF, STATUS_ILLEGAL_ARG);
 				return;
 			}
 			byte[] bytes = new byte[(int) Math.min(len, MAX_BUFFER)];
 			for (long reat = 0L; reat < len;) {
 				try {
 					int r = in.read(bytes);
-					setFromByteArray(addr + reat, bytes, r);
+					U.copyMemory(bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, null, addr + reat, r);
 					reat += r;
 				} catch (IOException e) {
-					if (reat == 0L) fail(X_ADD + 1, STATUS_IO_ERR);
-					else data.regs[X_ADD + 1] = reat;
+					if (reat == 0L) fail(X01_OFF, STATUS_IO_ERR);
+					else U.putLong(regs + X01_OFF, reat);
 					return;
 				}
 			}
 		} else {
 			try {
-				long pos = mem.get(id + FS_STREAM_OFFSET_POS),
-					fileAddr = mem.get(id + FS_STREAM_OFFSET_FILE),
-					mode = mem.get(id + 16L),
-					fid = mem.get(fileAddr + FS_ELEMENT_OFFSET_ID),
-					lock = mem.get(fileAddr + FS_ELEMENT_OFFSET_LOCK);
+				long pos = U.getLong(id + FS_STREAM_OFFSET_POS), fileAddr = U.getLong(id + FS_STREAM_OFFSET_FILE), mode = U.getLong(id + 16L),
+					fid = U.getLong(fileAddr + FS_ELEMENT_OFFSET_ID), lock = U.getLong(fileAddr + FS_ELEMENT_OFFSET_LOCK);
 				if ( (mode & OPEN_READ) != 0) {
-					fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+					fail(X01_OFF, STATUS_ILLEGAL_ARG);
 					return;
 				}
-				fs.setLock(data.regs[FS_LOCK]);
+				fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 				PatrFile file;
 				try {
 					file = fs.fromID(new PatrID(fs, fid, fs.getStartTime())).getFile();
 				} catch (IllegalStateException e) {
-					fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+					fail(X01_OFF, STATUS_ILLEGAL_ARG);
 					return;
 				}
 				byte[] bytes = new byte[(int) Math.min(MAX_BUFFER, len)];
@@ -1342,38 +1611,39 @@ public class PVMImpl implements PVM {
 						for (long reat = 0L; reat < len;) {
 							if (npos >= length) {
 								assert npos == length;
-								mem.set(id + FS_STREAM_OFFSET_POS, npos);
-								data.regs[X_ADD + 1] = reat;
+								U.putLong(id + FS_STREAM_OFFSET_POS, npos);
+								U.putLong(regs + X01_OFF, reat);
 								return;
 							}
 							int cpy = (int) Math.min(len - reat, Math.min(length - npos, bytes.length));
 							file.getContent(bytes, npos, 0, cpy, lock);
-							setFromByteArray(addr + reat, bytes, cpy);
+							U.copyMemory(bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, null, addr + reat, cpy);
 							npos += cpy;
 							reat += cpy;
-							mem.set(id + FS_STREAM_OFFSET_POS, npos);
+							U.putLong(id + FS_STREAM_OFFSET_POS, npos);
 						}
 					} catch (ElementLockedException e) {
-						fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+						fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 						return;
 					} catch (IOException e) {
-						fail(X_ADD + 1, STATUS_IO_ERR);
+						fail(X01_OFF, STATUS_IO_ERR);
 						return;
 					}
-					data.regs[X_ADD + 1] = len;
+					U.getLong(regs + X01_OFF, len);
 				});
 				return;
 			} catch (IOException e) {
-				fail(X_ADD + 1, STATUS_IO_ERR);
+				fail(X01_OFF, STATUS_IO_ERR);
 				return;
 			}
 		}
 	}
 	
 	private void defIntWrite() throws PrimitiveErrror {
-		final long id = data.regs[X_ADD],
-			len = data.regs[X_ADD + 1],
-			addr = data.regs[X_ADD + 2];
+		final long id = U.getLong(regs + X00_OFF),
+			len = U.getLong(regs + X01_OFF),
+			addr = U.getLong(regs + X02_OFF);
+		mem.check(addr, len);
 		if (id <= MAX_STD_STREAM) {
 			OutputStream out;
 			if (id == STD_OUT) {
@@ -1381,39 +1651,36 @@ public class PVMImpl implements PVM {
 			} else if (id == STD_LOG) {
 				out = System.err;
 			} else {
-				fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+				fail(X01_OFF, STATUS_ILLEGAL_ARG);
 				return;
 			}
 			if (len < 0L) {
-				fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+				fail(X01_OFF, STATUS_ILLEGAL_ARG);
 			}
 			byte[] bytes = new byte[(int) Math.min(MAX_BUFFER, len)];
 			for (long wrote = 0L; wrote < len;) {
-				getToByteArray(addr + wrote, bytes, bytes.length);
+				U.copyMemory(null, addr + wrote, bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, bytes.length);
 				try {
 					out.write(bytes);
 				} catch (IOException e) {
-					fail(X_ADD + 1, STATUS_IO_ERR);
+					fail(X01_OFF, STATUS_IO_ERR);
 					return;
 				}
 			}
 		} else {
 			try {
-				final long pos = mem.get(id + FS_STREAM_OFFSET_POS),
-					fileAddr = mem.get(id + FS_STREAM_OFFSET_FILE),
-					mode = mem.get(id + 16L),
-					fid = mem.get(fileAddr + FS_ELEMENT_OFFSET_ID),
-					lock = mem.get(fileAddr + FS_ELEMENT_OFFSET_LOCK);
+				final long pos = U.getLong(id + FS_STREAM_OFFSET_POS), fileAddr = U.getLong(id + FS_STREAM_OFFSET_FILE), mode = U.getLong(id + 16L),
+					fid = U.getLong(fileAddr + FS_ELEMENT_OFFSET_ID), lock = U.getLong(fileAddr + FS_ELEMENT_OFFSET_LOCK);
 				if ( (mode & OPEN_WRITE) != 0) {
-					fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+					fail(X01_OFF, STATUS_ILLEGAL_ARG);
 					return;
 				}
-				fs.setLock(data.regs[FS_LOCK]);
+				fs.setLock(U.getLong(regs + FS_LOCK_OFF));
 				PatrFile file;
 				try {
 					file = fs.fromID(new PatrID(fs, fid, fs.getStartTime())).getFile();
 				} catch (IllegalStateException e) {
-					fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
+					fail(X01_OFF, STATUS_ILLEGAL_ARG);
 					return;
 				}
 				boolean append = (mode & OPEN_APPEND) != 0;
@@ -1422,7 +1689,7 @@ public class PVMImpl implements PVM {
 					long npos = pos;
 					for (long wrote = 0L; wrote < len;) {
 						try {
-							getToByteArray(addr + wrote, bytes, bytes.length);
+							U.copyMemory(null, addr + wrote, bytes, Unsafe.ARRAY_BYTE_BASE_OFFSET, bytes.length);
 							long length = file.length(lock);
 							int cpy = 0;
 							if ( !append && npos < length) {
@@ -1438,32 +1705,32 @@ public class PVMImpl implements PVM {
 								npos += cop;
 								wrote += cop;
 							}
-							mem.set(id + FS_STREAM_OFFSET_POS, npos);
+							U.putLong(id + FS_STREAM_OFFSET_POS, npos);
 						} catch (OutOfSpaceException e) {
-							fail(X_ADD + 1, STATUS_OUT_OF_SPACE);
+							fail(X01_OFF, STATUS_OUT_OF_SPACE);
 							return;
 						} catch (ElementReadOnlyException e) {
-							fail(X_ADD + 1, STATUS_READ_ONLY);
+							fail(X01_OFF, STATUS_READ_ONLY);
 							return;
 						} catch (ElementLockedException e) {
-							fail(X_ADD + 1, STATUS_ELEMENT_LOCKED);
+							fail(X01_OFF, STATUS_ELEMENT_LOCKED);
 							return;
 						} catch (IOException e) {
-							fail(X_ADD + 1, STATUS_IO_ERR);
+							fail(X01_OFF, STATUS_IO_ERR);
 							return;
 						}
 					}
 				});
 				return;
 			} catch (IOException e) {
-				fail(X_ADD + 1, STATUS_IO_ERR);
+				fail(X01_OFF, STATUS_IO_ERR);
 				return;
 			}
 		}
 	}
 	
 	private void defIntOpenNewStream() throws PrimitiveErrror {
-		String path = getU16String(data.regs[X_ADD]);
+		String path = getU16String(U.getLong(regs + X00_OFF));
 		String[] names = path.split("\\/");
 		try {
 			try {
@@ -1471,37 +1738,37 @@ public class PVMImpl implements PVM {
 				for (int i = 0; i < names.length - 1; i ++ ) {
 					parent = parent.getElement(names[i], NO_LOCK).getFolder();
 				}
-				long mode = data.regs[X_ADD + 1];
+				long mode = U.getLong(regs + X01_OFF);
 				if ( (mode & OPEN_APPEND) != 0) {
 					mode |= OPEN_WRITE;
 				}
 				if ( (mode & (OPEN_READ | OPEN_WRITE)) != 0) {
-					fail(X_ADD, STATUS_ILLEGAL_ARG);
+					fail(X00_OFF, STATUS_ILLEGAL_ARG);
 					return;
 				}
 				if ( (mode & (OPEN_CREATE | OPEN_NEW_FILE | OPEN_TRUNCATE)) != 0) {
 					if ( (mode & OPEN_WRITE) != 0) {
-						fail(X_ADD, STATUS_ILLEGAL_ARG);
+						fail(X00_OFF, STATUS_ILLEGAL_ARG);
 						return;
 					}
 				}
 				if ( (mode & OPEN_NEW_FILE) != 0 && (mode & (OPEN_CREATE | OPEN_TRUNCATE)) != 0) {
-					fail(X_ADD, STATUS_ILLEGAL_ARG);
+					fail(X00_OFF, STATUS_ILLEGAL_ARG);
 					return;
 				}
 				PatrFile file;
 				try {
 					file = parent.getElement(names[names.length - 1], NO_LOCK).getFile();
 					if ( (mode & OPEN_NEW_FILE) != 0) {
-						fail(X_ADD, STATUS_ELEMENT_ALREADY_EXIST);
+						fail(X00_OFF, STATUS_ELEMENT_ALREADY_EXIST);
 						return;
 					}
 				} catch (IllegalStateException e) {
-					fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
+					fail(X00_OFF, STATUS_ELEMENT_WRONG_TYPE);
 					return;
 				} catch (NoSuchFileException e) {
 					if ( (mode & (OPEN_NEW_FILE | OPEN_CREATE)) == 0) {
-						fail(X_ADD, STATUS_ELEMENT_NOT_EXIST);
+						fail(X00_OFF, STATUS_ELEMENT_NOT_EXIST);
 						return;
 					}
 					file = parent.addFile(names[names.length - 1], NO_LOCK);
@@ -1522,38 +1789,39 @@ public class PVMImpl implements PVM {
 					file.ensureAccess(NO_LOCK, checkBits, rof);
 				} catch (ElementLockedException e) {
 					if (e instanceof ElementReadOnlyException) {
-						fail(X_ADD, STATUS_READ_ONLY);
+						fail(X00_OFF, STATUS_READ_ONLY);
 						return;
 					} else {
-						fail(X_ADD, STATUS_ELEMENT_LOCKED);
+						fail(X00_OFF, STATUS_ELEMENT_LOCKED);
 						return;
 					}
 				}
-				long address = mem.malloc(40L);
+				long address = U.allocateMemory(40L);
+				mem.malloc(address, 40L);
 				if (address == -1L) {
-					fail(X_ADD, STATUS_OUT_OF_MEMORY);
+					fail(X00_OFF, STATUS_OUT_OF_MEMORY);
 					return;
 				}
-				mem.set(address + FS_STREAM_OFFSET_FILE, address + 24L);
-				mem.set(address + FS_STREAM_OFFSET_POS, 0L);
-				mem.set(address + 16L, mode);
-				mem.set(address + 24L + FS_ELEMENT_OFFSET_ID, ((PatrFileImpl) file).id);
-				mem.set(address + 24L + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
-				data.regs[X_ADD] = address;
+				U.putLong(address + FS_STREAM_OFFSET_FILE, address + 24L);
+				U.putLong(address + FS_STREAM_OFFSET_POS, 0L);
+				U.putLong(address + 16L, mode);
+				U.putLong(address + 24L + FS_ELEMENT_OFFSET_ID, ((PatrFileImpl) file).id);
+				U.putLong(address + 24L + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
+				U.putLong(regs + X00_OFF, address);
 			} catch (OutOfSpaceException e) {
-				fail(X_ADD, STATUS_OUT_OF_SPACE);
+				fail(X00_OFF, STATUS_OUT_OF_SPACE);
 				return;
 			}
 		} catch (IOException e) {
-			fail(X_ADD, STATUS_IO_ERR);
+			fail(X00_OFF, STATUS_IO_ERR);
 			return;
 		}
 	}
 	
-	private void fail(int markingRegister, long newStatusFlag) {
-		if (markingRegister > 0) data.regs[markingRegister] = -1L;
-		else data.regs[ -markingRegister] = 0L;
-		data.regs[STATUS] |= newStatusFlag;
+	private void fail(long markingRegisterOff, long newStatusFlag) {
+		if (markingRegisterOff > 0) U.putLong(regs + markingRegisterOff, -1L);
+		else U.putLong(regs - markingRegisterOff, 0L);
+		U.putLong(regs + STATUS_OFF, U.getLong(regs + STATUS_OFF) | newStatusFlag);
 	}
 	
 	private abstract class Cmd_1CP_AL implements PVMCommand {
@@ -1562,7 +1830,7 @@ public class PVMImpl implements PVM {
 		public void execute() throws PrimitiveErrror {
 			long p1 = getConstParam();
 			exec(p1);
-			data.regs[IP] += len;
+			U.putLong(regs + IP_OFF, U.getLong(regs + IP_OFF) + len);
 		}
 		
 		protected abstract void exec(long p1) throws PrimitiveErrror;
@@ -1573,10 +1841,9 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		public void execute() throws PrimitiveErrror {
-			long p1 = getConstParam(),
-				p2 = getConstParam();
+			long p1 = getConstParam(), p2 = getConstParam();
 			exec(p1, p2);
-			data.regs[IP] += len;
+			U.putLong(regs + IP_OFF, U.getLong(regs + IP_OFF) + len);
 		}
 		
 		protected abstract void exec(long p1, long p2) throws PrimitiveErrror;
@@ -1589,7 +1856,7 @@ public class PVMImpl implements PVM {
 		public void execute() throws PrimitiveErrror {
 			long p1 = getNoConstParam();
 			exec(p1);
-			data.regs[IP] += len;
+			U.putLong(regs + IP_OFF, U.getLong(regs + IP_OFF) + len);
 		}
 		
 		protected abstract void exec(long p1) throws PrimitiveErrror;
@@ -1606,7 +1873,7 @@ public class PVMImpl implements PVM {
 			isregp1 = isreg;
 			long p2 = getNoConstParam();
 			exec(p1, p2);
-			data.regs[IP] += len;
+			U.putLong(regs + IP_OFF, U.getLong(regs + IP_OFF) + len);
 		}
 		
 		protected abstract void exec(long p1, long p2) throws PrimitiveErrror;
@@ -1620,7 +1887,7 @@ public class PVMImpl implements PVM {
 			long p1 = getNoConstParam();
 			long p2 = getConstParam();
 			exec(p1, p2);
-			data.regs[IP] += len;
+			U.putLong(regs + IP_OFF, U.getLong(regs + IP_OFF) + len);
 		}
 		
 		protected abstract void exec(long p1, long p2) throws PrimitiveErrror;
@@ -1631,7 +1898,7 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		public void execute() throws PrimitiveErrror {
-			long p1 = mem.get(data.regs[IP] + 8L);
+			long p1 = U.getLong(U.getLong(regs + IP_OFF) + 8L);
 			exec(p1);
 		}
 		
@@ -1643,8 +1910,7 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		public void execute() throws PrimitiveErrror {
-			long p1 = getConstParam(),
-				p2 = mem.get(data.regs[IP] + 8L);
+			long p1 = getConstParam(), p2 = U.getLong(U.getLong(regs + IP_OFF) + 8L);
 			exec(p1, p2);
 		}
 		
@@ -1670,24 +1936,24 @@ public class PVMImpl implements PVM {
 			setNC(p1, res);
 			if (p1v > 0L && p2 > 0L) {
 				if (res < 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 					// } else if (res == 0L) { //not possible
 					// data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 				}
 			} else if (p1v < 0L && p2 < 0L) {
 				if (res > 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 				} else if (res == 0L) { // only with (MIN + MIN)
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO | STATUS_CARRY));
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 				}
 			} else if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 			}
 		}
 		
@@ -1705,24 +1971,24 @@ public class PVMImpl implements PVM {
 			setNC(p1, res);
 			if (p1v > 0L && p2 < 0L) {
 				if (res < 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 					// } else if (res == 0L) {
 					// data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 				}
 			} else if (p1v < 0L && p2 > 0L) {
 				if (res > 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 					// } else if (res == 0L) { // not possible
 					// data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 				}
 			} else if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 			}
 		}
 		
@@ -1737,24 +2003,24 @@ public class PVMImpl implements PVM {
 			setNC(p1, res);
 			if (p1v > 0L && p2 > 0L) {
 				if (res < 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 				} else if (res == 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO | STATUS_CARRY));
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 				}
 			} else if (p1v < 0L && p2 < 0L) {
 				if (res > 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 				} else if (res == 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO | STATUS_CARRY));
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 				}
 			} else if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 			}
 		}
 		
@@ -1780,9 +2046,9 @@ public class PVMImpl implements PVM {
 			long res = p1v & p2;
 			setNC(p1, res);
 			if (res == 0L) {
-				data.regs[STATUS] |= STATUS_ZERO;
+				U.putLong(regs + STATUS_OFF, U.getLong(regs + STATUS_OFF) | STATUS_ZERO);
 			} else {
-				data.regs[STATUS] &= ~STATUS_ZERO;
+				U.putLong(regs + STATUS_OFF, U.getLong(regs + STATUS_OFF) & ~STATUS_ZERO);
 			}
 		}
 		
@@ -1796,9 +2062,9 @@ public class PVMImpl implements PVM {
 			long res = p1v | p2;
 			setNC(p1, res);
 			if (res == 0L) {
-				data.regs[STATUS] |= STATUS_ZERO;
+				U.putLong(regs + STATUS_OFF, U.getLong(regs + STATUS_OFF) | STATUS_ZERO);
 			} else {
-				data.regs[STATUS] &= ~STATUS_ZERO;
+				U.putLong(regs + STATUS_OFF, U.getLong(regs + STATUS_OFF) & ~STATUS_ZERO);
 			}
 		}
 		
@@ -1812,9 +2078,9 @@ public class PVMImpl implements PVM {
 			long res = p1v ^ p2;
 			setNC(p1, res);
 			if (res == 0L) {
-				data.regs[STATUS] |= STATUS_ZERO;
+				U.putLong(regs + STATUS_OFF, U.getLong(regs + STATUS_OFF) | STATUS_ZERO);
 			} else {
-				data.regs[STATUS] &= ~STATUS_ZERO;
+				U.putLong(regs + STATUS_OFF, U.getLong(regs + STATUS_OFF) & ~STATUS_ZERO);
 			}
 		}
 		
@@ -1828,9 +2094,9 @@ public class PVMImpl implements PVM {
 			long res = ~p1v;
 			setNC(p1, res);
 			if (res == 0L) {
-				data.regs[STATUS] |= STATUS_ZERO;
+				U.putLong(regs + STATUS_OFF, U.getLong(regs + STATUS_OFF) | STATUS_ZERO);
 			} else {
-				data.regs[STATUS] &= ~STATUS_ZERO;
+				U.putLong(regs + STATUS_OFF, U.getLong(regs + STATUS_OFF) & ~STATUS_ZERO);
 			}
 		}
 		
@@ -1844,11 +2110,11 @@ public class PVMImpl implements PVM {
 			long res = -p1v;
 			setNC(p1, res);
 			if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else if (res == Long.MIN_VALUE) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_CARRY | STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 			}
 		}
 		
@@ -1863,14 +2129,14 @@ public class PVMImpl implements PVM {
 			setNC(p1, res);
 			if (res >>> p2 != p1) {
 				if (res == 0L) {
-					data.regs[STATUS] |= STATUS_CARRY | STATUS_ZERO;
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO | STATUS_CARRY));
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~STATUS_ZERO;
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 				}
 			} else if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~STATUS_CARRY;
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else {
-				data.regs[STATUS] &= ~ (STATUS_CARRY | STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_CARRY | STATUS_ZERO));
 			}
 		}
 		
@@ -1885,14 +2151,14 @@ public class PVMImpl implements PVM {
 			setNC(p1, res);
 			if (res << p2 != p1) {
 				if (res == 0L) {
-					data.regs[STATUS] |= STATUS_CARRY | STATUS_ZERO;
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO | STATUS_CARRY));
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~STATUS_ZERO;
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 				}
 			} else if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~STATUS_CARRY;
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else {
-				data.regs[STATUS] &= ~ (STATUS_CARRY | STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_CARRY | STATUS_ZERO));
 			}
 		}
 		
@@ -1908,14 +2174,14 @@ public class PVMImpl implements PVM {
 			setNC(p1, res);
 			if (res << p2 != p1) {
 				if (res == 0L) {
-					data.regs[STATUS] |= STATUS_CARRY | STATUS_ZERO;
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO | STATUS_CARRY));
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~STATUS_ZERO;
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 				}
 			} else if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~STATUS_CARRY;
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else {
-				data.regs[STATUS] &= ~ (STATUS_CARRY | STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 			}
 		}
 		
@@ -1929,11 +2195,11 @@ public class PVMImpl implements PVM {
 			long res = p1v - 1;
 			setNC(p1, res);
 			if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else if (res == Long.MAX_VALUE) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_CARRY | STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 			}
 		}
 		
@@ -1947,23 +2213,24 @@ public class PVMImpl implements PVM {
 			long res = p1v + 1;
 			setNC(p1, res);
 			if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else if (res == Long.MIN_VALUE) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_CARRY | STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 			}
 		}
 		
 	}
 	
-	// uc, new MOV(), new ADD(), new SUB(), new MUL(), new DIV(), new AND(), new OR(), new XOR(), new NOT(), new NEG(), new LSH(), new RLSH(), new RASH(), new DEC(), new INC(),
+	// uc, new MOV(), new ADD(), new SUB(), new MUL(), new DIV(), new AND(), new OR(), new XOR(), new
+	// NOT(), new NEG(), new LSH(), new RLSH(), new RASH(), new DEC(), new INC(),
 	
 	private class JMP extends Cmd_1LP_IL {
 		
 		@Override
 		protected void exec(long p1) throws PrimitiveErrror {
-			data.regs[IP] += p1;
+			U.putLong(regs + IP_OFF, U.getLong(regs + IP_OFF) + p1);
 		}
 		
 	}
@@ -1978,10 +2245,10 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1) throws PrimitiveErrror {
-			if ( (data.regs[STATUS] & cond) != 0) {
-				data.regs[IP] += p1;
+			if ( (U.getLong(regs + STATUS_OFF) & cond) != 0) {
+				U.putLong(regs + IP_OFF, U.getLong(regs + IP_OFF) + p1);
 			} else {
-				data.regs[IP] += len;
+				U.putLong(regs + IP_OFF, U.getLong(regs + IP_OFF) + len);
 			}
 		}
 		
@@ -1997,10 +2264,10 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1) throws PrimitiveErrror {
-			if ( (data.regs[STATUS] & cond) == 0) {
-				data.regs[IP] += p1;
+			if ( (U.getLong(regs + STATUS_OFF) & cond) == 0) {
+				U.putLong(regs + IP_OFF, U.getLong(regs + IP_OFF) + p1);
 			} else {
-				data.regs[IP] += len;
+				U.putLong(regs + IP_OFF, U.getLong(regs + IP_OFF) + len);
 			}
 		}
 		
@@ -2102,15 +2369,18 @@ public class PVMImpl implements PVM {
 		
 	}
 	
-	// new JMP(), new JMPEQ(), new JMPNE(), new JMPGT(), new JMPGE(), new JMPLT(), new JMPLE(), new JMPCS(), new JMPCC(), new JMPZS(), new JMPZC(), new JMPNAN(), new JMPAN(), uc, uc, uc,
+	// new JMP(), new JMPEQ(), new JMPNE(), new JMPGT(), new JMPGE(), new JMPLT(), new JMPLE(), new
+	// JMPCS(), new JMPCC(), new JMPZS(), new JMPZC(), new JMPNAN(), new JMPAN(), uc, uc, uc,
 	
 	private class CALL extends Cmd_1LP_IL {
 		
 		@Override
 		protected void exec(long p1) throws PrimitiveErrror {
-			mem.set(data.regs[SP], data.regs[IP]);
-			data.regs[SP] += 8;
-			data.regs[IP] += p1;
+			long sp = U.getLong(regs + SP_OFF);
+			long ip = U.getLong(regs + IP_OFF);
+			U.putLong(sp, ip);
+			U.putLong(regs + SP_OFF, sp + 8L);
+			U.putLong(regs + IP_OFF, ip + p1);
 		}
 		
 	}
@@ -2120,11 +2390,11 @@ public class PVMImpl implements PVM {
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
 			if (p1 > p2) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_GREATHER) & ~ (STATUS_EQUAL | STATUS_LOWER);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_GREATHER) & ~ (STATUS_EQUAL | STATUS_LOWER));
 			} else if (p1 < p2) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_LOWER) & ~ (STATUS_EQUAL | STATUS_GREATHER);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_LOWER) & ~ (STATUS_EQUAL | STATUS_GREATHER));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_EQUAL) & ~ (STATUS_GREATHER | STATUS_LOWER);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_EQUAL) & ~ (STATUS_GREATHER | STATUS_LOWER));
 			}
 		}
 		
@@ -2134,8 +2404,9 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		public void execute() throws PrimitiveErrror {
-			data.regs[SP] -= 8;
-			data.regs[IP] = mem.get(data.regs[SP]);
+			long sp = U.getLong(regs + SP_OFF) - 8L;
+			U.putLong(regs + SP_OFF, sp);
+			U.putLong(regs + IP_OFF, U.getLong(sp));
 		}
 		
 	}
@@ -2153,8 +2424,9 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1) throws PrimitiveErrror {
-			mem.set(data.regs[SP], p1);
-			data.regs[SP] += 8;
+			long sp = U.getLong(regs + SP_OFF);
+			U.putLong(sp, p1);
+			U.putLong(regs + SP_OFF, sp + 8L);
 		}
 		
 	}
@@ -2163,8 +2435,9 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1) throws PrimitiveErrror {
-			data.regs[SP] -= 8;
-			setNC(p1, data.regs[SP]);
+			long sp = U.getLong(regs + SP_OFF) - 8L;
+			U.putLong(regs + SP_OFF, sp);
+			setNC(p1, U.getLong(sp));
 		}
 		
 	}
@@ -2173,23 +2446,8 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		public void execute() throws PrimitiveErrror {
-			long zw = data.regs[X_ADD + 0x09];
-			data.regs[IP] = mem.get(zw);
-			data.regs[SP] = mem.get(zw + 8);
-			data.regs[STATUS] = mem.get(zw + 16);
-			data.regs[INTCNT] = mem.get(zw + 24);
-			data.regs[INTP] = mem.get(zw + 32);
-			data.regs[FS_LOCK] = mem.get(zw + 40);
-			data.regs[X_ADD] = mem.get(zw + 48);
-			data.regs[X_ADD + 1] = mem.get(zw + 56);
-			data.regs[X_ADD + 2] = mem.get(zw + 64);
-			data.regs[X_ADD + 3] = mem.get(zw + 72);
-			data.regs[X_ADD + 4] = mem.get(zw + 80);
-			data.regs[X_ADD + 5] = mem.get(zw + 88);
-			data.regs[X_ADD + 6] = mem.get(zw + 96);
-			data.regs[X_ADD + 7] = mem.get(zw + 104);
-			data.regs[X_ADD + 8] = mem.get(zw + 112);
-			data.regs[X_ADD + 9] = mem.get(zw + 120);
+			long zw = U.getLong(regs + X09_OFF);
+			U.copyMemory(null, zw, null, regs, 128L);
 		}
 		
 	}
@@ -2198,8 +2456,7 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
-			long p1v = getNC(isregp1, p1),
-				p2v = getNC(p2);
+			long p1v = getNC(isregp1, p1), p2v = getNC(p2);
 			setNC(isregp1, p1, p2v);
 			setNC(p2, p1v);
 		}
@@ -2210,7 +2467,7 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
-			setNC(p1, p2 + data.regs[IP]);
+			setNC(p1, p2 + U.getLong(regs + IP_OFF));
 		}
 		
 	}
@@ -2219,7 +2476,7 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
-			long p3 = mem.get(data.regs[IP] + len);
+			long p3 = U.getLong(U.getLong(regs + IP_OFF) + len);
 			len += 8;
 			setNC(p1, p2 + p3);
 		}
@@ -2230,9 +2487,11 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
-			mem.set(data.regs[SP], data.regs[IP]);
-			data.regs[SP] += 8;
-			data.regs[IP] = p1 + p2;
+			long sp = U.getLong(regs + SP_OFF);
+			long ip = U.getLong(regs + IP_OFF);
+			U.putLong(sp, ip);
+			U.putLong(regs + SP_OFF, sp + 8L);
+			U.putLong(regs + IP_OFF, p1 + p2);
 		}
 		
 	}
@@ -2243,11 +2502,11 @@ public class PVMImpl implements PVM {
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
 			long res = p1 & p2;
 			if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NONE_BITS) & ~ (STATUS_SOME_BITS | STATUS_ALL_BITS);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_NONE_BITS) & ~ (STATUS_SOME_BITS | STATUS_ALL_BITS));
 			} else if (res == p2) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ALL_BITS | STATUS_SOME_BITS) & ~ (STATUS_NONE_BITS);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ALL_BITS | STATUS_SOME_BITS) & ~ (STATUS_NONE_BITS));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_SOME_BITS) & ~ (STATUS_NONE_BITS | STATUS_ALL_BITS);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ALL_BITS) & ~ (STATUS_NONE_BITS | STATUS_ALL_BITS));
 			}
 		}
 		
@@ -2257,16 +2516,15 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
-			double fp1 = Double.longBitsToDouble(p1),
-				fp2 = Double.longBitsToDouble(p2);
+			double fp1 = Double.longBitsToDouble(p1), fp2 = Double.longBitsToDouble(p2);
 			if (fp1 > fp2) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_GREATHER) & ~ (STATUS_EQUAL | STATUS_LOWER | STATUS_NAN);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_GREATHER) & ~ (STATUS_EQUAL | STATUS_LOWER | STATUS_NAN));
 			} else if (fp1 < fp2) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_LOWER) & ~ (STATUS_GREATHER | STATUS_EQUAL | STATUS_NAN);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_LOWER) & ~ (STATUS_EQUAL | STATUS_GREATHER | STATUS_NAN));
 			} else if (fp1 != fp2) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_GREATHER | STATUS_EQUAL | STATUS_LOWER);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_NAN) & ~ (STATUS_EQUAL | STATUS_LOWER | STATUS_GREATHER));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_EQUAL) & ~ (STATUS_GREATHER | STATUS_LOWER | STATUS_NAN);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_EQUAL) & ~ (STATUS_GREATHER | STATUS_LOWER | STATUS_NAN));
 			}
 		}
 		
@@ -2278,19 +2536,20 @@ public class PVMImpl implements PVM {
 		protected void exec(long p1) throws PrimitiveErrror {
 			double fp1 = Double.longBitsToDouble(p1);
 			if (fp1 == Double.POSITIVE_INFINITY) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_GREATHER) & ~ (STATUS_ZERO | STATUS_LOWER | STATUS_NAN);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_GREATHER) & ~ (STATUS_ZERO | STATUS_LOWER | STATUS_NAN));
 			} else if (fp1 == Double.NEGATIVE_INFINITY) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_LOWER) & ~ (STATUS_GREATHER | STATUS_ZERO | STATUS_NAN);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_LOWER) & ~ (STATUS_ZERO | STATUS_GREATHER | STATUS_NAN));
 			} else if (fp1 != fp1) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_GREATHER | STATUS_ZERO | STATUS_LOWER);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_NAN) & ~ (STATUS_ZERO | STATUS_LOWER | STATUS_GREATHER));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_ZERO | STATUS_LOWER | STATUS_NAN);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_GREATHER | STATUS_LOWER | STATUS_NAN));
 			}
 		}
 		
 	}
 	
-	// new CALL(), new CMP(), new RET(), new INT(), new PUSH(), new POP(), new IRET(), new SWAP(), new LEA(), new MVAD(), new CALO(), new BCP(), new CMPFP(), new CHKFP(), uc, uc,
+	// new CALL(), new CMP(), new RET(), new INT(), new PUSH(), new POP(), new IRET(), new SWAP(), new
+	// LEA(), new MVAD(), new CALO(), new BCP(), new CMPFP(), new CHKFP(), uc, uc,
 	
 	private class ADDC extends Cmd_1NCP_1CP_AL {
 		
@@ -2298,30 +2557,30 @@ public class PVMImpl implements PVM {
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
 			long p1v = getNC(p1);
 			long res = p1v + p2;
-			if ( (data.regs[STATUS] & STATUS_CARRY) != 0) {
+			if ( (U.getLong(regs + STATUS_OFF) & STATUS_CARRY) != 0) {
 				res ++ ;
 			}
 			setNC(p1, res);
 			if (p1v > 0L && p2 > 0L) {
 				if (res < 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
-				} else if (res == 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
+					// } else if (res == 0L) { //still not possible
+					// U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO | STATUS_CARRY));
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 				}
 			} else if (p1v < 0L && p2 < 0L) {
 				if (res > 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 				} else if (res == 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO | STATUS_CARRY));
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 				}
 			} else if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 			}
 		}
 		
@@ -2333,30 +2592,30 @@ public class PVMImpl implements PVM {
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
 			long p1v = getNC(p1);
 			long res = p1v - p2;
-			if ( (data.regs[STATUS] & STATUS_CARRY) != 0) {
+			if ( (U.getLong(regs + STATUS_OFF) & STATUS_CARRY) != 0) {
 				res -- ;
 			}
 			setNC(p1, res);
 			if (p1v > 0L && p2 < 0L) {
 				if (res < 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
-				} else if (res == 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
+				} else if (res == 0L) { // still not possible
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO | STATUS_CARRY));
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 				}
 			} else if (p1v < 0L && p2 > 0L) {
 				if (res > 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_CARRY) & ~ (STATUS_ZERO);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_CARRY) & ~ (STATUS_ZERO));
 				} else if (res == 0L) {
-					data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO | STATUS_CARRY));
 				} else {
-					data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+					U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 				}
 			} else if (res == 0L) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_CARRY));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_ZERO | STATUS_CARRY);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_ZERO | STATUS_CARRY));
 			}
 		}
 		
@@ -2366,16 +2625,15 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
-			double fp1v = Double.longBitsToDouble(getNC(p1)),
-				fp2 = Double.longBitsToDouble(p2);
+			double fp1v = Double.longBitsToDouble(getNC(p1)), fp2 = Double.longBitsToDouble(p2);
 			double fpres = fp1v + fp2;
 			setNC(p1, Double.doubleToRawLongBits(fpres));
 			if (fpres == 0.0D) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_NAN);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_NAN));
 			} else if (fpres != fpres) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_NAN) & ~ (STATUS_ZERO));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_NAN | STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_NAN | STATUS_ZERO));
 			}
 		}
 		
@@ -2385,16 +2643,15 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
-			double fp1v = Double.longBitsToDouble(getNC(p1)),
-				fp2 = Double.longBitsToDouble(p2);
+			double fp1v = Double.longBitsToDouble(getNC(p1)), fp2 = Double.longBitsToDouble(p2);
 			double fpres = fp1v - fp2;
 			setNC(p1, Double.doubleToRawLongBits(fpres));
 			if (fpres == 0.0D) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_NAN);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_NAN));
 			} else if (fpres != fpres) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_NAN) & ~ (STATUS_ZERO));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_NAN | STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_NAN | STATUS_ZERO));
 			}
 		}
 		
@@ -2404,16 +2661,15 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
-			double fp1v = Double.longBitsToDouble(getNC(p1)),
-				fp2 = Double.longBitsToDouble(p2);
+			double fp1v = Double.longBitsToDouble(getNC(p1)), fp2 = Double.longBitsToDouble(p2);
 			double fpres = fp1v * fp2;
 			setNC(p1, Double.doubleToRawLongBits(fpres));
 			if (fpres == 0.0D) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_NAN);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_NAN));
 			} else if (fpres != fpres) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_NAN) & ~ (STATUS_ZERO));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_NAN | STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_NAN | STATUS_ZERO));
 			}
 		}
 		
@@ -2423,16 +2679,15 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
-			double fp1v = Double.longBitsToDouble(getNC(p1)),
-				fp2 = Double.longBitsToDouble(p2);
+			double fp1v = Double.longBitsToDouble(getNC(p1)), fp2 = Double.longBitsToDouble(p2);
 			double fpres = fp1v / fp2;
 			setNC(p1, Double.doubleToRawLongBits(fpres));
 			if (fpres == 0.0D) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_ZERO) & ~ (STATUS_NAN);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_ZERO) & ~ (STATUS_NAN));
 			} else if (fpres != fpres) {
-				data.regs[STATUS] = (data.regs[STATUS] | STATUS_NAN) & ~ (STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF) | STATUS_NAN) & ~ (STATUS_ZERO));
 			} else {
-				data.regs[STATUS] = (data.regs[STATUS]) & ~ (STATUS_NAN | STATUS_ZERO);
+				U.putLong(regs + STATUS_OFF, (U.getLong(regs + STATUS_OFF)) & ~ (STATUS_NAN | STATUS_ZERO));
 			}
 		}
 		
@@ -2462,16 +2717,15 @@ public class PVMImpl implements PVM {
 		
 		@Override
 		protected void exec(long p1, long p2) throws PrimitiveErrror {
-			long p1v = getNC(isregp1, p1),
-				p2v = getNC(p2);
-			long np1 = Long.divideUnsigned(p1v, p2v),
-				np2 = Long.remainderUnsigned(p1v, p2v);
+			long p1v = getNC(isregp1, p1), p2v = getNC(p2);
+			long np1 = Long.divideUnsigned(p1v, p2v), np2 = Long.remainderUnsigned(p1v, p2v);
 			setNC(isregp1, p1, np1);
 			setNC(p2, np2);
 		}
 		
 	}
 	
-	// new ADDC(), new SUBC(), new ADDFP(), new SUBFP(), new MULFP(), new DIVFP(), new NTFP(), new FPTN(), new UDIV(), uc, uc, uc, uc, uc, uc, uc,
+	// new ADDC(), new SUBC(), new ADDFP(), new SUBFP(), new MULFP(), new DIVFP(), new NTFP(), new
+	// FPTN(), new UDIV(), uc, uc, uc, uc, uc, uc, uc,
 	
 }

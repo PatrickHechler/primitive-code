@@ -1,12 +1,12 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
+import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.*;
+
 import java.util.Arrays;
 
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands.ParamArt;
 import de.hechler.patrick.codesprachen.primitive.disassemble.interfaces.LabelNameGenerator;
-
-import static de.hechler.patrick.codesprachen.primitive.disassemble.utils.Convert.*;
 
 public class Command {
 	

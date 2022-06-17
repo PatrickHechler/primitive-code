@@ -6,13 +6,18 @@
 
 	<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
 	<artifactId>assemble</artifactId>
-	<version>12.0.0</version>
+	<version>12.0.2</version>
 	<packaging>jar</packaging>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>de.hechler.patrick.zeugs.pfs</groupId>
+			<artifactId>pfs-core</artifactId>
+			<version>4.0.2</version>
+		</dependency>
 		<dependency>
 			<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
 			<artifactId>prim-core</artifactId>

@@ -7,7 +7,7 @@
 
 	<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
 	<artifactId>runtime</artifactId>
-	<version>5.0.0</version>
+	<version>5.0.1</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -18,23 +18,18 @@
 		<dependency>
 			<groupId>de.hechler.patrick.zeugs.pfs</groupId>
 			<artifactId>pfs-core</artifactId>
-			<version>3.0.1</version>
+			<version>4.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
 			<artifactId>prim-core</artifactId>
-			<version>1.0.0</version>
+			<version>1.1.0</version>
 		</dependency>
 		<dependency>
 			<groupId>de.hechler.patrick.hilfen</groupId>
 			<artifactId>checker</artifactId>
 			<version>5.12.0</version>
 			<scope>test</scope>
-		</dependency>
-		<dependency>
-			<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
-			<artifactId>disassemble</artifactId>
-			<version>4.1.0</version>
 		</dependency>
 	</dependencies>
 

@@ -1,4 +1,4 @@
-package de.hechler.patrick.codesprachen.primitive.disassemble.utils;
+package de.hechler.patrick.codesprachen.primitive.core.utils;
 
 import java.util.List;
 

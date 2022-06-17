@@ -1150,12 +1150,16 @@ the assembler language for the Primitive-Virtual-Machine
         * note that the flags wich specify if the element is a folder, file or link are not allowed to be set/removed
         * on error `X01` will be set to `-1`
             * the `STATUS` register will be flagged:
+                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
+                    * if the element, is locked with a diffrent lock
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or invalid flag modify
                     * if the given ID of the fs-element is invalid (because it was deleted)
                     * or if the flags to add or to remove contain the bits:
                         * `HEX-00000001` : `FLAG_FOLDER`
                         * `HEX-00000002``: `FLAG_FILE`
                         * `HEX-00000004` : `FLAG_LINK`
+                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
+                    * if some IO error occurred
         * bits out of the low 32-bit range will be ignored
     * `32`: get folder child element count
         * `X00` points to the fs-element folder
