@@ -100,18 +100,6 @@ public final class MemoryChecker {
 		}
 	}
 	
-	public void chackAllocated(long address, long length) throws PrimitiveErrror {
-		long a = fEA(address);
-		if (a == -1L) {
-			throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
-		}
-		long start = u.getLong(starts, a),
-			len = u.getLong(lengths, a);
-		if (length != len || start != address) {
-			throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
-		}
-	}
-	
 	public void chackAllocated(long address) throws PrimitiveErrror {
 		long a = fEA(address);
 		if (a == -1L) {
@@ -123,21 +111,21 @@ public final class MemoryChecker {
 		}
 	}
 	
-	/**
-	 * returns the number of available bytes from this address or {@code -1} if the address is invalid
-	 * 
-	 * @param address
-	 * @return
-	 */
-	public final long avl(long address) {
-		long a = fEA(address);
-		if (a == -1L) return -1L;
-		long length = u.getLong(lengths, a),
-			start = u.getLong(starts, a);
-		long off = address - start;
-		return length - off;
-	}
-	
+//	/**
+//	 * returns the number of available bytes from this address or {@code -1} if the address is invalid
+//	 * 
+//	 * @param address
+//	 * @return
+//	 */
+//	public final long avl(long address) {
+//		long a = fEA(address);
+//		if (a == -1L) return -1L;
+//		long length = u.getLong(lengths, a),
+//			start = u.getLong(starts, a);
+//		long off = address - start;
+//		return length - off;
+//	}
+//	
 	private long fEA(long address) {
 		long start = BASE_OFF,
 			end = this.arrsize - IDX_LEN;

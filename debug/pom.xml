@@ -10,8 +10,16 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>runtime</artifactId>
-	<version>5.0.1</version>
+	<artifactId>debug</artifactId>
+	<version>1.0.0</version>
 	<packaging>jar</packaging>
+
+	<dependencies>
+		<dependency>
+			<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
+			<artifactId>runtime</artifactId>
+			<version>5.0.1</version>
+		</dependency>
+	</dependencies>
 
 </project>

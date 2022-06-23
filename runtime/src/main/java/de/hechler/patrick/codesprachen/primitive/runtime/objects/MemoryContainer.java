@@ -282,11 +282,11 @@ public final class MemoryContainer {
 		return this.blocks[index][off];
 	}
 	
-	public final int getByte(long address) throws PrimitiveErrror {
+	public final byte getByte(long address) throws PrimitiveErrror {
 		int index = findIndex(address);
 		int off = (int) ( (address - this.starts[index]) >> 3L);
 		long val = this.blocks[index][off];
-		return (int) (0xFF & (val >> ( (address & 7) << 3)));
+		return (byte) (val >> ( (address & 7) << 3));
 	}
 	
 	public final void set(long address, long value) throws PrimitiveErrror {
@@ -295,13 +295,13 @@ public final class MemoryContainer {
 		this.blocks[index][off] = value;
 	}
 	
-	public final void setByte(long address, int value) throws PrimitiveErrror {
+	public final void setByte(long address, byte value) throws PrimitiveErrror {
 		assert (value & 0xFF) == value;
 		int index = findIndex(address);
 		int off = (int) ( (address - this.starts[index]) >> 3L);
 		long val = this.blocks[index][off];
 		long byteShift = (address & 7) << 3;
-		val = (value << byteShift) | (val & ~ (0xFF << byteShift));
+		val = ( (0xFF & value) << byteShift) | (val & ~ (0xFF << byteShift));
 		this.blocks[index][off] = val;
 	}
 	
@@ -332,14 +332,16 @@ public final class MemoryContainer {
 		}
 	}
 	
-	public final void membset(long address, long length, int bval) throws PrimitiveErrror {
-		assert ( ((int) bval) & 0xFF) == (int) bval;
+	public final void membset(long address, long length, byte bval) throws PrimitiveErrror {
 		if ( ( (address | length) & 7) != 0) {
 			for (; length > 0; length -- , address ++ ) {
 				setByte(address, bval);
 			}
 		} else {
-			long val = bval | (bval << 8) | (bval << 16) | (bval << 24) | (bval << 32) | (bval << 40) | (bval << 48) | (bval << 56);
+			long val = (bval & 0xFF) | ( (bval & 0xFF) << 8)
+				| ( (bval & 0xFF) << 16) | ( (bval & 0xFF) << 24)
+				| ( (bval & 0xFF) << 32) | ( (bval & 0xFF) << 40)
+				| ( (bval & 0xFF) << 48) | ( (bval & 0xFF) << 56);
 			for (; length > 0; length -= 8, address += 8) {
 				set(address, val);
 			}
@@ -348,8 +350,8 @@ public final class MemoryContainer {
 	
 	public final void memset(long address, long length, long val) throws PrimitiveErrror {
 		if ( ( (address | length) & 7) != 0) {
-			int b1 = (int) (val & 0xFF), b2 = (int) ( (val >> 8) & 0xFF), b3 = (int) ( (val >> 16) & 0xFF), b4 = (int) ( (val >> 24) & 0xFF),
-				b5 = (int) ( (val >> 32) & 0xFF), b6 = (int) ( (val >> 40) & 0xFF), b7 = (int) ( (val >> 48) & 0xFF), b8 = (int) ( (val >> 56) & 0xFF);
+			byte b1 = (byte) val, b2 = (byte) ( (val >> 8)), b3 = (byte) ( (val >> 16)), b4 = (byte) ( (val >> 24)),
+				b5 = (byte) ( (val >> 32)), b6 = (byte) ( (val >> 40)), b7 = (byte) ( (val >> 48)), b8 = (byte) ( (val >> 56));
 			for (; length > 0; length -- ) {
 				setByte(address ++ , b1);
 				setByte(address ++ , b2);
@@ -363,6 +365,25 @@ public final class MemoryContainer {
 		} else {
 			for (; length > 0; length -= 8, address += 8) {
 				set(address, val);
+			}
+		}
+	}
+	
+	public void check(long addr, long len) throws PrimitiveErrror {
+		int i = findIndex(addr);
+		len += addr - starts[i];
+		addr = starts[i];
+		while (true) {
+			long add = ((long) blocks[i].length) << 3L;
+			len -= add;
+			if (len <= 0) return;
+			if (length <= ++ i) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
+			addr += add;
+			if (starts[i] != addr) {
+				assert starts[i] > addr;
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
 			}
 		}
 	}
