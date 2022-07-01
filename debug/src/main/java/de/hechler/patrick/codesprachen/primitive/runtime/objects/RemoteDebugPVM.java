@@ -1,18 +1,63 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
-import static de.hechler.patrick.pfs.utils.ConvertNumByteArr.*;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.*;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.ADD_DEF_INT_BREAK_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.ADD_POS_BREAK_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.DEBUG_CONNECT_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.DISCONNECT_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.FREE_MEMORY_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_ALL_INT_BREAKS_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_ALL_INT_BREAK_COUNT_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_DEF_INT_BREAKS_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_DEF_INT_BREAK_COUNT_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_MEM_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_POS_BREAKS_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_POS_BREAK_COUNT_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_SN_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_STATE_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.HAS_ALL_INT_BREAK_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.HAS_DEF_INT_BREAK_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.HAS_POS_BREAK_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.INVALID_VALUE_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.MALLOC_MEMORY_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.MEM_CHECK_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.NOTHING_DONE_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.NOT_WAITING_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.REALLOC_MEMORY_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.REM_ALL_INT_BREAK_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.REM_DEF_INT_BREAK_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.REM_POS_BREAK_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.RUNNING_STATE_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.RUN_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.SET_MEM_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.SET_SN_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.STD_ERR_CONNECT_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.STD_IN_CONNECT_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.STD_OUT_CONNECT_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.STEPPING_STATE_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.STEP_DEEP_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.STEP_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.WAITING_STATE_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.WAIT_MAGIC;
+import static de.hechler.patrick.pfs.utils.ConvertNumByteArr.byteArrToLong;
+import static de.hechler.patrick.pfs.utils.ConvertNumByteArr.longToByteArr;
 
 import java.io.Closeable;
+import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
+import java.nio.channels.SelectionKey;
+import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.InputMismatchException;
+import java.util.Map;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.enums.DebugState;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.BreakHandle;
@@ -21,15 +66,21 @@ import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.DebugPVM;
 
 public class RemoteDebugPVM implements DebugPVM, Closeable {
 	
-	
-	private final SocketChannel sok;
-	private final SocketAddress addr;
-	private final ByteBuffer    buf = ByteBuffer.allocate(24);
+	private final SocketChannel              sok;
+	private final SocketAddress              addr;
+	private final ByteBuffer                 buf       = ByteBuffer.allocate(24);
+	private final Selector                   select;
+	private final Map <SelectionKey, StrDel> delegates = new HashMap <>();
 	
 	public RemoteDebugPVM(SocketChannel debug, SocketAddress addr) {
 		this.sok = debug;
 		this.addr = addr;
 		this.buf.limit(8);
+		try {
+			this.select = Selector.open();
+		} catch (IOException e) {
+			throw new IOError(e);
+		}
 	}
 	
 	public static RemoteDebugPVM create(SocketAddress addr) throws IOException {
@@ -305,24 +356,119 @@ public class RemoteDebugPVM implements DebugPVM, Closeable {
 	}
 	
 	@Override
-	public synchronized OutputStream stdin() throws IOException {
-		SocketChannel c = SocketChannel.open(addr);
-		writeRead(c, STD_IN_CONNECT_MAGIC);
-		return asOutStream(c);
+	public synchronized OutputStream stdin() {
+		try {
+			SocketChannel c = SocketChannel.open(addr);
+			writeRead(c, STD_IN_CONNECT_MAGIC);
+			return asOutStream(c);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	@Override
-	public synchronized InputStream stdout() throws IOException {
-		SocketChannel c = SocketChannel.open(addr);
-		writeRead(c, STD_OUT_CONNECT_MAGIC);
-		return asInStream(c);
+	public synchronized InputStream stdout() {
+		try {
+			SocketChannel c = SocketChannel.open(addr);
+			writeRead(c, STD_OUT_CONNECT_MAGIC);
+			return asInStream(c);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 	
 	@Override
-	public synchronized InputStream stdlog() throws IOException {
-		SocketChannel c = SocketChannel.open(addr);
-		writeRead(c, STD_ERR_CONNECT_MAGIC);
-		return asInStream(c);
+	public synchronized InputStream stdlog() {
+		try {
+			SocketChannel c = SocketChannel.open(addr);
+			writeRead(c, STD_ERR_CONNECT_MAGIC);
+			return asInStream(c);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@Override
+	public void stdout(OutputStream listen) {
+		try {
+			SocketChannel c = SocketChannel.open(addr);
+			writeRead(c, STD_OUT_CONNECT_MAGIC);
+			delegate(listen, c);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@Override
+	public void stdlog(OutputStream listen) {
+		try {
+			SocketChannel c = SocketChannel.open(addr);
+			writeRead(c, STD_ERR_CONNECT_MAGIC);
+			delegate(listen, c);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@Override
+	public void exit() {
+		try {
+			buf.position(0);
+			longToByteArr(buf.array(), 0, EXIT_MAGIC);
+			sok.write(buf);
+			while (sok.isConnected()) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private synchronized void delegate(OutputStream listen, SocketChannel c) {
+		if (delegates.isEmpty()) {
+			new Thread(() -> {
+				ByteBuffer buf = ByteBuffer.allocate(1024);
+				byte[] bytes = buf.array();
+				while (true) {
+					try {
+						select.select();
+						for (SelectionKey key : select.selectedKeys()) {
+							StrDel strDel = delegates.get(key);
+							buf.position(0);
+							int r = strDel.in.read(buf);
+							strDel.out.write(bytes, 0, r);
+						}
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+				}
+			}, "debugger-stream-delegateor").start();
+		}
+		try {
+			c.configureBlocking(false);
+			SelectionKey key = c.register(select, SelectionKey.OP_READ);
+			delegates.put(key, new StrDel(listen, c));
+		} catch (ClosedChannelException e) {
+			throw new IOError(e);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	private static class StrDel {
+		
+		private final OutputStream  out;
+		private final SocketChannel in;
+		
+		public StrDel(OutputStream out, SocketChannel in) {
+			this.out = out;
+			this.in = in;
+		}
+		
 	}
 	
 	private InputStream asInStream(SocketChannel c) {

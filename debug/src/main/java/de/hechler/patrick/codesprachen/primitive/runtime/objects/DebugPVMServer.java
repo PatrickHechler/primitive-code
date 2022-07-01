@@ -1,10 +1,11 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
-import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.*;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.ADD_ALL_INT_BREAK_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.ADD_DEF_INT_BREAK_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.ADD_POS_BREAK_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.DEBUG_CONNECT_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.DISCONNECT_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.FREE_MEMORY_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_ALL_INT_BREAKS_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_ALL_INT_BREAK_COUNT_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.GET_DEF_INT_BREAKS_MAGIC;
@@ -17,8 +18,12 @@ import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugCo
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.HAS_DEF_INT_BREAK_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.HAS_POS_BREAK_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.ILLEGAL_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.INVALID_VALUE_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.MALLOC_MEMORY_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.MEM_CHECK_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.NOTHING_DONE_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.NOT_WAITING_MAGIC;
+import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.REALLOC_MEMORY_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.REM_ALL_INT_BREAK_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.REM_DEF_INT_BREAK_MAGIC;
 import static de.hechler.patrick.codesprachen.primitive.runtime.utils.PVMDebugConstants.REM_POS_BREAK_MAGIC;
@@ -68,16 +73,10 @@ public class DebugPVMServer implements Runnable {
 	private final Selector                     select;
 	private final Queue <PVMTask>              tasks   = new ConcurrentLinkedQueue <>();
 	private volatile int                       workers = 0;
-	private final DebugOutStr                  stdout;
-	private final DebugOutStr                  stdlog;
-	private final OutputStream                 stdin;
 	
-	public DebugPVMServer(DebugPVM pvm, int port, DebugOutStr stdout, DebugOutStr stdlog, OutputStream stdin) {
+	public DebugPVMServer(DebugPVM pvm, int port) {
 		this.pvm = pvm;
 		this.port = port;
-		this.stdout = stdout;
-		this.stdlog = stdlog;
-		this.stdin = stdin;
 		try {
 			this.sok = ServerSocketChannel.open();
 			this.select = Selector.open();
@@ -191,8 +190,7 @@ public class DebugPVMServer implements Runnable {
 								tasks.add(new StdinTask(con));
 								break;
 							}
-							case STATE_STD_LOG:
-							case STATE_STD_OUT: {
+							case STATE_NOTHING: {
 								tasks.add(new DisconnectTask(channel, con, false));
 								break;
 							}
@@ -266,19 +264,21 @@ public class DebugPVMServer implements Runnable {
 	}
 	
 	private static final int STATE_UNCONNECTED = 1, STATE_CONNECTED = 2, STATE_DISCONNECTED = 3, STATE_DEEP_STEP = 4, STATE_SET_SN = 5, STATE_SET_MEM = 6, STATE_ADD_POS_BREAK = 7, STATE_ADD_DI_BREAK = 8,
-		STATE_ADD_AI_BREAK = 9, STATE_STD_IN = 10, STATE_STD_OUT = 11, STATE_STD_LOG = 12, STATE_REM_POS_BREAK = 13, STATE_REM_DI_BREAK = 14, STATE_REM_AI_BREAK = 15, STATE_HAS_POS_BREAK = 16, STATE_HAS_DI_BREAK = 17,
-		STATE_HAS_AI_BREAK = 18, STATE_GET_MEM = 19, STATE_DISCARD = 20, STATE_CHECK_MEM = 21, STATE_FREE_MEM = 22, STATE_MALLOC = 23, STATE_REALLOC = 24;
-	
+		STATE_ADD_AI_BREAK = 9, STATE_STD_IN = 10, STATE_NOTHING = 11, STATE_REM_POS_BREAK = 12, STATE_REM_DI_BREAK = 13, STATE_REM_AI_BREAK = 14, STATE_HAS_POS_BREAK = 15, STATE_HAS_DI_BREAK = 16,
+		STATE_HAS_AI_BREAK = 17, STATE_GET_MEM = 18, STATE_DISCARD = 19, STATE_CHECK_MEM = 20, STATE_FREE_MEM = 21, STATE_MALLOC = 22, STATE_REALLOC = 23;
+		
 	private static class Connect {
 		
 		/** current state */
-		int        state = STATE_UNCONNECTED;
+		int          state = STATE_UNCONNECTED;
 		/** buffer */
-		ByteBuffer buf   = ByteBuffer.allocate(256);
+		ByteBuffer   buf   = ByteBuffer.allocate(256);
 		/** remain */
-		long       r;
+		long         r;
 		/** address */
-		long       a;
+		long         a;
+		/** stdin */
+		OutputStream stdin;
 		
 	}
 	
@@ -804,12 +804,15 @@ public class DebugPVMServer implements Runnable {
 				newstate = STATE_CONNECTED;
 			} else if (num == STD_IN_CONNECT_MAGIC) {
 				newstate = STATE_STD_IN;// nothing more to do
+				con.stdin = pvm.stdin();
 			} else if (num == STD_OUT_CONNECT_MAGIC) {
-				newstate = STATE_STD_OUT;
-				stdout.add(asStream(sok));
+				sok.configureBlocking(true);
+				newstate = STATE_NOTHING;
+				pvm.stdout(asStream());
 			} else if (num == STD_ERR_CONNECT_MAGIC) {
-				newstate = STATE_STD_LOG;
-				stdlog.add(asStream(sok));
+				sok.configureBlocking(true);
+				newstate = STATE_NOTHING;
+				pvm.stdlog(asStream());
 			} else {
 				newstate = STATE_DISCONNECTED;
 				new DisconnectTask(sok, con, false).execute();
@@ -819,7 +822,7 @@ public class DebugPVMServer implements Runnable {
 			sok.write(con.buf);
 		}
 		
-		private OutputStream asStream(SocketChannel sok) {
+		private OutputStream asStream() {
 			return new OutputStream() {
 				
 				@Override
@@ -851,7 +854,7 @@ public class DebugPVMServer implements Runnable {
 		@Override
 		public void execute() throws IOException {
 			int pos = con.buf.position();
-			stdin.write(con.buf.array(), 0, pos);
+			con.stdin.write(con.buf.array(), 0, pos);
 			con.buf.rewind();
 		}
 		

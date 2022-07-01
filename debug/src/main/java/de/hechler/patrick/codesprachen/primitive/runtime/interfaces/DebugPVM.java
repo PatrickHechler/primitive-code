@@ -51,6 +51,11 @@ public interface DebugPVM extends PVM {
 	void stop();
 	
 	/**
+	 * terminates the PVM
+	 */
+	void exit();
+	
+	/**
 	 * returns the {@link BreakHandle} for addresses
 	 * 
 	 * @return the {@link BreakHandle} for addresses
@@ -298,14 +303,14 @@ public interface DebugPVM extends PVM {
 	 * 
 	 * @return a stdin linked stream
 	 */
-	OutputStream stdin() throws IOException;
+	OutputStream stdin();
 	
 	/**
 	 * opens a new input stream which reads the stdout of the program
 	 * 
 	 * @return a stdout linked stream
 	 */
-	InputStream stdout() throws IOException;
+	InputStream stdout();
 	
 	/**
 	 * opens a new input stream which reads the stdlog of the program
@@ -313,7 +318,25 @@ public interface DebugPVM extends PVM {
 	 * @return a stdlog linked stream
 	 * @throws IOException
 	 */
-	InputStream stdlog() throws IOException;
+	InputStream stdlog();
+	
+	/**
+	 * adds a stdout listen stream.<br>
+	 * everything which will be written to the stdout of the program will also be written to the given stream
+	 * 
+	 * @param listen
+	 *               the stdout listen stream
+	 */
+	void stdout(OutputStream listen);
+	
+	/**
+	 * adds a stdlog listen stream.<br>
+	 * everything which will be written to the stdlog of the program will also be written to the given stream
+	 * 
+	 * @param listen
+	 *               the stdlog listen stream
+	 */
+	void stdlog(OutputStream listen);
 	
 	/**
 	 * checks if the given address {@code addr} is in a allocated memory range and {@code addr + len - 1} is also inside the same allocated memory block<br>

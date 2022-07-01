@@ -177,6 +177,11 @@ public class PVMUnsafeImpl extends AbstractPVM {
 	protected void get(long srcaddr, byte[] dst, int bc) throws PrimitiveErrror {
 		U.copyMemory(null, srcaddr, dst, BS_BO, (long) bc);
 	}
+
+	@Override
+	protected void get(long srcaddr, byte[] dst, int bo, int bc) throws PrimitiveErrror {
+		U.copyMemory(null, srcaddr, dst, BS_BO + bo, (long) bc);
+	}
 	
 	@Override
 	protected void getregs(long dstaddr) throws PrimitiveErrror {
@@ -202,6 +207,11 @@ public class PVMUnsafeImpl extends AbstractPVM {
 			throw new AssertionError();
 		}
 		U.copyMemory(null, regs, src, Unsafe.ARRAY_BYTE_BASE_OFFSET, 256L);
+	}
+
+	@Override
+	protected void checkmem(long addr, long len) throws PrimitiveErrror {
+		mem.check(addr, len);
 	}
 	
 }

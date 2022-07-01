@@ -460,21 +460,58 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 	}
 	
 	@Override
-	public InputStream stdout() throws IOException {
+	public InputStream stdout() {
 		PipedOutputStream po = new PipedOutputStream();
 		PipedInputStream pi = new PipedInputStream();
-		po.connect(pi);
-		((DebugOutStr) stdlog).add(po);
-		return pi;
+		try {
+			po.connect(pi);
+			((DebugOutStr) stdlog).add(po);
+			return pi;
+		} catch (IOException e) {
+			try {
+				po.close();
+				pi.close();
+			} catch (IOException e1) {
+				e1.initCause(e);
+				throw new RuntimeException(e1);
+			}
+			throw new RuntimeException(e);
+		}
 	}
 	
 	@Override
-	public InputStream stdlog() throws IOException {
+	public InputStream stdlog() {
 		PipedOutputStream po = new PipedOutputStream();
 		PipedInputStream pi = new PipedInputStream();
-		po.connect(pi);
-		((DebugOutStr) stdlog).add(po);
-		return pi;
+		try {
+			po.connect(pi);
+			((DebugOutStr) stdlog).add(po);
+			return pi;
+		} catch (IOException e) {
+			try {
+				po.close();
+				pi.close();
+			} catch (IOException e1) {
+				e1.initCause(e);
+				throw new RuntimeException(e1);
+			}
+			throw new RuntimeException(e);
+		}
+	}
+	
+	@Override
+	public void stdout(OutputStream listen) {
+		((DebugOutStr) stdout).add(listen);
+	}
+	
+	@Override
+	public void stdlog(OutputStream listen) {
+		((DebugOutStr) stdlog).add(listen);
+	}
+	
+	@Override
+	public void exit() {
+		System.exit(0);
 	}
 	
 	private class BreakpointException extends RuntimeException {

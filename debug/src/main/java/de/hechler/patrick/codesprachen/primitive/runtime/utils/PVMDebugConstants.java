@@ -370,5 +370,10 @@ public class PVMDebugConstants {
 	 * if the length is negative or zero the reallocation will always fail with {@link #INVALID_VALUE_MAGIC}
 	 */
 	public static final long REALLOC_MEMORY_MAGIC          = 0xFAC34E2D7E5DAEF1L;
+	/**
+	 * terminates the PVM<br>
+	 * instead of a response the PVM will exit with exit code zero
+	 */
+	public static final long EXIT_MAGIC                    = 0x240D162B1B9DL;
 	
 }

@@ -1939,6 +1939,8 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P2.OFF_NUM]`
 
 ## not (yet) there/supported
+* move byte/word/double-word
+    * move on non 64-bit level
 * Multi-threading
 * Multi-progressing
     * execute other programs
