@@ -1569,6 +1569,24 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				{cmd = Commands.CMD_UDIV;}
 
  			)
+ 			|
+ 			(
+ 				MVB
+ 				{cmd = Commands.CMD_MVB;}
+
+ 			)
+ 			|
+ 			(
+ 				MVW
+ 				{cmd = Commands.CMD_MVW;}
+
+ 			)
+ 			|
+ 			(
+ 				MVDW
+ 				{cmd = Commands.CMD_MVDW;}
+
+ 			)
  		) comment* p1 = param [pos, constants, be] comment* COMMA //
  		comment* p2 = param [pos, constants, be] //
  		{$c = new Command(cmd, $p1.p, $p2.p);}
@@ -1652,6 +1670,36 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			(
  				JMPZC
  				{cmd = Commands.CMD_JMPZC;}
+
+ 			)
+ 			|
+ 			(
+ 				JMPNAN
+ 				{cmd = Commands.CMD_JMPNAN;}
+
+ 			)
+ 			|
+ 			(
+ 				JMPAN
+ 				{cmd = Commands.CMD_JMPAN;}
+
+ 			)
+ 			|
+ 			(
+ 				JMPAB
+ 				{cmd = Commands.CMD_JMPAB;}
+
+ 			)
+ 			|
+ 			(
+ 				JMPSB
+ 				{cmd = Commands.CMD_JMPSB;}
+
+ 			)
+ 			|
+ 			(
+ 				JMPNB
+ 				{cmd = Commands.CMD_JMPNB;}
 
  			)
  			|
@@ -1889,6 +1937,21 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  JMPAN
  :
  	'JMPAN'
+ ;
+
+ JMPAB
+ :
+ 	'JMPAB'
+ ;
+
+ JMPSB
+ :
+ 	'JMPSB'
+ ;
+
+ JMPNB
+ :
+ 	'JMPNB'
  ;
 
  CALL
