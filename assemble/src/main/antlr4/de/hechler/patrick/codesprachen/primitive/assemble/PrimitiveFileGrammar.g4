@@ -2069,6 +2069,21 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	'UDIV'
  ;
 
+ MVB
+ :
+ 	'MVB'
+ ;
+
+ MVW
+ :
+ 	'MVW'
+ ;
+
+ MVDW
+ :
+ 	'MVDW'
+ ;
+
  IP
  :
  	'IP'
