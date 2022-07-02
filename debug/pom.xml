@@ -18,7 +18,7 @@
 		<dependency>
 			<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
 			<artifactId>runtime</artifactId>
-			<version>5.0.1</version>
+			<version>5.2.0</version>
 		</dependency>
 	</dependencies>
 

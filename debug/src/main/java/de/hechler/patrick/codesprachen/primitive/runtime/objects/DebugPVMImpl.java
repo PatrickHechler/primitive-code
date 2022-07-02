@@ -27,6 +27,16 @@ public class DebugPVMImpl extends AbstractDebugPVM {
 		return d.getLong(addr);
 	}
 	
+	@Override
+	protected void putInt(long addr, int val) throws PrimitiveErrror {
+		d.putInt(addr, val);
+	}
+	
+	@Override
+	protected int getInt(long addr) throws PrimitiveErrror {
+		return d.getInt(addr);
+	}
+	
 	protected void putChar(long addr, char val) throws PrimitiveErrror {
 		d.putChar(addr, val);
 	}
