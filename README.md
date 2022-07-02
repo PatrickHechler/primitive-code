@@ -119,7 +119,7 @@ the assembler language for the Primitive-Virtual-Machine
         * then it will be deleted as normal and as export constant
     * to change a normal constant to an export constant, just redefine it: `#EXP~<NAME> <NAME>`
 * predefined constants:
-<pre><code>
+<pre>`
     --POS--                               the actual length of the binary code in bytes
     INT_ERRORS_ILLEGAL_INTERRUPT          0
     INT_ERRORS_UNKNOWN_COMMAND            1
@@ -246,7 +246,7 @@ the assembler language for the Primitive-Virtual-Machine
     STATUS_ILLEGAL_ARG               UHEX-2000000000000000
     STATUS_OUT_OF_MEMORY             UHEX-4000000000000000
     STATUS_ERROR                     UHEX-8000000000000000
-</code></pre>
+`</pre>
 
 ## STRINGS
 * a string is an array of multiple characters of the `UTF-16BE` encoding
@@ -704,6 +704,43 @@ the assembler language for the Primitive-Virtual-Machine
     * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
     * `1C 00 00 00 00 00 00 00`
+    * `<RELATIVE_LABEL>`
+
+
+`JMPAB <LABEL>`
+* sets the instruction pointer to position of the command after the label if the last AllBits flag is set
+* definition:
+    * `if ALL_BITS`
+        * `IP <- IP + RELATIVE_LABEL`
+    * `else`
+        * `IP <- IP + CMD_LEN`
+    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
+* binary:
+    * `1D 00 00 00 00 00 00 00`
+    * `<RELATIVE_LABEL>`
+
+`JMPSB <LABEL>`
+* sets the instruction pointer to position of the command after the label if the last SomeBits flag is set
+* definition:
+    * `if SOME_BITS`
+        * `IP <- IP + RELATIVE_LABEL`
+    * `else`
+        * `IP <- IP + CMD_LEN`
+    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
+* binary:
+    * `1D 00 00 00 00 00 00 00`
+    * `<RELATIVE_LABEL>`
+
+`JMPSB <LABEL>`
+* sets the instruction pointer to position of the command after the label if the last NoneBits flag is set
+* definition:
+    * `if NONE_BITS`
+        * `IP <- IP + RELATIVE_LABEL`
+    * `else`
+        * `IP <- IP + CMD_LEN`
+    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
+* binary:
+    * `1D 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `CALL <LABEL>`
@@ -1783,7 +1820,7 @@ the assembler language for the Primitive-Virtual-Machine
 `ADDC <NO_CONST_PARAM> , <PARAM>`
 * adds the values of both parameters and the carry flag and stores the sum in the first parameter
 * definition:
-	* `ZW <- p1 + (p2 + CARRY)`
+    * `ZW <- p1 + (p2 + CARRY)`
     * `if ((p1 > 0) & ((p2 + CARRY) > 0) & ((p1 + p2 + CARRY) < 0)) | ((p1 < 0) & ((p2 + CARRY) < 0) & ((p1 + (p2 + CARRY)) > 0))`
         * `CARRY <- 1`
     * `else`
@@ -1938,10 +1975,52 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
+
+`MVB <NO_CONST_PARAM> , <PARAM>`
+*copies the byte value of the second parameter to the first byte parameter
+*definition:
+    *`p1 <-8-bit- p2`
+    *`IP <- IP + CMD_LEN`
+*binary:
+    * `3A <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    *`[P1.NUM_NUM]`
+    *`[P1.OFF_NUM]`
+    *`[P2.NUM_NUM]`
+    *`[P2.OFF_NUM]`
+
+`MVW <NO_CONST_PARAM> , <PARAM>`
+*copies the word value of the second parameter to the first word parameter
+*definition:
+    *`p1 <-16-bit- p2 `
+    *`IP <- IP + CMD_LEN`
+*binary:
+    *`3B <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    *`[P1.NUM_NUM]`
+    *`[P1.OFF_NUM]`
+    *`[P2.NUM_NUM]`
+    *`[P2.OFF_NUM]`
+
+`MVDW <NO_CONST_PARAM> , <PARAM>`
+*copies the double-word value of the second parameter to the first double-word parameter
+*definition:
+    *`p1 <-32-bit- p2 `
+    *`IP <- IP + CMD_LEN`
+*binary:
+    *`3C <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    *`[P1.NUM_NUM]`
+    *`[P1.OFF_NUM]`
+    *`[P2.NUM_NUM]`
+    *`[P2.OFF_NUM]`
+
 ## not (yet) there/supported
-* move byte/word/double-word
-    * move on non 64-bit level
+* support of new commands
+    * MVB, MVW, MVDW
+        * move byte/word/double-word
+            * move on non 64-bit level
+    * JMPAB, JMPSB, JMPSB
+        * jmp all/some/none bits
 * Multi-threading
 * Multi-progressing
     * execute other programs
+* syncronizing/locks
 * sockets

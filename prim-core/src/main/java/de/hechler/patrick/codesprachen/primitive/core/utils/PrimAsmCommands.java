@@ -4,7 +4,6 @@ public class PrimAsmCommands {
 	
 	
 	/**
-	 * <p>
 	 * <code>MOV &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -26,9 +25,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int MOV  = 0x01;
+	public static final int MOV = 0x01;
 	/**
-	 * <p>
 	 * <code>ADD &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -66,13 +64,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int ADD  = 0x02;
+	public static final int ADD = 0x02;
 	/**
-	 * <p>
 	 * <code>SUB &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>subtracts the second parameter from the first parameter and stores the result in the first parameter</li>
+	 * <li>subtracts the second parameter from the first parameter and stores the result in the first
+	 * parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if ((p1 &gt; 0) &amp; (p2 &lt; 0) &amp; ((p1 - p2) &lt; 0)) | ((p1 &lt; 0) &amp; (p2 &gt; 0) &amp; ((p1 - p2) &gt; 0))</code></li>
@@ -106,13 +104,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int SUB  = 0x03;
+	public static final int SUB = 0x03;
 	/**
-	 * <p>
 	 * <code>MUL &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>multiplies the first parameter with the second and stores the result in the first parameter</li>
+	 * <li>multiplies the first parameter with the second and stores the result in the first
+	 * parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 * p2</code></li>
@@ -138,13 +136,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int MUL  = 0x04;
+	public static final int MUL = 0x04;
 	/**
-	 * <p>
 	 * <code>DIV &lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>divides the first parameter with the second and stores the result in the first parameter and the reminder in the second parameter</li>
+	 * <li>divides the first parameter with the second and stores the result in the first parameter and
+	 * the reminder in the second parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 / p2</code></li>
@@ -163,13 +161,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int DIV  = 0x05;
+	public static final int DIV = 0x05;
 	/**
-	 * <p>
 	 * <code>AND &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>uses the logical AND operator with the first and the second parameter and stores the result in the first parameter</li>
+	 * <li>uses the logical AND operator with the first and the second parameter and stores the result
+	 * in the first parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 &amp; p2</code></li>
@@ -195,13 +193,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int AND  = 0x06;
+	public static final int AND = 0x06;
 	/**
-	 * <p>
 	 * <code>OR &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>uses the logical OR operator with the first and the second parameter and stores the result in the first parameter</li>
+	 * <li>uses the logical OR operator with the first and the second parameter and stores the result in
+	 * the first parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 | p2</code></li>
@@ -227,13 +225,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int OR   = 0x07;
+	public static final int OR = 0x07;
 	/**
-	 * <p>
 	 * <code>XOR &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>uses the logical OR operator with the first and the second parameter and stores the result in the first parameter</li>
+	 * <li>uses the logical OR operator with the first and the second parameter and stores the result in
+	 * the first parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 ^ p2</code></li>
@@ -259,13 +257,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int XOR  = 0x08;
+	public static final int XOR = 0x08;
 	/**
-	 * <p>
 	 * <code>NOT &lt;NO_CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>uses the logical NOT operator with every bit of the parameter and stores the result in the parameter</li>
+	 * <li>uses the logical NOT operator with every bit of the parameter and stores the result in the
+	 * parameter</li>
 	 * <li>this instruction works like <code>XOR p1, -1</code></li>
 	 * <li>definition:</li>
 	 * <ul>
@@ -288,13 +286,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int NOT  = 0x09;
+	public static final int NOT = 0x09;
 	/**
-	 * <p>
 	 * <code>NEG &lt;NO_CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>uses the arithmetic negation operation with the parameter and stores the result in the parameter</li>
+	 * <li>uses the arithmetic negation operation with the parameter and stores the result in the
+	 * parameter</li>
 	 * <li>this instruction works like <code>MUL p1, -1</code></li>
 	 * <li>definition:</li>
 	 * <ul>
@@ -326,9 +324,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int NEG  = 0x0A;
+	public static final int NEG = 0x0A;
 	/**
-	 * <p>
 	 * <code>LSH &lt;NO_CONST_PARAM&gt;, &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -366,9 +363,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int LSH  = 0x0B;
+	public static final int LSH = 0x0B;
 	/**
-	 * <p>
 	 * <code>RLSH &lt;NO_CONST_PARAM&gt;, &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -408,7 +404,6 @@ public class PrimAsmCommands {
 	 */
 	public static final int RLSH = 0x0C;
 	/**
-	 * <p>
 	 * <code>RASH &lt;NO_CONST_PARAM&gt;, &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -448,7 +443,6 @@ public class PrimAsmCommands {
 	 */
 	public static final int RASH = 0x0D;
 	/**
-	 * <p>
 	 * <code>DEC &lt;NO_CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -483,9 +477,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int DEC  = 0x0E;
+	public static final int DEC = 0x0E;
 	/**
-	 * <p>
 	 * <code>INC &lt;NO_CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -520,10 +513,9 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int INC  = 0x0F;
+	public static final int INC = 0x0F;
 	
 	/**
-	 * <p>
 	 * <code>JMP &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
@@ -531,7 +523,8 @@ public class PrimAsmCommands {
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -540,13 +533,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMP    = 0x10;
+	public static final int JMP = 0x10;
 	/**
-	 * <p>
 	 * <code>JMPEQ &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last compare operation compared two equal values</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last compare
+	 * operation compared two equal values</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if EQUAL</code></li>
@@ -557,7 +550,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -566,13 +560,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPEQ  = 0x11;
+	public static final int JMPEQ = 0x11;
 	/**
-	 * <p>
 	 * <code>JMPNE &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last compare operation compared two different values</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last compare
+	 * operation compared two different values</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if EQUAL</code></li>
@@ -583,7 +577,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -592,13 +587,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPNE  = 0x12;
+	public static final int JMPNE = 0x12;
 	/**
-	 * <p>
 	 * <code>JMPGT &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last compare result was greater</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last compare
+	 * result was greater</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if GREATHER</code></li>
@@ -609,7 +604,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -618,13 +614,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPGT  = 0x13;
+	public static final int JMPGT = 0x13;
 	/**
-	 * <p>
 	 * <code>JMPGE &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last compare result was not lower</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last compare
+	 * result was not lower</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if GREATHER | EQUAL</code></li>
@@ -635,7 +631,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -644,13 +641,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPGE  = 0x14;
+	public static final int JMPGE = 0x14;
 	/**
-	 * <p>
 	 * <code>JMPLT &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last compare result was lower</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last compare
+	 * result was lower</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if LOWER</code></li>
@@ -661,7 +658,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -670,13 +668,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPLT  = 0x15;
+	public static final int JMPLT = 0x15;
 	/**
-	 * <p>
 	 * <code>JMPLE &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last compare result was not greater</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last compare
+	 * result was not greater</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if LOWER | EQUAL</code></li>
@@ -687,7 +685,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -696,13 +695,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPLE  = 0x16;
+	public static final int JMPLE = 0x16;
 	/**
-	 * <p>
 	 * <code>JMPCS &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last carry flag is set</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last carry
+	 * flag is set</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if CARRY</code></li>
@@ -713,7 +712,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -722,13 +722,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPCS  = 0x17;
+	public static final int JMPCS = 0x17;
 	/**
-	 * <p>
 	 * <code>JMPCC &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last carry flag is cleared</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last carry
+	 * flag is cleared</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if CARRY</code></li>
@@ -739,7 +739,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -748,13 +749,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPCC  = 0x18;
+	public static final int JMPCC = 0x18;
 	/**
-	 * <p>
 	 * <code>JMPZS &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last zero flag is set</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last zero flag
+	 * is set</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if ZERO</code></li>
@@ -765,7 +766,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -774,13 +776,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPZS  = 0x19;
+	public static final int JMPZS = 0x19;
 	/**
-	 * <p>
 	 * <code>JMPZC &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last zero flag is cleared</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last zero flag
+	 * is cleared</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if ! ZERO</code></li>
@@ -791,7 +793,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -800,13 +803,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPZC  = 0x1A;
+	public static final int JMPZC = 0x1A;
 	/**
-	 * <p>
 	 * <code>JMPNAN &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last NaN flag is set</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last NaN flag
+	 * is set</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if NAN</code></li>
@@ -817,7 +820,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -828,11 +832,11 @@ public class PrimAsmCommands {
 	 */
 	public static final int JMPNAN = 0x1B;
 	/**
-	 * <p>
 	 * <code>JMPAN &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the instruction pointer to position of the command after the label if the last NaN flag is cleared</li>
+	 * <li>sets the instruction pointer to position of the command after the label if the last NaN flag
+	 * is cleared</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if ! NAN</code></li>
@@ -843,7 +847,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
-	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not</li>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
 	 * </ul>
 	 * <li>binary:</li>
 	 * <ul>
@@ -852,10 +857,90 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int JMPAN  = 0x1C;
+	public static final int JMPAN = 0x1C;
+	/**
+	 * <code>JMPAB &lt;LABEL&gt;</code>
+	 * </p>
+	 * <ul>
+	 * <li>sets the instruction pointer to position of the command after the label if the last AllBits
+	 * flag is set</li>
+	 * <li>definition:</li>
+	 * <ul>
+	 * <li><code>if ALL_BITS</code></li>
+	 * <ul>
+	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
+	 * </ul>
+	 * <li><code>else</code></li>
+	 * <ul>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
+	 * </ul>
+	 * <li>binary:</li>
+	 * <ul>
+	 * <li><code>1D 00 00 00 00 00 00 00</code></li>
+	 * <li><code>&lt;RELATIVE_LABEL&gt;</code></li>
+	 * </ul>
+	 * </ul>
+	 */
+	public static final int JMPAB = 0x1D;
+	/**
+	 * <code>JMPSB &lt;LABEL&gt;</code>
+	 * </p>
+	 * <ul>
+	 * <li>sets the instruction pointer to position of the command after the label if the last SomeBits
+	 * flag is set</li>
+	 * <li>definition:</li>
+	 * <ul>
+	 * <li><code>if SOME_BITS</code></li>
+	 * <ul>
+	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
+	 * </ul>
+	 * <li><code>else</code></li>
+	 * <ul>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
+	 * </ul>
+	 * <li>binary:</li>
+	 * <ul>
+	 * <li><code>1D 00 00 00 00 00 00 00</code></li>
+	 * <li><code>&lt;RELATIVE_LABEL&gt;</code></li>
+	 * </ul>
+	 * </ul>
+	 */
+	public static final int JMPSB = 0x1E;
+	/**
+	 * <code>JMPSB &lt;LABEL&gt;</code>
+	 * </p>
+	 * <ul>
+	 * <li>sets the instruction pointer to position of the command after the label if the last NoneBits
+	 * flag is set</li>
+	 * <li>definition:</li>
+	 * <ul>
+	 * <li><code>if NONE_BITS</code></li>
+	 * <ul>
+	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
+	 * </ul>
+	 * <li><code>else</code></li>
+	 * <ul>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+	 * <li>note that all jumps and calls are relative, so it does not matter if the code was loaded to
+	 * the memory address 0 or not</li>
+	 * </ul>
+	 * <li>binary:</li>
+	 * <ul>
+	 * <li><code>1D 00 00 00 00 00 00 00</code></li>
+	 * <li><code>&lt;RELATIVE_LABEL&gt;</code></li>
+	 * </ul>
+	 * </ul>
+	 */
+	public static final int JMPNB = 0x1F;
 	
 	/**
-	 * <p>
 	 * <code>CALL &lt;LABEL&gt;</code>
 	 * </p>
 	 * <ul>
@@ -874,9 +959,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int CALL  = 0x20;
+	public static final int CALL = 0x20;
 	/**
-	 * <p>
 	 * <code>CMP &lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -917,9 +1001,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int CMP   = 0x21;
+	public static final int CMP = 0x21;
 	/**
-	 * <p>
 	 * <code>RET</code>
 	 * </p>
 	 * <ul>
@@ -935,9 +1018,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int RET   = 0x22;
+	public static final int RET = 0x22;
 	/**
-	 * <p>
 	 * <code>INT &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -968,24 +1050,30 @@ public class PrimAsmCommands {
 	 * <li>an interrupt can be overwritten:</li>
 	 * <ul>
 	 * <li>the interrupt-table is saved in the <code>INTP</code> register</li>
-	 * <li>to overwrite the interrupt <code>N</code>, write to <code>(INTP + (N * 8))</code> the absolute position of the address</li>
+	 * <li>to overwrite the interrupt <code>N</code>, write to <code>(INTP + (N * 8))</code> the
+	 * absolute position of the address</li>
 	 * <li>example:</li>
 	 * <ul>
-	 * <li><code>PUSH X00</code> |&gt; only needed when the value of <code>X00</code> should not be overwritten</li>
+	 * <li><code>PUSH X00</code> |&gt; only needed when the value of <code>X00</code> should not be
+	 * overwritten</li>
 	 * <li><code>LEA [INTP + OVERWRITE_INT_NUM_MULTIPLIED_WITH_8], RELATIVE_POS_FROM_GET_TO_INTERRUPT</code></li>
-	 * <li><code>POP X00</code> |&gt; only needed when the value of <code>X00</code> should not be overwritten</li>
+	 * <li><code>POP X00</code> |&gt; only needed when the value of <code>X00</code> should not be
+	 * overwritten</li>
 	 * </ul>
 	 * </ul>
 	 * <li>negative interrupts will always cause the illegal interrupt to be called instead</li>
-	 * <li>when <code>INTCNT</code> is greater then the number of default interrupts and the called interrupt is not overwritten, the illegal interrupt will be called instead</li>
+	 * <li>when <code>INTCNT</code> is greater then the number of default interrupts and the called
+	 * interrupt is not overwritten, the illegal interrupt will be called instead</li>
 	 * <li>default interrupts:</li>
 	 * <ul>
 	 * <li><code>0</code>: illegal interrupt</li>
 	 * <ul>
 	 * <li><code>X00</code> contains the number of the illegal interrupt</li>
 	 * <ul>
-	 * <li>exits with <code>(128 + illegal_interrup_number)</code> (without calling the exit interrupt)</li>
-	 * <li>if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with <code>128</code></li>
+	 * <li>exits with <code>(128 + illegal_interrup_number)</code> (without calling the exit
+	 * interrupt)</li>
+	 * <li>if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the
+	 * program exits with <code>128</code></li>
 	 * </ul>
 	 * </ul>
 	 * <li><code>1</code>: unknown command</li>
@@ -1007,15 +1095,19 @@ public class PrimAsmCommands {
 	 * <li><code>5</code>: allocate a memory-block</li>
 	 * <ul>
 	 * <li><code>X00</code> saves the size of the block</li>
-	 * <li>if the value of <code>X00</code> is <code>-1</code> after the call the memory-block could not be allocated</li>
-	 * <li>if the value of <code>X00</code> is not <code>-1</code>, <code>X00</code> points to the first element of the allocated memory-block</li>
+	 * <li>if the value of <code>X00</code> is <code>-1</code> after the call the memory-block could not
+	 * be allocated</li>
+	 * <li>if the value of <code>X00</code> is not <code>-1</code>, <code>X00</code> points to the first
+	 * element of the allocated memory-block</li>
 	 * </ul>
 	 * <li><code>6</code>: reallocate a memory-block</li>
 	 * <ul>
 	 * <li><code>X00</code> points to the memory-block</li>
 	 * <li><code>X01</code> is set to the new size of the memory-block</li>
-	 * <li><code>X01</code> will be <code>-1</code> if the memory-block could not be reallocated, the old memory-block will remain valid and should be freed if it is not longer needed</li>
-	 * <li><code>X01</code> will point to the new memory block, the old memory-block was automatically freed, so it should not be used, the new block should be freed if it is not longer needed</li>
+	 * <li><code>X01</code> will be <code>-1</code> if the memory-block could not be reallocated, the
+	 * old memory-block will remain valid and should be freed if it is not longer needed</li>
+	 * <li><code>X01</code> will point to the new memory block, the old memory-block was automatically
+	 * freed, so it should not be used, the new block should be freed if it is not longer needed</li>
 	 * </ul>
 	 * <li><code>7</code>: free a memory-block</li>
 	 * <ul>
@@ -1024,19 +1116,25 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * <li><code>8</code>: open new stream</li>
 	 * <ul>
-	 * <li><code>X00</code> contains a pointer to the STRING, which refers to the file which should be read</li>
+	 * <li><code>X00</code> contains a pointer to the STRING, which refers to the file which should be
+	 * read</li>
 	 * <li><code>X01</code> specifies the open mode: (bitwise flags)</li>
 	 * <ul>
 	 * <li><code>UHEX-0000000000000001</code> : <code>OPEN_READ</code> open file for read access</li>
 	 * <li><code>UHEX-0000000000000002</code> : <code>OPEN_WRITE</code> open file for write access</li>
-	 * <li><code>UHEX-0000000000000004</code> : <code>OPEN_APPEND</code> open file for append access (implicit set of <code>OPEN_WRITE</code>)</li>
-	 * <li><code>UHEX-0000000000000008</code> : <code>OPEN_CREATE</code> open file or create file (needs <code>OPEN_WRITE</code>, not compatible with <code>OPEN_NEW_FILE</code>)</li>
-	 * <li><code>UHEX-0000000000000010</code> : <code>OPEN_NEW_FILE</code> fail if file already exists or create the file (needs <code>OPEN_WRITE</code>, not compatible with <code>OPEN_CREATE</code>
+	 * <li><code>UHEX-0000000000000004</code> : <code>OPEN_APPEND</code> open file for append access
+	 * (implicit set of <code>OPEN_WRITE</code>)</li>
+	 * <li><code>UHEX-0000000000000008</code> : <code>OPEN_CREATE</code> open file or create file (needs
+	 * <code>OPEN_WRITE</code>, not compatible with <code>OPEN_NEW_FILE</code>)</li>
+	 * <li><code>UHEX-0000000000000010</code> : <code>OPEN_NEW_FILE</code> fail if file already exists
+	 * or create the file (needs <code>OPEN_WRITE</code>, not compatible with <code>OPEN_CREATE</code>
 	 * and <code>OPEN_TRUNCATE</code>)</li>
-	 * <li><code>UHEX-0000000000000020</code> : <code>OPEN_TRUNCATE</code> if the file already exists, remove its content (needs <code>OPEN_WRITE</code>, not compatible with
+	 * <li><code>UHEX-0000000000000020</code> : <code>OPEN_TRUNCATE</code> if the file already exists,
+	 * remove its content (needs <code>OPEN_WRITE</code>, not compatible with
 	 * <code>OPEN_NEW_FILE</code>)</li>
 	 * <li>other flags will be ignored</li>
-	 * <li>the operation will fail if it is not specified if the file should be opened for read, write and/or append</li>
+	 * <li>the operation will fail if it is not specified if the file should be opened for read, write
+	 * and/or append</li>
 	 * </ul>
 	 * <li>opens a new stream to the specified file</li>
 	 * <li>if successfully the STREAM-ID will be saved in the <code>X00</code> register</li>
@@ -1044,53 +1142,70 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed because the element is not of the correct type (file expected, but folder)</li>
+	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed
+	 * because the element is not of the correct type (file expected, but folder)</li>
 	 * <ul>
 	 * <li>if the element already exists, but is a folder and no file</li>
-	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist</li>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed
+	 * because the element does not exist</li>
 	 * <ul>
-	 * <li>if the element does not exists, but <code>OPEN_CREATE</code> and <code>OPEN_NEW_FILE</code> are not set</li>
+	 * <li>if the element does not exists, but <code>OPEN_CREATE</code> and <code>OPEN_NEW_FILE</code>
+	 * are not set</li>
 	 * </ul>
-	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: operation failed because the element already existed</li>
+	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: operation
+	 * failed because the element already existed</li>
 	 * <ul>
 	 * <li>if the element already exists, but <code>OPEN_NEW_FILE</code> is set</li>
 	 * </ul>
-	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed because there was not enough space in the file system</li>
+	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed
+	 * because there was not enough space in the file system</li>
 	 * <ul>
-	 * <li>if the system tried to create the new file, but there was not enough space for the new file-system-entry</li>
+	 * <li>if the system tried to create the new file, but there was not enough space for the new
+	 * file-system-entry</li>
 	 * </ul>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: was denied because of read-only</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: was denied because of
+	 * read-only</li>
 	 * <ul>
-	 * <li>if the file is marked as read-only, but it was tried to open the file for read or append access</li>
+	 * <li>if the file is marked as read-only, but it was tried to open the file for read or append
+	 * access</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
-	 * <li>if the file is locked with <code>LOCK_NO_READ_ALLOWED</code> : <code>UHEX-0000000100000000</code> and it was tried to open the file for read access</li>
-	 * <li>or if the file is locked with <code>LOCK_NO_WRITE_ALLOWED_LOCK</code> : <code>UHEX-0000000200000000</code> and it was tried to open the file for write/append access</li>
+	 * <li>if the file is locked with <code>LOCK_NO_READ_ALLOWED</code> :
+	 * <code>UHEX-0000000100000000</code> and it was tried to open the file for read access</li>
+	 * <li>or if the file is locked with <code>LOCK_NO_WRITE_ALLOWED_LOCK</code> :
+	 * <code>UHEX-0000000200000000</code> and it was tried to open the file for write/append access</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: STREAM-ID is invalid or <code>X01</code> contains an invalid open mode</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: STREAM-ID is invalid or
+	 * <code>X01</code> contains an invalid open mode</li>
 	 * <ul>
 	 * <li>if the open mode was invalid</li>
 	 * <ul>
 	 * <li><code>OPEN_CREATE</code> or <code>OPEN_TRUNCATE</code> with <code>OPEN_NEW_FILE</code></li>
 	 * <ul>
-	 * <li>not <code>OPEN_READ</code> and not <code>OPEN_WRITE</code> and not <code>OPEN_APPEND</code></li>
-	 * <li><code>OPEN_CREATE</code>, <code>OPEN_NEW_FILE</code> and/or <code>OPEN_TRUNCATE</code> without <code>OPEN_WRITE</code> (and without <code>OPEN_APPEND</code>)</li>
+	 * <li>not <code>OPEN_READ</code> and not <code>OPEN_WRITE</code> and not
+	 * <code>OPEN_APPEND</code></li>
+	 * <li><code>OPEN_CREATE</code>, <code>OPEN_NEW_FILE</code> and/or <code>OPEN_TRUNCATE</code>
+	 * without <code>OPEN_WRITE</code> (and without <code>OPEN_APPEND</code>)</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
-	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed because the system could not allocate enough memory</li>
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed
+	 * because the system could not allocate enough memory</li>
 	 * <ul>
 	 * <li>the system tries to allocate some memory but was not able to allocate the needed memory</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
 	 * </ul>
-	 * <li>to close the stream call the free interrupt ( <code>7</code> : <code>INT_MEMORY_FREE</code>)</li>
+	 * <li>to close the stream call the free interrupt ( <code>7</code> :
+	 * <code>INT_MEMORY_FREE</code>)</li>
 	 * </ul>
 	 * <li><code>9</code>: write</li>
 	 * <ul>
@@ -1101,22 +1216,29 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed because there was not enough space in the file system</li>
+	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed
+	 * because there was not enough space in the file system</li>
 	 * <ul>
-	 * <li>if the system tried to allocate more space for either the file-system-entry of the open file or its content, but there was not enough space</li>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: was denied because of read-only</li>
+	 * <li>if the system tried to allocate more space for either the file-system-entry of the open file
+	 * or its content, but there was not enough space</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: was denied because of
+	 * read-only</li>
 	 * <ul>
 	 * <li>if the file is marked as read-only</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
-	 * <li>if the file is locked with <code>LOCK_NO_WRITE_ALLOWED_LOCK</code> : <code>UHEX-0000000200000000</code></li>
+	 * <li>if the file is locked with <code>LOCK_NO_WRITE_ALLOWED_LOCK</code> :
+	 * <code>UHEX-0000000200000000</code></li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: STREAM-ID is invalid, the stream does not support write operations or <code>X01</code> is negative</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: STREAM-ID is invalid,
+	 * the stream does not support write operations or <code>X01</code> is negative</li>
 	 * <ul>
 	 * <li>if the STREAM-ID is invalid (maybe because the corresponding file was deleted)</li>
 	 * <li>or if a negative number of bytes should be written</li>
@@ -1131,23 +1253,29 @@ public class PrimAsmCommands {
 	 * <li><code>X00</code> contains the STREAM-ID</li>
 	 * <li><code>X01</code> contains the number of elements to read</li>
 	 * <li><code>X02</code> points to the elements to read</li>
-	 * <li>after execution <code>X01</code> will contain the number of elements, which has been read</li>
+	 * <li>after execution <code>X01</code> will contain the number of elements, which has been
+	 * read</li>
 	 * <li>if an error occurred <code>X01</code> will be set to <code>-1</code></li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist</li>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed
+	 * because the element does not exist</li>
 	 * <ul>
 	 * <li>if the element was deleted</li>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
-	 * <li>if the file is locked with <code>LOCK_NO_READ_ALLOWED</code> : <code>UHEX-0000000100000000</code></li>
+	 * <li>if the file is locked with <code>LOCK_NO_READ_ALLOWED</code> :
+	 * <code>UHEX-0000000100000000</code></li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: STREAM-ID is invalid or <code>X01</code> is negative</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: STREAM-ID is invalid or
+	 * <code>X01</code> is negative</li>
 	 * <ul>
 	 * <li>if the STREAM-ID is invalid (maybe because the corresponding file was deleted)</li>
 	 * <li>or if a negative number of bytes should be written</li>
@@ -1155,7 +1283,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 * </ul>
-	 * <li>if <code>X01</code> is <code>0</code> and was set before to a value greater <code>0</code> then the stream has reached its end</li>
+	 * <li>if <code>X01</code> is <code>0</code> and was set before to a value greater <code>0</code>
+	 * then the stream has reached its end</li>
 	 * <li>reading less bytes than expected does not mead that the stream has reached it's end</li>
 	 * </ul>
 	 * <li><code>11</code>: get fs-file</li>
@@ -1166,29 +1295,36 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed because the element is not of the correct type (file expected, but folder)</li>
+	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed
+	 * because the element is not of the correct type (file expected, but folder)</li>
 	 * <ul>
 	 * <li>if the element exists, but is a folder and no file</li>
-	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist</li>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed
+	 * because the element does not exist</li>
 	 * <ul>
 	 * <li>if the element does not exists</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
-	 * <li>if the one of the parents is locked with read forbidden ( <code>LOCK_NO_READ_ALLOWED</code> : <code>UHEX-0000000100000000</code>)</li>
+	 * <li>if the one of the parents is locked with read forbidden ( <code>LOCK_NO_READ_ALLOWED</code> :
+	 * <code>UHEX-0000000100000000</code>)</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory could be allocated</li>
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory
+	 * could be allocated</li>
 	 * <ul>
 	 * <li>the system could not allocate enough memory for the fs-element</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
 	 * </ul>
-	 * <li>if the specified element is a link to a file, the target file of the link is returned instead of the actual link</li>
+	 * <li>if the specified element is a link to a file, the target file of the link is returned instead
+	 * of the actual link</li>
 	 * </ul>
 	 * <li><code>12</code>: get fs-folder</li>
 	 * <ul>
@@ -1198,25 +1334,30 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed because the element is not of the correct type (folder expected, but file)</li>
+	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed
+	 * because the element is not of the correct type (folder expected, but file)</li>
 	 * <ul>
 	 * <li>if the element exists, but is a file and no folder</li>
-	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist</li>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed
+	 * because the element does not exist</li>
 	 * <ul>
 	 * <li>if the element does not exists</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory could be allocated</li>
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory
+	 * could be allocated</li>
 	 * <ul>
 	 * <li>the system could not allocate enough memory for the fs-element</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
 	 * </ul>
-	 * <li>if the specified element is a link to a folder, the target folder of the link is returned instead of the actual link</li>
+	 * <li>if the specified element is a link to a folder, the target folder of the link is returned
+	 * instead of the actual link</li>
 	 * </ul>
 	 * <li><code>13</code>: get fs-link</li>
 	 * <ul>
@@ -1226,18 +1367,22 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed because the element is not of the correct type (link expected, but file or folder)</li>
+	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed
+	 * because the element is not of the correct type (link expected, but file or folder)</li>
 	 * <ul>
 	 * <li>if the element exists, but is a file and no folder</li>
-	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist</li>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed
+	 * because the element does not exist</li>
 	 * <ul>
 	 * <li>if the element does not exists</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory could be allocated</li>
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory
+	 * could be allocated</li>
 	 * <ul>
 	 * <li>the system could not allocate enough memory for the fs-element</li>
 	 * </ul>
@@ -1253,18 +1398,22 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist</li>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed
+	 * because the element does not exist</li>
 	 * <ul>
 	 * <li>if the element does not exists</li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
-	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory could be allocated</li>
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: not enough memory
+	 * could be allocated</li>
 	 * <ul>
 	 * <li>the system could not allocate enough memory for the fs-element</li>
 	 * </ul>
@@ -1277,30 +1426,36 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element</li>
 	 * <li><code>X00</code> will point to a duplicate of the same element</li>
-	 * <li>if the system could not allocate enough memory for the duplicate <code>X00</code> will be set to <code>-1</code></li>
+	 * <li>if the system could not allocate enough memory for the duplicate <code>X00</code> will be set
+	 * to <code>-1</code></li>
 	 * </ul>
 	 * <li><code>16</code>: get parent</li>
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element</li>
-	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the ID of the parent folder</li>
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the ID of the
+	 * parent folder</li>
 	 * <ul>
 	 * <li>note that the only negative ID is <code>-2</code> (root folder)</li>
 	 * <li>all other IDs are <code>0</code> or positive, but not all positive numbers are valid IDs</li>
 	 * </ul>
-	 * <li><code>[X00 + 8]</code> : <code>[X00 + FS_ELEMENT_OFFSET_LOCK]</code> will be set <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
+	 * <li><code>[X00 + 8]</code> : <code>[X00 + FS_ELEMENT_OFFSET_LOCK]</code> will be set
+	 * <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
 	 * <li>on success <code>X01</code> will be set to <code>1</code></li>
 	 * <li>on failure <code>X01</code> will be set to <code>0</code></li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist</li>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed
+	 * because the element does not exist</li>
 	 * <ul>
 	 * <li>if the element does not exists</li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> is a fs-element of the root folder or contains itself an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> is a
+	 * fs-element of the root folder or contains itself an invalid ID</li>
 	 * <ul>
 	 * <li>if the given fs-element is the root folder</li>
 	 * <li>or if the given ID of the fs-element is invalid (because it was deleted)</li>
@@ -1317,18 +1472,22 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist</li>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed
+	 * because the element does not exist</li>
 	 * <ul>
 	 * <li>if the element does not exists</li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> is invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> is
+	 * invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID is invalid</li>
 	 * <ul>
-	 * <li>all negative IDs except of <code>-2</code> are invalid (the root folder has the ID <code>-2</code>)</li>
+	 * <li>all negative IDs except of <code>-2</code> are invalid (the root folder has the ID
+	 * <code>-2</code>)</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
@@ -1343,10 +1502,12 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1362,10 +1523,12 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1381,10 +1544,12 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1400,14 +1565,18 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
-	 * <li>if the element is locked with <code>LOCK_NO_META_CHANGE_ALLOWED_LOCK</code> : <code>UHEX-0000000800000000</code></li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li>if the element is locked with <code>LOCK_NO_META_CHANGE_ALLOWED_LOCK</code> :
+	 * <code>UHEX-0000000800000000</code></li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1423,14 +1592,18 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
-	 * <li>if the element is locked with <code>LOCK_NO_META_CHANGE_ALLOWED_LOCK</code> : <code>UHEX-0000000800000000</code></li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li>if the element is locked with <code>LOCK_NO_META_CHANGE_ALLOWED_LOCK</code> :
+	 * <code>UHEX-0000000800000000</code></li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1446,21 +1619,26 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
-	 * <li>if the element is locked with <code>LOCK_NO_META_CHANGE_ALLOWED_LOCK</code> : <code>UHEX-0000000800000000</code></li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li>if the element is locked with <code>LOCK_NO_META_CHANGE_ALLOWED_LOCK</code> :
+	 * <code>UHEX-0000000800000000</code></li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
 	 * </ul>
-	 * <li>note: when changing all dates change this date at last, because it will bee automatically changed on meta changes like the change of the create or last mod date</li>
+	 * <li>note: when changing all dates change this date at last, because it will bee automatically
+	 * changed on meta changes like the change of the create or last mod date</li>
 	 * </ul>
 	 * <li><code>24</code>: get lock data</li>
 	 * <ul>
@@ -1470,10 +1648,12 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1484,15 +1664,18 @@ public class PrimAsmCommands {
 	 * <li><code>25</code>: get lock date</li>
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element</li>
-	 * <li><code>X01</code> will be set to the lock date of the element or <code>-1</code> if the element is not locked</li>
+	 * <li><code>X01</code> will be set to the lock date of the element or <code>-1</code> if the
+	 * element is not locked</li>
 	 * <li><code>X00</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1504,29 +1687,38 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element</li>
 	 * <li><code>X01</code> is set to the lock data of the new lock</li>
-	 * <li><code>[X00 + 8]</code> : <code>[X00 + FS_ELEMENT_OFFSET_LOCK]</code> will be set to the new lock</li>
+	 * <li><code>[X00 + 8]</code> : <code>[X00 + FS_ELEMENT_OFFSET_LOCK]</code> will be set to the new
+	 * lock</li>
 	 * <li>if the element is already exclusively locked the operation will fail</li>
-	 * <li>if the element is locked with a shared lock and the lock data of the given lock is the same to the lock data of the current lock:</li>
+	 * <li>if the element is locked with a shared lock and the lock data of the given lock is the same
+	 * to the lock data of the current lock:</li>
 	 * <ul>
-	 * <li>a shared lock is flagged with <code>UHEX-4000000000000000</code> : <code>LOCK_SHARED_LOCK</code></li>
+	 * <li>a shared lock is flagged with <code>UHEX-4000000000000000</code> :
+	 * <code>LOCK_SHARED_LOCK</code></li>
 	 * <li>the new lock will not contain the shared lock counter</li>
 	 * <li>the lock should be released like a exclusive lock, when it is no longer needed</li>
-	 * <li>a shared lock does not give you any permissions, it just blocks operations for all (also for those with the lock)</li>
+	 * <li>a shared lock does not give you any permissions, it just blocks operations for all (also for
+	 * those with the lock)</li>
 	 * </ul>
-	 * <li>if the given lock is not flagged with <code>UHEX-8000000000000000</code> : <code>LOCK_LOCKED_LOCK</code>, it will be automatically be flagged with <code>UHEX-8000000000000000</code>:
+	 * <li>if the given lock is not flagged with <code>UHEX-8000000000000000</code> :
+	 * <code>LOCK_LOCKED_LOCK</code>, it will be automatically be flagged with
+	 * <code>UHEX-8000000000000000</code>:
 	 * <code>LOCK_LOCKED_LOCK</code></li>
 	 * <li><code>X01</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is already locked</li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or <code>X01</code> not only lock data bits</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID or <code>X01</code> not only lock data bits</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * <li>or if the given lock does not only specify the lock data</li>
@@ -1538,10 +1730,12 @@ public class PrimAsmCommands {
 	 * <li><code>27</code>: unlock element</li>
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element</li>
-	 * <li><code>[X00 + 8]</code> : <code>[X00 + FS_ELEMENT_OFFSET_LOCK]</code> will be set to <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
+	 * <li><code>[X00 + 8]</code> : <code>[X00 + FS_ELEMENT_OFFSET_LOCK]</code> will be set to
+	 * <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
 	 * <li>if the element is not locked with the given lock the operation will fail</li>
 	 * <ul>
-	 * <li>if the given lock is <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code>, the operation will always try to remove the lock of the element</li>
+	 * <li>if the given lock is <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code>, the
+	 * operation will always try to remove the lock of the element</li>
 	 * </ul>
 	 * <li>if the element is locked with a shared lock:</li>
 	 * <ul>
@@ -1553,14 +1747,17 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1571,17 +1768,20 @@ public class PrimAsmCommands {
 	 * <li><code>28</code>: delete element</li>
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element</li>
-	 * <li><code>X01</code> contains the lock of the parent element or <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
+	 * <li><code>X01</code> contains the lock of the parent element or
+	 * <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
 	 * <li>deletes the element from the file system</li>
 	 * <li>releases also the fs-element</li>
 	 * <ul>
-	 * <li>to release a fs-element (handle) normally just use the free interrupt ( <code>7</code> : <code>INT_MEMORY_FREE</code>)</li>
+	 * <li>to release a fs-element (handle) normally just use the free interrupt ( <code>7</code> :
+	 * <code>INT_MEMORY_FREE</code>)</li>
 	 * </ul>
 	 * <li><code>X00</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed bcause the there could not be allocated enough space</li>
+	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed
+	 * bcause the there could not be allocated enough space</li>
 	 * <ul>
 	 * <li>the file system was not able to resize the file system entry to a smaller size</li>
 	 * <ul>
@@ -1590,19 +1790,23 @@ public class PrimAsmCommands {
 	 * <li>if the block intern table can not grow this error occurres</li>
 	 * </ul>
 	 * </ul>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: operation was denied because of read-only</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: operation was denied
+	 * because of read-only</li>
 	 * <ul>
 	 * <li>if the element or its parent is marked as read-only</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element or its parent is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1621,9 +1825,11 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>or <code>-1</code> if the name should remain unchanged</li>
 	 * </ul>
-	 * <li><code>X03</code> contains the lock of the old parent folder or <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
+	 * <li><code>X03</code> contains the lock of the old parent folder or
+	 * <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
 	 * <ul>
-	 * <li>this value is ignored if <code>X01</code> is set to <code>-1</code> (the parent folder is not set)</li>
+	 * <li>this value is ignored if <code>X01</code> is set to <code>-1</code> (the parent folder is not
+	 * set)</li>
 	 * </ul>
 	 * <li>moves the element to a new parent folder and sets its name</li>
 	 * <ul>
@@ -1633,22 +1839,27 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed because the parent is not of the correct type (folder expected, but file)</li>
+	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed
+	 * because the parent is not of the correct type (folder expected, but file)</li>
 	 * <ul>
 	 * <li>if the parent element exists, but is a file and no folder</li>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: operation was denied because of read-only</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_READ_ONLY</code>: operation was denied
+	 * because of read-only</li>
 	 * <ul>
 	 * <li>if the element, its (old) parent or its (not) new parent is marked as read-only</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element, its (old) parent or its (not) new parent is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1664,10 +1875,12 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1692,12 +1905,14 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>only the 32 low bits are used and the 32 high bits are ignored</li>
 	 * </ul>
-	 * <li>note that the flags wich specify if the element is a folder, file or link are not allowed to be set/removed</li>
+	 * <li>note that the flags wich specify if the element is a folder, file or link are not allowed to
+	 * be set/removed</li>
 	 * <li>on error <code>X01</code> will be set to <code>-1</code></li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or invalid flag modify</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID or invalid flag modify</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * <ul>
@@ -1725,14 +1940,17 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1744,27 +1962,34 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element folder</li>
 	 * <li><code>X01</code> contains the index of the child element</li>
-	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the child element</li>
-	 * <li><code>[X00 + 8]</code> : <code>[X00 + FS_ELEMENT_OFFSET_LOCK]</code> will be set to <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the
+	 * child element</li>
+	 * <li><code>[X00 + 8]</code> : <code>[X00 + FS_ELEMENT_OFFSET_LOCK]</code> will be set to
+	 * <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
 	 * <li><code>X01</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no folder</li>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
-	 * <li>or if the index is out of range (negative or greater or equal to the child element count of the given folder)</li>
+	 * <li>or if the index is out of range (negative or greater or equal to the child element count of
+	 * the given folder)</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
@@ -1774,28 +1999,35 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element folder</li>
 	 * <li><code>X01</code> points to the STRING name of the child element</li>
-	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the child element</li>
-	 * <li><code>[X00 + 8]</code> : <code>[X00 + FS_ELEMENT_OFFSET_LOCK]</code> will be set to <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the
+	 * child element</li>
+	 * <li><code>[X00 + 8]</code> : <code>[X00 + FS_ELEMENT_OFFSET_LOCK]</code> will be set to
+	 * <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
 	 * <li><code>X01</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no folder</li>
-	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: the folder does not contain a child with the given name</li>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: the folder does
+	 * not contain a child with the given name</li>
 	 * <ul>
 	 * <li>if there is no child with the given name</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1807,75 +2039,91 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element folder</li>
 	 * <li><code>X01</code> points to the STRING name of the new child element</li>
-	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the new child element folder</li>
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the
+	 * new child element folder</li>
 	 * <li><code>X01</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no folder</li>
-	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: the folder already contain a child with the given name</li>
+	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: the folder
+	 * already contain a child with the given name</li>
 	 * <ul>
 	 * <li>if there is already child with the given name</li>
 	 * </ul>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was
+	 * denied because read-only</li>
 	 * <ul>
 	 * <li>if the element is marked as read-only</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
 	 * </ul>
-	 * <li>the folder will automatically be unflagged from the sorted flag ( <code>HEX-00000040</code> : <code>FLAG_FOLDER_SORTED</code>)</li>
+	 * <li>the folder will automatically be unflagged from the sorted flag ( <code>HEX-00000040</code> :
+	 * <code>FLAG_FOLDER_SORTED</code>)</li>
 	 * </ul>
 	 * <li><code>36</code>: add file</li>
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element folder</li>
 	 * <li><code>X01</code> points to the STRING name of the new child element</li>
-	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the new child element file</li>
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the
+	 * new child element file</li>
 	 * <li><code>X01</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no folder</li>
-	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: the folder already contain a child with the given name</li>
+	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: the folder
+	 * already contain a child with the given name</li>
 	 * <ul>
 	 * <li>if there is already child with the given name</li>
 	 * </ul>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was
+	 * denied because read-only</li>
 	 * <ul>
 	 * <li>if the element is marked as read-only</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
 	 * </ul>
-	 * <li>the folder will automatically be unflagged from the sorted flag ( <code>HEX-00000040</code> : <code>FLAG_FOLDER_SORTED</code>)</li>
+	 * <li>the folder will automatically be unflagged from the sorted flag ( <code>HEX-00000040</code> :
+	 * <code>FLAG_FOLDER_SORTED</code>)</li>
 	 * </ul>
 	 * <li><code>37</code>: add link</li>
 	 * <ul>
@@ -1885,38 +2133,46 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the target element is not allowed to be a link</li>
 	 * </ul>
-	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the new child element link</li>
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the id of the
+	 * new child element link</li>
 	 * <li><code>X01</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no folder</li>
-	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: the folder already contain a child with the given name</li>
+	 * <li><code>UHEX-0100000000000000</code> : <code>STATUS_ELEMENT_ALREADY_EXIST</code>: the folder
+	 * already contain a child with the given name</li>
 	 * <ul>
 	 * <li>if there is already child with the given name</li>
 	 * </ul>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was
+	 * denied because read-only</li>
 	 * <ul>
 	 * <li>if the element is marked as read-only</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
 	 * </ul>
-	 * <li>the folder will automatically be unflagged from the sorted flag ( <code>HEX-00000040</code> : <code>FLAG_FOLDER_SORTED</code>)</li>
+	 * <li>the folder will automatically be unflagged from the sorted flag ( <code>HEX-00000040</code> :
+	 * <code>FLAG_FOLDER_SORTED</code>)</li>
 	 * </ul>
 	 * <li><code>38</code>: file length</li>
 	 * <ul>
@@ -1926,18 +2182,22 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no file</li>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1950,24 +2210,29 @@ public class PrimAsmCommands {
 	 * <li><code>X00</code> points to the fs-element file</li>
 	 * <li><code>X01</code> points to a at least 32-byte large memory block (256-bits : 32-bytes)</li>
 	 * <ul>
-	 * <li>the memory block from <code>X01</code> will be filled with the SHA-256 hash code of the file</li>
+	 * <li>the memory block from <code>X01</code> will be filled with the SHA-256 hash code of the
+	 * file</li>
 	 * </ul>
 	 * <li><code>X01</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no file</li>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -1985,18 +2250,22 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no file</li>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or the offset / read count is invalid</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID or the offset / read count is invalid</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * <li>or if the read count or file offset is negative</li>
@@ -2016,22 +2285,27 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no file</li>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was
+	 * denied because read-only</li>
 	 * <ul>
 	 * <li>if the element is marked as read-only</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or the offset / read count is invalid</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID or the offset / read count is invalid</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * <li>or if the write count or file offset is negative</li>
@@ -2050,27 +2324,34 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no file</li>
-	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed bcause the there could not be allocated enough space for the larger file</li>
+	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed
+	 * bcause the there could not be allocated enough space for the larger file</li>
 	 * <ul>
 	 * <li>the file system could either not allocate enough blocks for the new larger file</li>
-	 * <li>or the file system could not allocate enough space for the larger file system entry of the file</li>
+	 * <li>or the file system could not allocate enough space for the larger file system entry of the
+	 * file</li>
 	 * </ul>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was
+	 * denied because read-only</li>
 	 * <ul>
 	 * <li>if the element is marked as read-only</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or the offset / read count is invalid</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID or the offset / read count is invalid</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * <li>or if the write count or file offset is negative</li>
@@ -2089,10 +2370,12 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no file</li>
-	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed bcause the there could not be allocated enough space</li>
+	 * <li><code>UHEX-0200000000000000</code> : <code>STATUS_OUT_OF_SPACE</code>: operation failed
+	 * bcause the there could not be allocated enough space</li>
 	 * <ul>
 	 * <li>the file system was not able to resize the file system entry to a smaller size</li>
 	 * <ul>
@@ -2102,19 +2385,23 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 * </ul>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was
+	 * denied because read-only</li>
 	 * <ul>
 	 * <li>if the element is marked as read-only</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or the offset / read count is invalid</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID or the offset / read count is invalid</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * <li>or if the new length is larger than the current file length</li>
@@ -2127,23 +2414,28 @@ public class PrimAsmCommands {
 	 * <li><code>44</code>: link get target</li>
 	 * <ul>
 	 * <li><code>X00</code> points to the fs-element link</li>
-	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the target ID</li>
+	 * <li><code>[X00]</code> : <code>[X00 + FS_ELEMENT_OFFSET_ID]</code> will be set to the target
+	 * ID</li>
 	 * <li><code>X01</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no link</li>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or the offset / read count is invalid</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID or the offset / read count is invalid</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -2157,28 +2449,35 @@ public class PrimAsmCommands {
 	 * <li><code>X01</code> points to the new target element</li>
 	 * <li>sets the target element of the link</li>
 	 * <ul>
-	 * <li>also flags the link with file or folder and removes the other flag ( <code>HEX-00000001</code> : <code>FLAG_FOLDER</code> or <code>HEX-00000002</code> : <code>FLAG_FILE</code>)</li>
+	 * <li>also flags the link with file or folder and removes the other flag (
+	 * <code>HEX-00000001</code> : <code>FLAG_FOLDER</code> or <code>HEX-00000002</code> :
+	 * <code>FLAG_FILE</code>)</li>
 	 * </ul>
 	 * <li><code>X00</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no link</li>
-	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was denied because read-only</li>
+	 * <li><code>UHEX-0400000000000000</code> : <code>STATUS_ELEMENT_READ_ONLY</code>: operation was
+	 * denied because read-only</li>
 	 * <ul>
 	 * <li>if the element is marked as read-only</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the element is locked with a different lock</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> contains an invalid ID or the offset / read count is invalid</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code>
+	 * contains an invalid ID or the offset / read count is invalid</li>
 	 * <ul>
 	 * <li>if the given ID of the fs-element is invalid (because it was deleted)</li>
 	 * </ul>
@@ -2191,27 +2490,35 @@ public class PrimAsmCommands {
 	 * <li><code>X00</code> contains the new lock data</li>
 	 * <li>the lock is like a lock for elements, but it works for all elements</li>
 	 * <li>if the file system is already exclusively locked the operation will fail</li>
-	 * <li>if the file system is locked with a shared lock and the lock data of the given lock is the same to the lock data of the current lock:</li>
+	 * <li>if the file system is locked with a shared lock and the lock data of the given lock is the
+	 * same to the lock data of the current lock:</li>
 	 * <ul>
-	 * <li>a shared lock is flagged with <code>UHEX-4000000000000000</code> : <code>LOCK_SHARED_LOCK</code></li>
+	 * <li>a shared lock is flagged with <code>UHEX-4000000000000000</code> :
+	 * <code>LOCK_SHARED_LOCK</code></li>
 	 * <li>the new lock will not contain the shared lock counter</li>
 	 * <li>the lock should be released like a exclusive lock, when it is no longer needed</li>
-	 * <li>a shared lock does not give you any permissions, it just blocks operations for all (also for those with the lock)</li>
+	 * <li>a shared lock does not give you any permissions, it just blocks operations for all (also for
+	 * those with the lock)</li>
 	 * </ul>
-	 * <li>if the given lock is not flagged with <code>UHEX-8000000000000000</code> : <code>LOCK_LOCKED_LOCK</code>, it will be automatically be flagged with <code>UHEX-8000000000000000</code>:
+	 * <li>if the given lock is not flagged with <code>UHEX-8000000000000000</code> :
+	 * <code>LOCK_LOCKED_LOCK</code>, it will be automatically be flagged with
+	 * <code>UHEX-8000000000000000</code>:
 	 * <code>LOCK_LOCKED_LOCK</code></li>
 	 * <li><code>X00</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the file syste, is already locked</li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> does not only contain lock data bits</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X00</code> does
+	 * not only contain lock data bits</li>
 	 * <ul>
 	 * <li>if the given lock does not only specify the lock data</li>
 	 * </ul>
@@ -2224,7 +2531,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>if the file system is not locked with the given lock the operation will fail</li>
 	 * <ul>
-	 * <li>if the <code>FS_LOCK</code> is <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code>, the operation will always try to remove the lock of the element</li>
+	 * <li>if the <code>FS_LOCK</code> is <code>UHEX-0000000000000000</code> :
+	 * <code>LOCK_NO_LOCK</code>, the operation will always try to remove the lock of the element</li>
 	 * </ul>
 	 * <li>if the file system is locked with a shared lock:</li>
 	 * <ul>
@@ -2235,10 +2543,12 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the file system is locked with a different lock or not locked at all</li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
@@ -2248,14 +2558,18 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * <li><code>48</code>: to get the time in milliseconds</li>
 	 * <ul>
-	 * <li><code>X00</code> will contain the time in milliseconds or <code>-1</code> if not available</li>
+	 * <li><code>X00</code> will contain the time in milliseconds or <code>-1</code> if not
+	 * available</li>
 	 * </ul>
 	 * <li><code>49</code>: to wait the given time in nanoseconds</li>
 	 * <ul>
-	 * <li><code>X00</code> contain the number of nanoseconds to wait (only values from <code>0</code> to <code>999999999</code> are allowed)</li>
+	 * <li><code>X00</code> contain the number of nanoseconds to wait (only values from <code>0</code>
+	 * to <code>999999999</code> are allowed)</li>
 	 * <li><code>X01</code> contain the number of seconds to wait</li>
-	 * <li><code>X00</code> and <code>X01</code> will contain the remaining time (both <code>0</code> if it finished waiting)</li>
-	 * <li><code>X02</code> will be <code>1</code> if the call was successfully and <code>0</code> if something went wrong</li>
+	 * <li><code>X00</code> and <code>X01</code> will contain the remaining time (both <code>0</code> if
+	 * it finished waiting)</li>
+	 * <li><code>X02</code> will be <code>1</code> if the call was successfully and <code>0</code> if
+	 * something went wrong</li>
 	 * <ul>
 	 * <li>if <code>X02</code> is <code>1</code> the remaining time will always be <code>0</code></li>
 	 * <li>if <code>X02</code> is <code>0</code> the remaining time will be greater <code>0</code></li>
@@ -2277,7 +2591,8 @@ public class PrimAsmCommands {
 	 * <li><code>52</code>: memory move</li>
 	 * <ul>
 	 * <li>copies a block of memory</li>
-	 * <li>this function makes sure, that the original values of the source block are copied to the target block (even if the two block overlap)</li>
+	 * <li>this function makes sure, that the original values of the source block are copied to the
+	 * target block (even if the two block overlap)</li>
 	 * <li><code>X00</code> points to the target memory block</li>
 	 * <li><code>X01</code> points to the source memory block</li>
 	 * <li><code>X02</code> has the length of bytes to bee copied</li>
@@ -2299,13 +2614,15 @@ public class PrimAsmCommands {
 	 * <li><code>55</code>: string length</li>
 	 * <ul>
 	 * <li><code>X00</code> points to the STRING</li>
-	 * <li><code>X00</code> will be set to the length of the string/ the (byte-)offset of the first byte from the <code>'\0'</code> character</li>
+	 * <li><code>X00</code> will be set to the length of the string/ the (byte-)offset of the first byte
+	 * from the <code>'\0'</code> character</li>
 	 * </ul>
 	 * <li><code>56</code>: string compare</li>
 	 * <ul>
 	 * <li><code>X00</code> points to the first STRING</li>
 	 * <li><code>X01</code> points to the second STRING</li>
-	 * <li><code>X00</code> will be set to zero if both are equal STRINGs, a value greater zero if the first is greater and below zero if the second is greater</li>
+	 * <li><code>X00</code> will be set to zero if both are equal STRINGs, a value greater zero if the
+	 * first is greater and below zero if the second is greater</li>
 	 * <ul>
 	 * <li>a STRING is greater if the first mismatching char has numeric greater value</li>
 	 * </ul>
@@ -2327,19 +2644,22 @@ public class PrimAsmCommands {
 	 * <li><code>X00</code> will be set to the length of the STRING</li>
 	 * <li><code>X03</code> will be set to the new length of the buffer</li>
 	 * <ul>
-	 * <li>the new length will be the old length or if the old length is smaller than the length of the STRING (with <code>\0</code>) than the length of the STRING (with <code>\0</code>)</li>
+	 * <li>the new length will be the old length or if the old length is smaller than the length of the
+	 * STRING (with <code>\0</code>) than the length of the STRING (with <code>\0</code>)</li>
 	 * </ul>
 	 * <li>on error <code>X01</code> will be set to <code>-1</code></li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X02</code> is an invalid number system or an invalid buffer size</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X02</code> is an
+	 * invalid number system or an invalid buffer size</li>
 	 * <ul>
 	 * <li>if the given number system is smaller than <code>2</code> or larger than <code>36</code></li>
 	 * <ul>
 	 * <li>or if the buffer size is negative</li>
 	 * </ul>
-	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed because the system could not allocate enough memory</li>
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed
+	 * because the system could not allocate enough memory</li>
 	 * <ul>
 	 * <li>the system tries to allocate some memory but was not able to allocate the needed memory</li>
 	 * </ul>
@@ -2359,10 +2679,12 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X02</code> is an invalid number system</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: <code>X02</code> is an
+	 * invalid number system</li>
 	 * <ul>
 	 * <li>if the buffer size is negative</li>
-	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed because the system could not allocate enough memory</li>
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed
+	 * because the system could not allocate enough memory</li>
 	 * <ul>
 	 * <li>the system tries to allocate some memory but was not able to allocate the needed memory</li>
 	 * </ul>
@@ -2375,7 +2697,8 @@ public class PrimAsmCommands {
 	 * <li><code>X00</code> points to the STRING</li>
 	 * <li><code>X01</code> points to the base of the number system</li>
 	 * <ul>
-	 * <li>(for example <code>10</code> for the decimal system or <code>2</code> for the binary system)</li>
+	 * <li>(for example <code>10</code> for the decimal system or <code>2</code> for the binary
+	 * system)</li>
 	 * </ul>
 	 * <li><code>X00</code> will be set to the converted number</li>
 	 * <li>this function will ignore leading and following white-space characters</li>
@@ -2390,7 +2713,8 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>X00</code> points to the STRING</li>
 	 * <li><code>X00</code> will be set to the converted number</li>
-	 * <li>if the STRING contains illegal characters or the base is not valid, the behavior is undefined</li>
+	 * <li>if the STRING contains illegal characters or the base is not valid, the behavior is
+	 * undefined</li>
 	 * <li>this function will ignore leading and following white-space characters</li>
 	 * <li>on success <code>X01</code> will be set to <code>1</code></li>
 	 * <li>on error <code>X01</code> will be set to <code>0</code></li>
@@ -2418,18 +2742,21 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: operation failed because if invalid arguments</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: operation failed
+	 * because if invalid arguments</li>
 	 * <ul>
 	 * <li>if the last charactet of the input string is a <code>%</code> character</li>
 	 * <ul>
 	 * <li>or if there are invalid formatting characters</li>
 	 * <ul>
-	 * <li>a <code>%</code> is not followed by a <code>%</code>, <code>s</code>, <code>c</code>, <code>B</code>, <code>d</code>, <code>f</code>, <code>p</code>, <code>h</code>, <code>b</code> or
+	 * <li>a <code>%</code> is not followed by a <code>%</code>, <code>s</code>, <code>c</code>,
+	 * <code>B</code>, <code>d</code>, <code>f</code>, <code>p</code>, <code>h</code>, <code>b</code> or
 	 * <code>o</code> character</li>
 	 * <li>or if there are too many arguments needed</li>
 	 * </ul>
 	 * </ul>
-	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed because the system could not allocate enough memory</li>
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed
+	 * because the system could not allocate enough memory</li>
 	 * <ul>
 	 * <li>if the buffer could not be resized</li>
 	 * </ul>
@@ -2439,26 +2766,38 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * <li>formatting:</li>
 	 * <ul>
-	 * <li><code>%%</code>: to escape an <code>%</code> character (only one <code>%</code> will be in the formatted STRING)</li>
+	 * <li><code>%%</code>: to escape an <code>%</code> character (only one <code>%</code> will be in
+	 * the formatted STRING)</li>
 	 * <li><code>%s</code>: the next argument points to a STRING, which should be inserted here</li>
-	 * <li><code>%c</code>: the next argument starts with a UTF-16 character, which should be inserted here</li>
+	 * <li><code>%c</code>: the next argument starts with a UTF-16 character, which should be inserted
+	 * here</li>
 	 * <ul>
 	 * <li>note that UTF-16 characters contain always two bytes</li>
 	 * </ul>
-	 * <li><code>%B</code>: the next argument starts with a byte, which should be inserted here (without being converted to a valid STRING character)</li>
+	 * <li><code>%B</code>: the next argument starts with a byte, which should be inserted here (without
+	 * being converted to a valid STRING character)</li>
 	 * <ul>
-	 * <li>note that if the argument starts with a zero byte an <code>\0</code> character will be inserted in the middle of the output STRING</li>
+	 * <li>note that if the argument starts with a zero byte an <code>\0</code> character will be
+	 * inserted in the middle of the output STRING</li>
 	 * </ul>
-	 * <li><code>%d</code>: the next argument contains a number, which should be converted to a STRING using the decimal number system and than be inserted here</li>
-	 * <li><code>%f</code>: the next argument contains a floating point number, which should be converted to a STRING and than be inserted here</li>
-	 * <li><code>%p</code>: the next argument contains a pointer, which should be converted to a STRING</li>
+	 * <li><code>%d</code>: the next argument contains a number, which should be converted to a STRING
+	 * using the decimal number system and than be inserted here</li>
+	 * <li><code>%f</code>: the next argument contains a floating point number, which should be
+	 * converted to a STRING and than be inserted here</li>
+	 * <li><code>%p</code>: the next argument contains a pointer, which should be converted to a
+	 * STRING</li>
 	 * <ul>
-	 * <li>if not the pointer will be converted by placing a <code>"p-"</code> and then the unsigned pointer-number converted to a STRING using the hexadecimal number system</li>
-	 * <li>if the pointer is <code>-1</code> it will be converted to the STRING <code>"p-inval"</code></li>
+	 * <li>if not the pointer will be converted by placing a <code>"p-"</code> and then the unsigned
+	 * pointer-number converted to a STRING using the hexadecimal number system</li>
+	 * <li>if the pointer is <code>-1</code> it will be converted to the STRING
+	 * <code>"p-inval"</code></li>
 	 * </ul>
-	 * <li><code>%h</code>: the next argument contains a number, which should be converted to a STRING using the hexadecimal number system and than be inserted here</li>
-	 * <li><code>%b</code>: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here</li>
-	 * <li><code>%o</code>: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here</li>
+	 * <li><code>%h</code>: the next argument contains a number, which should be converted to a STRING
+	 * using the hexadecimal number system and than be inserted here</li>
+	 * <li><code>%b</code>: the next argument contains a number, which should be converted to a STRING
+	 * using the binary number system and than be inserted here</li>
+	 * <li><code>%o</code>: the next argument contains a number, which should be converted to a STRING
+	 * using the octal number system and than be inserted here</li>
 	 * </ul>
 	 * </ul>
 	 * <li><code>62</code>: STRING to U8-STRING</li>
@@ -2473,10 +2812,12 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: operation failed because if invalid arguments</li>
+	 * <li><code>UHEX-2000000000000000</code> : <code>STATUS_ILLEGAL_ARG</code>: operation failed
+	 * because if invalid arguments</li>
 	 * <ul>
 	 * <li>if the old buffer length is negative</li>
-	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed because the system could not allocate enough memory</li>
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed
+	 * because the system could not allocate enough memory</li>
 	 * <ul>
 	 * <li>if the buffer could not be resized</li>
 	 * </ul>
@@ -2502,22 +2843,27 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
-	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element is of the wrong type</li>
+	 * <li><code>UHEX-0040000000000000</code>: <code>STATUS_ELEMENT_WRONG_TYPE</code>: the given element
+	 * is of the wrong type</li>
 	 * <ul>
 	 * <li>if the given element is no file</li>
-	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed because the element does not exist</li>
+	 * <li><code>UHEX-0080000000000000</code> : <code>STATUS_ELEMENT_NOT_EXIST</code>: operation failed
+	 * because the element does not exist</li>
 	 * <ul>
 	 * <li>if the given file does not exists</li>
 	 * </ul>
-	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
+	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied
+	 * because of lock</li>
 	 * <ul>
 	 * <li>if the file system is locked with a different lock or not locked at all</li>
 	 * </ul>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error occurred</li>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified io error
+	 * occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
-	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed because the system could not allocate enough memory</li>
+	 * <li><code>UHEX-4000000000000000</code> : <code>STATUS_OUT_OF_MEMORY</code>: operation failed
+	 * because the system could not allocate enough memory</li>
 	 * <ul>
 	 * <li>if the buffer could not be resized</li>
 	 * </ul>
@@ -2534,9 +2880,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int INT   = 0x23;
+	public static final int INT = 0x23;
 	/**
-	 * <p>
 	 * <code>PUSH &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -2555,9 +2900,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int PUSH  = 0x24;
+	public static final int PUSH = 0x24;
 	/**
-	 * <p>
 	 * <code>POP &lt;NO_CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -2576,9 +2920,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int POP   = 0x25;
+	public static final int POP = 0x25;
 	/**
-	 * <p>
 	 * <code>IRET</code>
 	 * </p>
 	 * <ul>
@@ -2604,7 +2947,8 @@ public class PrimAsmCommands {
 	 * <li><code>X09     &lt;- [X09 + 120]</code></li>
 	 * <li><code>FREE ZW</code></li>
 	 * <ul>
-	 * <li>this does not use the free interrupt, but works like the default free interrupt (without calling the interrupt (what could cause an infinite recursion))</li>
+	 * <li>this does not use the free interrupt, but works like the default free interrupt (without
+	 * calling the interrupt (what could cause an infinite recursion))</li>
 	 * </ul>
 	 * </ul>
 	 * <li>binary:</li>
@@ -2613,9 +2957,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int IRET  = 0x26;
+	public static final int IRET = 0x26;
 	/**
-	 * <p>
 	 * <code>SWAP &lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -2639,13 +2982,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int SWAP  = 0x27;
+	public static final int SWAP = 0x27;
 	/**
-	 * <p>
 	 * <code>LEA &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>sets the first parameter of the value of the second parameter plus the instruction pointer</li>
+	 * <li>sets the first parameter of the value of the second parameter plus the instruction
+	 * pointer</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>p1 &lt;- p2 + IP</code></li>
@@ -2663,9 +3006,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int LEA   = 0x28;
+	public static final int LEA = 0x28;
 	/**
-	 * <p>
 	 * <code>MVAD &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt; , &lt;CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -2688,9 +3030,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int MVAD  = 0x29;
+	public static final int MVAD = 0x29;
 	/**
-	 * <p>
 	 * <code>CALO &lt;PARAM&gt;, &lt;LABEL/CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -2701,7 +3042,8 @@ public class PrimAsmCommands {
 	 * <li><code>SP &lt;- SP + 8</code></li>
 	 * <li><code>IP &lt;- p1 + p2</code></li>
 	 * <ul>
-	 * <li>the call will not be made relative from this position, so the label remains relative to the start of the file it is declared in</li>
+	 * <li>the call will not be made relative from this position, so the label remains relative to the
+	 * start of the file it is declared in</li>
 	 * </ul>
 	 * </ul>
 	 * <li>binary:</li>
@@ -2713,9 +3055,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int CALO  = 0x2A;
+	public static final int CALO = 0x2A;
 	/**
-	 * <p>
 	 * <code>BCP &lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -2755,9 +3096,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int BCP   = 0x2B;
+	public static final int BCP = 0x2B;
 	/**
-	 * <p>
 	 * <code>CMPFP &lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -2810,7 +3150,6 @@ public class PrimAsmCommands {
 	 */
 	public static final int CMPFP = 0x2C;
 	/**
-	 * <p>
 	 * <code>CHKFP &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -2860,11 +3199,11 @@ public class PrimAsmCommands {
 	public static final int CHKFP = 0x2D;
 	
 	/**
-	 * <p>
 	 * <code>ADDC &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>adds the values of both parameters and the carry flag and stores the sum in the first parameter</li>
+	 * <li>adds the values of both parameters and the carry flag and stores the sum in the first
+	 * parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if ((p1 &gt; 0) &amp; ((p2 + CARRY) &gt; 0) &amp; ((p1 + p2 + CARRY) &lt; 0)) | ((p1 &lt; 0) &amp; ((p2 + CARRY) &lt; 0) &amp; ((p1 + (p2 + CARRY)) &gt; 0))</code></li>
@@ -2898,13 +3237,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int ADDC  = 0x30;
+	public static final int ADDC = 0x30;
 	/**
-	 * <p>
 	 * <code>SUBC &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>subtracts the second parameter with the carry flag from the first parameter and stores the result in the first parameter</li>
+	 * <li>subtracts the second parameter with the carry flag from the first parameter and stores the
+	 * result in the first parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>if (p1 &gt; 0) &amp; ((p2 + CARRY) &lt; 0) &amp; ((p1 - (p2 + CARRY)) &lt; 0)) | ((p1 &lt; 0) &amp; (p2 &gt; 0) &amp; ((p1 - (p2 + CARRY)) &gt; 0))</code></li>
@@ -2938,13 +3277,13 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int SUBC  = 0x31;
+	public static final int SUBC = 0x31;
 	/**
-	 * <p>
 	 * <code>ADDFP &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>adds the floating point values of both parameters and stores the floating point sum in the first parameter</li>
+	 * <li>adds the floating point values of both parameters and stores the floating point sum in the
+	 * first parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 fp-add p2</code></li>
@@ -2979,11 +3318,11 @@ public class PrimAsmCommands {
 	 */
 	public static final int ADDFP = 0x32;
 	/**
-	 * <p>
 	 * <code>SUBFP &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter</li>
+	 * <li>subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the
+	 * first fp-parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 fp-sub p2</code></li>
@@ -3019,11 +3358,11 @@ public class PrimAsmCommands {
 	 */
 	public static final int SUBFP = 0x33;
 	/**
-	 * <p>
 	 * <code>MULFP &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>multiplies the first fp parameter with the second fp and stores the fp result in the first parameter</li>
+	 * <li>multiplies the first fp parameter with the second fp and stores the fp result in the first
+	 * parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 fp-mul p2</code></li>
@@ -3059,11 +3398,11 @@ public class PrimAsmCommands {
 	 */
 	public static final int MULFP = 0x34;
 	/**
-	 * <p>
 	 * <code>DIVFP &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * </p>
 	 * <ul>
-	 * <li>divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter</li>
+	 * <li>divides the first fp-parameter with the second fp and stores the fp-result in the first
+	 * fp-parameter</li>
 	 * <li>definition:</li>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 fp-div p2</code></li>
@@ -3099,7 +3438,6 @@ public class PrimAsmCommands {
 	 */
 	public static final int DIVFP = 0x35;
 	/**
-	 * <p>
 	 * <code>NTFP &lt;NO_CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -3118,9 +3456,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int NTFP  = 0x36;
+	public static final int NTFP = 0x36;
 	/**
-	 * <p>
 	 * <code>FPTN &lt;NO_CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -3139,9 +3476,8 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int FPTN  = 0x37;
+	public static final int FPTN = 0x37;
 	/**
-	 * <p>
 	 * <code>UDIV &lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
@@ -3164,6 +3500,75 @@ public class PrimAsmCommands {
 	 * </ul>
 	 * </ul>
 	 */
-	public static final int UDIV  = 0x38;
+	public static final int UDIV = 0x38;
+	/**
+	 * <code>MVB &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * </p>
+	 * <ul>
+	 * <li>copies the byte value of the second parameter to the first byte parameter</li>
+	 * <li>definition:</li>
+	 * <ul>
+	 * <li><code>p1 &lt;-8-bit- p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+	 * <li>binary:</li>
+	 * <ul>
+	 * <li>
+	 * <code>3A &lt;B-P1.TYPE&gt; &lt;B-P2.TYPE&gt; 00 &lt;B-P2.OFF_REG|00&gt; &lt;B-P2.NUM_REG|B-P2.OFF_REG|00&gt; &lt;B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00&gt; &lt;B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00&gt;</code>
+	 * </li>
+	 * <li><code>[P1.NUM_NUM]</code></li>
+	 * <li><code>[P1.OFF_NUM]</code></li>
+	 * <li><code>[P2.NUM_NUM]</code></li>
+	 * <li><code>[P2.OFF_NUM]</code></li>
+	 * </ul>
+	 * </ul>
+	 */
+	public static final int MVB = 0x3A;
+	/**
+	 * <code>MVW &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * </p>
+	 * <ul>
+	 * <li>copies the word value of the second parameter to the first word parameter</li>
+	 * <li>definition:</li>
+	 * <ul>
+	 * <li><code>p1 &lt;-16-bit- p2 </code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+	 * <li>binary:</li>
+	 * <ul>
+	 * <li>
+	 * <code>3B &lt;B-P1.TYPE&gt; &lt;B-P2.TYPE&gt; 00 &lt;B-P2.OFF_REG|00&gt; &lt;B-P2.NUM_REG|B-P2.OFF_REG|00&gt; &lt;B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00&gt; &lt;B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00&gt;</code>
+	 * </li>
+	 * <li><code>[P1.NUM_NUM]</code></li>
+	 * <li><code>[P1.OFF_NUM]</code></li>
+	 * <li><code>[P2.NUM_NUM]</code></li>
+	 * <li><code>[P2.OFF_NUM]</code></li>
+	 * </ul>
+	 * </ul>
+	 */
+	public static final int MVW = 0x3B;
+	/**
+	 * <code>MVDW &lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * </p>
+	 * <ul>
+	 * <li>copies the double-word value of the second parameter to the first double-word parameter</li>
+	 * <li>definition:</li>
+	 * <ul>
+	 * <li><code>p1 &lt;-32-bit- p2 </code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+	 * <li>binary:</li>
+	 * <ul>
+	 * <li>
+	 * <code>3C &lt;B-P1.TYPE&gt; &lt;B-P2.TYPE&gt; 00 &lt;B-P2.OFF_REG|00&gt; &lt;B-P2.NUM_REG|B-P2.OFF_REG|00&gt; &lt;B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00&gt; &lt;B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00&gt;</code>
+	 * </li>
+	 * <li><code>[P1.NUM_NUM]</code></li>
+	 * <li><code>[P1.OFF_NUM]</code></li>
+	 * <li><code>[P2.NUM_NUM]</code></li>
+	 * <li><code>[P2.OFF_NUM]</code></li>
+	 * </ul>
+	 * </ul>
+	 */
+	public static final int MVDW = 0x3C;
 	
 }
