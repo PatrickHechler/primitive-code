@@ -40,6 +40,23 @@ public class PVMImpl extends AbstractPVM {
 	}
 	
 	@Override
+	protected void putInt(long addr, int val) throws PrimitiveErrror {
+		mem.setByte(addr, (byte) val);
+		mem.setByte(addr + 1, (byte) (val >> 8));
+		mem.setByte(addr + 2, (byte) (val >> 16));
+		mem.setByte(addr + 3, (byte) (val >> 24));
+	}
+	
+	@Override
+	protected int getInt(long addr) throws PrimitiveErrror {
+		int i = (char) mem.getByte(addr);
+		i |= mem.getByte(addr + 1) << 8;
+		i |= mem.getByte(addr + 2) << 16;
+		i |= mem.getByte(addr + 3) << 24;
+		return i;
+	}
+	
+	@Override
 	protected void putChar(long addr, char val) throws PrimitiveErrror {
 		mem.setByte(addr, (byte) val);
 		mem.setByte(addr + 1, (byte) (val >> 8));

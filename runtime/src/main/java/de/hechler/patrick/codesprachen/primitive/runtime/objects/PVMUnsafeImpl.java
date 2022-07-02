@@ -65,6 +65,18 @@ public class PVMUnsafeImpl extends AbstractPVM {
 	}
 	
 	@Override
+	protected void putInt(long addr, int val) throws PrimitiveErrror {
+		mem.check(addr, 4L);
+		U.putInt(addr, val);
+	}
+	
+	@Override
+	protected int getInt(long addr) throws PrimitiveErrror {
+		mem.check(addr, 4L);
+		return U.getInt(addr);
+	}
+	
+	@Override
 	protected void putChar(long addr, char val) throws PrimitiveErrror {
 		mem.check(addr, 2L);
 		U.putChar(addr, val);
@@ -177,7 +189,7 @@ public class PVMUnsafeImpl extends AbstractPVM {
 	protected void get(long srcaddr, byte[] dst, int bc) throws PrimitiveErrror {
 		U.copyMemory(null, srcaddr, dst, BS_BO, (long) bc);
 	}
-
+	
 	@Override
 	protected void get(long srcaddr, byte[] dst, int bo, int bc) throws PrimitiveErrror {
 		U.copyMemory(null, srcaddr, dst, BS_BO + bo, (long) bc);
@@ -208,7 +220,7 @@ public class PVMUnsafeImpl extends AbstractPVM {
 		}
 		U.copyMemory(null, regs, src, Unsafe.ARRAY_BYTE_BASE_OFFSET, 256L);
 	}
-
+	
 	@Override
 	protected void checkmem(long addr, long len) throws PrimitiveErrror {
 		mem.check(addr, len);

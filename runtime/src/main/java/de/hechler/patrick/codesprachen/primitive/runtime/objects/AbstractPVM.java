@@ -1,80 +1,6 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_ELEMENT_OFFSET_ID;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_ELEMENT_OFFSET_LOCK;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_LOCK;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_STREAM_OFFSET_FILE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.FS_STREAM_OFFSET_POS;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INTCNT;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INTERRUPT_COUNT;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INTP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_ERRORS_ILLEGAL_INTERRUPT;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_ERRORS_ILLEGAL_MEMORY;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_ERRORS_UNKNOWN_COMMAND;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FPNUMBER_TO_STRING;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_GET_CREATE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_GET_LAST_META_MOD;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_GET_LAST_MOD;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_SET_CREATE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_SET_LAST_META_MOD;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_ELEMENT_SET_LAST_MOD;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FILE_APPEND;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FILE_READ;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FILE_WRITE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FOLDER_ADD_FILE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FOLDER_ADD_FOLDER;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FOLDER_ADD_LINK;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FOLDER_GET_CHILD_OF_INDEX;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_FOLDER_GET_CHILD_OF_NAME;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_GET_ELEMENT;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_GET_FILE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_GET_FOLDER;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_FS_GET_LINK;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_NUMBER_TO_STRING;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_STRING_TO_FPNUMBER;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_STRING_TO_NUMBER;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_STR_TO_U8STR;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_U8STR_TO_STR;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.IP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.MAX_STD_STREAM;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_APPEND;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_CREATE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_NEW_FILE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_READ;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_TRUNCATE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.OPEN_WRITE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BNUM;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BREG;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BSR;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BNUM;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BREG;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BSR;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.SP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ALL_BITS;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_CARRY;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ELEMENT_ALREADY_EXIST;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ELEMENT_LOCKED;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ELEMENT_NOT_EXIST;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ELEMENT_WRONG_TYPE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_EQUAL;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_GREATHER;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ILLEGAL_ARG;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_IO_ERR;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_LOWER;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_NAN;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_NONE_BITS;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_OUT_OF_MEMORY;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_OUT_OF_SPACE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_READ_ONLY;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_SOME_BITS;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STATUS_ZERO;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STD_IN;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STD_LOG;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.STD_OUT;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.X_ADD;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -140,6 +66,10 @@ public abstract class AbstractPVM implements PVM {
 	protected abstract void putLong(long addr, long val) throws PrimitiveErrror;
 	
 	protected abstract long getLong(long addr) throws PrimitiveErrror;
+	
+	protected abstract void putInt(long addr, int val) throws PrimitiveErrror;
+	
+	protected abstract int getInt(long addr) throws PrimitiveErrror;
 	
 	protected abstract void putChar(long addr, char val) throws PrimitiveErrror;
 	
@@ -344,22 +274,22 @@ public abstract class AbstractPVM implements PVM {
 		PVMCommand uc = () -> { throw new PrimitiveErrror(INT_ERRORS_UNKNOWN_COMMAND); };
 		this.commands = new PVMCommand[] {
 			// @formatter:off
-			uc,         new MOV(),   new ADD(),   new SUB(),   new MUL(),   new DIV(),   new AND(),   new OR(),    new XOR(),   new NOT(),   new NEG(),   new LSH(),    new RLSH(),  new RASH(), new DEC(), new INC(),
-			new JMP(),  new JMPEQ(), new JMPNE(), new JMPGT(), new JMPGE(), new JMPLT(), new JMPLE(), new JMPCS(), new JMPCC(), new JMPZS(), new JMPZC(), new JMPNAN(), new JMPAN(), uc,          uc,       uc,
-			new CALL(), new CMP(),   new RET(),   new INT(),   new PUSH(),  new POP(),   new IRET(),  new SWAP(),  new LEA(),   new MVAD(),  new CALO(),  new BCP(),    new CMPFP(), new CHKFP(), uc,       uc,
-			new ADDC(), new SUBC(),  new ADDFP(), new SUBFP(), new MULFP(), new DIVFP(), new NTFP(),  new FPTN(),  new UDIV(),  uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
-			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,          uc,       uc,
+			uc,         new MOV(),   new ADD(),   new SUB(),   new MUL(),   new DIV(),   new AND(),   new OR(),    new XOR(),   new NOT(),   new NEG(),   new LSH(),    new RLSH(),  new RASH(),  new DEC(),   new INC(),
+			new JMP(),  new JMPEQ(), new JMPNE(), new JMPGT(), new JMPGE(), new JMPLT(), new JMPLE(), new JMPCS(), new JMPCC(), new JMPZS(), new JMPZC(), new JMPNAN(), new JMPAN(), new JMPAB(), new JMPSB(), new JMPNB(),
+			new CALL(), new CMP(),   new RET(),   new INT(),   new PUSH(),  new POP(),   new IRET(),  new SWAP(),  new LEA(),   new MVAD(),  new CALO(),  new BCP(),    new CMPFP(), new CHKFP(),  uc,         uc,
+			new ADDC(), new SUBC(),  new ADDFP(), new SUBFP(), new MULFP(), new DIVFP(), new NTFP(),  new FPTN(),  new UDIV(),  new MVB(),   new MVW(),   new MVDW(),   uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
+			uc,         uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,          uc,           uc,          uc,           uc,         uc,
 			// @formatter:on
 		};
 		if (this.commands.length != 256) {
@@ -526,6 +456,66 @@ public abstract class AbstractPVM implements PVM {
 		default:
 			throw new PrimitiveErrror(INT_ERRORS_UNKNOWN_COMMAND);
 		}
+	}
+	
+	private static final int GET_CONST_PARAM_TYPE_BYTE        = 0;
+	private static final int GET_CONST_PARAM_TYPE_WORD        = 1;
+	private static final int GET_CONST_PARAM_TYPE_DOUBLE_WORD = 2;
+	
+	private final LTIFunc[] FUNCS = {
+		addr -> 0xFF & getByte(addr),
+		addr -> getChar(addr),
+		addr -> getInt(addr),
+	};
+	
+	private int getConstParam(int type) throws PrimitiveErrror {
+		switch ((int) (0xFF & (cmd >> (off1 ? 48 : 40)))) {
+		case PARAM_ART_ANUM:
+			len += 8;
+			return FUNCS[type].get(ip + off2 ++ );
+		case PARAM_ART_ANUM_BNUM:
+			len += 16;
+			long a = getLong(ip + (off2 += 8));
+			long b = getLong(ip + (off2 += 8));
+			long addr = a + b;
+			return FUNCS[type].get(addr);
+		case PARAM_ART_ANUM_BREG:
+			len += 8;
+			a = getLong(ip + (off2 += 8));
+			return FUNCS[type].get(a);
+		case PARAM_ART_ANUM_BSR:
+			len += 8;
+			a = getLong(ip + (off2 += 8));
+			b = getReg((int) (cmd >> (off3 += 8) & 0xFF));
+			addr = a + b;
+			return FUNCS[type].get(addr);
+		case PARAM_ART_ASR:
+			a = getReg((int) (cmd >> (off3 += 8) & 0xFF));
+			return (int) a;
+		case PARAM_ART_ASR_BNUM:
+			len += 8;
+			a = getReg((int) (cmd >> (off3 += 8) & 0xFF));
+			b = getLong(ip + (off2 += 8));
+			addr = a + b;
+			return FUNCS[type].get(addr);
+		case PARAM_ART_ASR_BREG:
+			a = getReg((int) (cmd >> (off3 += 8) & 0xFF));
+			return FUNCS[type].get(a);
+		case PARAM_ART_ASR_BSR:
+			a = getReg((int) (cmd >> (off3 += 8) & 0xFF));
+			b = getReg((int) (cmd >> (off3 += 8) & 0xFF));
+			addr = a + b;
+			return FUNCS[type].get(addr);
+		default:
+			throw new PrimitiveErrror(INT_ERRORS_UNKNOWN_COMMAND);
+		}
+	}
+	
+	@FunctionalInterface
+	private static interface LTIFunc {
+		
+		int get(long addr) throws PrimitiveErrror;
+		
 	}
 	
 	private long getNoConstParam() throws PrimitiveErrror {
@@ -1890,6 +1880,26 @@ public abstract class AbstractPVM implements PVM {
 		
 	}
 	
+	private abstract class Cmd_1NCP_1CTP_AL implements PVMCommand {
+		
+		private final int type;
+		
+		public Cmd_1NCP_1CTP_AL(int type) {
+			this.type = type;
+		}
+		
+		@Override
+		public void execute() throws PrimitiveErrror {
+			long p1 = getNoConstParam();
+			int p2 = getConstParam(type);
+			exec(p1, (byte) p2);
+			putReg(IP, getReg(IP) + len);
+		}
+		
+		protected abstract void exec(long p1, int p2) throws PrimitiveErrror;
+		
+	}
+	
 	private abstract class Cmd_1LP_IL implements PVMCommand {
 		
 		@Override
@@ -2219,8 +2229,7 @@ public abstract class AbstractPVM implements PVM {
 		
 	}
 	
-	// uc, new MOV(), new ADD(), new SUB(), new MUL(), new DIV(), new AND(), new OR(), new XOR(), new
-	// NOT(), new NEG(), new LSH(), new RLSH(), new RASH(), new DEC(), new INC(),
+	// uc, new MOV(), new ADD(), new SUB(), new MUL(), new DIV(), new AND(), new OR(), new XOR(), new NOT(), new NEG(), new LSH(), new RLSH(), new RASH(), new DEC(), new INC(),
 	
 	private class JMP extends Cmd_1LP_IL {
 		
@@ -2365,8 +2374,32 @@ public abstract class AbstractPVM implements PVM {
 		
 	}
 	
-	// new JMP(), new JMPEQ(), new JMPNE(), new JMPGT(), new JMPGE(), new JMPLT(), new JMPLE(), new
-	// JMPCS(), new JMPCC(), new JMPZS(), new JMPZC(), new JMPNAN(), new JMPAN(), uc, uc, uc,
+	private class JMPAB extends PosCondJmp {
+		
+		public JMPAB() {
+			super(STATUS_ALL_BITS);
+		}
+		
+	}
+	
+	private class JMPSB extends PosCondJmp {
+		
+		public JMPSB() {
+			super(STATUS_SOME_BITS);
+		}
+		
+	}
+	
+	private class JMPNB extends PosCondJmp {
+		
+		public JMPNB() {
+			super(STATUS_NONE_BITS);
+		}
+		
+	}
+	
+	// new JMP(), new JMPEQ(), new JMPNE(), new JMPGT(), new JMPGE(), new JMPLT(), new JMPLE(), new JMPCS(), new JMPCC(), new JMPZS(), new JMPZC(), new JMPNAN(), new JMPAN(), new JMPAB(), new JMPSB(),
+	// new JMPNB(),
 	
 	private class CALL extends Cmd_1LP_IL {
 		
@@ -2544,8 +2577,7 @@ public abstract class AbstractPVM implements PVM {
 		
 	}
 	
-	// new CALL(), new CMP(), new RET(), new INT(), new PUSH(), new POP(), new IRET(), new SWAP(), new
-	// LEA(), new MVAD(), new CALO(), new BCP(), new CMPFP(), new CHKFP(), uc, uc,
+	// new CALL(), new CMP(), new RET(), new INT(), new PUSH(), new POP(), new IRET(), new SWAP(), new LEA(), new MVAD(), new CALO(), new BCP(), new CMPFP(), new CHKFP(), uc, uc,
 	
 	private class ADDC extends Cmd_1NCP_1CP_AL {
 		
@@ -2721,7 +2753,66 @@ public abstract class AbstractPVM implements PVM {
 		
 	}
 	
-	// new ADDC(), new SUBC(), new ADDFP(), new SUBFP(), new MULFP(), new DIVFP(), new NTFP(), new
-	// FPTN(), new UDIV(), uc, uc, uc, uc, uc, uc, uc,
+	private class MVB extends Cmd_1NCP_1CTP_AL {
+		
+		public MVB() {
+			super(GET_CONST_PARAM_TYPE_BYTE);
+		}
+		
+		@Override
+		protected void exec(long p1, int p2) throws PrimitiveErrror {
+			if (isreg) {
+				long val = getReg((int) p1);
+				val &= ~0xFFL;
+				val |= 0xFFL & (long) p2;
+				putReg((int) p1, val);
+			} else {
+				putByte(p1, (byte) p2);
+			}
+		}
+		
+	}
+	
+	private class MVW extends Cmd_1NCP_1CTP_AL {
+		
+		public MVW() {
+			super(GET_CONST_PARAM_TYPE_WORD);
+		}
+		
+		@Override
+		protected void exec(long p1, int p2) throws PrimitiveErrror {
+			if (isreg) {
+				long val = getReg((int) p1);
+				val &= ~0xFFFFL;
+				val |= 0xFFFFL & (long) p2;
+				putReg((int) p1, val);
+			} else {
+				putChar(p1, (char) p2);
+			}
+		}
+		
+	}
+	
+	private class MVDW extends Cmd_1NCP_1CTP_AL {
+		
+		public MVDW() {
+			super(GET_CONST_PARAM_TYPE_DOUBLE_WORD);
+		}
+		
+		@Override
+		protected void exec(long p1, int p2) throws PrimitiveErrror {
+			if (isreg) {
+				long val = getReg((int) p1);
+				val &= ~0xFFFFFFFFL;
+				val |= 0xFFFFFFFFL & (long) p2;
+				putReg((int) p1, val);
+			} else {
+				putChar(p1, (char) p2);
+			}
+		}
+		
+	}
+	
+	// new ADDC(), new SUBC(), new ADDFP(), new SUBFP(), new MULFP(), new DIVFP(), new NTFP(), new FPTN(), new UDIV(), new MVB(), new MVW(), new MVDW(), uc, uc, uc, uc,
 	
 }
