@@ -75,14 +75,18 @@ public class Param {
 		public Param build() {
 			switch (art) {
 			case BUILD_ANUM:
+				Param.checkZero(v2);
 				return new Param(null, v1, 0, Param.ART_ANUM);
 			case BUILD_ANUM_BREG:
+				Param.checkZero(v2);
 				return new Param(null, v1, 0, Param.ART_ANUM_BREG);
 			case BUILD_ASR:
 				Param.checkSR(v1);
+				Param.checkZero(v2);
 				return new Param(null, v1, 0, Param.ART_ASR);
 			case BUILD_ASR_BREG:
 				Param.checkSR(v1);
+				Param.checkZero(v2);
 				return new Param(null, v1, 0, Param.ART_ASR_BREG);
 			case BUILD_ANUM_BNUM:
 				return new Param(null, v1, v2, Param.ART_ANUM_BNUM);
@@ -123,6 +127,12 @@ public class Param {
 			return "[ASR_BSR]";
 		default:
 			return "<INVALID[" + art + "]>";
+		}
+	}
+	
+	public static void checkZero(long num) {
+		if (num != 0) {
+			throw new IllegalStateException("this num is not zero: num=0x" + Long.toHexString(num));
 		}
 	}
 	

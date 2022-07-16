@@ -470,6 +470,22 @@ public class PrimitiveAssembler {
 						writeOneParam(cmd, bytes);
 						break;
 					case -1:
+						if (cmd.p1.label == null && cmd.p1.art != Param.ART_ANUM) {
+							throw new IllegalStateException("offset must be a constant! (cmd: CALO)");
+						}
+						long num;
+						if (cmd.p1.label != null) {
+							Long numobj = labels.get(cmd.p1.label);
+							if (numobj == null) {
+								throw new NullPointerException("label not found! label: '" + cmd.p1.label + "' known labels: '" + labels + "'");
+							}
+							num = numobj;
+						} else {
+							num = cmd.p1.num;
+						}
+						convertLong(bytes, num);
+						out.write(bytes, 0, bytes.length);
+						break;
 					default:
 						throw new InternalError("unknown nokonst param count: " + cmd.cmd.name());
 					}
@@ -485,8 +501,21 @@ public class PrimitiveAssembler {
 				last = cmd;
 				ConstantPoolCommand cpc = (ConstantPoolCommand) cmd;
 				cpc.write(out);
+			} else if (cmd instanceof CompilerCommandCommand) {
+				// last = last; // do not set last on compiler/assembler directives
+				CompilerCommandCommand ccc = (CompilerCommandCommand) cmd;
+				switch (ccc.directive) {
+				case align:
+					align = true;
+					break;
+				case notAlign:
+					align = false;
+					break;
+				default:
+					throw new InternalError("unknown directive: " + ccc.directive.name());
+				}
 			} else {
-				throw new InternalError("inknown command class: " + cmd.getClass().getName());
+				throw new InternalError("unknown command class: " + cmd.getClass().getName());
 			}
 			pos += cmd.length();
 		}
@@ -507,7 +536,7 @@ public class PrimitiveAssembler {
 	
 	private void writeOneParam(Command cmd, byte[] bytes) throws IOException {
 		assert cmd.p1 != null : "I need a first Param!";
-		assert cmd.p1.label == null : "I dom't need a label in my params!";
+		assert cmd.p1.label == null : "I don't need a label in my params!";
 		bytes[1] = (byte) cmd.p1.art;
 		long num = cmd.p1.num, off = cmd.p1.off;
 		int art = cmd.p1.art;

@@ -12,13 +12,15 @@ the assembler language for the Primitive-Virtual-Machine
     * the `X01` register will point to the arguments
     * the arguments will point to STRINGs
         * the first argument will be the program itself, all beyond will be the arguments of the program
+        * the entry after the arguments will be `-1`
         * example:
-            * `my_program.pmc --example    value     --other=val`
+            * `my_program --example    value     --other=val`
             * `X00          <- 4`
-            * `[X01]        <- ADDRESS_OF "my_program.pmc\0"`
+            * `[X01]        <- ADDRESS_OF "my_program\0"`
             * `[X01 + 8]    <- ADDRESS_OF "--example\0"`
             * `[X01 + 16]   <- ADDRESS_OF "value\0"`
             * `[X01 + 24]   <- ADDRESS_OF "--other=val\0"`
+            * `[X01 + 32]   <- -1`
     * the `INTCNT` register will be set to `#INTERRUPT_COUNT`
     * the interrupt-table of `INTP` will be initialized with every entry set to `-1`
         * the default interrupt-table will be an `#INTERRUPT_COUNT * 8` sized memory block
@@ -992,9 +994,9 @@ the assembler language for the Primitive-Virtual-Machine
                     * if the element does not exists
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
                     * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` is a fs-element of the root folder or contains itself an invalid ID
+                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` is a fs-element of the root folder or is itself invalid
                     * if the given fs-element is the root folder
-                    * or if the given ID  of the fs-element is invalid (because it was deleted)
+                    * or if the given ID  of the fs-element is invalid (maby because it was deleted)
     * `17`: fs-element from ID
         * `X00` is set to the ID of the element
         * `X01` will be set to a fs-element of the element with the given id
@@ -1975,42 +1977,41 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-
 `MVB <NO_CONST_PARAM> , <PARAM>`
-*copies the byte value of the second parameter to the first byte parameter
-*definition:
-    *`p1 <-8-bit- p2`
-    *`IP <- IP + CMD_LEN`
-*binary:
-    * `3A <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    *`[P1.NUM_NUM]`
-    *`[P1.OFF_NUM]`
-    *`[P2.NUM_NUM]`
-    *`[P2.OFF_NUM]`
+* copies the byte value of the second parameter to the first byte parameter
+* definition:
+    * `p1 <-8-bit- p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    *  `3A <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
 
 `MVW <NO_CONST_PARAM> , <PARAM>`
-*copies the word value of the second parameter to the first word parameter
-*definition:
-    *`p1 <-16-bit- p2 `
-    *`IP <- IP + CMD_LEN`
-*binary:
-    *`3B <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    *`[P1.NUM_NUM]`
-    *`[P1.OFF_NUM]`
-    *`[P2.NUM_NUM]`
-    *`[P2.OFF_NUM]`
+* copies the word value of the second parameter to the first word parameter
+* definition:
+    * `p1 <-16-bit- p2 `
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `3B <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
 
 `MVDW <NO_CONST_PARAM> , <PARAM>`
-*copies the double-word value of the second parameter to the first double-word parameter
-*definition:
-    *`p1 <-32-bit- p2 `
-    *`IP <- IP + CMD_LEN`
-*binary:
-    *`3C <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    *`[P1.NUM_NUM]`
-    *`[P1.OFF_NUM]`
-    *`[P2.NUM_NUM]`
-    *`[P2.OFF_NUM]`
+* copies the double-word value of the second parameter to the first double-word parameter
+* definition:
+    * `p1 <-32-bit- p2 `
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `3C <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
 
 ## not (yet) there/supported
 * support of new commands

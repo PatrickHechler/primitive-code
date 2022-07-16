@@ -37,7 +37,6 @@
 		</plugins>
 	</build>
 
-
 	<repositories>
 		<repository>
 			<id>patmcsreleases</id>

@@ -325,8 +325,8 @@ public abstract class AbstractPVM implements PVM {
 			putReg(STATUS, 0L);
 			putReg(INTCNT, INTERRUPT_COUNT);
 			long argc = args.length - start;
-			long adr = malloc(argc << 3);
-			for (int i = start; i < args.length; i ++ ) {
+			long adr = malloc( (argc + 1) << 3);
+			for (int i = start; i < args.length; i ++ , adr += 8L) {
 				char[] cs = args[i].toCharArray();
 				long cl = ((long) cs.length) << 1L;
 				long len = cl + 2L;
@@ -334,8 +334,8 @@ public abstract class AbstractPVM implements PVM {
 				set(cs, a, cs.length);
 				putChar(a + cl, '\0');
 				putLong(adr, a);
-				adr += 8L;
 			}
+			putLong(adr, -1);
 			long addr = malloc(INTERRUPT_COUNT << 3);
 			putReg(INTP, addr);
 			memset(addr, INTERRUPT_COUNT << 3, (byte) -1);

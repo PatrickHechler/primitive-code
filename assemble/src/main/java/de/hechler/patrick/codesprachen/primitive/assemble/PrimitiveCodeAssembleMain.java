@@ -71,7 +71,7 @@ public class PrimitiveCodeAssembleMain {
 				case "--in":
 				case "--input":
 					if (args.length <= ++ i) {
-						crash(args, i, "not enugh args for primasm option");
+						crash(args, i, "not enugh args for input option");
 					}
 					if (inFile != null) {
 						crash(args, i, "input already set");
@@ -143,7 +143,7 @@ public class PrimitiveCodeAssembleMain {
 				}
 			}
 			if (inFile == null) {
-				crash(args, -1, "no input file set (use primasm)");
+				crash(args, -1, "no input file set (use --input)");
 			}
 			if (outFile == null) {
 				int li = inFile.lastIndexOf('.');
@@ -154,17 +154,19 @@ public class PrimitiveCodeAssembleMain {
 				cs = "UTF-8";
 			}
 			input = Files.newBufferedReader(Paths.get(inFile), Charset.forName(cs));
-			OpenOption coo = force ? StandardOpenOption.CREATE : StandardOpenOption.CREATE_NEW;
+			OpenOption[] opts = force
+				? new OpenOption[] {StandardOpenOption.CREATE, StandardOpenOption.APPEND, StandardOpenOption.TRUNCATE_EXISTING }
+				: new OpenOption[] {StandardOpenOption.CREATE_NEW, StandardOpenOption.APPEND };
 			if (fs == null) {
-				fs = FileSystems.newFileSystem(new URI(JavaPFSConsants.URI_SHEME , null, Paths.get("out.pfs").toAbsolutePath().toString(), null, null), Collections.emptyMap());
+				fs = FileSystems.newFileSystem(new URI(JavaPFSConsants.URI_SHEME, null, Paths.get("out.pfs").toAbsolutePath().toString(), null, null), Collections.emptyMap());
 			}
-			if (!noMkdir) {
+			if ( !noMkdir) {
 				Path bin = fs.getPath("./bin/");
-				if (!Files.exists(bin)) {
+				if ( !Files.exists(bin)) {
 					Files.createDirectory(bin);
 				}
 			}
-			OutputStream outFileStream = Files.newOutputStream(fs.getPath("bin", outFile), coo, StandardOpenOption.APPEND, StandardOpenOption.TRUNCATE_EXISTING);
+			OutputStream outFileStream = Files.newOutputStream(fs.getPath("bin", outFile), opts);
 			if (ne) {
 				asm = new PrimitiveAssembler(outFileStream, null, new Path[] {Paths.get(".") }, sw, true);
 			} else {
@@ -174,7 +176,7 @@ public class PrimitiveCodeAssembleMain {
 				} else {
 					exportFile = outFile + ".psf";
 				}
-				OutputStream exportOutStream = Files.newOutputStream(fs.getPath("bin", exportFile), coo, StandardOpenOption.APPEND, StandardOpenOption.TRUNCATE_EXISTING);
+				OutputStream exportOutStream = Files.newOutputStream(fs.getPath("bin", exportFile), opts);
 				asm = new PrimitiveAssembler(outFileStream, new PrintStream(exportOutStream, true, cs), new Path[] {Paths.get(".") }, sw, true);
 			}
 		} catch (Exception e) {

@@ -20,25 +20,25 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
 
 public class Command {
-
+	
 	public final Commands cmd;
-	public final Param p1;
-	public final Param p2;
-	public final Param p3;
-
+	public final Param    p1;
+	public final Param    p2;
+	public final Param    p3;
+	
 	public Command(Commands cmd, Param p1, Param p2) {
 		this(cmd, p1, p2, null);
 	}
-
+	
 	public Command(Commands cmd, Param p1, Param p2, Param p3) {
 		this.cmd = cmd;
 		this.p1 = p1;
 		this.p2 = p2;
 		this.p3 = p3;
 	}
-
-	public static ConstsContext parseCP(String cp, Map<String, PrimitiveConstant> constants, Map<String, Long> labels, long pos, boolean align, int line, int posInLine, int charPos, boolean bailError,
-			ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener) {
+	
+	public static ConstsContext parseCP(String cp, Map <String, PrimitiveConstant> constants, Map <String, Long> labels, long pos, boolean align, int line, int posInLine, int charPos, boolean bailError,
+		ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener) {
 		ANTLRInputStream in = new ANTLRInputStream(cp);
 		ConstantPoolGrammarLexer lexer = new ConstantPoolGrammarLexer(in);
 		CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -75,7 +75,7 @@ public class Command {
 				String[] names = parser.getTokenNames();
 				StringBuilder msg = new StringBuilder("illegal token: ").append(ot).append("\nexpected: [");
 				IntervalSet ets = nvae.getExpectedTokens();
-				for (int i = 0; i < ets.size(); i++) {
+				for (int i = 0; i < ets.size(); i ++ ) {
 					if (i > 0) {
 						msg.append(", ");
 					}
@@ -84,23 +84,23 @@ public class Command {
 				}
 				int lineAdd = ot.getLine();
 				throw new AssembleError(line + lineAdd, lineAdd == 0 ? posInLine + ot.getCharPositionInLine() : ot.getCharPositionInLine(), ot.getStopIndex() - ot.getStartIndex() + 1,
-						ot.getStartIndex(), msg.append(']').toString());
+					ot.getStartIndex(), msg.append(']').toString());
 			} else {
 				throw new AssembleError(line, posInLine, 1, charPos, "ParseCancelationException: " + e.getMessage());
 			}
 		}
 	}
-
+	
 	public static AssembleRuntimeException getConvertedCP_ARE(AssembleRuntimeException are, int line, int posInLine, int charPos) {
 		if (are == null) {
 			return null;
 		} else {
 			AssembleRuntimeException result = new AssembleRuntimeException(are.line + line, are.line == 0 ? are.posInLine : are.posInLine + posInLine, are.length, charPos + are.charPos,
-					are.getMessage(), are.getCause());
+				are.getMessage(), are.getCause());
 			Throwable[] sup = are.getSuppressed();
 			if (sup != null) {
 				for (Throwable s : sup) {
-					if (!(s instanceof AssembleRuntimeException)) {
+					if ( ! (s instanceof AssembleRuntimeException)) {
 						result.addSuppressed(getConvertedCP_ARE((AssembleRuntimeException) s, line, posInLine, charPos));
 					}
 				}
@@ -108,29 +108,10 @@ public class Command {
 			return result;
 		}
 	}
-
+	
 	public long length() {
-		switch (cmd) {
-		case CMD_ADD:
-		case CMD_ADDC:
-		case CMD_ADDFP:
-		case CMD_AND:
-		case CMD_MOV:
-		case CMD_SWAP:
-		case CMD_LEA:
-		case CMD_MUL:
-		case CMD_MULFP:
-		case CMD_OR:
-		case CMD_SUB:
-		case CMD_SUBC:
-		case CMD_SUBFP:
-		case CMD_XOR:
-		case CMD_CMP:
-		case CMD_LSH:
-		case CMD_RASH:
-		case CMD_RLSH:
-		case CMD_DIV:
-		case CMD_DIVFP:
+		switch (cmd.params) {
+		case 2:
 			int len;
 			switch (p1.art) {
 			case Param.ART_ANUM_BNUM:
@@ -150,66 +131,53 @@ public class Command {
 			default:
 				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art) + " " + this);
 			}
-			switch (p2.art) {
-			case Param.ART_ANUM_BNUM:
-				len += 16;
-			case Param.ART_ANUM:
-			case Param.ART_ASR_BNUM:
-			case Param.ART_ANUM_BREG:
-			case Param.ART_ANUM_BSR:
+			if (p2.label != null) {
 				len += 8;
-				break;
-			case Param.ART_ASR:
-			case Param.ART_ASR_BREG:
-			case Param.ART_ASR_BSR:
-				break;
-			default:
-				throw new IllegalStateException("unknown art: " + Param.artToString(p2.art) + " " + this);
+			} else {
+				switch (p2.art) {
+				case Param.ART_ANUM_BNUM:
+					len += 16;
+				case Param.ART_ANUM:
+				case Param.ART_ASR_BNUM:
+				case Param.ART_ANUM_BREG:
+				case Param.ART_ANUM_BSR:
+					len += 8;
+					break;
+				case Param.ART_ASR:
+				case Param.ART_ASR_BREG:
+				case Param.ART_ASR_BSR:
+					break;
+				default:
+					throw new IllegalStateException("unknown art: " + Param.artToString(p2.art) + " " + this);
+				}
 			}
 			return len;
-		case CMD_POP:
-		case CMD_PUSH:
-		case CMD_DEC:
-		case CMD_INC:
-		case CMD_INT:
-		case CMD_NEG:
-		case CMD_NOT:
-		case CMD_NTFP:
-		case CMD_FPTN:
-			switch (p1.art) {
-			case Param.ART_ANUM_BNUM:
-				return 24;
-			case Param.ART_ANUM:
-			case Param.ART_ASR_BNUM:
-			case Param.ART_ANUM_BREG:
-			case Param.ART_ANUM_BSR:
+		case 1:
+			if (p1.label != null) {
 				return 16;
-			case Param.ART_ASR:
-			case Param.ART_ASR_BREG:
-			case Param.ART_ASR_BSR:
-				return 8;
-			default:
-				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
+			} else {
+				switch (p1.art) {
+				case Param.ART_ANUM_BNUM:
+					return 24;
+				case Param.ART_ANUM:
+				case Param.ART_ASR_BNUM:
+				case Param.ART_ANUM_BREG:
+				case Param.ART_ANUM_BSR:
+					return 16;
+				case Param.ART_ASR:
+				case Param.ART_ASR_BREG:
+				case Param.ART_ASR_BSR:
+					return 8;
+				default:
+					throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
+				}
 			}
-		case CMD_IRET:
-		case CMD_RET:
+		case 0:
 			return 8;
-		case CMD_CALL:
-		case CMD_JMP:
-		case CMD_JMPCS:
-		case CMD_JMPCC:
-		case CMD_JMPEQ:
-		case CMD_JMPGE:
-		case CMD_JMPGT:
-		case CMD_JMPLE:
-		case CMD_JMPLT:
-		case CMD_JMPNE:
-		case CMD_JMPZS:
-		case CMD_JMPZC:
-		case CMD_JMPAN:
-		case CMD_JMPNAN:
-			return 16;
-		case CMD_MVAD:
+		case 3:
+			if (p3.art != Param.ART_ANUM) {
+				throw new IllegalStateException("unknown art for p3: " + Param.artToString(p3.art) + " (p3 is only allowed to be a constant number)");
+			}
 			switch (p1.art) {
 			case Param.ART_ANUM_BNUM:
 				len = 32;
@@ -243,31 +211,15 @@ public class Command {
 			default:
 				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
 			}
-		case CMD_CALO:
-			switch (p1.art) {
-			case Param.ART_ANUM_BNUM:
-				return 32;
-			case Param.ART_ANUM:
-			case Param.ART_ASR_BNUM:
-			case Param.ART_ANUM_BREG:
-			case Param.ART_ANUM_BSR:
-				return 24;
-			case Param.ART_ASR:
-			case Param.ART_ASR_BREG:
-			case Param.ART_ASR_BSR:
-				return 16;
-			default:
-				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
-			}
 		default:
 			throw new AssertionError("unknown enum constant of my Command: " + cmd.name());
 		}
 	}
-
+	
 	public boolean alignable() {
 		return false;
 	}
-
+	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
@@ -284,5 +236,5 @@ public class Command {
 		builder.append("]");
 		return builder.toString();
 	}
-
+	
 }
