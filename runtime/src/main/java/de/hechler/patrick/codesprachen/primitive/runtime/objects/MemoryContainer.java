@@ -74,7 +74,12 @@ public final class MemoryContainer {
 		final long[] startStarts = this.starts;
 		final long[][] startBlocks = this.blocks;
 		try {
-			int index = findIndex(address);
+			int index;
+			try {
+				index = findIndex(address);
+			} catch (RegMemExep e) {
+				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+			}
 			if (this.starts[index] != address) {
 				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
 			}
@@ -253,7 +258,12 @@ public final class MemoryContainer {
 	}
 	
 	public final void free(long address) throws PrimitiveErrror {
-		int index = findIndex(address);
+		int index;
+		try {
+			index = findIndex(address);
+		} catch (RegMemExep e) {
+			throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+		}
 		if (index > 0 && this.starts[index - 1] + ( ((long) this.blocks[index - 1].length) << 3L) >= address) {
 			assert (index > 0 && this.starts[index - 1] + ( ((long) this.blocks[index - 1].length) << 3L) == address);
 			throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
@@ -283,32 +293,67 @@ public final class MemoryContainer {
 		if ( (address & 7) != 0) {
 			throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
 		}
-		int index = findIndex(address);
-		int off = (int) ( (address - this.starts[index]) >> 3L);
-		return this.blocks[index][off];
+		long[] block;
+		long start;
+		try {
+			int index = findIndex(address);
+			block = this.blocks[index];
+			start = this.starts[index];
+		} catch (RegMemExep e) {
+			block = regs;
+			start = REGISTER_MEMORY_START;
+		}
+		int off = (int) ( (address - start) >> 3L);
+		return block[off];
 	}
 	
 	public final byte getByte(long address) throws PrimitiveErrror {
-		int index = findIndex(address);
-		int off = (int) ( (address - this.starts[index]) >> 3L);
-		long val = this.blocks[index][off];
+		long[] block;
+		long start;
+		try {
+			int index = findIndex(address);
+			block = this.blocks[index];
+			start = this.starts[index];
+		} catch (RegMemExep e) {
+			block = regs;
+			start = REGISTER_MEMORY_START;
+		}
+		int off = (int) ( (address - start) >> 3L);
+		long val = block[off];
 		return (byte) (val >> ( (address & 7) << 3));
 	}
 	
 	public final void set(long address, long value) throws PrimitiveErrror {
-		int index = findIndex(address);
-		int off = (int) (address - this.starts[index]);
-		this.blocks[index][off] = value;
+		long[] block;
+		long start;
+		try {
+			int index = findIndex(address);
+			block = this.blocks[index];
+			start = this.starts[index];
+		} catch (RegMemExep e) {
+			block = regs;
+			start = REGISTER_MEMORY_START;
+		}
+		int off = (int) (address - start);
+		block[off] = value;
 	}
 	
 	public final void setByte(long address, byte value) throws PrimitiveErrror {
 		assert (value & 0xFF) == value;
-		int index = findIndex(address);
-		int off = (int) ( (address - this.starts[index]) >> 3L);
-		long val = this.blocks[index][off];
+		long[] block;
+		int off;
+		try {
+			int index = findIndex(address);
+			off = (int) ( (address - this.starts[index]) >>> 3L);
+			block = this.blocks[index];
+		} catch (RegMemExep e) {
+			block = regs;
+			off = (int) ( (address - REGISTER_MEMORY_START) >>> 3L);
+		}
+		long val = block[off];
 		long byteShift = (address & 7) << 3;
 		val = ( (0xFF & value) << byteShift) | (val & ~ (0xFF << byteShift));
-		this.blocks[index][off] = val;
+		block[off] = val;
 	}
 	
 	// FIXME make these methods faster and not just use get/set/getByte/setByte (use System.arraycopy(...) where possible)

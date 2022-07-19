@@ -9,9 +9,10 @@ import java.io.PipedOutputStream;
 import java.util.Random;
 
 import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands;
-import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants;
+import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmPreDefines;
 import de.hechler.patrick.codesprachen.primitive.runtime.enums.DebugState;
 import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.PrimitiveErrror;
+import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.RegMemExep;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.BreakHandle;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.DebugPVM;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.functional.PVMCommand;
@@ -25,8 +26,8 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 		
 		@Override
 		public boolean add(long newStop) {
-			if (newStop < 0L || newStop >= PrimAsmConstants.INTERRUPT_COUNT) {
-				throw new IllegalArgumentException("out of bounds: intcnt=" + PrimAsmConstants.INTERRUPT_COUNT + " intnum=" + newStop);
+			if (newStop < 0L || newStop >= PrimAsmPreDefines.INTERRUPT_COUNT) {
+				throw new IllegalArgumentException("out of bounds: intcnt=" + PrimAsmPreDefines.INTERRUPT_COUNT + " intnum=" + newStop);
 			}
 			return super.add(newStop);
 		};
@@ -53,7 +54,7 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 		
 	};
 	
-	private static final int[] DEEP_CNT_DEC = new int[] {PrimAsmCommands.RET, PrimAsmCommands.IRET };
+	private static final int[] DEEP_CNT_DEC = new int[] {PrimAsmCommands.RET };
 	private static final int[] DEEP_CNT_INC = new int[] {PrimAsmCommands.CALL, PrimAsmCommands.CALO };
 	// INT is done in anyInt() and defInt() because defInts do not IRET
 	
@@ -250,7 +251,6 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 	
 	@Override
 	protected void anyInt(long intNum) throws PrimitiveErrror, OutOfMemoryError {
-		deep ++ ;
 		if ( !fe && ai.contains(intNum)) {
 			throw new BreakpointException();
 		}
@@ -259,7 +259,6 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 	
 	@Override
 	protected void defInt(long intNum) throws PrimitiveErrror {
-		deep -- ;
 		if ( !fe && di.contains(intNum)) {
 			throw new BreakpointException();
 		}
@@ -357,7 +356,7 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 		try {
 			get(addr, buf, len);
 		} catch (PrimitiveErrror e) {
-			if (e.intNum == PrimAsmConstants.INT_ERRORS_ILLEGAL_MEMORY) {
+			if (e.intNum == PrimAsmPreDefines.INT_ERRORS_ILLEGAL_MEMORY) {
 				throw new IllegalArgumentException("addr does not point to a valid memory block (addr=" + addr + " len=" + len + ")");
 			} else {
 				throw new AssertionError(e.getLocalizedMessage(), e);
@@ -373,7 +372,7 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 		try {
 			get(addr, buf, boff, len);
 		} catch (PrimitiveErrror e) {
-			if (e.intNum == PrimAsmConstants.INT_ERRORS_ILLEGAL_MEMORY) {
+			if (e.intNum == PrimAsmPreDefines.INT_ERRORS_ILLEGAL_MEMORY) {
 				throw new IllegalArgumentException("addr does not point to a valid memory block (addr=" + addr + " len=" + len + ")");
 			} else {
 				throw new AssertionError(e.getLocalizedMessage(), e);
@@ -386,7 +385,7 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 		try {
 			set(buf, addr, len);
 		} catch (PrimitiveErrror e) {
-			if (e.intNum == PrimAsmConstants.INT_ERRORS_ILLEGAL_MEMORY) {
+			if (e.intNum == PrimAsmPreDefines.INT_ERRORS_ILLEGAL_MEMORY) {
 				throw new IllegalArgumentException("addr does not point to the start of a  memory block (addr=" + addr + ")");
 			} else {
 				throw new AssertionError(e.getLocalizedMessage(), e);
@@ -414,8 +413,9 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 	public void memcheck(long addr, long len) throws IllegalArgumentException {
 		try {
 			checkmem(addr, len);
+		} catch (RegMemExep e) {// ignore
 		} catch (PrimitiveErrror e) {
-			if (e.intNum == PrimAsmConstants.INT_ERRORS_ILLEGAL_MEMORY) {
+			if (e.intNum == PrimAsmPreDefines.INT_ERRORS_ILLEGAL_MEMORY) {
 				throw new IllegalArgumentException("invalid range: addr=" + addr + " len=" + len);
 			} else {
 				throw new AssertionError(e.getLocalizedMessage(), e);
@@ -433,7 +433,7 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 		try {
 			return realloc(addr, len);
 		} catch (PrimitiveErrror e) {
-			if (e.intNum == PrimAsmConstants.INT_ERRORS_ILLEGAL_MEMORY) {
+			if (e.intNum == PrimAsmPreDefines.INT_ERRORS_ILLEGAL_MEMORY) {
 				throw new IllegalArgumentException("addr does not point to the start of a  memory block (addr=" + addr + ")");
 			} else {
 				throw new AssertionError(e.getLocalizedMessage(), e);
@@ -446,7 +446,7 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 		try {
 			free(addr);
 		} catch (PrimitiveErrror e) {
-			if (e.intNum == PrimAsmConstants.INT_ERRORS_ILLEGAL_MEMORY) {
+			if (e.intNum == PrimAsmPreDefines.INT_ERRORS_ILLEGAL_MEMORY) {
 				throw new IllegalArgumentException("addr does not point to the start of a  memory block (addr=" + addr + ")");
 			} else {
 				throw new AssertionError(e.getLocalizedMessage(), e);
@@ -490,10 +490,13 @@ public abstract class AbstractDebugPVM extends AbstractPVM implements DebugPVM {
 		} catch (IOException e) {
 			try {
 				po.close();
+			} catch (IOException e1) {
+				e.addSuppressed(e1);
+			}
+			try {
 				pi.close();
 			} catch (IOException e1) {
-				e1.initCause(e);
-				throw new RuntimeException(e1);
+				e.addSuppressed(e1);
 			}
 			throw new RuntimeException(e);
 		}

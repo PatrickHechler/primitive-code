@@ -1,6 +1,7 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.PrimitiveErrror;
+import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.RegMemExep;
 
 public class DebugPVMImpl extends AbstractDebugPVM {
 	
@@ -131,7 +132,7 @@ public class DebugPVMImpl extends AbstractDebugPVM {
 	}
 	
 	@Override
-	public void checkmem(long addr, long len) throws PrimitiveErrror {
+	public void checkmem(long addr, long len) throws PrimitiveErrror, RegMemExep {
 		d.checkmem(addr, len);
 	}
 	
