@@ -824,8 +824,24 @@ INT_U8STR_TO_STR=63
 |       * `X01` will be set to the length of the file (and the memory block)
 |       * when an error occurred `X00` will be set to `-1`
 INT_LOAD_FILE=64
+|   * `65`: get file 
+|       * similar like `64` (`INT_LOAD_FILE`) this interrupt loads a file for the program.
+|           * the only difference is that this interrupt remembers which files has been loaded
+|           * if the interrupt is executed multiple times with the same file, it will return every time the same memory block.
+|           * file changes after the file has already been loaded with this interrupt are ignored.
+|               * only if the file moved or deleted the interrupt recognize the change.
+|               * if the file gets moved and the new file path is used the interrupt recognizes the old file
+|               * thus the same memory block is still returned if the file gets moved and the new path is used
+|                   * thus changes in the content of the file are never recognized
+|           * this interrupt does not recognize files loaded with the `64` (`INT_LOAD_FILE`) interrupt.
+|       * `X00` is set to the path (inclusive name) of the file
+|       * `X00` will point to the memory block, in which the file has been loaded
+|       * `X01` will be set to the length of the file (and the memory block)
+|       * `X02` will be set to `1` if the file has been loaded as result of this interrupt and `0` if the file was previously loaded
+|       * when an error occurred `X00` will be set to `-1`
+INT_GET_FILE=65
 |   the total number of default interrupts
-INTERRUPT_COUNT=65
+INTERRUPT_COUNT=66
 |   the maximum/greatest number
 MAX_VALUE=9223372036854775807
 |   the minimum/lowest number

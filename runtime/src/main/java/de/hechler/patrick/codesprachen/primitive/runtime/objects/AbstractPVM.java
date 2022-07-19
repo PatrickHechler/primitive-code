@@ -267,6 +267,7 @@ public abstract class AbstractPVM implements PVM {
 			num -> defIntStringConvert(num), //
 			num -> defIntStringConvert(num), //
 			num -> defIntLoadFile(), //
+			num -> defIntGetFile(), //
 		};
 		if (this.defaultInts.length != INTERRUPT_COUNT) {
 			throw new AssertionError("expected int-count=" + INTERRUPT_COUNT + " int-count=" + this.defaultInts.length);
@@ -649,7 +650,7 @@ public abstract class AbstractPVM implements PVM {
 	}
 	
 	
-	private String[] getPathNames(long address) throws PrimitiveErrror {
+	private String[] getPathNames(long address) throws PrimitiveErrror, NoSuchFileException {
 		String[] s = new String[4];
 		int si = 0;
 		char[] cs = new char[16];
@@ -681,12 +682,88 @@ public abstract class AbstractPVM implements PVM {
 			cpy(o, s, si);
 		}
 		s[si] = new String(cs, 0, ci);
+		return normalize(s);
+	}
+	
+	private String[] normalize(String[] s) throws NoSuchFileException {
+		for (int i = 0, len = s.length; i < len;) {
+			switch (s[i]) {
+			case ".":
+				System.arraycopy(s, i + 1, s, i, len - i - 1);
+				break;
+			case "..":
+				if (i == 0) {
+					throw new NoSuchFileException(null);
+				}
+				System.arraycopy(s, i + 1, s, i - 1, len - i - 2);
+				i -- ;
+				break;
+			default:
+				i ++ ;
+			}
+		}
 		return s;
 	}
 	
-	private void defIntLoadFile() throws PrimitiveErrror {
-		String[] names = getPathNames(getReg(X_ADD));
+	private Map <Long, Loaded> loaded = new HashMap <>();
+	
+	private static class Loaded {
+		
+		public final long address;
+		public final long length;
+		
+		public Loaded(long address, long length) {
+			this.address = address;
+			this.length = length;
+		}
+		
+	}
+	
+	private void defIntGetFile() throws PrimitiveErrror {
 		try {
+			String[] names = getPathNames(getReg(X_ADD));
+			PatrFolder parent = fs.getRoot();
+			for (int i = names[0].isEmpty() ? 1 : 0; i < names.length - 1; i ++ ) {
+				parent = parent.getElement(names[i], NO_LOCK).getFolder();
+			}
+			PatrFileSysElement element = parent.getElement(names[names.length - 1], NO_LOCK);
+			Long id = ((PatrFileSysElementImpl) element).id;
+			Loaded l = loaded.get(id);
+			if (l != null) {
+				putReg(X_ADD, l.address);
+				putReg(X_ADD + 1, l.length);
+				putReg(X_ADD + 2, 0L);
+			} else {
+				PatrFile file = element.getFile();
+				long len = file.length(NO_LOCK);
+				long addr = malloc(len);
+				byte[] bytes = new byte[(int) Math.min(MAX_BUFFER, len)];
+				for (long wrote = 0L; wrote < len;) {
+					int cpy = (int) Math.min(bytes.length, len - wrote);
+					file.getContent(bytes, wrote, 0, cpy, NO_LOCK);
+					set(bytes, addr + wrote, cpy);
+				}
+				loaded.put(id, new Loaded(addr, len));
+				putReg(X_ADD, addr);
+				putReg(X_ADD + 1, len);
+				putReg(X_ADD + 2, 1);
+			}
+		} catch (OutOfMemoryError e) {
+			fail(X_ADD, STATUS_OUT_OF_MEMORY);
+		} catch (IllegalStateException e) {
+			fail(X_ADD, STATUS_ELEMENT_WRONG_TYPE);
+		} catch (NoSuchFileException e) {
+			fail(X_ADD, STATUS_ELEMENT_NOT_EXIST);
+		} catch (ElementLockedException e) {
+			fail(X_ADD, STATUS_ELEMENT_LOCKED);
+		} catch (IOException e) {
+			fail(X_ADD, STATUS_IO_ERR);
+		}
+	}
+	
+	private void defIntLoadFile() throws PrimitiveErrror {
+		try {
+			String[] names = getPathNames(getReg(X_ADD));
 			PatrFolder parent = fs.getRoot();
 			for (int i = names[0].isEmpty() ? 1 : 0; i < names.length - 1; i ++ ) {
 				parent = parent.getElement(names[i], NO_LOCK).getFolder();

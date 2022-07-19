@@ -812,7 +812,7 @@ public class PrimAsmConstants {
 	
 	/** the total number of default interrupts */
 	@PrimStartConstant
-	public static final long INTERRUPT_COUNT = 65L;
+	public static final long INTERRUPT_COUNT = 66L;
 	
 	/**
 	 * the offset of the fs-element file pointer of the stream this value is zero and can be ignored

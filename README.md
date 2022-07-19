@@ -1620,18 +1620,33 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` is set to the path (inclusive name) of the file
         * `X00` will point to the memory block, in which the file has been loaded
         * `X01` will be set to the length of the file (and the memory block)
-        * when an error occured `X00` will be set to `-1`
+        * when an error occurred `X00` will be set to `-1`
             * the `STATUS` register will be flagged:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no file
                 * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
                     * if the given file does not exists
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the file system is locked with a diffrent lock or not locked at all
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
+                    * if the file system is locked with a different lock or not locked at all
+                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified IO error occurred
                     * if some IO error occurred
                 * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
                     * if the buffer could not be resized
+    * `65`: get file 
+        * similar like `64` (`INT_LOAD_FILE`) this interrupt loads a file for the program.
+            * the only difference is that this interrupt remembers which files has been loaded
+            * if the interrupt is executed multiple times with the same file, it will return every time the same memory block.
+            * file changes after the file has already been loaded with this interrupt are ignored.
+                * only if the file moved or deleted the interrupt recognize the change.
+                * if the file gets moved and the new file path is used the interrupt recognizes the old file
+                * thus the same memory block is still returned if the file gets moved and the new path is used
+                    * thus changes in the content of the file are never recognized
+            * this interrupt does not recognize files loaded with the `64` (`INT_LOAD_FILE`) interrupt.
+        * `X00` is set to the path (inclusive name) of the file
+        * `X00` will point to the memory block, in which the file has been loaded
+        * `X01` will be set to the length of the file (and the memory block)
+        * `X02` will be set to `1` if the file has been loaded as result of this interrupt and `0` if the file was previously loaded
+        * when an error occurred `X00` will be set to `-1`
 
 * binary:
     * `23 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
