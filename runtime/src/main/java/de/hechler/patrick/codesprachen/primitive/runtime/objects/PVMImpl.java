@@ -7,8 +7,8 @@ import de.hechler.patrick.pfs.objects.fs.PatrFileSysImpl;
 
 public class PVMImpl extends AbstractPVM {
 	
-	private final MemoryContainer mem  = new MemoryContainer();
 	private final long[]          regs = new long[256];
+	private final MemoryContainer mem  = new MemoryContainer(regs);
 	
 	
 	public PVMImpl(PatrFileSysImpl fs) {

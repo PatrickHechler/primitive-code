@@ -1,6 +1,7 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmPreDefines.*;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +19,7 @@ import java.util.Random;
 import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands;
 import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants;
 import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.PrimitiveErrror;
+import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.RegMemExep;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.PVM;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.functional.Interrupt;
 import de.hechler.patrick.codesprachen.primitive.runtime.interfaces.functional.PVMCommand;
@@ -145,7 +147,7 @@ public abstract class AbstractPVM implements PVM {
 	 * @throws PrimitiveErrror
 	 *                         if the range is invalid (always with {@link PrimAsmConstants#INT_ERRORS_ILLEGAL_MEMORY})
 	 */
-	protected abstract void checkmem(long addr, long len) throws PrimitiveErrror;
+	protected abstract void checkmem(long addr, long len) throws PrimitiveErrror, RegMemExep;
 	
 	public AbstractPVM(PatrFileSysImpl fs, OutputStream stdout, OutputStream stdlog, InputStream stdin) {
 		this(fs, new Random(), stdout, stdlog, stdin);
@@ -1181,7 +1183,7 @@ public abstract class AbstractPVM implements PVM {
 			fs.setLock(getLong(FS_LOCK));
 			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
 			final long addr = getReg(X_ADD + 1);
-			byte[] bytes = e.getHashCode(lock);
+			byte[] bytes = ((PatrFileImpl) e).getHashCode(lock);
 			assert bytes.length == 32;
 			
 			set(bytes, addr, bytes.length);

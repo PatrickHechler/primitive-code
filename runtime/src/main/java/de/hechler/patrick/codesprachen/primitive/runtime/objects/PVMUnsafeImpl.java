@@ -1,11 +1,12 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_ERRORS_ILLEGAL_MEMORY;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmPreDefines.*;
 
 import java.lang.reflect.Field;
 import java.util.Random;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.PrimitiveErrror;
+import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.RegMemExep;
 import de.hechler.patrick.pfs.objects.fs.PatrFileSysImpl;
 import sun.misc.Unsafe;
 
@@ -31,7 +32,10 @@ public class PVMUnsafeImpl extends AbstractPVM {
 	private static final int CS_BO = Unsafe.ARRAY_CHAR_BASE_OFFSET;
 	private static final int ST_BO = U.arrayBaseOffset(Object[].class);
 	
-	private final MemoryChecker mem  = new MemoryChecker(U);
+	private static final long REG_ADDR     = REGISTER_MEMORY_START;
+	private static final long REG_ADDR_AND = REG_ADDR - 1L;
+	
+	private final MemoryChecker mem  = new MemoryChecker();
 	private final long          regs = U.allocateMemory(256L * 8L);
 	
 	public PVMUnsafeImpl(PatrFileSysImpl fs) {
@@ -54,50 +58,82 @@ public class PVMUnsafeImpl extends AbstractPVM {
 	
 	@Override
 	protected void putLong(long addr, long val) throws PrimitiveErrror {
-		mem.check(addr, 8L);
-		U.putLong(addr, val);
+		try {
+			mem.check(addr, 8L);
+			U.putLong(addr, val);
+		} catch (RegMemExep e) {
+			U.putLong( (addr & REG_ADDR_AND) + regs, val);
+		}
 	}
 	
 	@Override
 	protected long getLong(long addr) throws PrimitiveErrror {
-		mem.check(addr, 8L);
-		return U.getLong(addr);
+		try {
+			mem.check(addr, 8L);
+			return U.getLong(addr);
+		} catch (RegMemExep e) {
+			return U.getLong( (addr & REG_ADDR_AND) + regs);
+		}
 	}
 	
 	@Override
 	protected void putInt(long addr, int val) throws PrimitiveErrror {
-		mem.check(addr, 4L);
-		U.putInt(addr, val);
+		try {
+			mem.check(addr, 4L);
+			U.putInt(addr, val);
+		} catch (RegMemExep e) {
+			U.putInt( (addr & REG_ADDR_AND) + regs, val);
+		}
 	}
 	
 	@Override
 	protected int getInt(long addr) throws PrimitiveErrror {
-		mem.check(addr, 4L);
-		return U.getInt(addr);
+		try {
+			mem.check(addr, 4L);
+			return U.getInt(addr);
+		} catch (RegMemExep e) {
+			return U.getInt( (addr & REG_ADDR_AND) + regs);
+		}
 	}
 	
 	@Override
 	protected void putChar(long addr, char val) throws PrimitiveErrror {
-		mem.check(addr, 2L);
-		U.putChar(addr, val);
+		try {
+			mem.check(addr, 2L);
+			U.putChar(addr, val);
+		} catch (RegMemExep e) {
+			U.putChar( (addr & REG_ADDR_AND) + regs, val);
+		}
 	}
 	
 	@Override
 	protected char getChar(long addr) throws PrimitiveErrror {
-		mem.check(addr, 2L);
-		return U.getChar(addr);
+		try {
+			mem.check(addr, 2L);
+			return U.getChar(addr);
+		} catch (RegMemExep e) {
+			return U.getChar( (addr & REG_ADDR_AND) + regs);
+		}
 	}
 	
 	@Override
 	protected void putByte(long addr, byte val) throws PrimitiveErrror {
-		mem.check(addr, 1L);
-		U.putByte(addr, val);
+		try {
+			mem.check(addr, 1L);
+			U.putByte(addr, val);
+		} catch (RegMemExep e) {
+			U.putByte( (addr & REG_ADDR_AND) + regs, val);
+		}
 	}
 	
 	@Override
 	protected byte getByte(long addr) throws PrimitiveErrror {
-		mem.check(addr, 1L);
-		return U.getByte(addr);
+		try {
+			mem.check(addr, 1L);
+			return U.getByte(addr);
+		} catch (RegMemExep e) {
+			return U.getByte( (addr & REG_ADDR_AND) + regs);
+		}
 	}
 	
 	@Override
@@ -139,19 +175,37 @@ public class PVMUnsafeImpl extends AbstractPVM {
 	
 	@Override
 	protected void memset(long addr, long len, long val) throws PrimitiveErrror {
-		long bv = val & 0xFF;
 		long bl = len << 3;
 		if (bl != len) {
 			throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
 		}
-		mem.check(addr, bl);
-		if (bv != ( (val >>> 8) & 0xFF) || bv != ( (val >>> 16) & 0xFF) || bv != ( (val >>> 24) & 0xFF) || bv != ( (val >>> 32) & 0xFF) || bv != ( (val >>> 40) & 0xFF)
-			|| bv != ( (val >>> 48) & 0xFF) || bv != ( (val >>> 56) & 0xFF)) {
-			for (; len > 0L; len -- ) {
-				U.putLong(addr ++ , val);
+		long bv = val & 0xFFL;
+		boolean diffrentBytes =
+			bv != ( (val >>> 8) & 0xFF)
+				|| bv != ( (val >>> 16) & 0xFF)
+				|| bv != ( (val >>> 24) & 0xFF)
+				|| bv != ( (val >>> 32) & 0xFF)
+				|| bv != ( (val >>> 40) & 0xFF)
+				|| bv != ( (val >>> 48) & 0xFF)
+				|| bv != ( (val >>> 56) & 0xFF);
+		try {
+			mem.check(addr, bl);
+			if (diffrentBytes) {
+				for (; len > 0L; len -- ) {
+					U.putLong(addr ++ , val);
+				}
+			} else {
+				U.setMemory(null, addr, bl, (byte) bv);
 			}
-		} else {
-			U.setMemory(null, addr, bl, (byte) bv);
+		} catch (RegMemExep e) {
+			addr = (addr & REG_ADDR_AND) + regs;
+			if (diffrentBytes) {
+				for (; len > 0L; len -- ) {
+					U.putLong(addr ++ , val);
+				}
+			} else {
+				U.setMemory(null, addr, bl, (byte) bv);
+			}
 		}
 	}
 	
@@ -222,7 +276,7 @@ public class PVMUnsafeImpl extends AbstractPVM {
 	}
 	
 	@Override
-	protected void checkmem(long addr, long len) throws PrimitiveErrror {
+	protected void checkmem(long addr, long len) throws PrimitiveErrror, RegMemExep {
 		mem.check(addr, len);
 	}
 	

@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.function.BiConsumer;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRErrorStrategy;
@@ -285,13 +287,15 @@ public class PrimitiveAssembler {
 					out.print(line + '\n');
 				}
 			}
-			out.print(symbol + '=' + Long.toString(pc.value) + '\n');
+			out.print(symbol + '=' + Long.toUnsignedString(pc.value, 16).toUpperCase() + '\n');
 		});
 	}
 	
 	public static void readSymbols(String prefix, Map <String, PrimitiveConstant> addSymbols, Scanner sc, Path path) {
 		StringBuilder comment = new StringBuilder();
 		int lineNumber = 1;
+		final String regex = "^[#]?([a-zA-Z_0-9]+)\\s*[=]\\s*([0-9a-fA-F]+)$";
+		Pattern pattern = Pattern.compile(regex);
 		while (sc.hasNextLine()) {
 			String line = sc.nextLine().trim();
 			if (line.isEmpty()) {
@@ -301,12 +305,12 @@ public class PrimitiveAssembler {
 				comment.append(line);
 				continue;
 			}
-			final String regex = "^#?([a-zA-Z_0-9]+)\\s*[=]\\s*([0-9a-fA-F]+)$";
-			if ( !line.matches(regex)) {
+			Matcher matcher = pattern.matcher(line);
+			if ( !matcher.matches()) {
 				throw new RuntimeException("line does not match regex: line='" + line + "', regex='" + regex + "'");
 			}
-			String constName = line.replaceFirst(regex, "$1");
-			long val = Long.parseUnsignedLong(line.replaceFirst(regex, "$2"), 16);
+			String constName = matcher.replaceFirst("$1");
+			long val = Long.parseUnsignedLong(matcher.replaceFirst("$2"), 16);
 			PrimitiveConstant value;
 			if (comment.length() == 0) {
 				value = new PrimitiveConstant(constName, null, val, path, lineNumber);

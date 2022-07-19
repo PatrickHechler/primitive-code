@@ -1,21 +1,27 @@
 package de.hechler.patrick.codesprachen.primitive.runtime.objects;
 
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.INT_ERRORS_ILLEGAL_MEMORY;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmPreDefines.INT_ERRORS_ILLEGAL_MEMORY;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmPreDefines.*;
 
 import java.util.Arrays;
 
 import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.PrimitiveErrror;
+import de.hechler.patrick.codesprachen.primitive.runtime.exceptions.RegMemExep;
 
 public final class MemoryContainer {
 	
 	private static final long DEFAULT_FREE_SPACE = 1024L;
+	private static final long START_SPACE        = DEFAULT_FREE_SPACE + REGISTER_MEMORY_START;
 	private static final long MIN_FREE_SPACE     = 8L;
 	
-	private long[]   starts = new long[16];
-	private long[][] blocks = new long[16][];
-	private int      length = 0;
+	private final long[] regs;
+	private long[]       starts = new long[16];
+	private long[][]     blocks = new long[16][];
+	private int          length = 0;
 	
-	public MemoryContainer() {}
+	public MemoryContainer(long[] regs) {
+		this.regs = regs;
+	}
 	
 	public final long malloc(long length) {
 		if ( (length & 7) != 0) {
@@ -33,7 +39,7 @@ public final class MemoryContainer {
 				this.starts = arrayGrow(this.starts, (length / (1L << 33L)) + 1L);
 				this.blocks = arrayGrow(this.blocks, (length / (1L << 33L)) + 1L);
 			}
-			long address = this.length == 0 ? DEFAULT_FREE_SPACE : ( (this.starts[this.length] + DEFAULT_FREE_SPACE) & ~7);
+			long address = this.length == 0 ? START_SPACE : ( (this.starts[this.length] + DEFAULT_FREE_SPACE) & ~7);
 			final long result = address;
 			while (length > 0) {
 				int len = (int) Math.min(length >> 3, 1 << 30);
@@ -370,21 +376,28 @@ public final class MemoryContainer {
 	}
 	
 	public void check(long addr, long len) throws PrimitiveErrror {
-		int i = findIndex(addr);
-		len += addr - starts[i];
-		addr = starts[i];
-		while (true) {
-			long add = ((long) blocks[i].length) << 3L;
-			len -= add;
-			if (len <= 0) return;
-			if (length <= ++ i) {
-				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+		try {
+			int i = findIndex(addr);
+			len += addr - starts[i];
+			addr = starts[i];
+			while (true) {
+				long add = ((long) blocks[i].length) << 3L;
+				len -= add;
+				if (len <= 0) return;
+				if (length <= ++ i) {
+					throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+				}
+				addr += add;
+				if (starts[i] != addr) {
+					assert starts[i] > addr;
+					throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
+				}
 			}
-			addr += add;
-			if (starts[i] != addr) {
-				assert starts[i] > addr;
+		} catch (RegMemExep e) {
+			try {
+				findIndex(addr + len - 1);
 				throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);
-			}
+			} catch (RegMemExep e1) {}
 		}
 	}
 	
@@ -410,7 +423,7 @@ public final class MemoryContainer {
 		return copy;
 	}
 	
-	private int findIndex(long address) throws PrimitiveErrror {
+	private int findIndex(long address) throws PrimitiveErrror, RegMemExep {
 		int start = 0,
 			end = this.length - 1;
 		while (start <= end) {
@@ -426,6 +439,11 @@ public final class MemoryContainer {
 				start = mid + 1;
 			} else {
 				return mid;
+			}
+		}
+		if (address >= REGISTER_MEMORY_START) {
+			if (address < REGISTER_MEMORY_LAST_ADDRESS + 8) {
+				throw new RegMemExep();
 			}
 		}
 		throw new PrimitiveErrror(INT_ERRORS_ILLEGAL_MEMORY);

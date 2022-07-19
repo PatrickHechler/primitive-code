@@ -69,11 +69,30 @@ the assembler language for the Primitive-Virtual-Machine
             * all entries of the table are initialized with `-1`
     * `FS_LOCK`
         * contains the file system lock to be used for file system operations
-    * `X[00..FA]`
+    * `X[00..F9]`
         * `250 registers`
         * number registers, for free use
         * `X00` is initialized with the pointer to the program arguments
         * `X01` is initialized with the count of program arguments
+* every register can also be addressed:
+    * each register has a constant memory address
+    * the registers are at the memory addresses `4096..6392` (`HEX-1000..HEX-18F8`)
+    * the `IP` register has the address `4096`
+    * the `SP` register has the address `4104`
+    * the `STATUS` register has the address `4112`
+    * the `INTCNT` register has the address `4120`
+    * the `INTP` register has the address `4128`
+    * the `FS_LOCK` register has the address `4136`
+    * the `X00..XF9` registers has the address space `4144..6144` (`HEX-1030..HEX-18FF`)
+        * each `XNN` register address can be calculated by multiplying the Hex `NN` value with `8` and than adding `4144` (`HEX-1030`)
+        * examples:
+            * `X00` : `[4144]` : `[HEX-1030]`
+            * `X01` : `[4152]` : `[HEX-1038]`
+            * `X0F` : `[4264]` : `[HEX-10A8]`
+            * `X10` : `[4272]` : `[HEX-10B0]`
+            * `X7A` : `[5120]` : `[HEX-1400]`
+            * `X80` : `[5128]` : `[HEX-1408]`
+            * `XF9` : `[6392]` : `[HEX-18F8]`
 
 ## NUMBERS
 
@@ -121,7 +140,7 @@ the assembler language for the Primitive-Virtual-Machine
         * then it will be deleted as normal and as export constant
     * to change a normal constant to an export constant, just redefine it: `#EXP~<NAME> <NAME>`
 * predefined constants:
-<pre>`
+<pre><code>
     --POS--                               the actual length of the binary code in bytes
     INT_ERRORS_ILLEGAL_INTERRUPT          0
     INT_ERRORS_UNKNOWN_COMMAND            1
@@ -248,7 +267,9 @@ the assembler language for the Primitive-Virtual-Machine
     STATUS_ILLEGAL_ARG               UHEX-2000000000000000
     STATUS_OUT_OF_MEMORY             UHEX-4000000000000000
     STATUS_ERROR                     UHEX-8000000000000000
-`</pre>
+    REGISTER_MEMORY_START             HEX-0000000000001000
+    REGISTER_MEMORY_LAST_ADDRESS      HEX-00000000000018F8
+</code></pre>
 
 ## STRINGS
 * a string is an array of multiple characters of the `UTF-16BE` encoding

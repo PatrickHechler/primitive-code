@@ -105,7 +105,7 @@ INT_STREAMS_WRITE=9
 |               * or if a negative number of bytes should be written
 |       * if `X01` is `0` and was set before to a value greater `0` then the stream has reached its end
 |       * reading less bytes than expected does not mead that the stream has reached it's end
-INT_STREAMS_READ=10
+INT_STREAMS_READ=A
 |   * `11`: get fs-file
 |       * `X00` contains a pointer of a STRING with the file
 |       * `X00` will point to a fs-element of the file
@@ -120,7 +120,7 @@ INT_STREAMS_READ=10
 |               * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: not enough memory could be allocated
 |                   * the system could not allocate enough memory for the fs-element
 |       * if the specified element is a link to a file, the target file of the link is returned instead of the actual link
-INT_FS_GET_FILE=11
+INT_FS_GET_FILE=B
 |   * `12`: get fs-folder
 |       * `X00` contains a pointer of a STRING with the dictionary
 |       * `X00` will point to a fs-element of the folder
@@ -135,7 +135,7 @@ INT_FS_GET_FILE=11
 |               * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: not enough memory could be allocated
 |                   * the system could not allocate enough memory for the fs-element
 |       * if the specified element is a link to a folder, the target folder of the link is returned instead of the actual link
-INT_FS_GET_FOLDER=12
+INT_FS_GET_FOLDER=C
 |   * `13`: get fs-link
 |       * `X00` contains a pointer of a STRING with the link
 |       * `X00` will point to a fs-element of the link
@@ -149,7 +149,7 @@ INT_FS_GET_FOLDER=12
 |                   * if some IO error occurred
 |               * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: not enough memory could be allocated
 |                   * the system could not allocate enough memory for the fs-element
-INT_FS_GET_LINK=13
+INT_FS_GET_LINK=D
 |   * `14`: get fs-element
 |       * `X00` contains a pointer of a STRING with the element
 |       * `X00` will point to the fs-element
@@ -164,12 +164,12 @@ INT_FS_GET_LINK=13
 |               * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: not enough memory could be allocated
 |                   * the system could not allocate enough memory for the fs-element
 |       * if the specified element is a link the actual link is returned
-INT_FS_GET_ELEMENT=14
+INT_FS_GET_ELEMENT=E
 |   * `15`: duplicate fs-element (handle)
 |       * `X00` points to the fs-element
 |       * `X00` will point to a duplicate of the same element
 |       * if the system could not allocate enough memory for the duplicate `X00` will be set to `-1`
-INT_FS_DUPLICATE_HANDLE=15
+INT_FS_DUPLICATE_HANDLE=F
 |   * `16`: get parent
 |       * `X00` points to the fs-element
 |       * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the ID of the parent folder
@@ -184,7 +184,7 @@ INT_FS_DUPLICATE_HANDLE=15
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` is a fs-element of the root folder or contains itself an invalid ID
 |                   * if the given fs-element is the root folder
 |                   * or if the given ID  of the fs-element is invalid (because it was deleted)
-INT_FS_ELEMENT_GET_PARENT=16
+INT_FS_ELEMENT_GET_PARENT=10
 |   * `17`: fs-element from ID
 |       * `X00` is set to the ID of the element
 |       * `X00` will be set to a fs-element of the element with the given id
@@ -197,7 +197,7 @@ INT_FS_ELEMENT_GET_PARENT=16
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` is invalid ID
 |                   * if the given ID is invalid
 |                       * all negative IDs except of `-2` are invalid (the root folder has the ID `-2`)
-INT_FS_ELEMENT_FROM_ID=17
+INT_FS_ELEMENT_FROM_ID=11
 |   * `18`: get create date
 |       * `X00` points to the fs-element
 |       * `X01` will be set to the create time of the element
@@ -207,7 +207,7 @@ INT_FS_ELEMENT_FROM_ID=17
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_ELEMENT_GET_CREATE=18
+INT_FS_ELEMENT_GET_CREATE=12
 |   * `19`: get last mod date
 |       * `X00` points to the fs-element
 |       * `X01` will be set to the last modify time of the element
@@ -217,7 +217,7 @@ INT_FS_ELEMENT_GET_CREATE=18
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_ELEMENT_GET_LAST_MOD=19
+INT_FS_ELEMENT_GET_LAST_MOD=13
 |   * `20`: get last meta mod date
 |       * `X00` points to the fs-element
 |       * `X01` will be set to the last meta mod time of the element
@@ -227,7 +227,7 @@ INT_FS_ELEMENT_GET_LAST_MOD=19
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_ELEMENT_GET_LAST_META_MOD=20
+INT_FS_ELEMENT_GET_LAST_META_MOD=14
 |   * `21`: set create date
 |       * `X00` points to the fs-element
 |       * `X01` contains the new create date
@@ -241,7 +241,7 @@ INT_FS_ELEMENT_GET_LAST_META_MOD=20
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_ELEMENT_SET_CREATE=21
+INT_FS_ELEMENT_SET_CREATE=15
 |   * `22`: set last mod date
 |       * `X00` points to the fs-element
 |       * `X01` contains the new last mod date
@@ -255,7 +255,7 @@ INT_FS_ELEMENT_SET_CREATE=21
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_ELEMENT_SET_LAST_MOD=22
+INT_FS_ELEMENT_SET_LAST_MOD=16
 |   * `23`: set last meta mod date
 |       * `X00` points to the fs-element
 |       * `X01` contains the new last meta mod date
@@ -270,7 +270,7 @@ INT_FS_ELEMENT_SET_LAST_MOD=22
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
 |       * note: when changing all dates change this date at last, because it will bee automatically changed on meta changes like the change of the create or last mod date
-INT_FS_ELEMENT_SET_LAST_META_MOD=23
+INT_FS_ELEMENT_SET_LAST_META_MOD=17
 |   * `24`: get lock data
 |       * `X00` points to the fs-element
 |       * `X00` will be set to the lock data of the element
@@ -280,7 +280,7 @@ INT_FS_ELEMENT_SET_LAST_META_MOD=23
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_ELEMENT_GET_LOCK_DATA=24
+INT_FS_ELEMENT_GET_LOCK_DATA=18
 |   * `25`: get lock date
 |       * `X00` points to the fs-element
 |       * `X01` will be set to the lock date of the element or `-1` if the element is not locked
@@ -290,7 +290,7 @@ INT_FS_ELEMENT_GET_LOCK_DATA=24
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_ELEMENT_GET_LOCK_TIME=25
+INT_FS_ELEMENT_GET_LOCK_TIME=19
 |   * `26`: lock element
 |       * `X00` points to the fs-element
 |       * `X01` is set to the lock data of the new lock
@@ -311,7 +311,7 @@ INT_FS_ELEMENT_GET_LOCK_TIME=25
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or `X01` not only lock data bits
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
 |                   * or if the given lock does not only specify the lock data
-INT_FS_ELEMENT_LOCK=26
+INT_FS_ELEMENT_LOCK=1A
 |   * `27`: unlock element
 |       * `X00` points to the fs-element
 |       * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set to `UHEX-0000000000000000` : `LOCK_NO_LOCK`
@@ -328,7 +328,7 @@ INT_FS_ELEMENT_LOCK=26
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_ELEMENT_UNLOCK=27
+INT_FS_ELEMENT_UNLOCK=1B
 |   * `28`: delete element
 |       * `X00` points to the fs-element
 |       * `X01` contains the lock of the parent element or `UHEX-0000000000000000` : `LOCK_NO_LOCK`
@@ -349,7 +349,7 @@ INT_FS_ELEMENT_UNLOCK=27
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_ELEMENT_DELETE=28
+INT_FS_ELEMENT_DELETE=1C
 |   * `29`: move element
 |       * `X00` points to the fs-element
 |       * `X01` points to the new parent fs-element folder
@@ -368,7 +368,7 @@ INT_FS_ELEMENT_DELETE=28
 |                   * if the element, its (old) parent or its (not) new parent is locked with a different lock
 |               * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
 |                   * if some IO error occurred
-INT_FS_ELEMENT_MOVE=29
+INT_FS_ELEMENT_MOVE=1D
 |   * `30`: get element flags
 |       * `X00` points to the fs-element
 |       * `X01` will be set to the flags of the element
@@ -382,7 +382,7 @@ INT_FS_ELEMENT_MOVE=29
 |           * if the link target element is a file, the link is also flagged as file
 |           * if the link target element is a folder, the link is also flagged as folder
 |           * a link to a link is invalid
-INT_FS_ELEMENT_GET_FLAGS=30
+INT_FS_ELEMENT_GET_FLAGS=1E
 |   * `31`: modify element flags
 |       * `X00` points to the fs-element
 |       * `X01` contains the flags to add to the element
@@ -398,7 +398,7 @@ INT_FS_ELEMENT_GET_FLAGS=30
 |                       * `HEX-00000004` : `FLAG_LINK`
 |       * bits out of the 32-bit range will be ignored
 |           * the 32-bit with less value are used (`UHEX-00000000FFFFFFFF`)
-INT_FS_ELEMENT_MOD_FLAGS=31
+INT_FS_ELEMENT_MOD_FLAGS=1F
 |   * `31`: get folder child element count
 |       * `X00` points to the fs-element folder
 |       * `X01` will be set to the child element count of the given folder
@@ -410,7 +410,7 @@ INT_FS_ELEMENT_MOD_FLAGS=31
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_FOLDER_CHILD_COUNT=32
+INT_FS_FOLDER_CHILD_COUNT=20
 |   * `33`: get child element from index
 |       * `X00` points to the fs-element folder
 |       * `X01` contains the index of the child element
@@ -426,7 +426,7 @@ INT_FS_FOLDER_CHILD_COUNT=32
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
 |                   * or if the index is out of range (negative or greater or equal to the child element count of the given folder)
-INT_FS_FOLDER_GET_CHILD_OF_INDEX=33
+INT_FS_FOLDER_GET_CHILD_OF_INDEX=21
 |   * `34`: get child element from name
 |       * `X00` points to the fs-element folder
 |       * `X01` points to the STRING name of the child element
@@ -443,7 +443,7 @@ INT_FS_FOLDER_GET_CHILD_OF_INDEX=33
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_FOLDER_GET_CHILD_OF_NAME=34
+INT_FS_FOLDER_GET_CHILD_OF_NAME=22
 |   * `35`: add folder
 |       * `X00` points to the fs-element folder
 |       * `X01` points to the STRING name of the new child element
@@ -463,7 +463,7 @@ INT_FS_FOLDER_GET_CHILD_OF_NAME=34
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
 |       * the folder will automatically removed the sorted flag (`HEX-00000040` : `FLAG_FOLDER_SORTED`)
-INT_FS_FOLDER_ADD_FOLDER=35
+INT_FS_FOLDER_ADD_FOLDER=23
 |   * `36`: add file
 |       * `X00` points to the fs-element folder
 |       * `X01` points to the STRING name of the new child element
@@ -483,7 +483,7 @@ INT_FS_FOLDER_ADD_FOLDER=35
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
 |       * the folder will automatically remove the sorted flag (`HEX-00000040` : `FLAG_FOLDER_SORTED`)
-INT_FS_FOLDER_ADD_FILE=36
+INT_FS_FOLDER_ADD_FILE=24
 |   * `37`: add link
 |       * `X00` points to the fs-element folder
 |       * `X01` points to the STRING name of the new child element
@@ -505,7 +505,7 @@ INT_FS_FOLDER_ADD_FILE=36
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
 |       * the folder will automatically remove the sorted flag (`HEX-00000040` : `FLAG_FOLDER_SORTED`)
-INT_FS_FOLDER_ADD_LINK=37
+INT_FS_FOLDER_ADD_LINK=25
 |   * `38`: file length
 |       * `X00` points to the fs-element file
 |       * `X01` will be set to the length of the file in bytes
@@ -519,7 +519,7 @@ INT_FS_FOLDER_ADD_LINK=37
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_FILE_LENGTH=38
+INT_FS_FILE_LENGTH=26
 |   * `39`: file hash
 |       * `X00` points to the fs-element file
 |       * `X01` points to a at least 256-byte large memory block
@@ -534,7 +534,7 @@ INT_FS_FILE_LENGTH=38
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_FILE_HASH=39
+INT_FS_FILE_HASH=27
 |   * `40`: file read
 |       * `X00` points to the fs-element file
 |       * `X01` contains the offset from the file
@@ -552,7 +552,7 @@ INT_FS_FILE_HASH=39
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
 |                   * or if the read count or file offset is negative
 |                   * or if the read count + file offset is larger than the file length
-INT_FS_FILE_READ=40
+INT_FS_FILE_READ=28
 |   * `41`: file write
 |       * `X00` points to the fs-element file
 |       * `X01` contains the offset from the file
@@ -572,7 +572,7 @@ INT_FS_FILE_READ=40
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
 |                   * or if the write count or file offset is negative
 |                   * or if the write count + file offset is larger than the file length
-INT_FS_FILE_WRITE=41
+INT_FS_FILE_WRITE=29
 |   * `42`: file append
 |       * `X00` points to the fs-element file
 |       * `X01` contains the number of bytes to append
@@ -594,7 +594,7 @@ INT_FS_FILE_WRITE=41
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
 |                   * or if the write count or file offset is negative
 |                   * or if the write count + file offset is larger than the file length
-INT_FS_FILE_APPEND=42
+INT_FS_FILE_APPEND=2A
 |   * `43`: file truncate
 |       * `X00` points to the fs-element file
 |       * `X01` contains the new length of the file
@@ -617,7 +617,7 @@ INT_FS_FILE_APPEND=42
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
 |                   * or if the new length is larger than the current file length
 |                   * or if the new length is negative
-INT_FS_FILE_TRUNCATE=43
+INT_FS_FILE_TRUNCATE=2B
 |   * `44`: link get target
 |       * `X00` points to the fs-element link
 |       * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the target ID
@@ -631,7 +631,7 @@ INT_FS_FILE_TRUNCATE=43
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or the offset / read count is invalid
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_LINK_GET_TARGET=44
+INT_FS_LINK_GET_TARGET=2C
 |   * `45`: link set target
 |       * `X00` points to the fs-element link
 |       * `X01` points to the new target element
@@ -649,7 +649,7 @@ INT_FS_LINK_GET_TARGET=44
 |                   * if some IO error occurred
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or the offset / read count is invalid
 |                   * if the given ID of the fs-element is invalid (because it was deleted)
-INT_FS_LINK_SET_TARGET=45
+INT_FS_LINK_SET_TARGET=2D
 |   * `46`: lock file-system
 |       * `X00` contains the new lock data
 |       * the lock is like a lock for elements, but it works for all elements
@@ -669,7 +669,7 @@ INT_FS_LINK_SET_TARGET=45
 |               * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` does not only contain lock data bits
 |                   * if the given lock does not only specify the lock data
 |       * the lock of the file system will be remembered in the `FS_LOCK` register
-INT_FS_LOCK=46
+INT_FS_LOCK=2E
 |   * `47`: unlock file-system
 |       * if the file system is not locked with the given lock the operation will fail
 |           * if the `FS_LOCK` is `UHEX-0000000000000000` : `LOCK_NO_LOCK`, the operation will always try to remove the lock of the element
@@ -682,10 +682,10 @@ INT_FS_LOCK=46
 |                   * if the file system is locked with a different lock or not locked at all
 |               * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified IO error occurred
 |                   * if some IO error occurred
-INT_FS_UNLOCK=47
+INT_FS_UNLOCK=2F
 |   * `48`: to get the time in milliseconds
 |       * `X00` will contain the time in milliseconds or `-1` if not available
-INT_TIME_GET=48
+INT_TIME_GET=30
 |   * `49`: to wait the given time in nanoseconds
 |       * `X00` contain the number of nanoseconds to wait (only values from `0` to `999999999` are allowed)
 |       * `X01` contain the number of seconds to wait
@@ -694,46 +694,46 @@ INT_TIME_GET=48
 |           * if `X02` is `1` the remaining time will always be `0`
 |           * if `X02` is `0` the remaining time will be greater `0`
 |       * `X00` will not be negative if the progress waited too long
-INT_TIME_WAIT=49
+INT_TIME_WAIT=31
 |   * `50`: random
 |       * `X00` will be filled with random bits
-INT_RANDOM=50
+INT_RANDOM=32
 |   * `51`: memory copy
 |       * copies a block of memory
 |       * this function has undefined behavior if the two blocks overlap
 |       * `X00` points to the target memory block
 |       * `X01` points to the source memory block
 |       * `X02` has the length of bytes to bee copied
-INT_MEMORY_COPY=51
+INT_MEMORY_COPY=33
 |   * `52`: memory move
 |       * copies a block of memory
 |       * this function makes sure, that the original values of the source block are copied to the target block (even if the two block overlap)
 |       * `X00` points to the target memory block
 |       * `X01` points to the source memory block
 |       * `X02` has the length of bytes to bee copied
-INT_MEMORY_MOVE=52
+INT_MEMORY_MOVE=34
 |   * `53`: memory byte set
 |       * sets a memory block to the given byte-value
 |       * `X00` points to the block
 |       * `X01` the first byte contains the value to be written to each byte
 |       * `X02` contains the length in bytes
-INT_MEMORY_BSET=53
+INT_MEMORY_BSET=35
 |   * `54`: memory set
 |       * sets a memory block to the given int64-value
 |       * `X00` points to the block
 |       * `X01` contains the value to be written to each element
 |       * `X02` contains the count of elements to be set
-INT_MEMORY_SET=54
+INT_MEMORY_SET=36
 |   * `55`: string length
 |       * `X00` points to the STRING
 |       * `X00` will be set to the length of the string/ the (byte-)offset of the `'\0'` character
-INT_STRING_LENGTH=55
+INT_STRING_LENGTH=37
 |   * `56`: string compare
 |       * `X00` points to the first STRING
 |       * `X01` points to the second STRING
 |       * `X00` will be set to zero if both are equal STRINGs, a value greater zero if the first is greater and below zero if the second is greater
 |           * a STRING is greater if the first mismatching char has numeric greater value
-INT_STRING_COMPARE=56
+INT_STRING_COMPARE=38
 |   * `57`: number to string
 |       * `X00` is set to the number to convert
 |       * `X01` is points to the buffer to be filled with the number in a STRING format
@@ -742,12 +742,12 @@ INT_STRING_COMPARE=56
 |           * the maximum base is `36`
 |           * other values lead to undefined behavior
 |       * `X00` will be set to the length of the STRING
-INT_NUMBER_TO_STRING=57
+INT_NUMBER_TO_STRING=39
 |   * `58`: floating point number to string
 |       * `X00` is set to the number to convert
 |       * `X02` contains the maximum amount of digits to be used to represent the floating point number
 |       * `X01` is points to the buffer to be filled with the number in a STRING format
-INT_FPNUMBER_TO_STRING=58
+INT_FPNUMBER_TO_STRING=3A
 |   * `59`: string to number
 |       * `X00` points to the STRING
 |       * `X01` points to the base of the number system
@@ -757,7 +757,7 @@ INT_FPNUMBER_TO_STRING=58
 |           * this might be the `\0` terminating character
 |       * if the STRING contains illegal characters or the base is not valid, the behavior is undefined
 |       * this function will ignore leading space characters
-INT_STRING_TO_NUMBER=59
+INT_STRING_TO_NUMBER=3B
 |   * `60`: string to floating point number
 |       * `X00` points to the STRING
 |       * `X00` will be set to the converted number
@@ -765,7 +765,7 @@ INT_STRING_TO_NUMBER=59
 |           * this might be the `\0` terminating character
 |       * if the STRING contains illegal characters or the base is not valid, the behavior is undefined
 |       * this function will ignore leading space characters
-INT_STRING_TO_FPNUMBER=60
+INT_STRING_TO_FPNUMBER=3C
 |   * `61`: format string
 |       * `X00` is set to the STRING input
 |       * `X01` contains the buffer for the STRING output
@@ -801,7 +801,7 @@ INT_STRING_TO_FPNUMBER=60
 |           * `%h`: the next argument contains a number, which should be converted to a STRING using the hexadecimal number system and than be inserted here
 |           * `%b`: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here
 |           * `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here
-INT_STRING_FORMAT=61
+INT_STRING_FORMAT=3D
 |   * `62`: STRING to U8-STRING
 |       * `X00` contains the STRING
 |       * `X01` points to a buffer for the U8-SRING
@@ -809,7 +809,7 @@ INT_STRING_FORMAT=61
 |       * `X01` will point to the U8-STRING
 |       * `X02` will be set to the U8-STRING buffer size
 |       * `X03` will point to the `\0` character of the U8-STRING
-INT_STR_TO_U8STR=62
+INT_STR_TO_U8STR=3E
 |   * `63`: U8-STRING to STRING
 |       * `X00` contains the U8-STRING
 |       * `X01` points to a buffer for the SRING
@@ -817,13 +817,13 @@ INT_STR_TO_U8STR=62
 |       * `X01` will point to the STRING
 |       * `X02` will be set to the STRING buffer size
 |       * `X03` will point to the `\0` character of the STRING
-INT_U8STR_TO_STR=63
+INT_U8STR_TO_STR=3F
 |   * `64`: load file
 |       * `X00` is set to the path (inclusive name) of the file
 |       * `X00` will point to the memory block, in which the file has been loaded
 |       * `X01` will be set to the length of the file (and the memory block)
 |       * when an error occurred `X00` will be set to `-1`
-INT_LOAD_FILE=64
+INT_LOAD_FILE=40
 |   * `65`: get file 
 |       * similar like `64` (`INT_LOAD_FILE`) this interrupt loads a file for the program.
 |           * the only difference is that this interrupt remembers which files has been loaded
@@ -839,13 +839,13 @@ INT_LOAD_FILE=64
 |       * `X01` will be set to the length of the file (and the memory block)
 |       * `X02` will be set to `1` if the file has been loaded as result of this interrupt and `0` if the file was previously loaded
 |       * when an error occurred `X00` will be set to `-1`
-INT_GET_FILE=65
+INT_GET_FILE=41
 |   the total number of default interrupts
-INTERRUPT_COUNT=66
+INTERRUPT_COUNT=42
 |   the maximum/greatest number
-MAX_VALUE=9223372036854775807
+MAX_VALUE=7FFFFFFFFFFFFFFF
 |   the minimum/lowest number
-MIN_VALUE=-9223372036854775808
+MIN_VALUE=8000000000000000
 |   the STREAM-ID of the default input stream
 |       this stream is initially open and does not support write operations
 |       this stream is no fs-stream (thus the position can not be set)
@@ -867,9 +867,9 @@ OPEN_APPEND=4
 |   open option: open file or create file (needs `OPEN_WRITE`, not compatible with `OPEN_NEW_FILE`)
 OPEN_CREATE=8
 |   open option: fail if file already exists or create the file (needs `OPEN_WRITE`, not compatible with `OPEN_CREATE`)
-OPEN_NEW_FILE=16
+OPEN_NEW_FILE=10
 |   open option: if the file already exists, remove its content (needs `OPEN_WRITE`)
-OPEN_TRUNCATE=32
+OPEN_TRUNCATE=20
 |   the offset of the fs-element file pointer of the stream
 FS_STREAM_OFFSET_FILE=0
 |   the offset of the current position of the stream
@@ -879,19 +879,19 @@ FS_ELEMENT_OFFSET_ID=0
 |   the offset of the lock to be used of a fs-element
 FS_ELEMENT_OFFSET_LOCK=8
 |   the lock flag to specify that no read operations are allowed
-LOCK_NO_READ_ALLOWED=4294967296
+LOCK_NO_READ_ALLOWED=100000000
 |   the lock flag to specify that no write operations are allowed
-LOCK_NO_WRITE_ALLOWED_LOCK=8589934592
+LOCK_NO_WRITE_ALLOWED_LOCK=200000000
 |   the lock flag to specify that the element is not allowed to be deleted
-LOCK_NO_DELETE_ALLOWED_LOCK=17179869184
+LOCK_NO_DELETE_ALLOWED_LOCK=400000000
 |   the lock flag to specify that no direct metadata changes are allowed
 |       indirect metadata changes are still allowed (with write operations setting the last mod (and last meta mod) time)
-LOCK_NO_META_CHANGE_ALLOWED_LOCK=34359738368
+LOCK_NO_META_CHANGE_ALLOWED_LOCK=800000000
 |   the lock flag to specify that the lock is a shared lock
-LOCK_SHARED_LOCK=4611686018427387904
+LOCK_SHARED_LOCK=4000000000000000
 |   the lock flag to specify that the lock is a lock
 |       this flag allows to have a exclusive lock without blocking any operations
-LOCK_LOCKED_LOCK=-9223372036854775808
+LOCK_LOCKED_LOCK=8000000000000000
 |   this number is used to specify when no lock should be used
 LOCK_NO_LOCK=0
 |   the flag marks an element as folder
@@ -904,25 +904,25 @@ FLAG_LINK=4
 |   the flag marks an element as read only
 FLAG_READ_ONLY=8
 |   the flag marks an element as executable
-FLAG_EXECUTABLE=16
+FLAG_EXECUTABLE=10
 |   the flag marks an element as hidden
-FLAG_HIDDEN=32
+FLAG_HIDDEN=20
 |   the flag marks an folder as sorted
 |       this flag does not have any real use yet
-FLAG_FOLDER_SORTED=64
+FLAG_FOLDER_SORTED=40
 |   the flag marks an file as encrypted
 |       this flag does not have any real use for the file system
-FLAG_FILE_ENCRYPTED=128
+FLAG_FILE_ENCRYPTED=80
 |   a floating-point-number to specify a Not-A-Number constant
-FP_NAN=9222809086901354496
+FP_NAN=7FFE000000000000
 |   the maximum/greatest floating-point-number
-FP_MAX_VALUE=9218868437227405311
+FP_MAX_VALUE=7FEFFFFFFFFFFFFF
 |   the minimum/lowest floating-point-number
 FP_MIN_VALUE=1
 |   the floating-point-number for positiv infinity
-FP_POS_INFINITY=9218868437227405312
+FP_POS_INFINITY=7FF0000000000000
 |   the floating-point-number for negative infinity
-FP_NEG_INFINITY=-4503599627370496
+FP_NEG_INFINITY=FFF0000000000000
 |   the status flag used when on the last compare (CMP A, B) A was lower than B
 STATUS_LOWER=1
 |   the status flag used when on the last compare (CMP A, B) A was greater than B
@@ -932,33 +932,37 @@ STATUS_EQUAL=4
 |   the status flag used when an overflow occurred
 STATUS_CARRY=8
 |   the status flag used when an mathematical (arithmetic or logic) operation had zero as result
-STATUS_ZERO=16
+STATUS_ZERO=10
 |   the status flag used when an mathematical operation had a NaN as result
-STATUS_NAN=32
+STATUS_NAN=20
 |   the status flag used when on the last bit-compare (BCP A, B) A & B was B (and B != zero)
-STATUS_ALL_BITS=64
+STATUS_ALL_BITS=40
 |   the status flag used when on the last bit-compare (BCP A, B) A & B was not zero
-STATUS_SOME_BITS=128
+STATUS_SOME_BITS=80
 |   the status flag used when on the last bit-compare (BCP A, B) A & B was zero
-STATUS_NONE_BITS=256
+STATUS_NONE_BITS=100
 |   the status flag indicates a invalid fs-element type (file expected but folder was used or in reverse)
-STATUS_ELEMENT_WRONG_TYPE=18014398509481984
+STATUS_ELEMENT_WRONG_TYPE=40000000000000
 |   the status flag indicates that a element was ought to exist but did not exist
-STATUS_ELEMENT_NOT_EXIST=36028797018963968
+STATUS_ELEMENT_NOT_EXIST=80000000000000
 |   the status flag indicates that a element was not ought to exist but did already exist
-STATUS_ELEMENT_ALREADY_EXIST=72057594037927936
+STATUS_ELEMENT_ALREADY_EXIST=100000000000000
 |   the status flag indicates that the file system could not reserve enough space for some reason
-STATUS_OUT_OF_SPACE=144115188075855872
+STATUS_OUT_OF_SPACE=200000000000000
 |   the status flag indicates that a element was marked as read only, but a write operation was tried
-STATUS_READ_ONLY=288230376151711744
+STATUS_READ_ONLY=400000000000000
 |   the status flag indicates that a different lock was used or the lock of the element forbid the tried operation
-STATUS_ELEMENT_LOCKED=576460752303423488
+STATUS_ELEMENT_LOCKED=800000000000000
 |   the status flag indicates that an undefined IO error occurred
-STATUS_IO_ERR=1152921504606846976
+STATUS_IO_ERR=1000000000000000
 |   the status flag indicates that an interrupt was misused
-STATUS_ILLEGAL_ARG=2305843009213693952
+STATUS_ILLEGAL_ARG=2000000000000000
 |   the status flag indicates the system could not reserve enough memory
-STATUS_OUT_OF_MEMORY=4611686018427387904
+STATUS_OUT_OF_MEMORY=4000000000000000
 |   the status flag indicates that some unspecified error occurred
 |      this flag will not be generated by default interrupts
-STATUS_ERROR=-9223372036854775808
+STATUS_ERROR=8000000000000000
+|   the start address of the registers
+REGISTER_MEMORY_START=0000000000001000
+|   the last address of the last registers (<code>XF9</code>)
+REGISTER_MEMORY_LAST_ADDRESS=00000000000018F8
