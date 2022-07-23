@@ -60,8 +60,10 @@ public class Param {
 		private static final int BUILD_AAX_BAX   = A_SR | B_SR;
 		
 		public int  art = 0;
-		public long v1  = 0;
-		public long v2  = 0;
+		public long v1  = 0L;
+		public long v2  = 0L;
+		
+		public ParamBuilder() {}
 		
 		public boolean isValid() {
 			try {
@@ -73,6 +75,17 @@ public class Param {
 		}
 		
 		public Param build() {
+			return build(art, v1, v2);
+		}
+		
+		public static Param build(int art, long v1) {
+			if ( (art & (B_NUM | B_REG | B_SR)) != 0) {
+				throw new IllegalArgumentException("type specifies the use of v2, but i do not have a v2 value!");
+			}
+			return build(art, v1, 0L);
+		}
+		
+		public static Param build(int art, long v1, long v2) {
 			switch (art) {
 			case BUILD_ANUM:
 				Param.checkZero(v2);

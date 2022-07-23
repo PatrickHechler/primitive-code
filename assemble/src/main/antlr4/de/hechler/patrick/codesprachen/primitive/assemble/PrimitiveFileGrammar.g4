@@ -87,11 +87,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are, boolean enabled, Map<String, PrimitiveConstant> exports]
  @init {
  	$pos = startpos;
- 	$labels = new HashMap<>();
+ 	$labels = new LinkedHashMap<>();
  	$commands = new ArrayList<>();
  	$commands.add(new CompilerCommandCommand(align ? CompilerCommand.align : CompilerCommand.notAlign));
  	$enabled = true;
- 	$exports = new HashMap<>();
+ 	$exports = new LinkedHashMap<>();
  	String lastComment = null;
  	int disabledSince = -1;
  	/* 
@@ -147,12 +147,12 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 	$disabledSince = disabledSince_;
 	$stack = stack_;
 	$align = align_;
-	$constants = new HashMap<>(constants_);
+	$constants = new LinkedHashMap<>(constants_);
 	$commands = commands_;
 	$labels = labels_;
 	$pos = pos_;
 	$zusatz = null;
-	$exports = new HashMap<>(exports_);
+	$exports = new LinkedHashMap<>(exports_);
 	$lastComment = null;
  }
  :
@@ -268,7 +268,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 				Boolean isSource = null;
 				String prefix = null;
 				boolean useMyConsts = false;
-				Map <String, PrimitiveConstant> addConsts = new HashMap<>();
+				Map <String, PrimitiveConstant> addConsts = new LinkedHashMap<>();
 				if ($enabled) {
 					StringBuilder file = new StringBuilder();
 					$are = appendString(file, $STR_STR, be, $are);

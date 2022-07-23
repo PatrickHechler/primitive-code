@@ -7,7 +7,7 @@ import java.lang.reflect.Field;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -20,7 +20,7 @@ public class PrimAsmConstants {
 	public static final Map <String, PrimitiveConstant> START_CONSTANTS;
 	
 	static {
-		Map <String, PrimitiveConstant> startConsts = new HashMap <>();
+		Map <String, PrimitiveConstant> startConsts = new LinkedHashMap<>();
 		int lineNum = 1;
 		try (InputStream in = PrimAsmConstants.class.getResourceAsStream("/de/hechler/patrick/codesprachen/primitive/core/default-constants.psf")) {
 			try (Scanner sc = new Scanner(in, "UTF-8")) {
@@ -35,7 +35,7 @@ public class PrimAsmConstants {
 						String num = line.substring(index + 1);
 						long val;
 						if (num.matches("[0-9A-F]+")) {
-							val = Long.parseLong(num);
+							val = Long.parseUnsignedLong(num, 16);
 						} else {
 							throw new InternalError();
 						}

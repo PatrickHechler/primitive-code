@@ -27,15 +27,15 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
-        <dependency>
+        <!--  <dependency>
             <groupId>de.hechler.patrick.zeugs.pfs</groupId>
             <artifactId>pfs-core</artifactId>
-            <version>6.0.0</version>
-        </dependency>
+            <version>6.0.5</version>
+        </dependency> -->
         <dependency>
             <groupId>de.hechler.patrick.codesprachen.primitive</groupId>
             <artifactId>prim-core</artifactId>
-            <version>2.1.0</version>
+            <version>2.1.5</version>
         </dependency>
     </dependencies>
     <build>

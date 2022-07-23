@@ -305,6 +305,37 @@ the assembler language for the Primitive-Virtual-Machine
 `~ERROR ([CONST_EXPRESSION] | '{' ( '"' ([^"\\] | '\\' .)* '"' | ([hH] ':')? [CONST_BERECHNUNG] )* '}' )?`
 * to cause an error
 
+`~READ_SYM "<FILE>" [...] >`
+* to load the constant of an other file
+        * `[...]`: nothing, one or multiple of the following:
+            * `#<CONSTANT_PREFIX>`
+                * to set before all read constants the given prefix
+            * `--MY_CONSTS--`
+                * to not use the default constant, but the constants which are now set
+                * only possible, when the file is a primitive source code file
+            * `#ADD~<NAME> <VALUE>`
+                * to add the a constant with the given name and value to the start-constants of the file
+                * only possible, when the file is a primitive source code file
+            * `--SOURCE--`
+                * to set the type of the file to a primitive source code file
+            * `--SYMBOL--`
+                * to set the type of the file to a primitive symbol file
+        * if the file type has not been set, the file must end with one of these:
+            * `*.psf`: is assumed to be a primitive symbol file
+            * `*.psc`: is assumed to be a primitive source code file
+            * `[THIS]` is assumed to be a primitive source code file
+            * any other name will cause an error
+        * if `<FILE>` is `[THIS]` the file, which is now parsed is used.
+
+`#EXP~<NAME> <VALUE>`
+* to set define an export constant
+    * an export constant can be used like a normal constant
+    * when an export constant is deleted or overwritten like an normal constant, this will not affect the export
+    * to delete an export constant, write `#EXP~<NAME> ~DEL`
+        * then it will be deleted as normal and as export constant
+    * to change a normal constant to an export constant, just redefine it: `#EXP~<NAME> <NAME>`
+
+
 `: [...] >`
 * a constant pool contains a constant sequence of bytes
     * to write an constant, write the constant and than `WRITE`

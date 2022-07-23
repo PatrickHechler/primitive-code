@@ -86,7 +86,7 @@ public class Command {
 				throw new AssembleError(line + lineAdd, lineAdd == 0 ? posInLine + ot.getCharPositionInLine() : ot.getCharPositionInLine(), ot.getStopIndex() - ot.getStartIndex() + 1,
 					ot.getStartIndex(), msg.append(']').toString());
 			} else {
-				throw new AssembleError(line, posInLine, 1, charPos, "ParseCancelationException: " + e.getMessage());
+				throw new AssembleError(line, posInLine, 1, charPos, e.getClass().getName() + ": " + e.getMessage(), e);
 			}
 		}
 	}

@@ -18,7 +18,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
@@ -75,7 +75,7 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(Path path, Reader in) throws IOException, AssembleError {
-		return preassemble(path, in, new HashMap <>(START_CONSTANTS));
+		return preassemble(path, in, new LinkedHashMap <>(START_CONSTANTS));
 	}
 	
 	public ParseContext preassemble(Path path, InputStream in, Map <String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
@@ -91,11 +91,11 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin) throws IOException, AssembleError {
-		return preassemble(path, antlrin, new HashMap <>(START_CONSTANTS));
+		return preassemble(path, antlrin, new LinkedHashMap <>(START_CONSTANTS));
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map <String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
-		return preassemble(path, antlrin, new HashMap <>(predefinedConstants), true);
+		return preassemble(path, antlrin, new LinkedHashMap <>(predefinedConstants), true);
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map <String, PrimitiveConstant> predefinedConstants, boolean bailError) throws IOException, AssembleError {
@@ -119,7 +119,7 @@ public class PrimitiveAssembler {
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map <String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError,
 		ANTLRErrorListener errorListener, BiConsumer <Integer, Integer> enterConstPool, String thisFile) throws IOException, AssembleError {
-		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile, new HashMap <>());
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile, new LinkedHashMap <>());
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map <String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler, boolean bailError,
@@ -205,7 +205,7 @@ public class PrimitiveAssembler {
 			}
 			build.append(' ').append(tokenToString(ets.get(i), PrimitiveFileGrammarLexer.ruleNames));
 		}
-		throw new AssembleError(ot.getLine(), ot.getCharPositionInLine(), ot.getStopIndex() - ot.getStartIndex() + 1, ot.getStartIndex(), build.toString());
+		throw new AssembleError(ot.getLine(), ot.getCharPositionInLine(), ot.getStopIndex() - ot.getStartIndex() + 1, ot.getStartIndex(), build.toString(), t);
 	}
 	
 	private String tokenToString(int tok, String[] names) {
@@ -221,22 +221,22 @@ public class PrimitiveAssembler {
 	}
 	
 	private void handle(AssembleRuntimeException ae) {
-		handle(ae.line, ae.posInLine, ae.length, ae.charPos, ae.getMessage(), ae.getStackTrace());
+		handle(ae.line, ae.posInLine, ae.charPos, ae.length, ae);
 	}
 	
 	private void handle(AssembleError ae) {
-		handle(ae.line, ae.posInLine, ae.length, ae.charPos, ae.getMessage(), ae.getStackTrace());
+		handle(ae.line, ae.posInLine, ae.charPos, ae.length, ae);
 	}
 	
-	private void handle(int line, int posInLine, int len, int charPos, String msg, StackTraceElement[] stack) {
-		StringBuilder build = new StringBuilder();
-		build.append("an error occured at line: ").append(line).append(':').append(posInLine).append(" length=").append(len).append('\n');
-		build.append(msg).append('\n');
-		build.append("stack:").append('\n');
-		for (StackTraceElement ste : stack) {
-			build.append("  at ").append(ste).append('\n');
-		}
-		throw new AssembleError(line, posInLine, len, charPos, build.toString());
+	private void handle(int line, int posInLine, int len, int charPos, Throwable t) {
+		// StringBuilder build = new StringBuilder();
+		// build.append("an error occured at line: ").append(line).append(':').append(posInLine).append(" length=").append(len).append('\n');
+		// build.append(msg).append('\n');
+		// build.append("stack:").append('\n');
+		// for (StackTraceElement ste : stack) {
+		// build.append(" at ").append(ste).append('\n');
+		// }
+		throw new AssembleError(line, posInLine, len, charPos, t.getClass().getName() + ": " + t.getMessage(), t);
 	}
 	
 	public void assemble(Path path) throws IOException, AssembleError {
@@ -330,7 +330,7 @@ public class PrimitiveAssembler {
 	public AssembleRuntimeException readSymbols(String readFile, Boolean isSource, String prefix, Map <String, PrimitiveConstant> startConsts,
 		Map <String, PrimitiveConstant> addSymbols, ANTLRInputStream antlrin, boolean be, Token tok, String thisFile, Map <String, List <Map <String, Long>>> readFiles)
 		throws IllegalArgumentException, IOException, RuntimeException {
-		readFiles = new HashMap <>(readFiles);
+		readFiles = new LinkedHashMap <>(readFiles);
 		byte[] bytes = null;
 		if (readFile.equals("[THIS]")) {
 			assert isSource == null || isSource;
@@ -409,7 +409,7 @@ public class PrimitiveAssembler {
 	}
 	
 	private Map <String, Long> convertPrimConstMapToLongMap(Map <String, PrimitiveConstant> startConsts) {
-		Map <String, Long> nv = new HashMap <>();
+		Map <String, Long> nv = new LinkedHashMap <>();
 		startConsts.forEach((n, pc) -> nv.put(n, pc.value));
 		return nv;
 	}
@@ -493,6 +493,7 @@ public class PrimitiveAssembler {
 					default:
 						throw new InternalError("unknown nokonst param count: " + cmd.cmd.name());
 					}
+					break;
 				case 0:
 					nullCheck(cmd.p3, cmd);
 					nullCheck(cmd.p2, cmd);
@@ -692,7 +693,7 @@ public class PrimitiveAssembler {
 				bytes[index -- ] = (byte) p2off;
 				break;
 			default:
-				throw new InternalError("unknown art: " + p2art);
+				throw new InternalError("unknown art: " + p2art + " cmd: " + cmd);
 			}
 		}
 		{
