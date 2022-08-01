@@ -3032,7 +3032,7 @@ public class PrimAsmCommands {
 	 */
 	public static final int MVAD = 0x29;
 	/**
-	 * <code>CALO &lt;PARAM&gt;, &lt;LABEL/CONST_PARAM&gt;</code>
+	 * <code>CALO &lt;PARAM&gt;, &lt;CONST_PARAM&gt;</code>
 	 * </p>
 	 * <ul>
 	 * <li>sets the instruction pointer to position of the label</li>
