@@ -141,11 +141,11 @@ public abstract class AbstractPVM implements PVM {
 	 * in other words if the PVM can not access all bytes in the given memory range (from {@code addr} to {@code addr + len - 1}) a {@link PrimitiveErrror} is thrown
 	 * 
 	 * @param addr
-	 *             the memory address
+	 *            the memory address
 	 * @param len
-	 *             the length of the given memory range in bytes (always greater than zero)
+	 *            the length of the given memory range in bytes (always greater than zero)
 	 * @throws PrimitiveErrror
-	 *                         if the range is invalid (always with {@link PrimAsmConstants#INT_ERRORS_ILLEGAL_MEMORY})
+	 *             if the range is invalid (always with {@link PrimAsmConstants#INT_ERRORS_ILLEGAL_MEMORY})
 	 */
 	protected abstract void checkmem(long addr, long len) throws PrimitiveErrror, RegMemExep;
 	
@@ -210,8 +210,7 @@ public abstract class AbstractPVM implements PVM {
 			num -> defIntDeleteElement(), //
 			num -> defIntMoveElement(), //
 			num -> defIntGetElementFlags(), //
-			num -> defIntGetElementFlags(), //
-			num -> defIntModifyElementFlags(),
+			num -> defIntModifyElementFlags(), //
 			num -> defIntGetFolderChildElementCount(), //
 			num -> defIntGetChildElement(num), //
 			num -> defIntGetChildElement(num), //
@@ -840,7 +839,7 @@ public abstract class AbstractPVM implements PVM {
 		} else {
 			putChar(x01 + result.length, '\0');
 		}
-		putReg(X_ADD + 3, x01 + result.length);
+		putReg(X_ADD + 3, (long) result.length);
 	}
 	
 	private void defIntFormattString() throws PrimitiveErrror {
@@ -873,9 +872,6 @@ public abstract class AbstractPVM implements PVM {
 			case 'c':
 				result.append((char) arg);
 				break;
-			case 'B':
-				result.append((char) (byte) arg);
-				break;
 			case 'd':
 				result.append(Long.toString(arg, 10));
 				break;
@@ -904,19 +900,18 @@ public abstract class AbstractPVM implements PVM {
 			}
 			i = index + 2;
 		}
-		char[] CS = result.toString().toCharArray();
+		char[] resChars = result.toString().toCharArray();
 		long addr;
-		long x02 = getReg(X_ADD + 2);
-		long length = ((long) CS.length) << 1 + 2L;
-		if (x02 < length) {
+		long x02BufSize = getReg(X_ADD + 2);
+		final long charsLength = ((long) resChars.length) << 1 /* without the '\0' char */,
+			size = charsLength + 2L;
+		if (x02BufSize < size) {
 			try {
-				if (x02 == 0L) {
-					addr = malloc(length);
-					putReg(X_ADD + 1, addr);
-				} else if (x02 > 0L) {
+				if (x02BufSize == 0L) {
+					addr = malloc(size);
+				} else if (x02BufSize > 0L) {
 					long oadr = getReg(X_ADD + 1);
-					addr = realloc(oadr, length);
-					putReg(X_ADD + 2, addr);
+					addr = realloc(oadr, size);
 				} else {
 					fail(X_ADD, STATUS_ILLEGAL_ARG);
 					return;
@@ -925,12 +920,14 @@ public abstract class AbstractPVM implements PVM {
 				fail(X_ADD, STATUS_OUT_OF_MEMORY);
 				return;
 			}
-			putReg(X_ADD + 2, CS.length + 2L);
+			putReg(X_ADD + 1, addr);
+			putReg(X_ADD + 2, resChars.length + 2L);
 		} else {
 			addr = getReg(X_ADD + 1);
 		}
-		set(cs, addr, (int) ( (length - 2L) >> 1));
-		putChar(addr + length - 2L, '\0');
+		putReg(X_ADD, charsLength);
+		set(resChars, addr, (int) resChars.length);
+		putChar(addr + size - 2L, '\0');
 	}
 	
 	private void defIntStringToAnyNumber(int intNum) throws PrimitiveErrror {
@@ -961,45 +958,47 @@ public abstract class AbstractPVM implements PVM {
 	
 	private void defIntAnyNumberToString(int intNum) throws PrimitiveErrror {
 		byte[] bytes;
-		int lenReg;
+		int sizeReg, stringSizeReg = X_ADD;
 		switch (intNum) {
 		case (int) INT_NUMBER_TO_STRING: {
-			long x02 = getReg(X_ADD + 2);
-			if (x02 > 36L || x02 < 2L) {
+			long x02Base = getReg(X_ADD + 2);
+			if (x02Base > 36L || x02Base < 2L) {
 				fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
 				return;
 			}
-			bytes = Long.toString(getReg(X_ADD), (int) x02).toUpperCase().getBytes(STRING_U16);
-			lenReg = X_ADD + 3;
+			bytes = Long.toString(getReg(X_ADD), (int) x02Base).toUpperCase().getBytes(STRING_U16);
+			sizeReg = X_ADD + 3;
 			break;
 		}
 		case (int) INT_FPNUMBER_TO_STRING:
 			bytes = Double.toString(Double.longBitsToDouble(getReg(X_ADD))).getBytes(STRING_U16);
-			lenReg = X_ADD + 2;
+			sizeReg = X_ADD + 2;
 			break;
 		default:
 			throw new InternalError();
 		}
 		long addr = getReg(X_ADD + 1);
-		long lenOffVal = getLong(lenReg);
+		long lenOffVal = getLong(sizeReg);
 		if (bytes.length + 2L > lenOffVal) {
 			try {
 				if (lenOffVal == 0L) {
 					addr = malloc(bytes.length + 2L);
-				} else if (lenOffVal > 0L) {
-					addr = realloc(addr, bytes.length + 2L);
-				} else {
+				} else if (lenOffVal < 0L) {
 					fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
 					return;
+				} else if (lenOffVal < bytes.length + 2L) {
+					addr = realloc(addr, bytes.length + 2L);
 				}
 			} catch (OutOfMemoryError e) {
 				fail(X_ADD + 1, STATUS_OUT_OF_MEMORY);
 				return;
 			}
-			putLong(lenReg, bytes.length + 2L);
+			putReg(sizeReg, bytes.length + 2L);
+			putReg(X_ADD + 1, addr);
 		}
 		set(bytes, addr, bytes.length);
 		putChar(addr + bytes.length, '\0');
+		putReg(stringSizeReg, bytes.length + 2L);
 	}
 	
 	private void defIntSleep() {
@@ -1023,7 +1022,7 @@ public abstract class AbstractPVM implements PVM {
 	
 	private void defIntFSUnlock() throws PrimitiveErrror {
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			fs.removeLock();
 			putReg(FS_LOCK, NO_LOCK);
 		} catch (ElementLockedException e) {
@@ -1054,7 +1053,7 @@ public abstract class AbstractPVM implements PVM {
 			ntaddress = getReg(X_ADD + 1);
 		long ntid = getLong(ntaddress + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrLink e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getLink();
 			PatrFileSysElement nt = fs.fromID(new PatrID(fs, ntid, fs.getStartTime()));
 			e.setTarget(nt, lock);
@@ -1079,7 +1078,7 @@ public abstract class AbstractPVM implements PVM {
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID),
 			lock = getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getLink().getTarget(lock);
 			putLong(address + FS_ELEMENT_OFFSET_ID, ((PatrFileSysElementImpl) e).id);
 			putLong(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
@@ -1104,7 +1103,7 @@ public abstract class AbstractPVM implements PVM {
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID),
 			lock = getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
 			long newLen = getReg(X_ADD + 1);
 			e.truncate(newLen, lock);
@@ -1129,7 +1128,7 @@ public abstract class AbstractPVM implements PVM {
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID),
 			lock = getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
 			final long length = getReg(X_ADD + 1);
 			long addr = getReg(X_ADD + 2);
@@ -1180,7 +1179,7 @@ public abstract class AbstractPVM implements PVM {
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID),
 			lock = getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
 			final long addr = getReg(X_ADD + 1);
 			byte[] bytes = ((PatrFileImpl) e).getHashCode(lock);
@@ -1204,7 +1203,7 @@ public abstract class AbstractPVM implements PVM {
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID),
 			lock = getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFile e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFile();
 			putReg(X_ADD + 1, e.length(lock));
 		} catch (ElementLockedException e) {
@@ -1264,11 +1263,10 @@ public abstract class AbstractPVM implements PVM {
 	
 	private void defIntGetChildElement(int intNum) throws PrimitiveErrror {
 		final long address = getReg(X_ADD);
-		
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID),
 			lock = getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFolder e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFolder();
 			PatrFileSysElement child;
 			long x01 = getReg(X_ADD + 1);
@@ -1308,7 +1306,7 @@ public abstract class AbstractPVM implements PVM {
 		
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID), lock = getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFolder e = fs.fromID(new PatrID(fs, id, fs.getStartTime())).getFolder();
 			putReg(X_ADD + 1, e.elementCount(lock));
 		} catch (ElementLockedException e) {
@@ -1324,11 +1322,10 @@ public abstract class AbstractPVM implements PVM {
 	
 	private void defIntModifyElementFlags() throws PrimitiveErrror {
 		final long address = getReg(X_ADD);
-		
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID),
 			lock = getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			((PatrFileSysElementImpl) e).flag(lock, (int) getReg(X_ADD + 1), (int) getReg(X_ADD + 2));
 		} catch (ElementLockedException e) {
@@ -1344,7 +1341,7 @@ public abstract class AbstractPVM implements PVM {
 		final long address = getReg(X_ADD);
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			putReg(X_ADD, 0x00000000FFFFFFFFL & ((PatrFileSysElementImpl) e).getFlags());
 		} catch (IllegalStateException | IllegalArgumentException e) {
@@ -1361,7 +1358,7 @@ public abstract class AbstractPVM implements PVM {
 			lock = getLong(address + FS_ELEMENT_OFFSET_LOCK),
 			npaddress = getReg(X_ADD + 1);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			if (npaddress != -1L) {
 				
@@ -1396,7 +1393,7 @@ public abstract class AbstractPVM implements PVM {
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID),
 			lock = getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			e.delete(lock, getReg(X_ADD + 1));
 			free(address);
@@ -1419,7 +1416,7 @@ public abstract class AbstractPVM implements PVM {
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID),
 			lock = getLong(address + FS_ELEMENT_OFFSET_LOCK);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			e.removeLock(lock);
 			putLong(address + FS_ELEMENT_OFFSET_LOCK, NO_LOCK);
@@ -1438,7 +1435,7 @@ public abstract class AbstractPVM implements PVM {
 		// lock set
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			putLong(address + FS_ELEMENT_OFFSET_LOCK, e.lock(getReg(X_ADD + 1)));
 		} catch (ElementLockedException e) {
@@ -1454,7 +1451,7 @@ public abstract class AbstractPVM implements PVM {
 		final long address = getReg(X_ADD);
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			putReg(X_ADD + 1, e.getLockTime());
 		} catch (ElementLockedException e) {
@@ -1470,7 +1467,7 @@ public abstract class AbstractPVM implements PVM {
 		final long address = getReg(X_ADD);
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			putReg(X_ADD, e.getLockData());
 		} catch (ElementLockedException e) {
@@ -1560,7 +1557,7 @@ public abstract class AbstractPVM implements PVM {
 		final long address = getReg(X_ADD);
 		final long id = getLong(address + FS_ELEMENT_OFFSET_ID);
 		try {
-			fs.setLock(getLong(FS_LOCK));
+			fs.setLock(getReg(FS_LOCK));
 			PatrFileSysElement e = fs.fromID(new PatrID(fs, id, fs.getStartTime()));
 			PatrFolder parent = e.getParent();
 			putReg(X_ADD, ((PatrFileSysElementImpl) parent).id);
@@ -1665,7 +1662,7 @@ public abstract class AbstractPVM implements PVM {
 					fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
 					return;
 				}
-				fs.setLock(getLong(FS_LOCK));
+				fs.setLock(getReg(FS_LOCK));
 				PatrFile file;
 				try {
 					file = fs.fromID(new PatrID(fs, fid, fs.getStartTime())).getFile();
@@ -1746,7 +1743,7 @@ public abstract class AbstractPVM implements PVM {
 					fail(X_ADD + 1, STATUS_ILLEGAL_ARG);
 					return;
 				}
-				fs.setLock(getLong(FS_LOCK));
+				fs.setLock(getReg(FS_LOCK));
 				PatrFile file;
 				try {
 					file = fs.fromID(new PatrID(fs, fid, fs.getStartTime())).getFile();

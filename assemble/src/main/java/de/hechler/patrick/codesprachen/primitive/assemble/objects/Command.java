@@ -216,10 +216,6 @@ public class Command {
 		}
 	}
 	
-	public boolean alignable() {
-		return false;
-	}
-	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();

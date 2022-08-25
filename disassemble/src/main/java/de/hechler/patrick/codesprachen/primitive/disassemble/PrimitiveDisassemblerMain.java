@@ -124,7 +124,7 @@ public class PrimitiveDisassemblerMain {
 					URI uri = new URI(JavaPFSConsants.URI_SHEME, null, args[i], null);
 					Map <String, Object> map = new HashMap <>();
 					Path path = args[i].indexOf(':') == -1 ? Paths.get(args[i]) : Paths.get(URI.create(args[i]));
-					BlockAccessor ba = SeekablePathBlockAccessor.create(path, -1, true);
+					BlockAccessor ba = SeekablePathBlockAccessor.create(path, -1, true, null);
 					PatrFileSystem pfs = new PatrFileSysImpl(ba, true);
 					map.put(JavaPFSConsants.NEW_FILE_SYS_ENV_ATTR_FILE_SYS, pfs);
 					fs = FileSystems.newFileSystem(uri, map);

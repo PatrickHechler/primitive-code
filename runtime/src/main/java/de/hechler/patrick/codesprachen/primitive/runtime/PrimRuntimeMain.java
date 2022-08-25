@@ -105,7 +105,7 @@ public class PrimRuntimeMain {
 				crash(i, args, "patr-file-system already set");
 			}
 			Path path = (p.indexOf(':') == -1) ? Paths.get(p) : Paths.get(URI.create(p));
-			pfs = new PatrFileSysImpl(SeekablePathBlockAccessor.create(path, -1, false));
+			pfs = new PatrFileSysImpl(SeekablePathBlockAccessor.create(path, -1, false, null));
 		} catch (IOException e) {
 			crash(i, args, e.getClass().getSimpleName() + ": " + e.getMessage());
 		}

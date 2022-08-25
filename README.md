@@ -141,7 +141,7 @@ the assembler language for the Primitive-Virtual-Machine
     * to change a normal constant to an export constant, just redefine it: `#EXP~<NAME> <NAME>`
 * predefined constants:
 <pre><code>
-    --POS--                               the actual length of the binary code in bytes
+    --POS--                               the current length of the binary code in bytes
     INT_ERRORS_ILLEGAL_INTERRUPT          0
     INT_ERRORS_UNKNOWN_COMMAND            1
     INT_ERRORS_ILLEGAL_MEMORY             2
@@ -1573,9 +1573,10 @@ the assembler language for the Primitive-Virtual-Machine
             * other values lead to undefined behavior
         * `X03` is set to the length of the buffer
             * `0` when the buffer should be allocated by this interrupt
-        * `X00` will be set to the length of the STRING
-        * `X03` will be set to the new length of the buffer
-            * the new length will be the old length or if the old length is smaller than the length of the STRING (with `\0`) than the length of the STRING (with `\0`)
+        * `X00` will be set to the size of the STRING
+        * `X01` will be set to the new buffer
+        * `X03` will be set to the new size of the buffer
+            * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
         * on error `X01` will be set to `-1`
             * the `STATUS` register will be flagged:
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X02` is an invalid number system or an invalid buffer size
@@ -1588,6 +1589,10 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` points to the buffer to be filled with the number in a STRING format
         * `X02` is set to the current size of the buffer
             * `0` when the buffer should be allocated by this interrupt
+        * `X00` will be set to the size of the STRING
+        * `X01` will be set to the new buffer
+        * `X02` will be set to the new size of the buffer
+            * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
         * on error `X01` will be set to `-1`
             * the `STATUS` register will be flagged:
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X02` is an invalid number system
@@ -1618,14 +1623,13 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` contains the buffer for the STRING output
         * `X02` is the current size of the buffer in bytes
         * the register `X03..XNN` are for the formatting arguments
-            * if there are mor arguments used then there are registers the behavior is undefined.
-                * that leads to a maximum of 248 arguments
-        * `X00` will be set to the length of the output string
+            * that leads to a maximum of 248 arguments
+        * `X00` will be set to the length of the output string (the offset of the `\0` character)
         * `X01` will be set to the output buffer
         * `X02` will be set to the new buffer size in bytes
         * if an error occured `X00` will be set to `-1`
             * the `STATUS` register will be flagged:
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: operation failed because if invalid arguments
+                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: operation failed because because there were invalid arguments
                     * if the last charactet of the input string is a `%` character
                     * or if there are invalid formatting characters
                         * a `%` is not followed by a `%`, `s`, `c`, `B`, `d`, `f`, `p`, `h`, `b` or `o` character
@@ -1634,12 +1638,10 @@ the assembler language for the Primitive-Virtual-Machine
                     * if the buffer could not be resized
             * `X02` will be set to the current size of the buffer
         * formatting:
-            * `%%`: to escape an `%` character (only one `%` will be in teh formatted STRING)
+            * `%%`: to escape an `%` character (only one `%` will be in the formatted STRING)
             * `%s`: the next argument points to a STRING, which should be inserted here
-            * `%c`: the next argument starts with a UTF-16 character, which should be inserted here
-                * note that UTF-16 characters contain always two bytes
-            * `%B`: the next argument starts with a byte, which should be inserted here (without being converted to a valid STRING character)
-                * note that if the argument starts with a zero byte an `\0` character will be inserted in the middle of the output STRING
+            * `%c`: the next argument starts with a word, which should be inserted here
+                * note that UTF-16 characters contain not always two bytes, but there will always be only two bytes used
             * `%d`: the next argument contains a number, which should be converted to a STRING using the decimal number system and than be inserted here
             * `%f`: the next argument contains a floating point number, which should be converted to a STRING and than be inserted here
             * `%p`: the next argument contains a pointer, which should be converted to a STRING
@@ -1654,10 +1656,10 @@ the assembler language for the Primitive-Virtual-Machine
         * `X02` is set to the size of the size of the buffer
         * `X01` will point to the U8-STRING
         * `X02` will be set to the U8-STRING buffer size
-        * `X03` will point to the `\0` character of the U8-STRING
+        * `X03` will contain the offset of the `\0` character from the U8-STRING
         * on error `X03` will be set to `-1`
             * the `STATUS` register will be flagged:
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: operation failed because if invalid arguments
+                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: operation failed because of invalid arguments
                     * if the old buffer length is negative
                 * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
                     * if the buffer could not be resized
@@ -1699,7 +1701,6 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` will be set to the length of the file (and the memory block)
         * `X02` will be set to `1` if the file has been loaded as result of this interrupt and `0` if the file was previously loaded
         * when an error occurred `X00` will be set to `-1`
-
 * binary:
     * `23 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
@@ -2081,14 +2082,18 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P2.OFF_NUM]`
 
 ## not (yet) there/supported
-* support of new commands
-    * MVB, MVW, MVDW
-        * move byte/word/double-word
-            * move on non 64-bit level
-    * JMPAB, JMPSB, JMPSB
-        * jmp all/some/none bits
 * Multi-threading
-* Multi-progressing
-    * execute other programs
+    * encapsuling of threads
+    * maby allow overwrite of default interrupts for child threads
+    * maby thread-groups
+* (Multi-progressing)
+    * only multi-threading currently planned
 * syncronizing/locks
 * sockets
+* execute other programs
+    * already possible when done manually
+        * jump to the main function of the target program
+            * memory is not freed by that way
+            * loaded files with the get interrupt are not unloaded by that way
+    * maby make an own interrupt
+* support for enviroment-variables

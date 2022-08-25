@@ -693,7 +693,7 @@ INT_TIME_GET=30
 |       * `X02` will be `1` if the call was successfully and `0` if something went wrong
 |           * if `X02` is `1` the remaining time will always be `0`
 |           * if `X02` is `0` the remaining time will be greater `0`
-|       * `X00` will not be negative if the progress waited too long
+|       * `X00` and `X01` will not be negative, but zero if the progress waited too long
 INT_TIME_WAIT=31
 |   * `50`: random
 |       * `X00` will be filled with random bits

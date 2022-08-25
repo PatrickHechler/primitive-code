@@ -6,9 +6,9 @@ public class PrimitiveConstant {
 	
 	public final String name;
 	public final String comment;
-	public final long value;
-	public final Path path;
-	public final int line;
+	public final long   value;
+	public final Path   path;
+	public final int    line;
 	
 	public PrimitiveConstant(String name, String comment, long value, Path path, int line) {
 		this.name = name;
@@ -43,10 +43,12 @@ public class PrimitiveConstant {
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		builder.append(comment);
-		builder.append('\n');
+		if (comment != null) {
+			builder.append(comment);
+			builder.append('\n');
+		}
 		builder.append(name);
-		builder.append(' ');
+		builder.append('=');
 		builder.append(value);
 		return builder.toString();
 	}

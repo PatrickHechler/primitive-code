@@ -444,27 +444,26 @@ public class PrimitiveAssembler {
 	
 	public void assemble(List <Command> cmds, Map <String, Long> labels) throws IOException {
 		long pos = 0;
-		boolean align = defaultAlign;
-		Command last = null;
+		boolean alignMode = defaultAlign;
+		boolean alignable = false;
 		for (Command cmd : cmds) {
 			while (true) {
-				pos = align(pos, align, last);
+				pos = align(pos, alignable && alignMode);
 				if (cmd.getClass() == Command.class) {
-					last = cmd;// only on command and constant-pool (not on directives)
+					alignable = false;
 					assmCommand(labels, cmd);
 				} else if (cmd instanceof ConstantPoolCommand) {
-					last = cmd;
+					alignable = true;
 					ConstantPoolCommand cpc = (ConstantPoolCommand) cmd;
 					cpc.write(out);
 				} else if (cmd instanceof CompilerCommandCommand) {
-					// last = last; // do not set last on compiler/assembler directives
 					CompilerCommandCommand ccc = (CompilerCommandCommand) cmd;
 					switch (ccc.directive) {
 					case align:
-						align = true;
+						alignMode = true;
 						break;
 					case notAlign:
-						align = false;
+						alignMode = false;
 						break;
 					case setPos:
 						pos = ccc.value;
@@ -492,15 +491,14 @@ public class PrimitiveAssembler {
 		throw new InternalError("unknown command class: " + cmd.getClass().getName());
 	}
 	
-	private long align(long pos, boolean align, Command last) throws IOException {
-		if (align && last != null && last.alignable()) {
-			int mod = (int) (pos % 8);
-			if (mod != 0) {
-				int add = 8 - mod;
-				byte[] bytes = new byte[add];
-				out.write(bytes, 0, bytes.length);
-				pos += add;
-			}
+	private long align(long pos, boolean doAlign) throws IOException {
+		if ( !doAlign) return pos;
+		int mod = (int) (pos % 8);
+		if (mod != 0) {
+			int add = 8 - mod;
+			byte[] bytes = new byte[add];
+			out.write(bytes, 0, bytes.length);
+			pos += add;
 		}
 		return pos;
 	}

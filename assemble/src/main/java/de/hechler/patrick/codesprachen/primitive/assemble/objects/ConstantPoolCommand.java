@@ -8,7 +8,7 @@ import java.util.List;
 public class ConstantPoolCommand extends Command {
 	
 	private List <byte[]> values;
-	private long len;
+	private long          len;
 	
 	public ConstantPoolCommand() {
 		super(null, null, null);
@@ -33,13 +33,8 @@ public class ConstantPoolCommand extends Command {
 	}
 	
 	@Override
-	public boolean alignable() {
-		return true;
-	}
-	
-	@Override
 	public String toString() {
-		return "ConstantPool[len="+len+"]";
+		return "ConstantPool[len=" + len + "]";
 	}
 	
 }

@@ -195,7 +195,7 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> contains the number of elements to read</li>
 	 * <li><code>X02</code> points to the elements to read</li>
 	 * <li>after execution <code>X01</code> will contain the number of elements, which has been read</li>
-	 * <li>if an error occured <code>X01</code> will be set to <code>-1</code> and the <code>STATUS</code> register will be flagged:</li>
+	 * <li>if an error occurred <code>X01</code> will be set to <code>-1</code> and the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
 	 * <li><code>UHEX-0040000000000000</code> : <code>STATUS_ELEMENT_WRONG_TYPE</code>: operation failed because the element is not of the correct type (file expected, but folder)</li>
 	 * <ul>
@@ -783,12 +783,12 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> points to the new parent fs-element folder</li>
 	 * <ul>
 	 * <li>or <code>-1</code> if the parent folder should remain unchanged</li>
-	 * <li><code>X02</code> points to the STRING name of the element</li>
 	 * </ul>
+	 * <li><code>X02</code> points to the STRING name of the element</li>
 	 * <ul>
 	 * <li>or <code>-1</code> if the name should remain unchanged</li>
-	 * <li><code>X03</code> contains the lock of the old parent folder or <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
 	 * </ul>
+	 * <li><code>X03</code> contains the lock of the old parent folder or <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code></li>
 	 * <ul>
 	 * <li>this value is ignored if <code>X01</code> is set to <code>-1</code> (the parent folder is not set)</li>
 	 * <li>moves the element to a new parent folder and sets its name</li>
@@ -1461,21 +1461,21 @@ public class PrimAsmPreDefines {
 	 * <li>if the file system is not locked with the given lock the operation will fail</li>
 	 * <ul>
 	 * <li>if the <code>FS_LOCK</code> is <code>UHEX-0000000000000000</code> : <code>LOCK_NO_LOCK</code>, the operation will always try to remove the lock of the element</li>
-	 * <li>if the file system is locked with a shared lock:</li>
 	 * </ul>
+	 * <li>if the file system is locked with a shared lock:</li>
 	 * <ul>
 	 * <li>if this is the last lock, the shared lock will be removed</li>
 	 * <li>else the shared lock counter will be decremented</li>
-	 * <li><code>X00</code> will be set to <code>-1</code> on error</li>
 	 * </ul>
+	 * <li><code>X00</code> will be set to <code>-1</code> on error</li>
 	 * <ul>
 	 * <li>the <code>STATUS</code> register will be flagged:</li>
 	 * <ul>
 	 * <li><code>UHEX-0800000000000000</code> : <code>STATUS_ELEMENT_LOCKED</code>: operation was denied because of lock</li>
 	 * <ul>
 	 * <li>if the file system is locked with a different lock or not locked at all</li>
-	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified IO error occurred</li>
 	 * </ul>
+	 * <li><code>UHEX-1000000000000000</code> : <code>STATUS_IO_ERR</code>: an unspecified IO error occurred</li>
 	 * <ul>
 	 * <li>if some IO error occurred</li>
 	 * </ul>
@@ -1601,11 +1601,15 @@ public class PrimAsmPreDefines {
 	 * <li><code>X00</code> is set to the number to convert</li>
 	 * <li><code>X01</code> is points to the buffer to be filled with the number in a STRING format</li>
 	 * <li><code>X02</code> contains the base of the number system</li>
+	 * <li><code>X03</code> is set to the length of the buffer</li>
+	 * <ul>
+	 * <li><code>0</code> when the buffer should be allocated by this interrupt</li>
+	 * </ul>
 	 * <ul>
 	 * <li>the minimum base is <code>2</code></li>
 	 * <li>the maximum base is <code>36</code></li>
 	 * <li>other values lead to undefined behavior</li>
-	 * <li><code>X00</code> will be set to the length of the STRING</li>
+	 * <li><code>X00</code> will be set to the size of the STRING</li>
 	 * </ul>
 	 * </ul>
 	 * </ul>
@@ -1958,7 +1962,7 @@ public class PrimAsmPreDefines {
 	 * the flag marks an folder as sorted
 	 * </ul>
 	 * <ul>
-	 * this flag does not have any real use yet
+	 * this flag does not has any real use yet
 	 * </ul>
 	 */
 	public static final long FLAG_FOLDER_SORTED               = 0x00000040L;
@@ -1966,7 +1970,7 @@ public class PrimAsmPreDefines {
 	 * the flag marks an file as encrypted
 	 * </ul>
 	 * <ul>
-	 * this flag does not have any real use for the file system
+	 * this flag does not has any real use for the file system
 	 * </ul>
 	 */
 	public static final long FLAG_FILE_ENCRYPTED              = 0x00000080L;
