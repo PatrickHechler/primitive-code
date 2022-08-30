@@ -79,7 +79,7 @@ public class Param {
 		}
 		
 		public static Param build(int art, long v1) {
-			if ( (art & (B_NUM | B_REG | B_SR)) != 0) {
+			if ( (art & (B_NUM | B_SR)) != 0) {
 				throw new IllegalArgumentException("type specifies the use of v2, but i do not have a v2 value!");
 			}
 			return build(art, v1, 0L);
@@ -178,7 +178,7 @@ public class Param {
 	@Override
 	public String toString() {
 		if (label != null) {
-			return '@' + label;
+			return label;
 		}
 		switch (art) {
 		case ART_ANUM:

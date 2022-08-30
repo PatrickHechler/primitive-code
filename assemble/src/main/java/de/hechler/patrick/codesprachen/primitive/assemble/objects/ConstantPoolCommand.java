@@ -2,7 +2,7 @@ package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class ConstantPoolCommand extends Command {
@@ -12,7 +12,7 @@ public class ConstantPoolCommand extends Command {
 	
 	public ConstantPoolCommand() {
 		super(null, null, null);
-		values = new ArrayList <>();
+		values = new LinkedList <>();
 		len = 0;
 	}
 	
@@ -27,8 +27,8 @@ public class ConstantPoolCommand extends Command {
 	}
 	
 	public void write(OutputStream out) throws IOException {
-		for (int i = 0; i < values.size(); i ++ ) {
-			out.write(values.get(i));
+		for (byte[] bytes : values) {
+			out.write(bytes);
 		}
 	}
 	

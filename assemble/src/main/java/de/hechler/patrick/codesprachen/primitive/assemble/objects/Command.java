@@ -218,19 +218,21 @@ public class Command {
 	
 	@Override
 	public String toString() {
-		StringBuilder builder = new StringBuilder();
-		builder.append("Cmd[");
-		builder.append(cmd);
+		StringBuilder b = new StringBuilder();
+		b.append(cmd);
 		if (p1 != null) {
-			builder.append(", p1=");
-			builder.append(p1);
+			b.append(' ');
+			b.append(p1);
 			if (p2 != null) {
-				builder.append(", p2=");
-				builder.append(p2);
+				b.append(", ");
+				b.append(p2);
+				if (p3 != null) {
+					b.append(", ");
+					b.append(p3);
+				}
 			}
 		}
-		builder.append("]");
-		return builder.toString();
+		return b.toString();
 	}
 	
 }

@@ -446,7 +446,9 @@ public class PrimitiveAssembler {
 		long pos = 0;
 		boolean alignMode = defaultAlign;
 		boolean alignable = false;
+		long index = -1;
 		for (Command cmd : cmds) {
+			index ++ ;
 			while (true) {
 				pos = align(pos, alignable && alignMode);
 				if (cmd.getClass() == Command.class) {
@@ -470,7 +472,7 @@ public class PrimitiveAssembler {
 						break;
 					case assertPos:
 						if (pos != ccc.value) {
-							throw new AssertionError("not at the assertet position!");
+							throw new AssertionError("not at the assertet position! (expected:" + ccc.value + " pos:" + pos + ") index=" + index + (index >= (1 << 5) ? "" : " commands: " + cmds.subList(0, (int) index + 1)));
 						}
 						break;
 					default:
@@ -593,12 +595,13 @@ public class PrimitiveAssembler {
 	private void writeOneParam(Command cmd, byte[] bytes) throws IOException {
 		assert cmd.p1 != null : "I need a first Param!";
 		assert cmd.p1.label == null : "I don't need a label in my params!";
+		assert bytes.length == 8;
 		bytes[1] = (byte) cmd.p1.art;
 		long num = cmd.p1.num, off = cmd.p1.off;
 		int art = cmd.p1.art;
 		switch (art) {
 		case Param.ART_ANUM:
-			out.write(bytes, 0, bytes.length);
+			out.write(bytes, 0, 8);
 			convertLong(bytes, num);
 			break;
 		case Param.ART_ANUM_BNUM:
@@ -606,22 +609,22 @@ public class PrimitiveAssembler {
 				System.err.println(
 					"[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
 			}
-			out.write(bytes, 0, bytes.length);
+			out.write(bytes, 0, 8);
 			convertLong(bytes, num);
-			out.write(bytes, 0, bytes.length);
+			out.write(bytes, 0, 8);
 			convertLong(bytes, off);
 			break;
 		case Param.ART_ANUM_BREG:
 			if ( !supressWarn) {
 				System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
 			}
-			out.write(bytes, 0, bytes.length);
+			out.write(bytes, 0, 8);
 			convertLong(bytes, num);
 			break;
 		case Param.ART_ANUM_BSR:
 			Param.checkSR(off);
 			bytes[7] = (byte) off;
-			out.write(bytes, 0, bytes.length);
+			out.write(bytes, 0, 8);
 			convertLong(bytes, num);
 			break;
 		case Param.ART_ASR:
@@ -631,7 +634,7 @@ public class PrimitiveAssembler {
 		case Param.ART_ASR_BNUM:
 			Param.checkSR(num);
 			bytes[7] = (byte) num;
-			out.write(bytes, 0, bytes.length);
+			out.write(bytes, 0, 8);
 			convertLong(bytes, num);
 			break;
 		case Param.ART_ASR_BREG:
@@ -645,8 +648,9 @@ public class PrimitiveAssembler {
 			bytes[7] = (byte) num;
 			break;
 		default:
-			throw new InternalError("unknown art: " + art);
+			throw new InternalError("unknown art: " + art + " (command: " + cmd + ")");
 		}
+		out.write(bytes, 0, 8);
 	}
 	
 	private static void convertLong(byte[] bytes, long num) {
@@ -753,7 +757,7 @@ public class PrimitiveAssembler {
 		{
 			switch (p1art) {
 			case Param.ART_ANUM:
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p1num);
 				break;
 			case Param.ART_ANUM_BNUM:
@@ -761,26 +765,26 @@ public class PrimitiveAssembler {
 					System.err.println(
 						"[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
 				}
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p1num);
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p1off);
 				break;
 			case Param.ART_ANUM_BREG:
 				if ( !supressWarn) {
 					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
 				}
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p1num);
 				break;
 			case Param.ART_ANUM_BSR:
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p1num);
 				break;
 			case Param.ART_ASR:
 				break;
 			case Param.ART_ASR_BNUM:
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p1off);
 				break;
 			case Param.ART_ASR_BREG:
@@ -792,7 +796,7 @@ public class PrimitiveAssembler {
 			}
 			switch (p2art) {
 			case Param.ART_ANUM:
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p2num);
 				break;
 			case Param.ART_ANUM_BNUM:
@@ -800,26 +804,26 @@ public class PrimitiveAssembler {
 					System.err.println(
 						"[WARN]: It is not recommended to add two constant numbers at runtime to access memory.");
 				}
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p2num);
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p2off);
 				break;
 			case Param.ART_ANUM_BREG:
 				if ( !supressWarn) {
 					System.err.println("[WARN]: It is not recommended to access memory with a constant adress.");
 				}
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p2num);
 				break;
 			case Param.ART_ANUM_BSR:
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p2num);
 				break;
 			case Param.ART_ASR:
 				break;
 			case Param.ART_ASR_BNUM:
-				out.write(bytes, 0, bytes.length);
+				out.write(bytes, 0, 8);
 				convertLong(bytes, p2off);
 				break;
 			case Param.ART_ASR_BREG:
@@ -830,6 +834,7 @@ public class PrimitiveAssembler {
 				throw new InternalError("unknown art: " + p2art);
 			}
 		}
+		out.write(bytes, 0, 8);
 	}
 	
 }
