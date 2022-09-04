@@ -56,7 +56,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `UHEX-1000000000000000` : `IO_ERR`: if an unspecified io error occurred
         * `UHEX-2000000000000000` : `ILLEGAL_ARG`: if an interrupt was called with illegal arguments
         * `UHEX-4000000000000000` : `OUT_OF_MEMORY`: if an operation failed because the system could not allocate enough RAM
-        * `UHEX-8000000000000000` : `ERROR`: if an unspecified error occurred
+        * `UHEX-8000000000000000` : `ERROR`: if an unspecified/unknown error occurred
         * initialized with `0`
     * `INTCNT`
         * saves the number of allowed interrupts (`0..(INTCNT-1)` are allowed)
