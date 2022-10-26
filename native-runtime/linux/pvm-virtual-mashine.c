@@ -1,5 +1,5 @@
 /*
- * pvm_virtual_mashine.c
+ * pvm-virtual-mashine.c
  *
  *  Created on: Jul 6, 2022
  *      Author: pat

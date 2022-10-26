@@ -1,8 +1,18 @@
 PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+PFS_CORE_FOLDER = $(PROJECT_ROOT)../../../PatrFileSys/pfs-core/
+
+PFS_LIB_FOLDER = $(PFS_CORE_FOLDER)exports/static/
+
+PFS_LIB_FILE = $(PFS_LIB_FOLDER)libpfscore.a
+
 TARGET = pvm
 
-LDFLAGS = -lpthread
+DEBUG_TARGET = db-pvm
+
+LDFLAGS =
+
+DEBUG_LDFLAGS = -lpthread
 
 CC = gcc
 
@@ -19,22 +29,31 @@ endif
 
 BINARY = $(PROJEXT_ROOT)bin/$(BUILD_MODE)/
 
-OBJS = $(BINARY)pvm_main.o $(BINARY)pvm_virtual_mashine.o $(BINARY)pvm_debug.o $(BINARY)hashset.o
+COMMON_OBJS = $(BINARY)pvm-virtual-mashine.o
+
+OBJS = $(COMMON_OBJS) $(BINARY)pvm-main.o
+
+DEBUG_OBJS = $(COMMON_OBJS) $(BINARY)pvm-debug.o
 
 TARGET_WITH_PATH = $(BINARY)$(TARGET)
 
-all:	$(TARGET)
+DEBUG_TARGET_WITH_PATH = $(BINARY)$(DEBUG_TARGET)
+
+all:	INIT $(PFS_LIB_FILE) $(TARGET) $(DEBUG_TARGET)
+
+INIT:
+	mkdir -p $(BINARY)
+
+$(PFS_LIB_FILE):
+	make -C $(PFS_CORE_FOLDER) all
 
 $(TARGET):	$(OBJS)
 	$(CC) -o $(TARGET_WITH_PATH) $^ $(LDFLAGS)
-# no mkdir needed, because final executable is in same binary folder like the object files
 
-$(BINARY)%.o:	$(PROJECT_ROOT)%.cpp
-	mkdir -p $(BINARY)
-	$(CXX) -c $(CFLAGS) $(CXXFLAGS) $(CPPFLAGS) -o $@ $<
+$(DEBUG_TARGET):	$(DEBUG_OBJS)
+	$(CC) -o $(DEBUG_TARGET_WITH_PATH) $^ $(DEBUG_LDFLAGS)
 
 $(BINARY)%.o:	$(PROJECT_ROOT)%.c
-	mkdir -p $(BINARY)
 	$(CC) -x c -c $(CFLAGS) -o $@ $<
 
 clean:
