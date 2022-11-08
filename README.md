@@ -36,6 +36,16 @@ the assembler language for the Primitive-Virtual-Machine
     * `SP`
         * the stack pointer points to the command to be executed
         * initialized with `-1` or the begin of a memory block
+    * `INTP`
+        * points to the interrupt-table
+        * initialized with the interrupt table
+            * this table has by default a memory size of  `#INTERRUPT_COUNT * 8` bytes
+            * all entries of the table are initialized with `-1`
+    * `INTCNT`
+        * saves the number of allowed interrupts (`0..(INTCNT-1)` are allowed)
+            * all other will call the `INT-ERRORS_ILLEGAL_INTERRUPT` interrupt
+            * when the value stored in this register is negative or zero no interrupts will be allowed
+        * initialized with the interrupt count which can be used as default interrupts (`#INTERRUPT_COUNT`)
     * `STATUS`
         * saves some results of operations
         * `UHEX-0000000000000001` : `LOWER`: if on the last `CMP A, B` `A` was lower than `B`
@@ -58,41 +68,44 @@ the assembler language for the Primitive-Virtual-Machine
         * `UHEX-4000000000000000` : `OUT_OF_MEMORY`: if an operation failed because the system could not allocate enough RAM
         * `UHEX-8000000000000000` : `ERROR`: if an unspecified/unknown error occurred
         * initialized with `0`
-    * `INTCNT`
-        * saves the number of allowed interrupts (`0..(INTCNT-1)` are allowed)
-            * all other will call the `INT-ERRORS_ILLEGAL_INTERRUPT` interrupt
-        * initialized with the interrupt count which can be used as default interrupts (`#INTERRUPT_COUNT`)
-    * `INTP`
-        * points to the interrupt-table
-        * initialized with the interrupt table
-            * this table has by default a memory size of  `#INTERRUPT_COUNT * 8` bytes
-            * all entries of the table are initialized with `-1`
-    * `FS_LOCK`
-        * contains the file system lock to be used for file system operations
     * `X[00..F9]`
         * `250 registers`
         * number registers, for free use
-        * `X00` is initialized with the pointer to the program arguments
+        * `X00` is initialized with a pointer to the program arguments
+            * the `X00` register will point to an array pointers
+            * these pointers will point to an (by default `UTF-8` encoded) string
+            * these strings will be terminated by a zero byte
         * `X01` is initialized with the count of program arguments
+        * the other `XNN` registers are initilized with 0
+    * `ERRNO`
+        * number registers, used to indicate what went wrong
+        * the `ERRNO` register is initilized with 0
+        * the `ERRNO` register has always the same value as the last `XNN` register
+            * currently the last `XNN` register is `XFA`
+            * `ERRNO` is just an other name for the last `XNN` register
 * every register can also be addressed:
     * each register has a constant memory address
-    * the registers are at the memory addresses `4096..6392` (`HEX-1000..HEX-18F8`)
-    * the `IP` register has the address `4096`
-    * the `SP` register has the address `4104`
-    * the `STATUS` register has the address `4112`
-    * the `INTCNT` register has the address `4120`
-    * the `INTP` register has the address `4128`
-    * the `FS_LOCK` register has the address `4136`
-    * the `X00..XF9` registers has the address space `4144..6144` (`HEX-1030..HEX-18FF`)
+    * the registers are at the memory addresses `4096..6144` (`HEX-1000..HEX-1800`)
+    * the `IP` register has the address `4096` : `HEX-1000`
+    * the `SP` register has the address `4104` : `HEX-1008`
+    * the `STATUS` register has the address `4112` : `HEX-1010`
+    * the `INTCNT` register has the address `4120` : `HEX-1018`
+    * the `INTP` register has the address `4128` : `HEX-1020`
+    * the `FS_LOCK` register has the address `4136` : `HEX-1028`
+    * the `X00..XF9` registers has the address space `4144..6144` (`HEX-1030..HEX-1800`)
         * each `XNN` register address can be calculated by multiplying the Hex `NN` value with `8` and than adding `4144` (`HEX-1030`)
         * examples:
             * `X00` : `[4144]` : `[HEX-1030]`
             * `X01` : `[4152]` : `[HEX-1038]`
             * `X0F` : `[4264]` : `[HEX-10A8]`
             * `X10` : `[4272]` : `[HEX-10B0]`
-            * `X7A` : `[5120]` : `[HEX-1400]`
-            * `X80` : `[5128]` : `[HEX-1408]`
-            * `XF9` : `[6392]` : `[HEX-18F8]`
+            * `X11` : `[4280]` : `[HEX-10B8]`
+            * `X78` : `[5104]` : `[HEX-13F0]`
+            * `X79` : `[5112]` : `[HEX-13F8]`
+            * `X7F` : `[5160]` : `[HEX-1428]`
+            * `XF8` : `[6128]` : `[HEX-17F0]`
+            * `XF9` : `[6136]` : `[HEX-17F8] : ERRNO`
+    * the `ERRNO` registers has the address space `6136` (`HEX-17F8`)
 
 ## NUMBERS
 
@@ -268,13 +281,16 @@ the assembler language for the Primitive-Virtual-Machine
     STATUS_OUT_OF_MEMORY             UHEX-4000000000000000
     STATUS_ERROR                     UHEX-8000000000000000
     REGISTER_MEMORY_START             HEX-0000000000001000
-    REGISTER_MEMORY_LAST_ADDRESS      HEX-00000000000018F8
+    REGISTER_MEMORY_START_XNN         HEX-0000000000001028
+    REGISTER_MEMORY_LAST_ADDRESS      HEX-00000000000017F8
+    REGISTER_MEMORY_END_ADDRESS_SPACE HEX-0000000000001800
 </code></pre>
 
 ## STRINGS
-* a string is an array of multiple characters of the `UTF-16BE` encoding
+* a string is an array of multiple characters of the `UTF-8` encoding
 * a string ends with a `'\0'` character
-* a `U8-STRING` is a `STRING`, but with `UTF-8` encoding
+* a `U16-STRING` is a `STRING`, but with `UTF-16LE` encoding
+* a `U32-STRING` is a `STRING`, but with `UTF-32LE` encoding
 
 ## COMMANDS
 
@@ -785,7 +801,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `1D 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
-`JMPSB <LABEL>`
+`JMPNB <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last NoneBits flag is set
 * definition:
     * `if NONE_BITS`
@@ -1865,22 +1881,22 @@ the assembler language for the Primitive-Virtual-Machine
         * `GREATHER <- 1`
         * `LOWER <- 0`
         * `NAN <- 0`
-        * `ZERO <- 0`
+        * `EQUAL <- 0`
     * `else if p1 is negative-infinity`
         * `GREATHER <- 0`
         * `LOWER <- 1`
         * `NAN <- 0`
-        * `ZERO <- 0`
+        * `EQUAL <- 0`
     * `else if p1 is NaN`
         * `LOWER <- 0`
         * `GREATHER <- 0`
         * `NAN <- 1`
-        * `ZERO <- 0`
+        * `EQUAL <- 0`
     * `else`
         * `LOWER <- 0`
         * `GREATHER <- 0`
         * `NAN <- 0`
-        * `ZERO <- 1`
+        * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
     * `2D <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`

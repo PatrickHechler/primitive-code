@@ -208,12 +208,5 @@ static void print_version(void) {
 
 int main(int argc, char **argv) {
 	setup(argc, argv);
-#ifdef PVM_DEBUG
-	while (1) {
-		d_wait();
-#endif
-		execute();
-#ifdef PVM_DEBUG
-	}
-#endif
+	execute();
 }
