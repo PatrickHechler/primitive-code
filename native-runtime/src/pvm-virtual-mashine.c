@@ -6,109 +6,383 @@
  */
 #define PVM
 #include "pvm-virtual-mashine.h"
+#include "pvm-err.h"
 
 #include <stdlib.h>
+#include <string.h>
 
-union numpntr {
-	num num;
-	void *pntr;
-};
+static inline void init_int() {
+	struct memory2 mem = alloc_memory(128);
+	if (!mem.mem) {
+		exit(127);
+	}
+	memcpy(mem.adr, &pvm, 128);
+	pvm.xnn[0x09] = mem.mem->start;
+}
 
-static union {
-	struct {
-		union numpntr start;
-		union numpntr end;
-	} *area;
-	num *num;
-} memory;
+static inline struct memory* chk(num pntr);
 
-static inline num chk(void *pntr) {
-	for (int i = 0; memory.area[i].start.num != -1; i++) {
-		if (pntr < memory.area[i].start.pntr) {
-			return -1;
-		} else if (pntr < memory.area[i].end.pntr) {
-			return memory.area[i].end.pntr - pntr;
+static inline void interrupt(num intnum) {
+#ifdef PVM_DEBUG
+#	define CALL_INT ints[intnum](intnum)
+#else
+#	define CALL_INT ints[intnum]();
+#endif
+	if (pvm.intcnt < intnum || intnum < 0) {
+		if (intnum == INT_ERRORS_ILLEGAL_INTERRUPT || pvm.intcnt <= 0) {
+			exit(128);
+		}
+		if (pvm.intp == -1) {
+			pvm.xnn[0] = intnum;
+			CALL_INT;
+		} else {
+			num adr = pvm.intp + (INT_ERRORS_ILLEGAL_INTERRUPT << 3);
+			struct memory *mem = chk(adr);
+			if (!mem) {
+				return;
+			}
+			num deref = *(num*) mem->offset + adr;
+			if (-1 == deref) {
+				CALL_INT;
+			} else {
+				init_int();
+				pvm.xnn[0] = intnum;
+				pvm.ip = deref;
+			}
+		}
+	} else if (pvm.intp == -1) {
+		if (intnum >= INTERRUPT_COUNT) {
+			pvm.xnn[0] = intnum;
+			intnum = INT_ERRORS_ILLEGAL_INTERRUPT;
+		}
+		CALL_INT;
+	} else {
+		num adr = pvm.intp + (intnum << 3);
+		struct memory *mem = chk(adr);
+		if (!mem) {
+			return;
+		}
+		num deref = *(num*) mem->offset + adr;
+		if (-1 == deref) {
+			CALL_INT;
+		} else {
+			init_int();
+			pvm.ip = deref;
 		}
 	}
-	return -1;
+#undef CALL_INT
+}
+
+static inline struct memory* chk(num pntr) {
+	for (struct memory *m = memory; m->start != -1; m++) {
+		if (m->start > pntr) {
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+			return NULL;
+		} else if (m->end <= pntr) {
+			continue;
+		}
+		return m;
+	}
+	interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+	return NULL;
+}
+
+union param {
+	fpnum fpn;
+	fpnum *fpnp;
+	num n;
+	num *np;
+	double_word dw;
+	double_word *dwp;
+	word w;
+	word *wp;
+	byte b;
+	byte *bp;
+	void *p;
+};
+
+struct p {
+	union param p;
+	_Bool valid;
+};
+
+#define get_param(name, pntr) \
+	union param name; \
+	{ \
+		struct p _p = param(pntr); \
+		if (!p.valid) { \
+			int_errors_unknown_command(CI(INT_ERRORS_UNKNOWN_COMMAND)); \
+			return; \
+		} \
+		name = p.p; \
+	}
+
+static int pol;
+static int poh;
+static int poq;
+
+static union instruction_adres {
+	void *pntr;
+	num *np;
+	byte *bp;
+} ia;
+static num ris;
+
+static inline struct p param(_Bool pntr, int size) {
+#define pvm_param_fail r.valid = 0; return r;
+	struct p r;
+	r.valid = 1;
+	switch (ia.bp[pol++]) {
+	case P_NUM:
+		if (pntr) {
+			r.valid = 0;
+		} else if (ris <= size + ((poq - 1) << 3)) {
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+			pvm_param_fail
+		} else if (size == 8) {
+			r.p.n = ia.np[poq++];
+		} else if (size == 4) {
+			r.p.dw = *(double_word*) (ia.np + poq++);
+		} else if (size == 2) {
+			r.p.w = *(word*) (ia.np + poq++);
+		} else if (size == 1) {
+			r.p.b = *(byte*) (ia.np + poq++);
+		} else {
+			abort();
+		}
+		break;
+	case P_REG:
+		if (pntr) {
+			r.p.np = &pvm.regs[ia.bp[poh--]];
+		} else {
+			r.p.n = pvm.regs[ia.bp[poh--]];
+		}
+		break;
+	case P_NUM_NUM: {
+		if (ris <= size + ((poq - 1) << 3)) {
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+			pvm_param_fail
+		}
+		num adr = ia.np[poq] + ia.np[poq + 1];
+		struct memory *mem = chk(adr);
+		if (!mem) {
+			pvm_param_fail
+		}
+		poq += 2;
+		if (pntr) {
+			r.p.np = mem->offset + adr;
+		} else if (size == 8) {
+			r.p.n = *(num*) (mem->offset + adr);
+		} else if (size == 4) {
+			r.p.dw = *(double_word*) (mem->offset + adr);
+		} else if (size == 2) {
+			r.p.w = *(word*) (mem->offset + adr);
+		} else if (size == 1) {
+			r.p.b = *(byte*) (mem->offset + adr);
+		} else {
+			abort();
+		}
+		break;
+	}
+	case P_REG_NUM:
+	case P_NUM_REG: {
+		if (ris <= size + ((poq - 1) << 3)) {
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+			pvm_param_fail
+		}
+		num adr = ia.np[poq++] + pvm.regs[ia.bp[poh--]];
+		struct memory *mem = chk(adr);
+		if (!mem) {
+			pvm_param_fail
+		}
+		if (pntr) {
+			r.p.np = mem->offset + adr;
+		} else if (size == 8) {
+			r.p.n = *(num*) (mem->offset + adr);
+		} else if (size == 4) {
+			r.p.dw = *(double_word*) (mem->offset + adr);
+		} else if (size == 2) {
+			r.p.w = *(word*) (mem->offset + adr);
+		} else if (size == 1) {
+			r.p.b = *(byte*) (mem->offset + adr);
+		} else {
+			abort();
+		}
+		break;
+	}
+	case P_REG_REG: {
+		if (ris <= size + ((poq - 1) << 3)) {
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+			pvm_param_fail
+		}
+		num adr = pvm.regs[ia.bp[poh]] + pvm.regs[ia.bp[poh - 1]];
+		struct memory *mem = chk(adr);
+		if (!mem) {
+			pvm_param_fail
+		}
+		poh -= 1;
+		if (pntr) {
+			r.p.np = mem->offset + adr;
+		} else if (size == 8) {
+			r.p.n = *(num*) (mem->offset + adr);
+		} else if (size == 4) {
+			r.p.dw = *(double_word*) (mem->offset + adr);
+		} else if (size == 2) {
+			r.p.w = *(word*) (mem->offset + adr);
+		} else if (size == 1) {
+			r.p.b = *(byte*) (mem->offset + adr);
+		} else {
+			abort();
+		}
+		break;
+	}
+	default:
+		r.valid = 0;
+	}
+#undef pvm_param_fail
+	return r;
 }
 
 static inline void exec() {
-	if (chk(pvm.ip.pntr) < 8) {
-		int_errors_illegal_memory(CI(INT_ERRORS_ILLEGAL_MEMORY));
+	struct memory *ipmem = chk(pvm.ip);
+	ris = ipmem->end - pvm.ip;
+	if (ris < 8) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 		return;
 	}
-	switch (pvm.ip.pntr->cmd[0]) {
-	case MVB:
-	case MVW:
-	case MVDW:
-	case MOV:
-	case LEA:
-	case MVAD:
-	case SWAP:
+	ia.pntr = ipmem->offset + pvm.ip;
+	pol = 1;
+	poh = 7;
+	poq = 1;
+	cmds[ia.bp[0]]();
+}
 
-	case ADD:
-	case SUB:
-	case MUL:
-	case DIV:
-	case NEG:
-	case ADDC:
-	case SUBC:
-	case INC:
-	case DEC:
-	case OR:
-	case AND:
-	case XOR:
-	case NOT:
-	case LSH:
-	case RASH:
-	case RLSH:
-
-	case JMP:
-	case JMPEQ:
-	case JMPNE:
-	case JMPGT:
-	case JMPGE:
-	case JMPLT:
-	case JMPLE:
-	case JMPCS:
-	case JMPCC:
-	case JMPZS:
-	case JMPZC:
-	case JMPNAN:
-	case JMPAN:
-	case JMPAB:
-	case JMPSB:
-	case JMPNB:
-
-	case INT:
-	case IRET:
-	case CALL:
-	case CALO:
-	case RET:
-	case PUSH:
-	case POP:
-
-	case CMP:
-	case BCMP:
-
-	case FPCMP:
-	case FPCHK:
-	case FPADD:
-	case FPSUB:
-	case FPMUL:
-	case FPDIV:
-	case FPNEG:
-	case FPTN:
-	case NTFP:
-	case UADD:
-	case USUB:
-	case UMUL:
-	case UDIV:
-
-	default:
-		int_errors_unknown_command(CI(INT_ERRORS_UNKNOWN_COMMAND));
+PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size) {
+	if (mem_size) {
+		for (num index = mem_size - 1; index; index--) {
+			if (memory[index].start == -1) {
+				continue;
+			}
+			memory[index].start = next_adress;
+			memory[index].end = memory->start + size;
+			memory[index].offset = adr - memory->start;
+			next_adress = memory->end + ADRESS_HOLE_DEFAULT_SIZE;
+			if (memory->end < 0) {
+				// overflow
+				abort();
+			}
+			return memory + index;
+		}
 	}
+	num oms = mem_size;
+	mem_size += 16;
+	memory = realloc(memory, mem_size * sizeof(struct memory));
+	memset(memory + oms + 1, -1, 15 * sizeof(struct memory));
+	memory[oms].start = next_adress;
+	memory[oms].end = memory->start + size;
+	memory[oms].offset = adr - memory->start;
+//	if (memory->start < 0 || memory->end < 0) {
+	// I know that this is check can fail when size is near 2^63
+	if (memory->end < 0) {
+		// overflow
+		abort();
+	}
+	next_adress = memory->end + ADRESS_HOLE_DEFAULT_SIZE;
+	return memory + oms;
+}
+PVM_SI_PREFIX struct memory2 alloc_memory(num size) {
+	struct memory2 r;
+	void *mem = malloc(size);
+	if (!mem) {
+		r.mem = NULL;
+		r.adr = NULL;
+		pvm.errno = PE_OUT_OF_MEMORY;
+		return r;
+	}
+	r.mem = alloc_memory2(mem, size);
+	if (r.mem) {
+		r.adr = mem;
+	} else {
+		free(mem);
+		r.adr = NULL;
+	}
+	return r;
+}
+PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize) {
+	struct memory *mem = chk(adr);
+	if (!mem) {
+		return NULL;
+	}
+	if (mem->start != adr || adr == REGISTER_START) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		return NULL;
+	}
+	void *new_pntr = realloc(mem->offset + mem->start, newsize);
+	if (!new_pntr) {
+		return NULL;
+	}
+	num oldsize = mem->end - mem->start;
+	if (newsize < oldsize) {
+		mem->end = mem->start + newsize;
+		mem->offset = new_pntr - mem->start;
+		return mem;
+	}
+	num index = mem - memory;
+	if (index + 1 <= mem_size) {
+		for (int i = index + 1; i < mem_size; i++) {
+			if (memory[i].start == -1) {
+				continue;
+			}
+			num maxsize = memory[i].start - mem->start
+					- ADRESS_HOLE_MINIMUM_SIZE;
+			if (maxsize >= newsize) {
+				mem->end = mem->start + newsize;
+				mem->offset = new_pntr - mem->start;
+				return mem;
+			}
+			// index can not be zero, because all addresses are above the PVM address
+			for (int ii = index - 1; 1; ii--) {
+				if (memory[ii].start == -1) {
+					continue;
+				}
+				maxsize = memory[i].start - memory[ii].end
+						- (ADRESS_HOLE_MINIMUM_SIZE << 1);
+				if (maxsize >= newsize) {
+					num start = (maxsize - newsize) >> 1;
+					mem->start = start;
+					mem->end = start + newsize;
+					mem->offset = new_pntr - start;
+					return mem;
+				}
+				struct memory *res = alloc_memory2(new_pntr, newsize);
+				mem->start = -1;
+				return res;
+			}
+		}
+		goto no_next_adr;
+	} else {
+		no_next_adr: ;
+		mem->end = mem->start + newsize;
+		if (mem->end < 0) {
+			// overflow
+			abort();
+		}
+		next_adress = mem->end + ADRESS_HOLE_DEFAULT_SIZE;
+		mem->offset = new_pntr - mem->start;
+		return mem;
+	}
+}
+PVM_SI_PREFIX void free_memory(num adr) {
+	struct memory *mem = chk(adr);
+	if (!mem) {
+		return;
+	}
+	if (mem->start != adr || adr == REGISTER_START) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		return;
+	}
+	free(mem->offset + mem->start);
+	mem->start = -1;
 }
 
 #ifdef PVM_DEBUG
@@ -118,6 +392,11 @@ static inline void d_wait() {
 		case running:
 			return;
 		case waiting:
+			struct timespec time = { //
+					.tv_sec = 0, // 0 sec
+							.tv_nsec = 5000000 // 5 ms
+					};
+			nanosleep(&time, NULL);
 			continue;
 		case stepping:
 			if (depth <= 0) {
@@ -140,192 +419,5 @@ void execute() {
 	}
 }
 
-static void int_errors_illegal_interrupt INT_PARAMS {
-	abort();
-}
-static void int_errors_unknown_command INT_PARAMS {
-	abort();
-}
-static void int_errors_illegal_memory INT_PARAMS {
-	abort();
-}
-static void int_errors_arithmetic_error INT_PARAMS {
-	abort();
-}
-static void int_exit INT_PARAMS {
-	abort();
-}
-static void int_memory_alloc INT_PARAMS {
-	abort();
-}
-static void int_memory_realloc INT_PARAMS {
-	abort();
-}
-static void int_memory_free INT_PARAMS {
-	abort();
-}
-static void int_open_stream INT_PARAMS {
-	abort();
-}
-static void int_streams_write INT_PARAMS {
-	abort();
-}
-static void int_streams_read INT_PARAMS {
-	abort();
-}
-static void int_streams_close INT_PARAMS {
-	abort();
-}
-static void int_streams_get_pos INT_PARAMS {
-	abort();
-}
-static void int_streams_seek_set INT_PARAMS {
-	abort();
-}
-static void int_streams_seek_add INT_PARAMS {
-	abort();
-}
-static void int_streams_seek_eof INT_PARAMS {
-	abort();
-}
-static void int_open_element_file INT_PARAMS {
-	abort();
-}
-static void int_open_element_folder INT_PARAMS {
-	abort();
-}
-static void int_open_element_pipe INT_PARAMS {
-	abort();
-}
-static void int_open_element INT_PARAMS {
-	abort();
-}
-static void int_element_open_parent INT_PARAMS {
-	abort();
-}
-static void int_element_get_create INT_PARAMS {
-	abort();
-}
-static void int_element_get_last_mod INT_PARAMS {
-	abort();
-}
-static void int_element_set_create INT_PARAMS {
-	abort();
-}
-static void int_element_set_last_mod INT_PARAMS {
-	abort();
-}
-static void int_element_delete INT_PARAMS {
-	abort();
-}
-static void int_element_move INT_PARAMS {
-	abort();
-}
-static void int_element_get_flags INT_PARAMS {
-	abort();
-}
-static void int_element_mod_flags INT_PARAMS {
-	abort();
-}
-static void int_folder_child_count INT_PARAMS {
-	abort();
-}
-static void int_folder_get_child_of_name INT_PARAMS {
-	abort();
-}
-static void int_folder_add_folder INT_PARAMS {
-	abort();
-}
-static void int_folder_add_file INT_PARAMS {
-	abort();
-}
-static void int_folder_add_link INT_PARAMS {
-	abort();
-}
-static void int_folder_open_iter INT_PARAMS {
-	abort();
-}
-static void int_folder_create_folder INT_PARAMS {
-	abort();
-}
-static void int_folder_create_file INT_PARAMS {
-	abort();
-}
-static void int_folder_create_pipe INT_PARAMS {
-	abort();
-}
-static void int_file_length INT_PARAMS {
-	abort();
-}
-static void int_file_truncate INT_PARAMS {
-	abort();
-}
-static void int_file_open_stream INT_PARAMS {
-	abort();
-}
-static void int_pipe_length INT_PARAMS {
-	abort();
-}
-static void int_pipe_truncate INT_PARAMS {
-	abort();
-}
-static void int_pipe_open_stream INT_PARAMS {
-	abort();
-}
-static void int_time_get INT_PARAMS {
-	abort();
-}
-static void int_time_wait INT_PARAMS {
-	abort();
-}
-static void int_random INT_PARAMS {
-	abort();
-}
-static void int_memory_copy INT_PARAMS {
-	abort();
-}
-static void int_memory_move INT_PARAMS {
-	abort();
-}
-static void int_memory_bset INT_PARAMS {
-	abort();
-}
-static void int_memory_set INT_PARAMS {
-	abort();
-}
-static void int_string_length INT_PARAMS {
-	abort();
-}
-static void int_string_compare INT_PARAMS {
-	abort();
-}
-static void int_number_to_string INT_PARAMS {
-	abort();
-}
-static void int_fpnumber_to_string INT_PARAMS {
-	abort();
-}
-static void int_string_to_number INT_PARAMS {
-	abort();
-}
-static void int_string_to_fpnumber INT_PARAMS {
-	abort();
-}
-static void int_string_to_u16string INT_PARAMS {
-	abort();
-}
-static void int_string_to_u32string INT_PARAMS {
-	abort();
-}
-static void int_u16string_to_string INT_PARAMS {
-	abort();
-}
-static void int_u32string_to_string INT_PARAMS {
-	abort();
-}
-static void int_string_format INT_PARAMS {
-	abort();
-}
-static void int_load_file INT_PARAMS {
-	abort();
-}
+#include "pvm-int.c"
+#include "pvm-cmd.c"

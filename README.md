@@ -51,22 +51,12 @@ the assembler language for the Primitive-Virtual-Machine
         * `UHEX-0000000000000001` : `LOWER`: if on the last `CMP A, B` `A` was lower than `B`
         * `UHEX-0000000000000002` : `GREATHER`: if on the last `CMP A, B` `A` was greater than `B`
         * `UHEX-0000000000000004` : `EQUAL`: if on the last `CMP A, B` `A` was greater than `B`
-        * `UHEX-0000000000000008` : `CARRY`: if an overflow was detected
+        * `UHEX-0000000000000008` : `OVERFLOW`: if an overflow was detected
         * `UHEX-0000000000000010` : `ZERO`: if the last arithmetic or logical operation leaded to zero (`0`)
         * `UHEX-0000000000000020` : `NAN`: if the last floating point operation leaded to a NaN value
         * `UHEX-0000000000000040` : `ALL_BITS`: if on the last `BCP A, B` was `A & B = B`
         * `UHEX-0000000000000080` : `SOME_BITS`: if on the last `BCP A, B` was `A & B != 0`
         * `UHEX-0000000000000100` : `NONE_BITS`: if on the last `BCP A, B` was `A & B = 0`
-        * `UHEX-0040000000000000` : `ELEMENT_WRONG_TYPE`: if an io operation failed because the element is not of the correct type (file expected, but folder or reverse)
-        * `UHEX-0080000000000000` : `ELEMENT_NOT_EXIST`: if an io operation failed because the element does not exist
-        * `UHEX-0100000000000000` : `ELEMENT_ALREADY_EXIST`: if an io operation failed because the element already existed
-        * `UHEX-0200000000000000` : `OUT_OF_SPACE`: if an io operation failed because there was not enough space in the file system
-        * `UHEX-0400000000000000` : `READ_ONLY`: if an io operation was denied because of read-only
-        * `UHEX-0800000000000000` : `ELEMENT_LOCKED`: if an io operation was denied because of lock
-        * `UHEX-1000000000000000` : `IO_ERR`: if an unspecified io error occurred
-        * `UHEX-2000000000000000` : `ILLEGAL_ARG`: if an interrupt was called with illegal arguments
-        * `UHEX-4000000000000000` : `OUT_OF_MEMORY`: if an operation failed because the system could not allocate enough RAM
-        * `UHEX-8000000000000000` : `ERROR`: if an unspecified/unknown error occurred
         * initialized with `0`
     * `X[00..F9]`
         * `250 registers`
@@ -264,7 +254,7 @@ the assembler language for the Primitive-Virtual-Machine
     STATUS_LOWER                     UHEX-0000000000000001
     STATUS_GREATHER                  UHEX-0000000000000002
     STATUS_EQUAL                     UHEX-0000000000000004
-    STATUS_CARRY                     UHEX-0000000000000008
+    STATUS_OVERFLOW                  UHEX-0000000000000008
     STATUS_ZERO                      UHEX-0000000000000010
     STATUS_NAN                       UHEX-0000000000000020
     STATUS_ALL_BITS                  UHEX-0000000000000040
@@ -367,7 +357,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `04 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -376,18 +366,22 @@ the assembler language for the Primitive-Virtual-Machine
 `ADD <NO_CONST_PARAM> , <PARAM>`
 * adds the values of both parameters and stores the sum in the first parameter
 * definition:
-    * `if ((p1 > 0) & (p2 > 0) & ((p1 + p2) < 0)) | ((p1 < 0) & (p2 < 0) & ((p1 + p2) > 0))`
-        * `CARRY <- 1`
-    * `else`
-        * `CARRY <- 0`
     * `p1 <- p1 + p2`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
+    * `if ((p1 < 0) & (p2 > 0) & (p1 - p2 > 0))`
+        * `ZERO <-  0`
+        * `OVERFLOW <- 1`
+    * `else if ((p1 > 0) & (p2 < 0) & (p1 - p2 < 0))`
+        * `ZERO <-  0`
+        * `OVERFLOW <- 1`
+    * `else if p1 != 0`
+        * `OVERFLOW <- 0`
         * `ZERO <- 0`
+    * `else`
+        * `OVERFLOW <- 0`
+        * `ZERO <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `02 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `10 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -396,18 +390,22 @@ the assembler language for the Primitive-Virtual-Machine
 `SUB <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second parameter from the first parameter and stores the result in the first parameter
 * definition:
-    * `if ((p1 > 0) & (p2 < 0) & ((p1 - p2) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - p2) > 0))`
-        * `CARRY <- 1`
-    * `else`
-        * `CARRY <- 0`
     * `p1 <- p1 - p2`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
+    * `if ((p1 < 0) & (p2 < 0) & (p1 + p2 > 0))`
+        * `ZERO <-  0`
+        * `OVERFLOW <- 1`
+    * `else if ((p1 > 0) & (p2 > 0) & (p1 + p2 < 0))`
+        * `ZERO <-  0`
+        * `OVERFLOW <- 1`
+    * `else if p1 != 0`
+        * `OVERFLOW <- 0`
         * `ZERO <- 0`
+    * `else`
+        * `OVERFLOW <- 0`
+        * `ZERO <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `03 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `11 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -510,13 +508,13 @@ the assembler language for the Primitive-Virtual-Machine
 * this instruction works like `MUL p1, -1`
 * definition:
     * `if p1 = 0`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
         * `ZERO <- 1`
     * `if p1 = UHEX-8000000000000000`
-        * `CARRY <- 1`
+        * `OVERFLOW <- 1`
         * `ZERO <- 0`
     * `else`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
         * `ZERO <- 0`
     * `p1 <- 0 - p1`
     * `IP <- IP + CMD_LEN`
@@ -529,9 +527,9 @@ the assembler language for the Primitive-Virtual-Machine
 * shifts bits of the parameter logically left
 * definition:
     * `if ((p1 << p2) >>> p2) = p1`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
     * `else`
-        * `CARRY <- 1`
+        * `OVERFLOW <- 1`
     * `p1 <- p1 << p2`
     * `if p1 = 0`
         * `ZERO <- 1`
@@ -549,9 +547,9 @@ the assembler language for the Primitive-Virtual-Machine
 * shifts bits of the parameter logically right
 * definition:
     * `if ((p1 >> p2) << p2) = p1`
-        * `CARRY <- 1`
+        * `OVERFLOW <- 1`
     * `else`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
     * `p1 <- p1 >> 1`
     * `if p1 = 0`
         * `ZERO <- 1`
@@ -569,9 +567,9 @@ the assembler language for the Primitive-Virtual-Machine
 * shifts bits of the parameter arithmetic right
 * definition:
     * `if ((p1 >>> p2) <<< p2) = p1`
-        * `CARRY <- 1`
+        * `OVERFLOW <- 1`
     * `else`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
     * `p1 <- p1 >>> 2`
     * `if p1 = 0`
         * `ZERO <- 1`
@@ -589,13 +587,13 @@ the assembler language for the Primitive-Virtual-Machine
 * decrements the param by one
 * definition:
     * `if p1 = MIN_VALUE`
-        * `CARRY <- 1`
+        * `OVERFLOW <- 1`
         * `ZERO <- 0`
     * `else if p1 = 1`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
         * `ZERO <- 1`
     * `else`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
         * `ZREO <- 0`
     * `p1 <- p1 - 1`
     * `IP <- IP + CMD_LEN`
@@ -608,13 +606,13 @@ the assembler language for the Primitive-Virtual-Machine
 * increments the param by one
 * definition:
     * `if p1 = MAX_VALUE`
-        * `CARRY <- 1`
+        * `OVERFLOW <- 1`
         * `ZERO <- 0`
     * `else if p1 = -1`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
         * `ZERO <- 1`
     * `else`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
         * `ZERO <- 0`
     * `p1 <- p1 + 1`
     * `IP <- IP + CMD_LEN`
@@ -705,9 +703,9 @@ the assembler language for the Primitive-Virtual-Machine
     * `<RELATIVE_LABEL>`
 
 `JMPCS <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last carry flag is set
+* sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is set
 * definition:
-    * `if CARRY`
+    * `if OVERFLOW`
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
@@ -717,9 +715,9 @@ the assembler language for the Primitive-Virtual-Machine
     * `<RELATIVE_LABEL>`
 
 `JMPCC <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last carry flag is cleared
+* sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is cleared
 * definition:
-    * `if CARRY`
+    * `if OVERFLOW`
         * `IP <- IP + CMD_LEN`
     * `else`
         * `IP <- IP + RELATIVE_LABEL`
@@ -881,6 +879,7 @@ the assembler language for the Primitive-Virtual-Machine
 * an interrupt can be overwritten:
     * the interrupt-table is saved in the `INTP` register
     * to overwrite the interrupt `N`, write to `(INTP + (N * 8))` the absolute position of the address
+    * on failure the default interrupts use the `ERRNO` register to store information about the error which caused the interrupt to fail
     * example:
         * `PUSH X00` |> only needed when the value of `X00` should not be overwritten
         * `MOV X00, IP` |> this and the next command is not needed if the absolute position is already known
@@ -1777,7 +1776,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p2 <- ZW`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `27 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `07 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1789,7 +1788,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p2 + IP`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `28 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `05 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1801,7 +1800,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p2 + p3`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `29 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `06 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1904,13 +1903,13 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P1.OFF_NUM]`
 
 `ADDC <NO_CONST_PARAM> , <PARAM>`
-* adds the values of both parameters and the carry flag and stores the sum in the first parameter
+* adds the values of both parameters and the OVERFLOW flag and stores the sum in the first parameter
 * definition:
-    * `ZW <- p1 + (p2 + CARRY)`
-    * `if ((p1 > 0) & ((p2 + CARRY) > 0) & ((p1 + p2 + CARRY) < 0)) | ((p1 < 0) & ((p2 + CARRY) < 0) & ((p1 + (p2 + CARRY)) > 0))`
-        * `CARRY <- 1`
+    * `ZW <- p1 + (p2 + OVERFLOW)`
+    * `if ((p1 > 0) & ((p2 + OVERFLOW) > 0) & ((p1 + p2 + OVERFLOW) < 0)) | ((p1 < 0) & ((p2 + OVERFLOW) < 0) & ((p1 + (p2 + OVERFLOW)) > 0))`
+        * `OVERFLOW <- 1`
     * `else`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
     * `p1 <- ZW`
     * `if p1 = 0`
         * `ZERO <- 1`
@@ -1925,13 +1924,13 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P2.OFF_NUM]`
 
 `SUBC <NO_CONST_PARAM> , <PARAM>`
-* subtracts the second parameter with the carry flag from the first parameter and stores the result in the first parameter
+* subtracts the second parameter with the OVERFLOW flag from the first parameter and stores the result in the first parameter
 * definition:
-    * `ZW <- p1 - (p2 + CARRY)`
-    * `if (p1 > 0) & ((p2 + CARRY) < 0) & ((p1 - (p2 + CARRY)) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - (p2 + CARRY)) > 0))`
-        * `CARRY <- 1`
+    * `ZW <- p1 - (p2 + OVERFLOW)`
+    * `if (p1 > 0) & ((p2 + OVERFLOW) < 0) & ((p1 - (p2 + OVERFLOW)) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - (p2 + OVERFLOW)) > 0))`
+        * `OVERFLOW <- 1`
     * `else`
-        * `CARRY <- 0`
+        * `OVERFLOW <- 0`
     * `p1 <- ZW`
     * `if p1 = 0`
         * `ZERO <- 1`
@@ -2067,7 +2066,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <-8-bit- p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    *  `3A <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    *  `01 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -2079,7 +2078,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <-16-bit- p2 `
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `3B <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `02 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -2091,7 +2090,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <-32-bit- p2 `
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `3C <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `03 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
