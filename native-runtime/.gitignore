@@ -2,3 +2,6 @@
 /bin/
 /binary/
 /linux/
+/.settings/
+/.project
+/.cproject
