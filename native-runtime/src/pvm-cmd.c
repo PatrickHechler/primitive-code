@@ -48,7 +48,7 @@ static void c_mov() /* 0x04 */{
 	if (!p2.valid) {
 		return;
 	}
-	*p1.p.n = p2.p.n;
+	*p1.p.np = p2.p.n;
 }
 static void c_lea() /* 0x05 */{
 	struct p p1 = param(1, 8);
@@ -59,7 +59,7 @@ static void c_lea() /* 0x05 */{
 	if (!p2.valid) {
 		return;
 	}
-	*p1.p.n = pvm.ip + p2.p.n;
+	*p1.p.np = pvm.ip + p2.p.n;
 }
 static void c_mvad() /* 0x06 */{
 	struct p p1 = param(1, 8);
@@ -74,7 +74,7 @@ static void c_mvad() /* 0x06 */{
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 		return;
 	}
-	*p1.p.n = p2.p.n + ia.np[poq];
+	*p1.p.np = p2.p.n + ia.np[poq];
 }
 static void c_swap() /* 0x07 */{
 	struct p p1 = param(1, 8);
@@ -103,11 +103,11 @@ static void c_add() /* 0x10 */{
 	*p1.p.np += p2.p.n;
 	if (((*p1.p.np < 0) & (*p2.p.np > 0) & (op1 > 0))
 			|| ((*p1.p.np > 0) & (*p2.p.np < 0) & (op1 < 0))) {
-		pvm.status = (pvm.status & ~(S_ZERO)) | S_OVERFLOW;
+		pvm.status.unum = (pvm.status.unum & ~(S_ZERO)) | S_OVERFLOW;
 	} else if (*p1.p.np) {
-		pvm.status = (pvm.status & ~(S_OVERFLOW | S_ZERO));
+		pvm.status.unum = (pvm.status.unum & ~(S_OVERFLOW | S_ZERO));
 	} else {
-		pvm.status = (pvm.status & ~(S_OVERFLOW)) | S_ZERO;
+		pvm.status.unum = (pvm.status.unum & ~(S_OVERFLOW)) | S_ZERO;
 	}
 }
 static void c_sub() /* 0x11 */{
@@ -123,11 +123,11 @@ static void c_sub() /* 0x11 */{
 	*p1.p.np -= p2.p.n;
 	if (((*p1.p.np < 0) & (*p2.p.np < 0) & (op1 > 0))
 			|| ((*p1.p.np > 0) & (*p2.p.np > 0) & (op1 < 0))) {
-		pvm.status = (pvm.status & ~(S_ZERO)) | S_OVERFLOW;
+		pvm.status.unum = (pvm.status.unum & ~(S_ZERO)) | S_OVERFLOW;
 	} else if (*p1.p.np) {
-		pvm.status = (pvm.status & ~(S_OVERFLOW | S_ZERO));
+		pvm.status.unum = (pvm.status.unum & ~(S_OVERFLOW | S_ZERO));
 	} else {
-		pvm.status = (pvm.status & ~(S_OVERFLOW)) | S_ZERO;
+		pvm.status.unum = (pvm.status.unum & ~(S_OVERFLOW)) | S_ZERO;
 	}
 }
 static void c_mul() /* 0x12 */{
@@ -141,9 +141,9 @@ static void c_mul() /* 0x12 */{
 	}
 	*p1.p.np *= p2.p.n;
 	if (*p1.p.np < 0) {
-		pvm.status &= ~S_ZERO;
+		pvm.status.unum &= ~S_ZERO;
 	} else {
-		pvm.status |= S_ZERO;
+		pvm.status.unum |= S_ZERO;
 	}
 }
 static void c_div() /* 0x13 */{
