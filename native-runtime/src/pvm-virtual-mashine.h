@@ -17,7 +17,7 @@
 #	define EXT extern
 #endif
 
-void execute() __attribute__ ((__noreturn__));
+extern void execute() __attribute__ ((__noreturn__));
 
 typedef int64_t num;
 typedef uint64_t unum;
@@ -40,7 +40,7 @@ EXT struct pvm {
 		num num;
 		unum unum;
 	} status; // regs[5]
-	num xnn[256 - 6]; // reg[6..255] // - 6 because XFA shares its address with the errno register
+	num x[256 - 6]; // reg[6..255] // - 6 because XFA shares its address with the errno register
 	num errno; // regs[255]
 } pvm;
 
@@ -56,19 +56,20 @@ _Static_assert((sizeof(num) * 256) == sizeof(struct pvm), "Error!");
 #define S_SOME_BITS 0x0000000000000080UL
 #define S_NONE_BITS 0x0000000000000100UL
 
+#define __P_BASE  0x01
+#define __P_A_NUM 0x02
+#define __P_A_REG 0x04
+#define __P_B_NO  0x10
+#define __P_B_NUM 0x20
+#define __P_B_REG 0x40
+
 enum param_type {
-	_P_BASE = 0x01,
-	_P_A_NUM = 0x02,
-	_P_A_REG = 0x04,
-	_P_B_NO = 0x10,
-	_P_B_NUM = 0x20,
-	_P_B_REG = 0x40,
-	P_NUM = _P_BASE | _P_A_NUM | _P_B_NO,
-	P_REG = _P_BASE | _P_A_REG | _P_B_NO,
-	P_NUM_NUM = _P_BASE | _P_A_NUM | _P_B_NUM,
-	P_REG_NUM = _P_BASE | _P_A_REG | _P_B_NUM,
-	P_NUM_REG = _P_BASE | _P_A_NUM | _P_B_REG,
-	P_REG_REG = _P_BASE | _P_A_REG | _P_B_REG,
+	P_NUM = __P_BASE | __P_A_NUM | __P_B_NO,
+	P_REG = __P_BASE | __P_A_REG | __P_B_NO,
+	P_NUM_NUM = __P_BASE | __P_A_NUM | __P_B_NUM,
+	P_REG_NUM = __P_BASE | __P_A_REG | __P_B_NUM,
+	P_NUM_REG = __P_BASE | __P_A_NUM | __P_B_REG,
+	P_REG_REG = __P_BASE | __P_A_REG | __P_B_REG,
 };
 
 #ifdef PVM
@@ -84,9 +85,6 @@ static volatile enum {
 
 EXT num depth;
 #	endif // PVM_DEBUG
-
-#include "pvm-int.h"
-#include "pvm-cmd.h"
 
 #endif // PVM
 
@@ -119,7 +117,7 @@ struct memory2 {
 #	define REGISTER_END 0x0000000000001800
 
 // I know that an overflow will occur when the program
-// (executes long enough|allocates and frees often enough memory)
+// (executes long enough|allocates (and frees) often enough memory)
 
 static struct memory *memory = NULL;
 static num mem_size = 0;

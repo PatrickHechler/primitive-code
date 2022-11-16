@@ -916,98 +916,104 @@ the assembler language for the Primitive-Virtual-Machine
     * `8`: open new stream
         * `X00` contains a pointer to the STRING, which refers to the file which should be read
         * `X01` specfies the open mode: (bitwise flags)
-            * `UHEX-0000000000000001` : `OPEN_READ` open file for read access
-            * `UHEX-0000000000000002` : `OPEN_WRITE` open file for write access
-            * `UHEX-0000000000000004` : `OPEN_APPEND` open file for append access (implicit set of `OPEN_WRITE`)
-            * `UHEX-0000000000000008` : `OPEN_CREATE` open file or create file (needs `OPEN_WRITE`, not compatible with `OPEN_NEW_FILE`)
-            * `UHEX-0000000000000010` : `OPEN_NEW_FILE` fail if file already exists or create the file (needs `OPEN_WRITE`, not compatible with `OPEN_CREATE` and `OPEN_TRUNCATE`)
-            * `UHEX-0000000000000020` : `OPEN_TRUNCATE` if the file already exists, remove its content (needs `OPEN_WRITE`, not compatible with `OPEN_NEW_FILE`)
+            * `OPEN_ONLY_CREATE`
+                * fail if the file/pipe exist already
+                * when this flags is set either `OPEN_FILE` or `OPEN_PIPE` has to be set
+            * `OPEN_ALSO_CREATE`
+                * create the file/pipe if it does not exist, but do not fail if the file/pipe exist already (overwritten by PFS_SO_ONLY_CREATE)
+            * `OPEN_FILE`
+                * fail if the element is a pipe and if a create flag is set create a file if the element does not exist already
+                * this flag is not compatible with `OPEN_PIPE`
+            * `OPEN_PIPE`
+                * fail if the element is a file and if a create flag is set create a pipe
+                * this flag is not compatible with `OPEN_FILE`
+            * `OPEN_READ`
+                * open the stream for read access
+            * `OPEN_WRITE`
+                * open the stream for write access
+            * `OPEN_APPEND`
+                * open the stream for append access (before every write operation the position is set to the end of the file)
+                * implicitly also sets `OPEN_WRITE` (for pipes there is no diffrence in `OPEN_WRITE` and `OPEN_APPEND`)
+            * `OPEN_FILE_TRUNCATE`
+                * truncate the files content
+                * implicitly sets `OPEN_FILE`
+                * nop when also `OPEN_ONLY_CREATE` is set
+            * `OPEN_FILE_EOF`
+                * set the position initially to the end of the file not the start
+                * ignored when opening a pipe
             * other flags will be ignored
             * the operation will fail if it is not spezified if the file should be opened for read, write and/or append
         * opens a new stream to the specified file
         * if successfully the STREAM-ID will be saved in the `X00` register
         * if failed `X00` will contain `-1`
             * the `STATUS` register will be flaged:
-                * `UHEX-0040000000000000` : `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the element is not of the correct type (file expected, but folder)
+                * `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the element is not of the correct type (file expected, but folder)
                     * if the element already exists, but is a folder and no file
-                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
+                * `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
                     * if the element does not exists, but `OPEN_CREATE` and `OPEN_NEW_FILE` are not set
-                * `UHEX-0100000000000000` : `STATUS_ELEMENT_ALREADY_EXIST`: operation failed because the element already existed
+                * `STATUS_ELEMENT_ALREADY_EXIST`: operation failed because the element already existed
                     * if the element already exists, but `OPEN_NEW_FILE` is set
-                * `UHEX-0200000000000000` : `STATUS_OUT_OF_SPACE`: operation failed because there was not enough space in the file system
+                * `STATUS_OUT_OF_SPACE`: operation failed because there was not enough space in the file system
                     * if the system tried to create the new file, but there was not enugh space for the new file-system-entry
-                * `UHEX-0400000000000000` : `STATUS_READ_ONLY`: was denied because of read-only
+                * `STATUS_READ_ONLY`: was denied because of read-only
                     * if the file is marked as read-only, but it was tried to open the file for read or append access
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
+                * `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the file is locked with `LOCK_NO_READ_ALLOWED` : `UHEX-0000000100000000` and it was tried to open the file for read access
                     * or if the file is locked with `LOCK_NO_WRITE_ALLOWED_LOCK` : `UHEX-0000000200000000` and it was tried to open the file for write/append access
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
+                * `STATUS_IO_ERR`: an unspecified io error occurred
                     * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: STREAM-ID is invalid or `X01` contains an invalid open mode
+                * `STATUS_ILLEGAL_ARG`: STREAM-ID is invalid or `X01` contains an invalid open mode
                     * if the open mode was invalid
                         * `OPEN_CREATE` or `OPEN_TRUNCATE` with `OPEN_NEW_FILE`
                         * not `OPEN_READ` and not `OPEN_WRITE` and not `OPEN_APPEND`
                         * `OPEN_CREATE`, `OPEN_NEW_FILE` and/or `OPEN_TRUNCATE` without `OPEN_WRITE` (and without `OPEN_APPEND`)
-                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
+                * `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
                     * the system tries to allocate some memory but was not able to allocate the needed memory
-        * to close the stream call the free interrupt (`7` : `INT_MEMORY_FREE`)
+        * to close the stream use the stream close interrupt (`INT_STREAM_CLOSE`)
     * `9`: write
         * `X00` contains the STREAM-ID
         * `X01` contains the number of elements to write
         * `X02` points to the elements to write
-        * `X01` will be set to `-1` if an error occurred
-            * the `STATUS` register will be flagged:
-                * `UHEX-0200000000000000` : `STATUS_OUT_OF_SPACE`: operation failed because there was not enough space in the file system
-                    * if the system tried to allocate more space for either the file-system-entry of the open file or its content, but there was not enugh space
-                * `UHEX-0400000000000000` : `STATUS_READ_ONLY`: was denied because of read-only
-                    * if the file is marked as read-only
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the file is locked with `LOCK_NO_WRITE_ALLOWED_LOCK` : `UHEX-0000000200000000`
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: STREAM-ID is invalid, the stream does not support write operations or `X01` is negative
-                    * if the STREAM-ID is invalid (maby because the corespending file was deleted)
-                    * or if a negative number of bytes should be written
-                    * or if the stream does not support write operations
+        * `X01` will be set to the number of written bytes.
+            * if an error occurred the value may be less than the spezified length
+                * the `ERRNO` register will be set:
+                    * `STATUS_OUT_OF_SPACE`: operation failed because there was not enough space in the file system
+                        * if the system tried to allocate more space for either the file-system-entry of the open file or its content, but there was not enugh space
+                    * `STATUS_READ_ONLY`: was denied because of read-only
+                        * if the file is marked as read-only
+                    * `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
+                        * if the file is locked with `LOCK_NO_WRITE_ALLOWED_LOCK` : `UHEX-0000000200000000`
+                    * `STATUS_IO_ERR`: an unspecified io error occurred
+                        * if some IO error occurred
+                    * `STATUS_ILLEGAL_ARG`: STREAM-ID is invalid, the stream does not support write operations or `X01` is negative
+                        * if the STREAM-ID is invalid (maby because the corespending file was deleted)
+                        * or if a negative number of bytes should be written
+                        * or if the stream does not support write operations
     * `10`: read
         * `X00` contains the STREAM-ID
         * `X01` contains the number of elements to read
         * `X02` points to the elements to read
         * after execution `X01` will contain the number of elements, which has been read
-        * if an error occured `X01` will be set to `-1`
-            * the `STATUS` register will be flagged:
-                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
-                    * if the element was deleted
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the file is locked with `LOCK_NO_READ_ALLOWED` : `UHEX-0000000100000000`
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: STREAM-ID is invalid or `X01` is negative
-                    * if the STREAM-ID is invalid (maby because the corespending file was deleted)
-                    * or if a negative number of bytes should be written
-        * if `X01` is `0` and was set before to a value greather `0` then the stream has reached its end
-        * reading less bytes than expected does not mead that the stream has reached it's end
-    * `11`: get fs-file
-        * `X00` contains a pointer of a STRING with the file
-        * `X00` will point to a fs-element of the file
-        * on failiure `X00` will be set to `-1`
-            * the `STATUS` register will be flagged:
-                * `UHEX-0040000000000000` : `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the element is not of the correct type (file expected, but folder)
-                    * if the element exists, but is a folder and no file
-                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
-                    * if the element does not exists
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the one of the parents is locked with read forbidden (`LOCK_NO_READ_ALLOWED` : `UHEX-0000000100000000`)
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: not enugh memory could be allocated
-                    * the system could not allocate enugh memory for the fs-element
-        * if the specified element is a link to a file, the target file of the link is returned instead of the actual link
+        * if an error occured `X01` will be set the number of reat bytes
+            * when the stream reached end of file/pipe the `ERRNO` register is not modified
+                * the `ERRNO` register will be set:
+                    * `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
+                        * if the element was deleted
+                    * `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
+                        * if the file is locked with `LOCK_NO_READ_ALLOWED` : `UHEX-0000000100000000`
+                    * `STATUS_IO_ERR`: an unspecified io error occurred
+                        * if some IO error occurred
+                    * `STATUS_ILLEGAL_ARG`: STREAM-ID is invalid or `X01` is negative
+                        * if the STREAM-ID is invalid (maby because the corespending file was deleted)
+                        * or if a negative number of bytes should be written
+    * `11`: stream close
+        * `X00` contains the STREAM-ID
+        * `X00` will be set to 1 on success and 0 on error
     * `12`: get fs-folder
         * `X00` contains a pointer of a STRING with the dictionary
         * `X00` will point to a fs-element of the folder
         * on failiure `X00` will be set to `-1`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000` : `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the element is not of the correct type (folder expected, but file)
                     * if the element exists, but is a file and no folder
                 * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
@@ -1021,7 +1027,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` contains a pointer of a STRING with the link
         * `X00` will point to a fs-element of the link
         * on failiure `X00` will be set to `-1`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000` : `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the element is not of the correct type (link expected, but file or folder)
                     * if the element exists, but is a file and no folder
                 * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
@@ -1034,7 +1040,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` contains a pointer of a STRING with the element
         * `X00` will point to the fs-element
         * on failiure `X00` will be set to `-1`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
                     * if the element does not exists
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1056,7 +1062,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set `UHEX-0000000000000000` : `LOCK_NO_LOCK`
         * on success `X01` will be set to `1`
         * on failiure `X01` will be set to `0`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
                     * if the element does not exists
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1068,7 +1074,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` is set to the ID of the element
         * `X01` will be set to a fs-element of the element with the given id
         * on failiure `X00` will be set to `-1`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
                     * if the element does not exists
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1080,7 +1086,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element
         * `X01` will be set to the create time of the element
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
                     * if some IO error occurred
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
@@ -1089,7 +1095,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element
         * `X01` will be set to the last modify time of the element
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
                     * if some IO error occurred
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
@@ -1098,7 +1104,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element
         * `X01` will be set to the last meta mod time of the element
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
                     * if some IO error occurred
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
@@ -1107,7 +1113,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element
         * `X01` contains the new create date
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is locked with `LOCK_NO_META_CHANGE_ALLOWED_LOCK` : `UHEX-0000000800000000`
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1118,7 +1124,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element
         * `X01` contains the new last mod date
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is locked with `LOCK_NO_META_CHANGE_ALLOWED_LOCK` : `UHEX-0000000800000000`
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1129,7 +1135,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element
         * `X01` contains the new last meta mod date
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is locked with `LOCK_NO_META_CHANGE_ALLOWED_LOCK` : `UHEX-0000000800000000`
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1141,7 +1147,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element
         * `X00` will be set to the lock data of the element
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
                     * if some IO error occurred
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
@@ -1150,7 +1156,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element
         * `X01` will be set to the lock date of the element or `-1` if the element is not locked
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
                     * if some IO error occurred
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
@@ -1167,7 +1173,7 @@ the assembler language for the Primitive-Virtual-Machine
             * a shared lock does not give you any permissions, it just blocks operations for all (also for those with the lock)
         * if the given lock is not flagged with `UHEX-8000000000000000` : `LOCK_LOCKED_LOCK`, it will be automatically be flagged with `UHEX-8000000000000000`: `LOCK_LOCKED_LOCK`
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is already locked
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1185,7 +1191,7 @@ the assembler language for the Primitive-Virtual-Machine
             * else the shared lock counter will be decremented
         * `X01` will be set to `1` on success
         * `X01` will be set to `0` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is locked with a diffrent lock
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1199,7 +1205,7 @@ the assembler language for the Primitive-Virtual-Machine
         * releases also the fs-element
             * to release a fs-element (handle) normally just use the free interrupt (`7` : `INT_MEMORY_FREE`)
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0200000000000000` : `STATUS_OUT_OF_SPACE`: operation failed bcause the there could not be allocated enugh space
                     * the file system was not able to resize the file system entry to a smaller size
                         * the block intern table sometimes grow when a area is released
@@ -1223,7 +1229,7 @@ the assembler language for the Primitive-Virtual-Machine
         * moves the element to a new parent folder and sets its name
             * note that both operations (set parent folder and set name) are optional
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000` : `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the parent is not of the correct type (folder expected, but file)
                     * if the parent element exists, but is a file and no folder
                 * `UHEX-0400000000000000` : `STATUS_READ_ONLY`: operation was denied because of read-only
@@ -1238,7 +1244,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element
         * `X01` will be set to the flags of the element
         * `X01` will be set to `0` if an error occurred
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
                     * if some IO error occurred
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
@@ -1255,7 +1261,7 @@ the assembler language for the Primitive-Virtual-Machine
             * only the 32 low bits are used and the 32 high bits are ignored
         * note that the flags wich specify if the element is a folder, file or link are not allowed to be set/removed
         * on error `X01` will be set to `-1`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element, is locked with a diffrent lock
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or invalid flag modify
@@ -1271,7 +1277,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element folder
         * `X01` will be set to the child element count of the given folder
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the element is locked with a diffrent lock
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1284,7 +1290,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the child element
         * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set to `UHEX-0000000000000000` : `LOCK_NO_LOCK`
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no folder
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
@@ -1300,7 +1306,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the child element
         * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set to `UHEX-0000000000000000` : `LOCK_NO_LOCK`
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no folder
                 * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: the folder does not contain a child with the given name
@@ -1316,7 +1322,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` points to the STRING name of the new child element
         * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the new child element folder
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no folder
                 * `UHEX-0100000000000000` : `STATUS_ELEMENT_ALREADY_EXIST`: the folder already contain a child with the given name
@@ -1335,7 +1341,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` points to the STRING name of the new child element
         * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the new child element file
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no folder
                 * `UHEX-0100000000000000` : `STATUS_ELEMENT_ALREADY_EXIST`: the folder already contain a child with the given name
@@ -1356,7 +1362,7 @@ the assembler language for the Primitive-Virtual-Machine
             * the target element is not allowed to be a link
         * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the new child element link
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no folder
                 * `UHEX-0100000000000000` : `STATUS_ELEMENT_ALREADY_EXIST`: the folder already contain a child with the given name
@@ -1374,7 +1380,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element file
         * `X01` will be set to the length of the file in bytes
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no file
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
@@ -1388,7 +1394,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` points to a at least 32-byte large memory block (256-bits : 32-bytes)
             * the memory block from `X01` will be filled with the SHA-256 hash code of the file
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no file
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
@@ -1403,7 +1409,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` points to a memory block to which the file data should be filled
         * `X03` contains the offset from the file
         * `X02` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no file
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
@@ -1420,7 +1426,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X02` points to the memory block with the data to write
         * `X03` contains the offset from the file
         * `X02` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no file
                 * `UHEX-0400000000000000` : `STATUS_ELEMENT_READ_ONLY`: operation was denied because read-only
@@ -1438,7 +1444,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` contains the number of bytes to append
         * `X02` points to the memory block with the data to write
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no file
                 * `UHEX-0200000000000000` : `STATUS_OUT_OF_SPACE`: operation failed bcause the there could not be allocated enugh space for the larger file
@@ -1459,7 +1465,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` contains the new length of the file
         * removes all data from the file which is behind the new length
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no file
                 * `UHEX-0200000000000000` : `STATUS_OUT_OF_SPACE`: operation failed bcause the there could not be allocated enugh space
@@ -1480,7 +1486,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element link
         * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the target ID
         * `X01` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no link
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
@@ -1495,7 +1501,7 @@ the assembler language for the Primitive-Virtual-Machine
         * sets the target element of the link
             * also flags the link with file or folder and rremoves the other flag (`HEX-00000001` : `FLAG_FOLDER` or `HEX-00000002` : `FLAG_FILE`)
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no link
                 * `UHEX-0400000000000000` : `STATUS_ELEMENT_READ_ONLY`: operation was denied because read-only
@@ -1517,7 +1523,7 @@ the assembler language for the Primitive-Virtual-Machine
             * a shared lock does not give you any permissions, it just blocks operations for all (also for those with the lock)
         * if the given lock is not flagged with `UHEX-8000000000000000` : `LOCK_LOCKED_LOCK`, it will be automatically be flagged with `UHEX-8000000000000000`: `LOCK_LOCKED_LOCK`
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the file syste, is already locked
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1532,7 +1538,7 @@ the assembler language for the Primitive-Virtual-Machine
             * if this is the last lock, the shared lock will be removed
             * else the shared lock counter will be decremented
         * `X00` will be set to `-1` on error
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
                     * if the file system is locked with a diffrent lock or not locked at all
                 * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
@@ -1593,7 +1599,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X03` will be set to the new size of the buffer
             * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
         * on error `X01` will be set to `-1`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X02` is an invalid number system or an invalid buffer size
                     * if the given number system is smaller than `2` or larger than `36`
                     * or if the buffer size is negative
@@ -1609,7 +1615,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X02` will be set to the new size of the buffer
             * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
         * on error `X01` will be set to `-1`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X02` is an invalid number system
                     * if the buffer size is negative
                 * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
@@ -1643,7 +1649,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` will be set to the output buffer
         * `X02` will be set to the new buffer size in bytes
         * if an error occured `X00` will be set to `-1`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: operation failed because because there were invalid arguments
                     * if the last charactet of the input string is a `%` character
                     * or if there are invalid formatting characters
@@ -1673,7 +1679,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X02` will be set to the U8-STRING buffer size
         * `X03` will contain the offset of the `\0` character from the U8-STRING
         * on error `X03` will be set to `-1`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: operation failed because of invalid arguments
                     * if the old buffer length is negative
                 * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
@@ -1690,7 +1696,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` will point to the memory block, in which the file has been loaded
         * `X01` will be set to the length of the file (and the memory block)
         * when an error occurred `X00` will be set to `-1`
-            * the `STATUS` register will be flagged:
+            * the `ERRNO` register will be set:
                 * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
                     * if the given element is no file
                 * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist

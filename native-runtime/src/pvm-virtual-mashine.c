@@ -5,8 +5,14 @@
  *      Author: pat
  */
 #define PVM
+
+#include <pfs-constants.h>
+
 #include "pvm-virtual-mashine.h"
 #include "pvm-err.h"
+
+#include "pvm-int.h"
+#include "pvm-cmd.h"
 
 #include <stdlib.h>
 #include <string.h>
@@ -17,7 +23,7 @@ static inline void init_int() {
 		exit(127);
 	}
 	memcpy(mem.adr, &pvm, 128);
-	pvm.xnn[0x09] = mem.mem->start;
+	pvm.x[0x09] = mem.mem->start;
 }
 
 static inline struct memory* chk(num pntr);
@@ -33,7 +39,7 @@ static inline void interrupt(num intnum) {
 			exit(128);
 		}
 		if (pvm.intp == -1) {
-			pvm.xnn[0] = intnum;
+			pvm.x[0] = intnum;
 			CALL_INT;
 		} else {
 			num adr = pvm.intp + (INT_ERRORS_ILLEGAL_INTERRUPT << 3);
@@ -46,13 +52,13 @@ static inline void interrupt(num intnum) {
 				CALL_INT;
 			} else {
 				init_int();
-				pvm.xnn[0] = intnum;
+				pvm.x[0] = intnum;
 				pvm.ip = deref;
 			}
 		}
 	} else if (pvm.intp == -1) {
 		if (intnum >= INTERRUPT_COUNT) {
-			pvm.xnn[0] = intnum;
+			pvm.x[0] = intnum;
 			intnum = INT_ERRORS_ILLEGAL_INTERRUPT;
 		}
 		CALL_INT;
@@ -128,8 +134,8 @@ static union instruction_adres {
 } ia;
 static num ris;
 
-static inline struct p param(_Bool pntr, int size) {
-#define pvm_param_fail r.valid = 0; return r;
+static inline struct p param(_Bool pntr, int size) { // @suppress("Unused static function") (used in pvm-cmd.c)
+#define PVM_PARAM_FAIL r.valid = 0; return r;
 	struct p r;
 	r.valid = 1;
 	switch (ia.bp[pol++]) {
@@ -138,7 +144,7 @@ static inline struct p param(_Bool pntr, int size) {
 			r.valid = 0;
 		} else if (ris <= size + ((poq - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-			pvm_param_fail
+			PVM_PARAM_FAIL
 		} else if (size == 8) {
 			r.p.n = ia.np[poq++];
 		} else if (size == 4) {
@@ -161,12 +167,12 @@ static inline struct p param(_Bool pntr, int size) {
 	case P_NUM_NUM: {
 		if (ris <= size + ((poq - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-			pvm_param_fail
+			PVM_PARAM_FAIL
 		}
 		num adr = ia.np[poq] + ia.np[poq + 1];
 		struct memory *mem = chk(adr);
 		if (!mem) {
-			pvm_param_fail
+			PVM_PARAM_FAIL
 		}
 		poq += 2;
 		if (pntr) {
@@ -188,12 +194,12 @@ static inline struct p param(_Bool pntr, int size) {
 	case P_NUM_REG: {
 		if (ris <= size + ((poq - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-			pvm_param_fail
+			PVM_PARAM_FAIL
 		}
 		num adr = ia.np[poq++] + pvm.regs[ia.bp[poh--]];
 		struct memory *mem = chk(adr);
 		if (!mem) {
-			pvm_param_fail
+			PVM_PARAM_FAIL
 		}
 		if (pntr) {
 			r.p.np = mem->offset + adr;
@@ -213,12 +219,12 @@ static inline struct p param(_Bool pntr, int size) {
 	case P_REG_REG: {
 		if (ris <= size + ((poq - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-			pvm_param_fail
+			PVM_PARAM_FAIL
 		}
 		num adr = pvm.regs[ia.bp[poh]] + pvm.regs[ia.bp[poh - 1]];
 		struct memory *mem = chk(adr);
 		if (!mem) {
-			pvm_param_fail
+			PVM_PARAM_FAIL
 		}
 		poh -= 1;
 		if (pntr) {
@@ -239,8 +245,8 @@ static inline struct p param(_Bool pntr, int size) {
 	default:
 		r.valid = 0;
 	}
-#undef pvm_param_fail
 	return r;
+#undef PVM_PARAM_FAIL
 }
 
 static inline void exec() {
@@ -281,7 +287,7 @@ PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size) {
 	memory[oms].start = next_adress;
 	memory[oms].end = memory->start + size;
 	memory[oms].offset = adr - memory->start;
-//	if (memory->start < 0 || memory->end < 0) {
+//	if (memory->start < 0 || memory->end < 0) { // whould be the better check
 	// I know that this is check can fail when size is near 2^63
 	if (memory->end < 0) {
 		// overflow

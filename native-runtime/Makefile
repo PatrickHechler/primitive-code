@@ -14,7 +14,7 @@ TARGET = pvm
 
 DEBUG_TARGET = db-pvm
 
-LDFLAGS = -L$(PFS_LIB_FOLDER) -lpfscore
+LDFLAGS = -L$(PFS_LIB_FOLDER) -lpfs-core
 
 DEBUG_LDFLAGS = 
 #-lpthread
