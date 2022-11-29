@@ -946,333 +946,109 @@ the assembler language for the Primitive-Virtual-Machine
         * opens a new stream to the specified file
         * if successfully the STREAM-ID will be saved in the `X00` register
         * if failed `X00` will contain `-1`
-            * the `STATUS` register will be flaged:
-                * `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the element is not of the correct type (file expected, but folder)
-                    * if the element already exists, but is a folder and no file
-                * `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
-                    * if the element does not exists, but `OPEN_CREATE` and `OPEN_NEW_FILE` are not set
-                * `STATUS_ELEMENT_ALREADY_EXIST`: operation failed because the element already existed
-                    * if the element already exists, but `OPEN_NEW_FILE` is set
-                * `STATUS_OUT_OF_SPACE`: operation failed because there was not enough space in the file system
-                    * if the system tried to create the new file, but there was not enugh space for the new file-system-entry
-                * `STATUS_READ_ONLY`: was denied because of read-only
-                    * if the file is marked as read-only, but it was tried to open the file for read or append access
-                * `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the file is locked with `LOCK_NO_READ_ALLOWED` : `UHEX-0000000100000000` and it was tried to open the file for read access
-                    * or if the file is locked with `LOCK_NO_WRITE_ALLOWED_LOCK` : `UHEX-0000000200000000` and it was tried to open the file for write/append access
-                * `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `STATUS_ILLEGAL_ARG`: STREAM-ID is invalid or `X01` contains an invalid open mode
-                    * if the open mode was invalid
-                        * `OPEN_CREATE` or `OPEN_TRUNCATE` with `OPEN_NEW_FILE`
-                        * not `OPEN_READ` and not `OPEN_WRITE` and not `OPEN_APPEND`
-                        * `OPEN_CREATE`, `OPEN_NEW_FILE` and/or `OPEN_TRUNCATE` without `OPEN_WRITE` (and without `OPEN_APPEND`)
-                * `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
-                    * the system tries to allocate some memory but was not able to allocate the needed memory
         * to close the stream use the stream close interrupt (`INT_STREAM_CLOSE`)
     * `9`: write
         * `X00` contains the STREAM-ID
         * `X01` contains the number of elements to write
         * `X02` points to the elements to write
         * `X01` will be set to the number of written bytes.
-            * if an error occurred the value may be less than the spezified length
-                * the `ERRNO` register will be set:
-                    * `STATUS_OUT_OF_SPACE`: operation failed because there was not enough space in the file system
-                        * if the system tried to allocate more space for either the file-system-entry of the open file or its content, but there was not enugh space
-                    * `STATUS_READ_ONLY`: was denied because of read-only
-                        * if the file is marked as read-only
-                    * `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                        * if the file is locked with `LOCK_NO_WRITE_ALLOWED_LOCK` : `UHEX-0000000200000000`
-                    * `STATUS_IO_ERR`: an unspecified io error occurred
-                        * if some IO error occurred
-                    * `STATUS_ILLEGAL_ARG`: STREAM-ID is invalid, the stream does not support write operations or `X01` is negative
-                        * if the STREAM-ID is invalid (maby because the corespending file was deleted)
-                        * or if a negative number of bytes should be written
-                        * or if the stream does not support write operations
     * `10`: read
         * `X00` contains the STREAM-ID
         * `X01` contains the number of elements to read
         * `X02` points to the elements to read
-        * after execution `X01` will contain the number of elements, which has been read
-        * if an error occured `X01` will be set the number of reat bytes
-            * when the stream reached end of file/pipe the `ERRNO` register is not modified
-                * the `ERRNO` register will be set:
-                    * `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
-                        * if the element was deleted
-                    * `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                        * if the file is locked with `LOCK_NO_READ_ALLOWED` : `UHEX-0000000100000000`
-                    * `STATUS_IO_ERR`: an unspecified io error occurred
-                        * if some IO error occurred
-                    * `STATUS_ILLEGAL_ARG`: STREAM-ID is invalid or `X01` is negative
-                        * if the STREAM-ID is invalid (maby because the corespending file was deleted)
-                        * or if a negative number of bytes should be written
+        * after execution `X01` will contain the number of elements, which has been read.
+            * when the value is less than len either an error occured or end of file/pipe has reached (which is not considered an error)
     * `11`: stream close
         * `X00` contains the STREAM-ID
         * `X00` will be set to 1 on success and 0 on error
-    * `12`: get fs-folder
-        * `X00` contains a pointer of a STRING with the dictionary
-        * `X00` will point to a fs-element of the folder
-        * on failiure `X00` will be set to `-1`
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000` : `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the element is not of the correct type (folder expected, but file)
-                    * if the element exists, but is a file and no folder
-                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
-                    * if the element does not exists
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: not enugh memory could be allocated
-                    * the system could not allocate enugh memory for the fs-element
-        * if the specified element is a link to a folder, the target folder of the link is returned instead of the actual link
-    * `13`: get fs-link
-        * `X00` contains a pointer of a STRING with the link
-        * `X00` will point to a fs-element of the link
-        * on failiure `X00` will be set to `-1`
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000` : `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the element is not of the correct type (link expected, but file or folder)
-                    * if the element exists, but is a file and no folder
-                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
-                    * if the element does not exists
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: not enugh memory could be allocated
-                    * the system could not allocate enugh memory for the fs-element
-    * `14`: get fs-element
-        * `X00` contains a pointer of a STRING with the element
-        * `X00` will point to the fs-element
-        * on failiure `X00` will be set to `-1`
-            * the `ERRNO` register will be set:
-                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
-                    * if the element does not exists
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID  of the fs-element is invalid (because it was deleted)
-                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: not enugh memory could be allocated
-                    * the system could not allocate enugh memory for the fs-element
-        * if the specified element is a link the actual link is returned
-    * `15`: duplicate fs-element (handle)
-        * `X00` points to the fs-element
-        * `X00` will point to a duplicate of the same element
-        * if the system could not allocate enugh memory for the duplicate `X00` will be set to `-1`
-    * `16`: get parent
-        * `X00` points to the fs-element
-        * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the ID of the parent folder
-            + note that the only negative ID is `-2` (root folder)
-            * all other IDs are `0` or positive, but not all positive numbers are valid IDs
-        * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set `UHEX-0000000000000000` : `LOCK_NO_LOCK`
-        * on success `X01` will be set to `1`
-        * on failiure `X01` will be set to `0`
-            * the `ERRNO` register will be set:
-                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
-                    * if the element does not exists
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` is a fs-element of the root folder or is itself invalid
-                    * if the given fs-element is the root folder
-                    * or if the given ID  of the fs-element is invalid (maby because it was deleted)
-    * `17`: fs-element from ID
-        * `X00` is set to the ID of the element
-        * `X01` will be set to a fs-element of the element with the given id
-        * on failiure `X00` will be set to `-1`
-            * the `ERRNO` register will be set:
-                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
-                    * if the element does not exists
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` is invalid ID
-                    * if the given ID is invalid
-                        * all negative IDs except of `-2` are invalid (the root folder has the ID `-2`)
-    * `18`: get create date
-        * `X00` points to the fs-element
-        * `X01` will be set to the create time of the element
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `19`: get last mod date
-        * `X00` points to the fs-element
-        * `X01` will be set to the last modify time of the element
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `20`: get last meta mod date
-        * `X00` points to the fs-element
-        * `X01` will be set to the last meta mod time of the element
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `21`: set create date
-        * `X00` points to the fs-element
-        * `X01` contains the new create date
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with `LOCK_NO_META_CHANGE_ALLOWED_LOCK` : `UHEX-0000000800000000`
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `22`: set last mod date
-        * `X00` points to the fs-element
-        * `X01` contains the new last mod date
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with `LOCK_NO_META_CHANGE_ALLOWED_LOCK` : `UHEX-0000000800000000`
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `23`: set last meta mod date
-        * `X00` points to the fs-element
-        * `X01` contains the new last meta mod date
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with `LOCK_NO_META_CHANGE_ALLOWED_LOCK` : `UHEX-0000000800000000`
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-        * note: when changing all dates change this date at last, because it will bee automatically changed on meta changes like the change of the create or last mod date
-    * `24`: get lock data
-        * `X00` points to the fs-element
-        * `X00` will be set to the lock data of the element
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `25`: get lock date
-        * `X00` points to the fs-element
-        * `X01` will be set to the lock date of the element or `-1` if the element is not locked
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `26`: lock element
-        * `X00` points to the fs-element
-        * `X01` is set to the lock data of the new lock
-        * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set to the new lock
-        * if the element is already exclusively locked the operation will fail
-        * if the element is locked with a shared lock and the lock data of the given lock is the same to the lock data of the current lock:
-            * a shared lock is flaged with `UHEX-4000000000000000` : `LOCK_SHARED_LOCK`
-            * the new lock will not contain the shared lock counter
-            * the lock should be released like a exclusive lock, when it is no longer needed
-            * a shared lock does not give you any permissions, it just blocks operations for all (also for those with the lock)
-        * if the given lock is not flagged with `UHEX-8000000000000000` : `LOCK_LOCKED_LOCK`, it will be automatically be flagged with `UHEX-8000000000000000`: `LOCK_LOCKED_LOCK`
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is already locked
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or `X01` not only lock data bits
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-                    * or if the given lock does not only specify the lock data
-    * `27`: unlock element
-        * `X00` points to the fs-element
-        * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set to `UHEX-0000000000000000` : `LOCK_NO_LOCK`
-        * if the element is not locked with the given lock the operation will fail
-            * if the given lock is `UHEX-0000000000000000` : `LOCK_NO_LOCK`, the operation will always try to remove the lock of the element
-        * if the element is locked with a shared lock:
-            * if this is the last lock, the shared lock will be removed
-            * else the shared lock counter will be decremented
-        * `X01` will be set to `1` on success
-        * `X01` will be set to `0` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `28`: delete element
-        * `X00` points to the fs-element
-        * `X01` contains the lock of the parent element or `UHEX-0000000000000000` : `LOCK_NO_LOCK`
-        * deletes the element from the file system
-        * releases also the fs-element
-            * to release a fs-element (handle) normally just use the free interrupt (`7` : `INT_MEMORY_FREE`)
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0200000000000000` : `STATUS_OUT_OF_SPACE`: operation failed bcause the there could not be allocated enugh space
-                    * the file system was not able to resize the file system entry to a smaller size
-                        * the block intern table sometimes grow when a area is released
-                        * if the block intern table can not grow this error occurres
-                * `UHEX-0400000000000000` : `STATUS_READ_ONLY`: operation was denied because of read-only
-                    * if the element or its parent is marked as read-only
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element or its parent is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `29`: move element
-        * `X00` points to the fs-element
-        * `X01` points to the new parent fs-element folder
-            * or `-1` if the parent folder should remain unchanged
-        * `X02` points to the STRING name of the element
-            * or `-1` if the name should remain unchanged
-        * `X03` contains the lock of the old parent folder or `UHEX-0000000000000000` : `LOCK_NO_LOCK`
-            * this value is ignored if `X01` is set to `-1` (the parent folder is not set)
-        * moves the element to a new parent folder and sets its name
-            * note that both operations (set parent folder and set name) are optional
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000` : `STATUS_ELEMENT_WRONG_TYPE`: operation failed because the parent is not of the correct type (folder expected, but file)
-                    * if the parent element exists, but is a file and no folder
-                * `UHEX-0400000000000000` : `STATUS_READ_ONLY`: operation was denied because of read-only
-                    * if the element, its (old) parent or its (not) new parent is marked as read-only
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element, its (old) parent or its (not) new parent is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `30`: get element flags
-        * `X00` points to the fs-element
-        * `X01` will be set to the flags of the element
-        * `X01` will be set to `0` if an error occurred
-            * the `ERRNO` register will be set:
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-        * note that links are also flaged as folder or file
-            * if the link target element is a file, the link is also flagged as file
-            * if the link target element is a folder, the link is also flagged as flder
-            * a link to a link is invalid
-    * `31`: modify element flags
-        * `X00` points to the fs-element
-        * `X01` contains the flags to add to the element
-            * only the 32 low bits are used and the 32 high bits are ignored
-        * `X02` contains the flags to remove from the element
-            * only the 32 low bits are used and the 32 high bits are ignored
-        * note that the flags wich specify if the element is a folder, file or link are not allowed to be set/removed
+    * `12`: stream file get position
+        * `X00` contains the STREAM/FILE_STREAM-ID
+        * `X01` will be set to the stream position or -1 on error
+    * `13`: stream file set position
+        * `X00` contains the STREAM/FILE_STREAM-ID
+        * `X01` contains the new position of the stream
+        * `X01` will be set to 1 or 0 on error
+        * note that it is possible to set the stream position behind the end of the file.
+            * when this is done, the next write (not append) operation will fill the hole with zeros
+    * `14`: stream file add position
+        * `X00` contains the STREAM/FILE_STREAM-ID
+        * `X01` contains the value, which should be added to the position of the stream
+            * `X01` is allowed to be negative, but the sum of the old position and `X01` is not allowed to be negative
+        * `X01` will be set to the new position or -1 on error
+        * note that it is possible to set the stream position behind the end of the file.
+            * when this is done, the next write (not append) operation will fill the hole with zeros
+    * `15`: stream file seek eof
+        * `X00` contains the STREAM-ID
+        * `X01` will be set to the new position of the stream or -1 on error
+        * sets the position of the stream to the end of the file (the file length)
+    * `16`: open element handle file
+        * `X00` points to the `STRING` which contains the path of the file to be opened
+        * `X00` will be set to the newly opened STREAM/FILE-ID or -1 on error
+        * this operation will fail if the element is no file
+    * `17`: open element handle folder
+        * `X00` points to the `STRING` which contains the path of the folder to be opened
+        * `X00` will be set to the newly opened STREAM/FOLDER-ID or -1 on error
+        * this operation will fail if the element is no folder
+    * `18`: open element handle pipe
+        * `X00` points to the `STRING` which contains the path of the pipe to be opened
+        * `X00` will be set to the newly opened STREAM/PIPE-ID or -1 on error
+        * this operation will fail if the element is no pipe
+    * `19`: open element handle (any)
+        * `X00` points to the `STRING` which contains the path of the element to be opened
+        * `X00` will be set to the newly opened STREAM-ID or -1 on error
+    * `20`: element open parent handle
+        * `X00` contains the ELEMENT-ID
+        * `X00` will be set to the newly opened ELEMENT/FOLDER-ID or -1 on error
+    * `21`: get create date
+        * `X00` contains the ELEMENT-ID
+        * `X01` will be set to the create date or `-1` on error
+            * note that `-1` may be the create date of the element, so check `ERRNO` instead
+    * `22`: get last mod date
+        * `X00` contains the ELEMENT-ID
+        * `X01` will be set to the last modified date or `-1` on error
+            * note that `-1` may be the last modified date of the element, so check `ERRNO` instead
+    * `23`: set create date
+        * `X00` contains the ELEMENT-ID
+        * `X00` contains the new create date of the element
+        * `X01` will be set to `1` or `0` on error
+    * `24`: set last modified date
+        * `X00` contains the ELEMENT-ID
+        * `X00` contains the last modified date of the element
+        * `X01` will be set to `1` or `0` on error
+    * `25`: element delete
+        * `X00` contains the ELEMENT-ID
+        * `X01` will be set to `1` or `0` on error
+        * note that this operation automatically closes the given ELEMENT-ID, the close interrupt should not be invoked after this interrupt returned
+    * `26`: element move
+        * `X00` contains the ELEMENT-ID
+        * `X01` points to a STRING which will be the new name. or `X02` is set to `-1` if the name should not be changed
+        * `X02` contains the ELEMENT-ID of the new parent of `-1` if the new parent should not be changed
+        * `X01` will be set to `1` or `0` on error
+        * when both `X01` and `X02` are set to `-1` this operation will do nothing
+    * `27`: element get name
+        * `X00` contains the ELEMENT-ID
+        * `X01` points the the a memory block, which should be used to store the name as a STRING
+            * when `X01` is set to `-1` a new memory block will be allocated
+        * on success `X01` will point to the name as STRING representation
+            * when the memory block is not large enugh, it will be resized
+            * note that when `X01` does not point to the start of the memory block the start of the memory block can still be moved during the reallocation
         * on error `X01` will be set to `-1`
-            * the `ERRNO` register will be set:
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element, is locked with a diffrent lock
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or invalid flag modify
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-                    * or if the flags to add or to remove contain the bits:
-                        * `HEX-00000001` : `FLAG_FOLDER`
-                        * `HEX-00000002``: `FLAG_FILE`
-                        * `HEX-00000004` : `FLAG_LINK`
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-        * bits out of the low 32-bit range will be ignored
+    * `28`: element get flags
+        * `X00` contains the ELEMENT-ID
+        * `X01` will be set to the flags or `-1` on error
+    * `29`: element modify flags
+        * `X00` contains the ELEMENT-ID
+        * `X01` contains the flags to be added
+        * `X02` contains the flags to be removed
+        * note that only the low 32 bit will be used and the high 32 bit will be ignored
+        * `X01` will be set to `1` or `0` on error
+    * `30`: element folder child count
+        * `X00` contains the ELEMENT/FOLDER-ID
+        * `X01` will be set to the number of child elements the folder has or `-1` on error
+    * `31`: modify element flags
+        * `X00` contains the ELEMENT/FOLDER-ID
+        * `X00` points to a STRING with the name of the child
+        * `X01` will be set to a newly opened ELEMENT-ID for the child or `-1` on error
     * `32`: get folder child element count
         * `X00` points to the fs-element folder
         * `X01` will be set to the child element count of the given folder
