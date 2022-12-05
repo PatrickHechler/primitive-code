@@ -1045,113 +1045,37 @@ the assembler language for the Primitive-Virtual-Machine
     * `30`: element folder child count
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X01` will be set to the number of child elements the folder has or `-1` on error
-    * `31`: modify element flags
+    * `31`: folder get child of name
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X00` points to a STRING with the name of the child
         * `X01` will be set to a newly opened ELEMENT-ID for the child or `-1` on error
-    * `32`: get folder child element count
-        * `X00` points to the fs-element folder
-        * `X01` will be set to the child element count of the given folder
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `33`: get child element from index
-        * `X00` points to the fs-element folder
-        * `X01` contains the index of the child element
-        * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the child element
-        * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set to `UHEX-0000000000000000` : `LOCK_NO_LOCK`
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no folder
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-                    * or if the index is out of range (negative or greather or equal to the child element count of the given folder)
-    * `34`: get child element from name
-        * `X00` points to the fs-element folder
-        * `X01` points to the STRING name of the child element
-        * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the child element
-        * `[X00 + 8]` : `[X00 + FS_ELEMENT_OFFSET_LOCK]` will be set to `UHEX-0000000000000000` : `LOCK_NO_LOCK`
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no folder
-                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: the folder does not contain a child with the given name
-                    * if there is no child with the given name
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `35`: add folder
-        * `X00` points to the fs-element folder
+    * `32`: folder get child folder of name
+        * `X00` contains the ELEMENT/FOLDER-ID
+        * `X00` points to a STRING with the name of the child
+        * this operation will fail if the child is no folder
+        * `X01` will be set to a newly opened ELEMENT/FOLDER-ID for the child or `-1` on error
+    * `33`: folder get child file of name
+        * `X00` contains the ELEMENT/FOLDER-ID
+        * `X00` points to a STRING with the name of the child
+        * this operation will fail if the child is no file
+        * `X01` will be set to a newly opened ELEMENT/FILE-ID for the child or `-1` on error
+    * `34`: folder get child pipe of name
+        * `X00` contains the ELEMENT/FOLDER-ID
+        * `X00` points to a STRING with the name of the child
+        * this operation will fail if the child is no pipe
+        * `X01` will be set to a newly opened ELEMENT/PIPE-ID for the child or `-1` on error
+    * `35`: folder add child folder
+        * `X00` contains the ELEMENT/FOLDER-ID
+        * `X00` points to a STRING with the name of the child
+        * `X01` will be set to a newly opened/created ELEMENT/FOLDER-ID for the child or `-1` on error
+    * `36`: folder add child file
+        * `X00` contains the ELEMENT/FOLDER-ID
         * `X01` points to the STRING name of the new child element
-        * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the new child element folder
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no folder
-                * `UHEX-0100000000000000` : `STATUS_ELEMENT_ALREADY_EXIST`: the folder already contain a child with the given name
-                    * if there is already child with the given name
-                * `UHEX-0400000000000000` : `STATUS_ELEMENT_READ_ONLY`: operation was denied because read-only
-                    * if the element is marked as read-only
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-        * the folder will automatically be unflagged from the sorted flag (`HEX-00000040` : `FLAG_FOLDER_SORTED`)
-    * `36`: add file
-        * `X00` points to the fs-element folder
+        * `X01` will be set to a newly opened/created ELEMENT/FILE-ID for the child or `-1` on error
+    * `37`: folder add child pipe
+        * `X00` contains the ELEMENT/FOLDER-ID
         * `X01` points to the STRING name of the new child element
-        * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the new child element file
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no folder
-                * `UHEX-0100000000000000` : `STATUS_ELEMENT_ALREADY_EXIST`: the folder already contain a child with the given name
-                    * if there is already child with the given name
-                * `UHEX-0400000000000000` : `STATUS_ELEMENT_READ_ONLY`: operation was denied because read-only
-                    * if the element is marked as read-only
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-        * the folder will automatically be unflagged from the sorted flag (`HEX-00000040` : `FLAG_FOLDER_SORTED`)
-    * `37`: add link
-        * `X00` points to the fs-element folder
-        * `X01` points to the STRING name of the new child element
-        * `X02` points to the fs-element of the target element
-            * the target element is not allowed to be a link
-        * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the id of the new child element link
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no folder
-                * `UHEX-0100000000000000` : `STATUS_ELEMENT_ALREADY_EXIST`: the folder already contain a child with the given name
-                    * if there is already child with the given name
-                * `UHEX-0400000000000000` : `STATUS_ELEMENT_READ_ONLY`: operation was denied because read-only
-                    * if the element is marked as read-only
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-        * the folder will automatically be unflagged from the sorted flag (`HEX-00000040` : `FLAG_FOLDER_SORTED`)
+        * `X01` will be set to a newly opened/created ELEMENT/PIPE-ID for the child or `-1` on error
     * `38`: file length
         * `X00` points to the fs-element file
         * `X01` will be set to the length of the file in bytes

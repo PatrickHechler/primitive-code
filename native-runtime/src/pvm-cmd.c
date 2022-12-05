@@ -147,7 +147,7 @@ static void c_mul() /* 0x12 */{
 	}
 }
 static void c_div() /* 0x13 */{
-	abort();
+	abort(); //TODO continue impl
 }
 static void c_neg() /* 0x14 */{
 	abort();

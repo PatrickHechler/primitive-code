@@ -53,7 +53,7 @@ static void int_folder_get_file_of_name   INT_PARAMS; /* 33 */
 static void int_folder_get_pipe_of_name   INT_PARAMS; /* 34 */
 static void int_folder_add_folder         INT_PARAMS; /* 35 */
 static void int_folder_add_file           INT_PARAMS; /* 36 */
-static void int_folder_add_link           INT_PARAMS; /* 37 */
+static void int_folder_add_pipe           INT_PARAMS; /* 37 */
 static void int_folder_open_iter          INT_PARAMS; /* 38 */
 static void int_folder_create_folder      INT_PARAMS; /* 39 */
 static void int_folder_create_file        INT_PARAMS; /* 40 */
@@ -191,7 +191,7 @@ static void (*(ints[]))INT_PARAMS = {
 		int_folder_get_pipe_of_name                   /* 34 */,
 	    int_folder_add_folder                         /* 35 */,
 	    int_folder_add_file                           /* 36 */,
-	    int_folder_add_link                           /* 37 */,
+	    int_folder_add_pipe                           /* 37 */,
 	    int_folder_open_iter                          /* 38 */,
 	    int_folder_create_folder                      /* 39 */,
 	    int_folder_create_file                        /* 40 */,

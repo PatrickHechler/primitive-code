@@ -221,6 +221,7 @@ static void int_folder_child_count INT_PARAMS /* 30 */{
 static void int_folder_get_child_of_name INT_PARAMS /* 31 */{
 	struct memory* mem = chk(pvm.x[1]);
 	if (!mem) {
+		pvm.x[1] = -1;
 		return;
 	}
 	num memlen = mem->end - pvm.x[1];
@@ -236,6 +237,7 @@ static void int_folder_get_child_of_name INT_PARAMS /* 31 */{
 static void int_folder_get_folder_of_name INT_PARAMS /* 32 */{
 	struct memory* mem = chk(pvm.x[1]);
 	if (!mem) {
+		pvm.x[1] = -1;
 		return;
 	}
 	num memlen = mem->end - pvm.x[1];
@@ -251,6 +253,7 @@ static void int_folder_get_folder_of_name INT_PARAMS /* 32 */{
 static void int_folder_get_file_of_name INT_PARAMS /* 33 */{
 	struct memory* mem = chk(pvm.x[1]);
 	if (!mem) {
+		pvm.x[1] = -1;
 		return;
 	}
 	num memlen = mem->end - pvm.x[1];
@@ -278,9 +281,25 @@ static void int_folder_get_pipe_of_name INT_PARAMS /* 34 */{
 	}
 	pvm.x[1] = pfs_folder_child_pipe(pvm.x[0], name);
 }
-static void int_folder_add_folder INT_PARAMS /* 35 */{abort();}
+static void int_folder_add_folder INT_PARAMS /* 35 */{
+	struct memory* mem = chk(pvm.x[1]);
+	if (!mem) {
+		pvm.x[1] = -1;
+		return;
+	}
+	num memlen = mem->end - pvm.x[1];
+	const char* name = mem->offset + pvm.x[1];
+	num slen = strnlen(name, memlen);
+	if (slen == memlen) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		pvm.x[1] = -1;
+		return;
+	}
+	pvm.x[1] = pfs_folder_create_folder(pvm.x[0], name);
+}
 static void int_folder_add_file INT_PARAMS /* 36 */{abort();}
-static void int_folder_add_link INT_PARAMS /* 37 */{abort();}
+static void int_folder_add_pipe INT_PARAMS /* 37 */{abort();}
+//TODO continue impl
 static void int_folder_open_iter INT_PARAMS /* 38 */{abort();}
 static void int_folder_create_folder INT_PARAMS /* 39 */{abort();}
 static void int_folder_create_file INT_PARAMS /* 40 */{abort();}
