@@ -32,7 +32,7 @@ static void int_memory_alloc INT_PARAMS /* 5 */{
 		}
 		pvm.x[0] = -1;
 	} else {
-		struct memory2 mem = alloc_memory(pvm.x[0]);
+		struct memory2 mem = alloc_memory(pvm.x[0], 0);
 		if (mem.mem) {
 			pvm.x[0] = mem.mem->start;
 		} else {
@@ -171,7 +171,7 @@ static void int_element_get_name INT_PARAMS /* 27 */{
 		char* buf = NULL;
 		num size = 0;
 		if (pfs_element_get_name(pvm.x[0], &buf, &size)) {
-			struct memory* mem = alloc_memory2(buf, size);
+			struct memory* mem = alloc_memory2(buf, size, 0);
 			if (!mem) {
 				free(buf);
 				return;
@@ -297,9 +297,9 @@ static void int_folder_add_folder INT_PARAMS /* 35 */{
 	}
 	pvm.x[1] = pfs_folder_create_folder(pvm.x[0], name);
 }
+//TODO continue impl
 static void int_folder_add_file INT_PARAMS /* 36 */{abort();}
 static void int_folder_add_pipe INT_PARAMS /* 37 */{abort();}
-//TODO continue impl
 static void int_folder_open_iter INT_PARAMS /* 38 */{abort();}
 static void int_folder_create_folder INT_PARAMS /* 39 */{abort();}
 static void int_folder_create_file INT_PARAMS /* 40 */{abort();}

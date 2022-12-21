@@ -12,15 +12,26 @@ the assembler language for the Primitive-Virtual-Machine
     * the `X01` register will point to the arguments
     * the arguments will point to STRINGs
         * the first argument will be the program itself, all beyond will be the arguments of the program
-        * the entry after the arguments will be `-1`
+        * the entry after the last argument will be set `-1`
         * example:
-            * `my_program --example    value     --other=val`
-            * `X00          <- 4`
-            * `[X01]        <- ADDRESS_OF "my_program\0"`
-            * `[X01 + 8]    <- ADDRESS_OF "--example\0"`
-            * `[X01 + 16]   <- ADDRESS_OF "value\0"`
-            * `[X01 + 24]   <- ADDRESS_OF "--other=val\0"`
-            * `[X01 + 32]   <- -1`
+            * `my_program --example value --other=val`
+            * `X00        <-- 4`
+            * `[X01]      <-- ADDRESS_OF "my_program\0"`
+                * `[[X01]]      <-- 'm'`
+                * `[[X01] + 1]  <-- 'y'`
+                * `[[X01] + 2]  <-- '_'`
+                * `[[X01] + 3]  <-- 'p'`
+                * `[[X01] + 4]  <-- 'r'`
+                * `[[X01] + 5]  <-- 'o'`
+                * `[[X01] + 6]  <-- 'g'`
+                * `[[X01] + 7]  <-- 'r'`
+                * `[[X01] + 8]  <-- 'a'`
+                * `[[X01] + 9]  <-- 'm'`
+                * `[[X01] + 10] <-- '\0'`
+            * `[X01 + 8]  <-- ADDRESS_OF "--example\0"`
+            * `[X01 + 16] <-- ADDRESS_OF "value\0"`
+            * `[X01 + 24] <-- ADDRESS_OF "--other=val\0"`
+            * `[X01 + 32] <-- -1`
     * the `INTCNT` register will be set to `#INTERRUPT_COUNT`
     * the interrupt-table of `INTP` will be initialized with every entry set to `-1`
         * the default interrupt-table will be an `#INTERRUPT_COUNT * 8` sized memory block
@@ -153,37 +164,37 @@ the assembler language for the Primitive-Virtual-Machine
     INT_MEMORY_ALLOC                      5
     INT_MEMORY_REALLOC                    6
     INT_MEMORY_FREE                       7
-    INT_STREAMS_NEW_IN                    8
-    INT_STREAMS_NEW_OUT                   9
-    INT_STREAMS_NEW_APPEND                10
-    INT_STREAMS_NEW_IN_OUT                11
-    INT_STREAMS_NEW_IN_APPEND             12
-    INT_STREAMS_WRITE                     13
-    INT_STREAMS_READ                      14
-    INT_STREAMS_CLOSE_STREAM              15
-    INT_FS_GET_FILE                       16
-    INT_FS_GET_FOLDER                     17
-    INT_FS_GET_LINK                       18
-    INT_FS_IS_FILE                        19
-    INT_FS_IS_FOLDER                      20
-    INT_FS_IS_LINK                        21
-    INT_FS_ELEMENT_GET_PARENT             22
-    INT_FS_ELEMENT_GET_PARENT_ID          23
-    INT_FS_ELEMENT_FROM_ID                24
-    INT_FS_ELEMENT_GET_CREATE             25
-    INT_FS_ELEMENT_GET_LAST_MOD           26
-    INT_FS_ELEMENT_GET_LAST_META_MOD      27
-    INT_FS_ELEMENT_SET_CREATE             28
-    INT_FS_ELEMENT_SET_LAST_MOD           29
-    INT_FS_ELEMENT_SET_LAST_META_MOD      30
-    INT_FS_ELEMENT_GET_LOCK_DATA          31
-    INT_FS_ELEMENT_GET_LOCK_TIME          32
-    INT_FS_ELEMENT_LOCK                   33
-    INT_FS_ELEMENT_UNLOCK                 34
-    INT_FS_ELEMENT_DELETE                 35
-    INT_FS_ELEMENT_MOVE                   36
-    INT_FS_ELEMENT_GET_FLAGS              37
-    INT_FS_ELEMENT_MOD_FLAGS              38
+    INT_OPEN_STREAM                       8
+    INT_STREAMS_WRITE                     9
+    INT_STREAMS_READ                      10
+    INT_STREAMS_CLOSE                     11
+    INT_STREAMS_FILE_GET_POS              12
+    INT_STREAMS_FILE_SET_POS              13
+    INT_STREAMS_FILE_ADD_POS              14
+    INT_STREAMS_FILE_SEEK_EOF             15
+    INT_OPEN_FILE                         16
+    INT_OPEN_FOLDER                       17
+    INT_OPEN_PIPE                         18
+    INT_OPEN_ELEMENT                      19
+    INT_ELEMENT_OPEN_PARENT               20
+    INT_ELEMENT_GET_CREATE                21
+    INT_ELEMENT_GET_LAST_MOD              22
+    INT_ELEMENT_SET_CREATE                23
+    INT_ELEMENT_SET_LAST_MOD              24
+    INT_ELEMENT_DELETE                    25
+    INT_ELEMENT_MOVE                      26
+    INT_ELEMENT_GET_NAME                  27
+    INT_ELEMENT_GET_FLAGS                 28
+    INT_ELEMENT_MODIFY_FLAGS              29
+    INT_FOLDER_CHILD_COUNT                30
+    INT_FOLDER_OPEN_CHILD_OF_NAME         31
+    INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME  32
+    INT_FOLDER_OPEN_CHILD_FILE_OF_NAME    33
+    INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME    34
+    INT_FOLDER_CREATE_CHILD_FOLDER        35
+    INT_FOLDER_CREATE_CHILD_FILE          36
+    INT_FOLDER_CREATE_CHILD_PIPE          37
+    INT_FS_FILE_LENGTH                    38
     INT_FS_FOLDER_CHILD_COUNT             39
     INT_FS_FOLDER_GET_CHILD_OF_INDEX      40
     INT_FS_FOLDER_GET_CHILD_OF_NAME       41
@@ -889,31 +900,31 @@ the assembler language for the Primitive-Virtual-Machine
 * negative interrupts will always cause the illegal interrup to be called instead
 * when `INTCNT` is greather then the number of default interrupts and the called interrupt is not overwritten, the illegal interrupt will be called instead
 * default interrupts:
-    * `0`: illegal interrupt
+    * `0 : INT_ERRORS_ILLEGAL_INTERRUPT`: illegal interrupt
         * `X00` contains the number of the illegal interrupt
         * exits with `(128 + illegal_interrup_number)` (without calling the exit interrupt)
         * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `128`
-    * `1`: unknown command
+    * `1 : INT_ERRORS_UNKNOWN_COMMAND`: unknown command
         * exits with `7` (without calling the exit interrupt)
-    * `2`: illegal memory
+    * `2 : INT_ERRORS_ILLEGAL_MEMORY`: illegal memory
         * exits with `6` (without calling the exit interrupt)
-    * `3`: arithmetic error
+    * `3 : INT_ERRORS_ARITHMETIC_ERROR`: arithmetic error
         * exits with `5` (without calling the exit interrupt)
-    * `4`: exit
+    * `4 : INT_EXIT`: exit
         * use `X00` to specify the exit number of the progress
-    * `5`: allocate a memory-block
+    * `5 : INT_MEMORY_ALLOC`: allocate a memory-block
         * `X00` saves the size of the block
         * if the value of `X00` is `-1` after the call the memory-block could not be allocated
         * if the value of `X00` is not `-1`, `X00` points to the first element of the allocated memory-block
-    * `6`: reallocate a memory-block
+    * `6 : INT_MEMORY_REALLOC`: reallocate a memory-block
         * `X00` points to the memory-block
         * `X01` is set to the new size of the memory-block
         * `X01` will be `-1` if the memory-block could not be reallocated, the old memory-block will remain valid and should be freed if it is not longer needed
         * `X01` will point to the new memory block, the old memory-block was automatically freed, so it should not be used, the new block should be freed if it is not longer needed
-    * `7`: free a memory-block
+    * `7 : INT_MEMORY_FREE`: free a memory-block
         * `X00` points to the old memory-block
         * after this the memory-block should not be used
-    * `8`: open new stream
+    * `8 : INT_OPEN_STREAM`: open new stream
         * `X00` contains a pointer to the STRING, which refers to the file which should be read
         * `X01` specfies the open mode: (bitwise flags)
             * `OPEN_ONLY_CREATE`
@@ -947,85 +958,85 @@ the assembler language for the Primitive-Virtual-Machine
         * if successfully the STREAM-ID will be saved in the `X00` register
         * if failed `X00` will contain `-1`
         * to close the stream use the stream close interrupt (`INT_STREAM_CLOSE`)
-    * `9`: write
+    * `9 : INT_STREAMS_WRITE`: write
         * `X00` contains the STREAM-ID
         * `X01` contains the number of elements to write
         * `X02` points to the elements to write
         * `X01` will be set to the number of written bytes.
-    * `10`: read
+    * `10 : INT_STREAMS_READ`: read
         * `X00` contains the STREAM-ID
         * `X01` contains the number of elements to read
         * `X02` points to the elements to read
         * after execution `X01` will contain the number of elements, which has been read.
             * when the value is less than len either an error occured or end of file/pipe has reached (which is not considered an error)
-    * `11`: stream close
+    * `11 : INT_STREAMS_CLOSE`: stream close
         * `X00` contains the STREAM-ID
         * `X00` will be set to 1 on success and 0 on error
-    * `12`: stream file get position
+    * `12 : INT_STREAMS_FILE_GET_POS`: stream file get position
         * `X00` contains the STREAM/FILE_STREAM-ID
         * `X01` will be set to the stream position or -1 on error
-    * `13`: stream file set position
+    * `13 : INT_STREAMS_FILE_SET_POS`: stream file set position
         * `X00` contains the STREAM/FILE_STREAM-ID
         * `X01` contains the new position of the stream
         * `X01` will be set to 1 or 0 on error
         * note that it is possible to set the stream position behind the end of the file.
             * when this is done, the next write (not append) operation will fill the hole with zeros
-    * `14`: stream file add position
+    * `14 : INT_STREAMS_FILE_ADD_POS`: stream file add position
         * `X00` contains the STREAM/FILE_STREAM-ID
         * `X01` contains the value, which should be added to the position of the stream
             * `X01` is allowed to be negative, but the sum of the old position and `X01` is not allowed to be negative
         * `X01` will be set to the new position or -1 on error
         * note that it is possible to set the stream position behind the end of the file.
             * when this is done, the next write (not append) operation will fill the hole with zeros
-    * `15`: stream file seek eof
+    * `15 : INT_STREAMS_FILE_SEEK_EOF`: stream file seek eof
         * `X00` contains the STREAM-ID
         * `X01` will be set to the new position of the stream or -1 on error
         * sets the position of the stream to the end of the file (the file length)
-    * `16`: open element handle file
+    * `16 : INT_OPEN_FILE`: open element handle file
         * `X00` points to the `STRING` which contains the path of the file to be opened
         * `X00` will be set to the newly opened STREAM/FILE-ID or -1 on error
         * this operation will fail if the element is no file
-    * `17`: open element handle folder
+    * `17 : INT_OPEN_FOLDER`: open element handle folder
         * `X00` points to the `STRING` which contains the path of the folder to be opened
         * `X00` will be set to the newly opened STREAM/FOLDER-ID or -1 on error
         * this operation will fail if the element is no folder
-    * `18`: open element handle pipe
+    * `18 : INT_OPEN_PIPE`: open element handle pipe
         * `X00` points to the `STRING` which contains the path of the pipe to be opened
         * `X00` will be set to the newly opened STREAM/PIPE-ID or -1 on error
         * this operation will fail if the element is no pipe
-    * `19`: open element handle (any)
+    * `19 : INT_OPEN_ELEMENT`: open element handle (any)
         * `X00` points to the `STRING` which contains the path of the element to be opened
         * `X00` will be set to the newly opened STREAM-ID or -1 on error
-    * `20`: element open parent handle
+    * `20 : INT_ELEMENT_OPEN_PARENT`: element open parent handle
         * `X00` contains the ELEMENT-ID
         * `X00` will be set to the newly opened ELEMENT/FOLDER-ID or -1 on error
-    * `21`: get create date
+    * `21 : INT_ELEMENT_GET_CREATE`: get create date
         * `X00` contains the ELEMENT-ID
         * `X01` will be set to the create date or `-1` on error
             * note that `-1` may be the create date of the element, so check `ERRNO` instead
-    * `22`: get last mod date
+    * `22 : INT_ELEMENT_GET_LAST_MOD`: get last mod date
         * `X00` contains the ELEMENT-ID
         * `X01` will be set to the last modified date or `-1` on error
             * note that `-1` may be the last modified date of the element, so check `ERRNO` instead
-    * `23`: set create date
+    * `23 : INT_ELEMENT_SET_CREATE`: set create date
         * `X00` contains the ELEMENT-ID
         * `X00` contains the new create date of the element
         * `X01` will be set to `1` or `0` on error
-    * `24`: set last modified date
+    * `24 : INT_ELEMENT_SET_LAST_MOD`: set last modified date
         * `X00` contains the ELEMENT-ID
         * `X00` contains the last modified date of the element
         * `X01` will be set to `1` or `0` on error
-    * `25`: element delete
+    * `25 : INT_ELEMENT_DELETE`: element delete
         * `X00` contains the ELEMENT-ID
         * `X01` will be set to `1` or `0` on error
         * note that this operation automatically closes the given ELEMENT-ID, the close interrupt should not be invoked after this interrupt returned
-    * `26`: element move
+    * `26 : INT_ELEMENT_MOVE`: element move
         * `X00` contains the ELEMENT-ID
         * `X01` points to a STRING which will be the new name. or `X02` is set to `-1` if the name should not be changed
         * `X02` contains the ELEMENT-ID of the new parent of `-1` if the new parent should not be changed
         * `X01` will be set to `1` or `0` on error
         * when both `X01` and `X02` are set to `-1` this operation will do nothing
-    * `27`: element get name
+    * `27 : INT_ELEMENT_GET_NAME`: element get name
         * `X00` contains the ELEMENT-ID
         * `X01` points the the a memory block, which should be used to store the name as a STRING
             * when `X01` is set to `-1` a new memory block will be allocated
@@ -1033,46 +1044,46 @@ the assembler language for the Primitive-Virtual-Machine
             * when the memory block is not large enugh, it will be resized
             * note that when `X01` does not point to the start of the memory block the start of the memory block can still be moved during the reallocation
         * on error `X01` will be set to `-1`
-    * `28`: element get flags
+    * `28 : INT_ELEMENT_GET_FLAGS`: element get flags
         * `X00` contains the ELEMENT-ID
         * `X01` will be set to the flags or `-1` on error
-    * `29`: element modify flags
+    * `29 : INT_ELEMENT_MODIFY_FLAGS`: element modify flags
         * `X00` contains the ELEMENT-ID
         * `X01` contains the flags to be added
         * `X02` contains the flags to be removed
         * note that only the low 32 bit will be used and the high 32 bit will be ignored
         * `X01` will be set to `1` or `0` on error
-    * `30`: element folder child count
+    * `30 : INT_FOLDER_CHILD_COUNT`: element folder child count
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X01` will be set to the number of child elements the folder has or `-1` on error
-    * `31`: folder get child of name
+    * `31 : INT_FOLDER_OPEN_CHILD_OF_NAME`: folder get child of name
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X00` points to a STRING with the name of the child
         * `X01` will be set to a newly opened ELEMENT-ID for the child or `-1` on error
-    * `32`: folder get child folder of name
+    * `32 : INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME`: folder get child folder of name
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X00` points to a STRING with the name of the child
         * this operation will fail if the child is no folder
         * `X01` will be set to a newly opened ELEMENT/FOLDER-ID for the child or `-1` on error
-    * `33`: folder get child file of name
+    * `33 : INT_FOLDER_OPEN_CHILD_FILE_OF_NAME`: folder get child file of name
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X00` points to a STRING with the name of the child
         * this operation will fail if the child is no file
         * `X01` will be set to a newly opened ELEMENT/FILE-ID for the child or `-1` on error
-    * `34`: folder get child pipe of name
+    * `34 : INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME`: folder get child pipe of name
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X00` points to a STRING with the name of the child
         * this operation will fail if the child is no pipe
         * `X01` will be set to a newly opened ELEMENT/PIPE-ID for the child or `-1` on error
-    * `35`: folder add child folder
+    * `35 : INT_FOLDER_CREATE_CHILD_FOLDER`: folder add child folder
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X00` points to a STRING with the name of the child
         * `X01` will be set to a newly opened/created ELEMENT/FOLDER-ID for the child or `-1` on error
-    * `36`: folder add child file
+    * `36 : INT_FOLDER_CREATE_CHILD_FILE`: folder add child file
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X01` points to the STRING name of the new child element
         * `X01` will be set to a newly opened/created ELEMENT/FILE-ID for the child or `-1` on error
-    * `37`: folder add child pipe
+    * `37 : INT_FOLDER_CREATE_CHILD_PIPE`: folder add child pipe
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X01` points to the STRING name of the new child element
         * `X01` will be set to a newly opened/created ELEMENT/PIPE-ID for the child or `-1` on error
@@ -1080,16 +1091,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the fs-element file
         * `X01` will be set to the length of the file in bytes
         * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no file
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `19`: file hash
+    * `39 : `: file hash
         * `X00` points to the fs-element file
         * `X01` points to a at least 32-byte large memory block (256-bits : 32-bytes)
             * the memory block from `X01` will be filled with the SHA-256 hash code of the file

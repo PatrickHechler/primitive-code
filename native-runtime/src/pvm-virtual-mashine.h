@@ -17,8 +17,6 @@
 #	define EXT extern
 #endif
 
-extern void execute() __attribute__ ((__noreturn__));
-
 typedef int64_t num;
 typedef uint64_t unum;
 typedef double fpnum;
@@ -26,6 +24,11 @@ typedef uint8_t byte;
 typedef uint16_t word;
 typedef uint32_t double_word;
 
+void execute() __attribute__ ((__noreturn__));
+
+void pvm_init(char **argv, num argc_ount, void *exe, num exe_size);
+
+_Static_assert(sizeof(num) == 8, "Error!");
 _Static_assert(sizeof(num) == sizeof(unum), "Error!");
 _Static_assert(sizeof(fpnum) == sizeof(unum), "Error!");
 _Static_assert(sizeof(void*) == sizeof(unum), "Error!");
@@ -88,10 +91,14 @@ EXT num depth;
 
 #endif // PVM
 
+#define MEM_NO_RESIZE 1
+#define MEM_NO_FREE   2
+
 struct memory {
 	num start;
 	num end;
 	void *offset;
+	unsigned flags;
 };
 
 struct memory2 {
@@ -107,6 +114,7 @@ struct memory2 {
  *
  * since memory can grow and shrink memory previously used by a
  * memory block can be 'moved' to be inside of an other memory block
+ * which has already been freed or mooved away
  *
  * this PVM implementation requires the holes exist (size 1 should work)
  */
@@ -114,28 +122,29 @@ struct memory2 {
 #	define ADRESS_HOLE_MINIMUM_SIZE 32
 
 #	define REGISTER_START 0x0000000000001000
-#	define REGISTER_END 0x0000000000001800
+#	define REGISTER_END   0x0000000000001800
+#	define REGISTER_SIZE  0x0000000000000800
 
 // I know that an overflow will occur when the program
-// (executes long enough|allocates (and frees) often enough memory)
+// (executes long enough/allocates (and frees) often enough memory)
 
 static struct memory *memory = NULL;
 static num mem_size = 0;
-static num next_adress = REGISTER_END + ADRESS_HOLE_DEFAULT_SIZE;
+static num next_adress = REGISTER_START;
 
 #endif // PVM
 
-#if defined PVM & !defined PVM_DEBUG
-#	define PVM_SI_PREFIX static inline
-#elif defined PVM | defined PVM_DEBUG
-#	define PVM_SI_PREFIX
-#endif
+#if defined PVM | defined PVM_DEBUG
+#	if defined PVM & !defined PVM_DEBUG
+#		define PVM_SI_PREFIX static inline
+#	else
+#		define PVM_SI_PREFIX
+#	endif
 
-#ifdef PVM_SI_PREFIX
-PVM_SI_PREFIX struct memory2 alloc_memory(num size);
-PVM_SI_PREFIX struct memory* alloc_memory2(void *mem, num size);
+PVM_SI_PREFIX struct memory2 alloc_memory(num size, unsigned flags);
+PVM_SI_PREFIX struct memory* alloc_memory2(void *mem, num size, unsigned flags);
 PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize);
 PVM_SI_PREFIX void free_memory(num adr);
-#endif
+#endif /* defined PVM | defined PVM_DEBUG */
 
 #endif /* SRC_PVM_VIRTUAL_MASHINE_H_ */
