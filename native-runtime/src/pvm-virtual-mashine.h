@@ -126,11 +126,11 @@ struct memory2 {
 #	define REGISTER_SIZE  0x0000000000000800
 
 // I know that an overflow will occur when the program
-// (executes long enough|allocates (and frees) often enough memory)
+// (executes long enough/allocates (and frees) often enough memory)
 
 static struct memory *memory = NULL;
 static num mem_size = 0;
-static num next_adress = REGISTER_END + ADRESS_HOLE_DEFAULT_SIZE;
+static num next_adress = REGISTER_START;
 
 #endif // PVM
 

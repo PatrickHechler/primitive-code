@@ -111,34 +111,60 @@ static void setup(int argc, char **argv) {
 				fprintf(stderr, "could not load the PFS (%s)!\n", pfs_error());
 				exit(1);
 			}
-		} else if (!memcmp("--pmf=", *argv, 6)) {
+		} else if (!memcmp("--bin=", *argv, 6)) {
 			if (!pfs_set) {
-#ifdef PVM_DEBUG
-				if (!wait) {
-#endif
-					fprintf(stderr, "pfs not set!\n");
-					exit(1);
-#ifdef PVM_DEBUG
-				} else if (input == -1) {
-					fprintf(stderr, "wait set, but no input is set!\n");
-					exit(1);
-				} else {
-					return;
-				}
-#endif
+				fprintf(stderr, "pfs not set!\n");
+				exit(1);
 			}
-
-			return;
+#ifdef PVM_DEBUG
+			if (wait && input == -1) {
+				fprintf(stderr, "wait set, but no input is set!\n");
+				exit(1);
+			}
+#endif
+			(*argv) += 6;
+			int fd = open(*argv, O_RDONLY);
+			num exe_size = lseek(fd, 0, SEEK_END);
+			lseek(fd, 0, SEEK_SET);
+			void *exe_data = malloc(exe_size);
+			if (!exe_data) {
+				fprintf(stderr, "could not load the bin file in memory\n");
+				exit(1);
+			}
+			for (num reat = exe_size; reat < exe_size;) {
+				num reat_ = read(fd, exe_data + reat, exe_size - reat);
+				if (reat_ == -1) {
+					switch (errno) {
+					case EAGAIN:
+					case EINTR:
+						continue;
+					default:
+						perror("read");
+						fprintf(stderr, "failed to read the bin file\n");
+						exit(1);
+					}
+				} else if (!reat_) {
+					fprintf(stderr, "the bin file has been modified\n");
+					exit(1);
+				}
+				reat += reat_;
+			}
+			pvm_init(argv, argc, exe_data, exe_size);
 		} else {
 			fprintf(stderr, "unknown argument: '%s'\n", *argv);
 			exit(1);
 		}
 	}
 #ifdef PVM_DEBUG
-	if (wait && (input == -1)) {
-		fprintf(stderr, "wait set but no debug input is set!\n");
+	if (!wait || (input == -1)) {
+		fprintf(stderr,
+				"no binary set! only allowedn if wait and debug input is set!\n");
 		exit(1);
 	}
+	pvm_init(argv, 0, NULL, -1);
+#else
+	fprintf(stderr, "no binary set!\n");
+	exit(1);
 #endif
 }
 

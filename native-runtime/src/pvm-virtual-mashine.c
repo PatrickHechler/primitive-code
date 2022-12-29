@@ -300,7 +300,7 @@ static inline void exec() {
 	cmds[ia.bp[0]]();
 }
 
-PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size) {
+PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size, unsigned flags) {
 	if (mem_size) {
 		for (num index = mem_size - 1; index; index--) {
 			if (memory[index].start == -1) {
