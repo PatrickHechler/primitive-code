@@ -17,8 +17,45 @@
 #include <stdlib.h>
 #include <string.h>
 
+void pvm_init(char **argv, num argc, void *exe, num exe_size) {
+	if (next_adress != REGISTER_START) {
+		abort();
+	}
+	struct memory *pvm_mem = alloc_memory2(&pvm, sizeof(pvm),
+	/*		*/MEM_NO_FREE | MEM_NO_RESIZE);
+	if (!pvm_mem) {
+		abort();
+	}
+	memset(&pvm, 0, sizeof(pvm));
+
+	struct memory2 int_mem = alloc_memory(INTERRUPT_COUNT << 3, 0);
+	if (!int_mem.mem) {
+		abort();
+	}
+	memset(int_mem.adr, -1, INTERRUPT_COUNT << 3);
+
+	if (exe) {
+		// use different flags in future version?
+		struct memory *exe_mem = alloc_memory2(exe, exe_size, 0);
+		if (!exe_mem) {
+			abort();
+		}
+		pvm.ip = exe_mem->start;
+	}
+
+	pvm.x[0] = argc;
+	struct memory *args_mem = alloc_memory2(argv, argc * sizeof(char*), 0);
+	pvm.x[1] = args_mem->start;
+	for (; argc; argv++, argc--) {
+		num len = strlen(*argv) + 1;
+		struct memory *arg_mem = alloc_memory2(*argv, len, 0);
+		*(num*)argv = arg_mem->start;
+	}
+	*(num*) argv = -1;
+}
+
 static inline void init_int() {
-	struct memory2 mem = alloc_memory(128);
+	struct memory2 mem = alloc_memory(128, 0);
 	if (!mem.mem) {
 		exit(127);
 	}
@@ -272,6 +309,7 @@ PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size) {
 			memory[index].start = next_adress;
 			memory[index].end = memory->start + size;
 			memory[index].offset = adr - memory->start;
+			memory[index].flags = flags;
 			next_adress = memory->end + ADRESS_HOLE_DEFAULT_SIZE;
 			if (memory->end < 0) {
 				// overflow
@@ -287,8 +325,12 @@ PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size) {
 	memory[oms].start = next_adress;
 	memory[oms].end = memory->start + size;
 	memory[oms].offset = adr - memory->start;
-//	if (memory->start < 0 || memory->end < 0) { // whould be the better check
-	// I know that this is check can fail when size is near 2^63
+	memory[oms].flags = flags;
+	/*
+	 //	if (memory->start < 0 || memory->end < 0) {
+	 * whould be the better check
+	 * I know that the current check can fail when size is near 2^63
+	 */
 	if (memory->end < 0) {
 		// overflow
 		abort();
@@ -296,7 +338,7 @@ PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size) {
 	next_adress = memory->end + ADRESS_HOLE_DEFAULT_SIZE;
 	return memory + oms;
 }
-PVM_SI_PREFIX struct memory2 alloc_memory(num size) {
+PVM_SI_PREFIX struct memory2 alloc_memory(num size, unsigned flags) {
 	struct memory2 r;
 	void *mem = malloc(size);
 	if (!mem) {
@@ -305,7 +347,7 @@ PVM_SI_PREFIX struct memory2 alloc_memory(num size) {
 		pvm.errno = PE_OUT_OF_MEMORY;
 		return r;
 	}
-	r.mem = alloc_memory2(mem, size);
+	r.mem = alloc_memory2(mem, size, flags);
 	if (r.mem) {
 		r.adr = mem;
 	} else {
@@ -319,7 +361,7 @@ PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize) {
 	if (!mem) {
 		return NULL;
 	}
-	if (mem->start != adr || adr == REGISTER_START) {
+	if ((mem->start != adr) || (adr & MEM_NO_RESIZE)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 		return NULL;
 	}
@@ -360,7 +402,7 @@ PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize) {
 					mem->offset = new_pntr - start;
 					return mem;
 				}
-				struct memory *res = alloc_memory2(new_pntr, newsize);
+				struct memory *res = alloc_memory2(new_pntr, newsize, mem->flags);
 				mem->start = -1;
 				return res;
 			}

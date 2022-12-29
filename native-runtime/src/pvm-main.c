@@ -40,7 +40,7 @@ static void setup(int argc, char **argv) {
 #endif
 	_Bool pfs_set = 0;
 	char *cwd = NULL;
-	for (argv++; *argv; argv++) {
+	for (argv++; *argv; argv++, argc--) {
 		if (!strcmp("--help", *argv)) {
 			print_help();
 			exit(1);
@@ -145,14 +145,14 @@ static void setup(int argc, char **argv) {
 static void print_help(void) {
 	printf(
 #ifdef PVM_DEBUG
-			"Usage: db-pvm [Options] --pmc=[EXECUTE_FILE] [ARGUMENTS]\n"
-#else
-			"Usage: pvm [Options] --pmc=[EXECUTE_FILE] [ARGUMENTS]\n"
-#endif
-					"Options-Rules:\n"
-					"  --pfs=[PFS_FILE]\n"
-					"    this Option is NOT optional!\n"
-					"  --pfs=[EXECUTE_FILE]\n"
+			"Usage: db-pvm [Options] --pmf=[EXECUTE_FILE] [ARGUMENTS]\n"
+#else // PVM_DEBUG
+			"Usage: pvm [Options] --pmf=[EXECUTE_FILE] [ARGUMENTS]\n"
+#endif // PVM_DEBUG
+			"Options-Rules:\n"
+			"  --pfs=[PFS_FILE]\n"
+			"    this Option is NOT optional!\n"
+			"  --pmf=[EXECUTE_FILE]\n"
 #ifdef PVM_DEBUG
 			"    this Option is only optional when --wait is set!\n"
 			"  --wait\n"
@@ -163,9 +163,9 @@ static void print_help(void) {
 			"    if this option is set --pipe=[PIPE] is not allowed\n"
 			"  --pipe=[PIPE]\n"
 			"    if this option is set --port=[PORT] is not allowed\n"
-#else
+#else // PVM_DEBUG
 			"    this Option is NOT optional!\n"
-#endif
+#endif // PVM_DEBUG
 			"Options:\n"
 			"  --help\n"
 			"    print this message and exit\n"
@@ -180,12 +180,12 @@ static void print_help(void) {
 			"    to not start the execution of the program\n"
 			"    wait until an attached debugger commands to execute\n"
 			"    (with a normal continue or step command).\n"
-#endif
-			"  --pfs=[PFS_FILE]\n"
-			"    set the file which contains the Patr-File-System\n"
+#endif // PVM_DEBUG
 			"  --cwd=[FOLDER]\n"
 			"    set the current working directory for the program\n"
-			"  --pmc=[EXECUTE_FILE]\n"
+			"  --pfs=[PFS_FILE]\n"
+			"    set the file which contains the Patr-File-System\n"
+			"  --pmf=[EXECUTE_FILE]\n"
 			"    set the file to executed.\n"
 			"    all arguments after this option will be passed to the\n"
 			"    program as program arguments.\n"
@@ -194,7 +194,7 @@ static void print_help(void) {
 #ifdef PVM_DEBUG
 			"    it is recommended to specify this option even when\n"
 			"    --wait is specified.\n"
-#endif
+#endif // PVM_DEBUG
 			"");
 }
 
