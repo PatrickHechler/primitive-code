@@ -12,7 +12,6 @@ the assembler language for the Primitive-Virtual-Machine
     * the `X01` register will point to the arguments
     * the arguments will point to STRINGs
         * the first argument will be the program itself, all beyond will be the arguments of the program
-<<<<<<< HEAD
         * the entry after the last argument will be `-1`
         * example: (assuming there is a patr-file-sys at `./patr-file-sys.pfs` which contains a executable at `/bin/my_program`)
             * `pvm --pfs=./patr-file-sys.pfs --pmf=/bin/my_program --example value --other=val`
@@ -38,33 +37,15 @@ the assembler language for the Primitive-Virtual-Machine
             * `[X01 + 16]   <-- ADDRESS_OF "value\0"`
             * `[X01 + 24]   <-- ADDRESS_OF "--other=val\0"`
             * `[X01 + 32]   <-- -1`
-=======
-        * the entry after the last argument will be set `-1`
-        * example:
-            * `my_program --example value --other=val`
-            * `X00        <-- 4`
-            * `[X01]      <-- ADDRESS_OF "my_program\0"`
-                * `[[X01]]      <-- 'm'`
-                * `[[X01] + 1]  <-- 'y'`
-                * `[[X01] + 2]  <-- '_'`
-                * `[[X01] + 3]  <-- 'p'`
-                * `[[X01] + 4]  <-- 'r'`
-                * `[[X01] + 5]  <-- 'o'`
-                * `[[X01] + 6]  <-- 'g'`
-                * `[[X01] + 7]  <-- 'r'`
-                * `[[X01] + 8]  <-- 'a'`
-                * `[[X01] + 9]  <-- 'm'`
-                * `[[X01] + 10] <-- '\0'`
-            * `[X01 + 8]  <-- ADDRESS_OF "--example\0"`
-            * `[X01 + 16] <-- ADDRESS_OF "value\0"`
-            * `[X01 + 24] <-- ADDRESS_OF "--other=val\0"`
-            * `[X01 + 32] <-- -1`
->>>>>>> refs/remotes/origin/main
     * the `INTCNT` register will be set to `#INTERRUPT_COUNT`
     * the interrupt-table of `INTP` will be initialized with every entry set to `-1`
         * the default interrupt-table will be an `#INTERRUPT_COUNT * 8` sized memory block
         * so by default the default interrupts will be called, but they can be easily overwritten
-    * the `SP` will be either be set to `-1` or `SP` will point to the start of an memory block (with an undefined size)
+    * the `SP` will be set to the start of an memory block
+        1. the stack will try to automatically resize itself, when it is too small
+        2. this is when the memory blocks last address is just below an address which is tried be used
+        3. when this happens, the `SP` register will be changed to point to the same data in the new memory block
+        * as
 
 ## Register
 

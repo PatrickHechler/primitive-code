@@ -28,7 +28,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	}
 	memset(&pvm, 0, sizeof(pvm));
 
-	struct memory2 int_mem = alloc_memory(INTERRUPT_COUNT << 3, 0);
+	struct memory2 int_mem = alloc_memory(INTERRUPT_COUNT << 3, 0U);
 	if (!int_mem.mem) {
 		abort();
 	}
@@ -36,7 +36,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 
 	if (exe) {
 		// use different flags in future version?
-		struct memory *exe_mem = alloc_memory2(exe, exe_size, 0);
+		struct memory *exe_mem = alloc_memory2(exe, exe_size, 0U);
 		if (!exe_mem) {
 			abort();
 		}
@@ -44,7 +44,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	}
 
 	pvm.x[0] = argc;
-	struct memory *args_mem = alloc_memory2(argv, argc * sizeof(char*), 0);
+	struct memory *args_mem = alloc_memory2(argv, argc * sizeof(char*), 0U);
 	pvm.x[1] = args_mem->start;
 	for (; argc; argv++, argc--) {
 		num len = strlen(*argv) + 1;

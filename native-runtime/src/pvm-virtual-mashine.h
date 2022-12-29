@@ -91,14 +91,19 @@ EXT num depth;
 
 #endif // PVM
 
-#define MEM_NO_RESIZE 1
-#define MEM_NO_FREE   2
+#define MEM_NO_RESIZE       0x00000001u
+#define MEM_NO_FREE         0x00000002u
+#define MEM_AUTO_GROW       0x00000004U
+
+#define MEM_AUTO_GROW_BITS  0xFF000000U
 
 struct memory {
 	num start;
 	num end;
 	void *offset;
 	unsigned flags;
+	unsigned grow_size;
+	num *end_pntr;
 };
 
 struct memory2 {
