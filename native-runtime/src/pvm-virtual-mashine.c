@@ -28,6 +28,15 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	}
 	memset(&pvm, 0, sizeof(pvm));
 
+	void *stack_pntr = malloc(256);
+	if (!stack_pntr) {
+		abort();
+	}
+	struct memory *stack_mem = alloc_memory2(stack_pntr, 256,
+	/*		*/MEM_AUTO_GROW | (8 << MEM_AUTO_GROW_SHIFT));
+	stack_mem->grow_size = 256;
+	stack_mem->end_pntr = &pvm.sp;
+
 	struct memory2 int_mem = alloc_memory(INTERRUPT_COUNT << 3, 0U);
 	if (!int_mem.mem) {
 		abort();
@@ -49,7 +58,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	for (; argc; argv++, argc--) {
 		num len = strlen(*argv) + 1;
 		struct memory *arg_mem = alloc_memory2(*argv, len, 0);
-		*(num*)argv = arg_mem->start;
+		*(num*) argv = arg_mem->start;
 	}
 	*(num*) argv = -1;
 }
@@ -402,7 +411,8 @@ PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize) {
 					mem->offset = new_pntr - start;
 					return mem;
 				}
-				struct memory *res = alloc_memory2(new_pntr, newsize, mem->flags);
+				struct memory *res = alloc_memory2(new_pntr, newsize,
+						mem->flags);
 				mem->start = -1;
 				return res;
 			}

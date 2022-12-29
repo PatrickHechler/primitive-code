@@ -43,9 +43,35 @@ the assembler language for the Primitive-Virtual-Machine
         * so by default the default interrupts will be called, but they can be easily overwritten
     * the `SP` will be set to the start of an memory block
         1. the stack will try to automatically resize itself, when it is too small
-        2. this is when the memory blocks last address is just below an address which is tried be used
+        2. this is when the memory blocks last address is a little below an address which is tried be used
+            * a address `A` is considered a little below an other address `B` when `B - A` is less then or equal to `8`
         3. when this happens, the `SP` register will be changed to point to the same data in the new memory block
-        * as
+        * when the stack is not able to grow, it will cause the `INT_ERRORS_ILLEGAL_MEMORY` to be executed instead
+        * this means the `PUSH` command can be used without caring about a stack overflow
+            * (the `POP` command can still cause a stack underflow)
+        * note that this also means that the `SP` register is the only reliable source of the stack memory block
+            * any other address in the stack memory block can get outdated when a `PUSH` (or somethingsimmilar) command is executed
+            * example:
+                1. `PUSH X00 |> push the X00 value to the stack`
+                2. `MVAD [SP], SP, 8 |> push the address of the X00 value to the stack`
+                3. `ADD SP, 8`
+                4. `|> works until here`
+                5. `CALL sub`
+                6. `|> note that the call also stores the current address in the stack and thus the X00 address stored previously may get corrupt/invalid`
+                7. `|> also note that the sub may also use the stack before using the stored address its last time`
+            * note that there is no example of how it works, because it whould be just regulary using the stack until hitting the point of a stack grow
+                1. `LOOP:`
+                2. `  PUSH X00`
+                3. `  JMP LOOP`
+                * this is an example of letting the stack grow, until there is no longer enugh memory to let the stack grow, which will cause an INT_ERRORS_ILLEGAL_MEMORY
+                1. `XOR X00, X00 |> set X00 to 0`
+                2. `MOV X01, MIN_STACK_GROWABLE |> define MIN_STACK_GROWABLE to any positive number before`
+                3. `LOOP:`
+                4. `  MOV [SP + X00], [SP + X00] |> only read or write access is needed (here is both used)`
+                5. `  ADD X00, 8`
+                6. `  DEC X01`
+                7. `  JMPNZ LOOP`
+                * this example, can be used to ensure that the stack can still grow `X01` entries
 
 ## Register
 
@@ -55,7 +81,7 @@ the assembler language for the Primitive-Virtual-Machine
         * initialized with the begin of the loaded machine code file
     * `SP`
         * the stack pointer points to the command to be executed
-        * initialized with `-1` or the begin of a memory block
+        * initialized with the begin of a spezial automatically growing memory block
     * `INTP`
         * points to the interrupt-table
         * initialized with the interrupt table

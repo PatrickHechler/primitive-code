@@ -94,8 +94,9 @@ EXT num depth;
 #define MEM_NO_RESIZE       0x00000001u
 #define MEM_NO_FREE         0x00000002u
 #define MEM_AUTO_GROW       0x00000004U
-
+// TODO implement auto grow
 #define MEM_AUTO_GROW_BITS  0xFF000000U
+#define MEM_AUTO_GROW_SHIFT 24
 
 struct memory {
 	num start;
@@ -123,7 +124,7 @@ struct memory2 {
  *
  * this PVM implementation requires the holes exist (size 1 should work)
  */
-#	define ADRESS_HOLE_DEFAULT_SIZE 256
+#	define ADRESS_HOLE_DEFAULT_SIZE 1024
 #	define ADRESS_HOLE_MINIMUM_SIZE 32
 
 #	define REGISTER_START 0x0000000000001000
