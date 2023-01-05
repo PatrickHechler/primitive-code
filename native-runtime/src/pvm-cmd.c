@@ -1,10 +1,21 @@
 #ifndef PVM
-#error "this file should be included insice of pvm-virtual-mashine.c"
-#endif
+#	error "this file should be included insice of pvm-virtual-mashine.c"
+#endif // PVM
 
 static void c_ill() /* --- */{
 	interrupt(INT_ERRORS_UNKNOWN_COMMAND);
 }
+
+#define check_chaged(arg0, arg1) \
+		if (p2.changed) { \
+			param_byte_value_index = 7; \
+			param_param_type_index = 1; \
+			param_num_value_index = 1; \
+			p1 = param(arg0, arg1); \
+			if (!p1.valid) { \
+				return; \
+			} \
+		}
 
 static void c_mvb() /* 0x01 */{
 	struct p p1 = param(1, 1);
@@ -15,6 +26,7 @@ static void c_mvb() /* 0x01 */{
 	if (!p2.valid) {
 		return;
 	}
+	check_chaged(1, 1)
 	*p1.p.bp = p2.p.b;
 }
 static void c_mvw() /* 0x02 */{
@@ -26,6 +38,7 @@ static void c_mvw() /* 0x02 */{
 	if (!p2.valid) {
 		return;
 	}
+	check_chaged(1, 2)
 	*p1.p.wp = p2.p.w;
 }
 static void c_mvdw() /* 0x03 */{
@@ -37,6 +50,7 @@ static void c_mvdw() /* 0x03 */{
 	if (!p2.valid) {
 		return;
 	}
+	check_chaged(1, 4)
 	*p1.p.dwp = p2.p.dw;
 }
 static void c_mov() /* 0x04 */{
@@ -48,6 +62,7 @@ static void c_mov() /* 0x04 */{
 	if (!p2.valid) {
 		return;
 	}
+	check_chaged(1, 8)
 	*p1.p.np = p2.p.n;
 }
 static void c_lea() /* 0x05 */{
@@ -59,6 +74,7 @@ static void c_lea() /* 0x05 */{
 	if (!p2.valid) {
 		return;
 	}
+	check_chaged(1, 8)
 	*p1.p.np = pvm.ip + p2.p.n;
 }
 static void c_mvad() /* 0x06 */{
@@ -70,11 +86,13 @@ static void c_mvad() /* 0x06 */{
 	if (!p2.valid) {
 		return;
 	}
-	if (ris <= ((poq) << 3)) {
+	num old_num_index = param_num_value_index;
+	if (remain_instruct_space <= ((old_num_index) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 		return;
 	}
-	*p1.p.np = p2.p.n + ia.np[poq];
+	check_chaged(1, 8)
+	*p1.p.np = p2.p.n + ia.np[old_num_index];
 }
 static void c_swap() /* 0x07 */{
 	struct p p1 = param(1, 8);
@@ -85,6 +103,7 @@ static void c_swap() /* 0x07 */{
 	if (!p2.valid) {
 		return;
 	}
+	check_chaged(1, 8)
 	num tmp = *p1.p.np;
 	*p1.p.np = *p2.p.np;
 	*p2.p.np = tmp;
@@ -99,6 +118,7 @@ static void c_add() /* 0x10 */{
 	if (!p2.valid) {
 		return;
 	}
+	check_chaged(1, 8)
 	num op1 = *p1.p.np;
 	*p1.p.np += p2.p.n;
 	if (((*p1.p.np < 0) & (*p2.p.np > 0) & (op1 > 0))
@@ -119,6 +139,7 @@ static void c_sub() /* 0x11 */{
 	if (!p2.valid) {
 		return;
 	}
+	check_chaged(1, 8)
 	num op1 = *p1.p.np;
 	*p1.p.np -= p2.p.n;
 	if (((*p1.p.np < 0) & (*p2.p.np < 0) & (op1 > 0))
@@ -139,17 +160,39 @@ static void c_mul() /* 0x12 */{
 	if (!p2.valid) {
 		return;
 	}
+	check_chaged(1, 8)
 	*p1.p.np *= p2.p.n;
-	if (*p1.p.np < 0) {
+	if (*p1.p.np) {
 		pvm.status.unum &= ~S_ZERO;
 	} else {
 		pvm.status.unum |= S_ZERO;
 	}
 }
 static void c_div() /* 0x13 */{
-	abort(); //TODO continue impl
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(1, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	num a = *p1.p.np;
+	num b = *p2.p.np;
+	if (!b) {
+		interrupt(INT_ERRORS_ARITHMETIC_ERROR);
+		return;
+	}
+	*p1.p.np = a / b;
+	*p2.p.np = a % b;
 }
 static void c_neg() /* 0x14 */{
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	*p1.p.np = -*p1.p.np;
 	abort();
 }
 static void c_addc() /* 0x15 */{

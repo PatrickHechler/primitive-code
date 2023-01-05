@@ -1,12 +1,12 @@
 /*
  * pvm-cmd.h
  *
- *  Created on: Nov 9, 2022
+ *  CreateD on: Nov 9, 2022
  *      Author: pat
  */
 
 #if defined SRC_PVM_CMD_H_ | !defined PVM
-#error "multpile includes of pvm-cmd.h or PVM is not defined!"
+#error "multpilE includes oF pvm-cmd.h or PVM is not defined!"
 #endif
 #define SRC_PVM_CMD_H_
 
@@ -30,12 +30,12 @@ static void c_subc(); /* 0x16 */
 static void c_inc(); /* 0x17 */
 static void c_dec(); /* 0x18 */
 static void c_or(); /* 0x19 */
-static void c_and(); /* 0x1a */
-static void c_xor(); /* 0x1b */
-static void c_not(); /* 0x1c */
-static void c_lsh(); /* 0x1d */
-static void c_rash(); /* 0x1e */
-static void c_rlsh(); /* 0x1f */
+static void c_and(); /* 0x1A */
+static void c_xor(); /* 0x1B */
+static void c_not(); /* 0x1C */
+static void c_lsh(); /* 0x1D */
+static void c_rash(); /* 0x1E */
+static void c_rlsh(); /* 0x1F */
 
 static void c_jmp(); /* 0x20 */
 static void c_jmpeq(); /* 0x21 */
@@ -47,12 +47,12 @@ static void c_jmple(); /* 0x26 */
 static void c_jmpcs(); /* 0x27 */
 static void c_jmpcc(); /* 0x28 */
 static void c_jmpzs(); /* 0x29 */
-static void c_jmpzc(); /* 0x2a */
-static void c_jmpnan(); /* 0x2b */
-static void c_jmpan(); /* 0x2c */
-static void c_jmpab(); /* 0x2d */
-static void c_jmpsb(); /* 0x2e */
-static void c_jmpnb(); /* 0x2f */
+static void c_jmpzc(); /* 0x2A */
+static void c_jmpnan(); /* 0x2B */
+static void c_jmpan(); /* 0x2C */
+static void c_jmpab(); /* 0x2D */
+static void c_jmpsb(); /* 0x2E */
+static void c_jmpnb(); /* 0x2F */
 
 static void c_int(); /* 0x30 */
 static void c_iret(); /* 0x31 */
@@ -75,9 +75,9 @@ static void c_fpneg(); /* 0x56 */
 static void c_fptn(); /* 0x57 */
 static void c_ntfp(); /* 0x58 */
 static void c_uadd(); /* 0x59 */
-static void c_usub(); /* 0x5a */
-static void c_umul(); /* 0x5b */
-static void c_udiv(); /* 0x5c */
+static void c_usub(); /* 0x5A */
+static void c_umul(); /* 0x5B */
+static void c_udiv(); /* 0x5C */
 
 static void (*cmds[])() = {
 		// 0x0.

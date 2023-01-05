@@ -35,7 +35,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	struct memory *stack_mem = alloc_memory2(stack_pntr, 256,
 	/*		*/MEM_AUTO_GROW | (8 << MEM_AUTO_GROW_SHIFT));
 	stack_mem->grow_size = 256;
-	stack_mem->end_pntr = &pvm.sp;
+	stack_mem->change_pntr = &pvm.sp;
 
 	struct memory2 int_mem = alloc_memory(INTERRUPT_COUNT << 3, 0U);
 	if (!int_mem.mem) {
@@ -72,14 +72,19 @@ static inline void init_int() {
 	pvm.x[0x09] = mem.mem->start;
 }
 
-static inline struct memory* chk(num pntr);
+struct memory_check {
+	struct memory *mem;
+	_Bool changed;
+};
+
+static inline struct memory_check chk(num pntr, num size);
 
 static inline void interrupt(num intnum) {
 #ifdef PVM_DEBUG
 #	define CALL_INT ints[intnum](intnum)
-#else
+#else // PVM_DEBUG
 #	define CALL_INT ints[intnum]();
-#endif
+#endif // PVM_DEBUG
 	if (pvm.intcnt < intnum || intnum < 0) {
 		if (intnum == INT_ERRORS_ILLEGAL_INTERRUPT || pvm.intcnt <= 0) {
 			exit(128);
@@ -89,7 +94,7 @@ static inline void interrupt(num intnum) {
 			CALL_INT;
 		} else {
 			num adr = pvm.intp + (INT_ERRORS_ILLEGAL_INTERRUPT << 3);
-			struct memory *mem = chk(adr);
+			struct memory *mem = chk(adr, 8).mem;
 			if (!mem) {
 				return;
 			}
@@ -110,7 +115,7 @@ static inline void interrupt(num intnum) {
 		CALL_INT;
 	} else {
 		num adr = pvm.intp + (intnum << 3);
-		struct memory *mem = chk(adr);
+		struct memory *mem = chk(adr, 8).mem;
 		if (!mem) {
 			return;
 		}
@@ -125,21 +130,54 @@ static inline void interrupt(num intnum) {
 #undef CALL_INT
 }
 
-static inline struct memory* chk(num pntr) {
+static inline struct memory_check chk(num pntr, num size) {
 	for (struct memory *m = memory; m->start != -1; m++) {
 		if (m->start > pntr) {
+			if (m != memory) {
+				m--;
+				check_grow: if (m->flags & MEM_AUTO_GROW) {
+					num auto_grow_end = m->end
+							+ ((m->flags & MEM_AUTO_GROW_BITS)
+									>> MEM_AUTO_GROW_SHIFT);
+					if (auto_grow_end < 0) {
+						abort(); // num overflow
+					}
+					if (pntr < auto_grow_end) {
+						num grow_size = (size / m->grow_size) + m->grow_size;
+						num new_size = m->end - m->start + grow_size;
+						num old_start= m->start;
+						struct memory *new_mem = realloc_memory(m->start, new_size, 1);
+						if (new_mem) {
+							struct memory_check result;
+							result.changed = new_mem->start != old_start;
+							result.mem = new_mem;
+							return result;
+						}
+					}
+				}
+			}
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-			return NULL;
+			struct memory_check result;
+			result.mem = NULL;
+			return result;
 		} else if (m->end <= pntr) {
 			continue;
+		} else if (m->end <= pntr - size) {
+			goto check_grow;
 		}
-		return m;
+		struct memory_check result;
+		result.mem = m;
+		result.changed = 0;
+		return result;
 	}
 	interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-	return NULL;
+	struct memory_check result;
+	result.mem = NULL;
+	return result;
 }
 
 union param {
+	void *pntr;
 	fpnum fpn;
 	fpnum *fpnp;
 	num n;
@@ -150,12 +188,12 @@ union param {
 	word *wp;
 	byte b;
 	byte *bp;
-	void *p;
 };
 
 struct p {
 	union param p;
 	_Bool valid;
+	_Bool changed;
 };
 
 #define get_param(name, pntr) \
@@ -163,74 +201,78 @@ struct p {
 	{ \
 		struct p _p = param(pntr); \
 		if (!p.valid) { \
-			int_errors_unknown_command(CI(INT_ERRORS_UNKNOWN_COMMAND)); \
 			return; \
 		} \
 		name = p.p; \
 	}
 
-static int pol;
-static int poh;
-static int poq;
+static int param_param_type_index;
+static int param_byte_value_index;
+static int param_num_value_index;
 
 static union instruction_adres {
 	void *pntr;
 	num *np;
 	byte *bp;
 } ia;
-static num ris;
+static num remain_instruct_space;
 
-static inline struct p param(_Bool pntr, int size) { // @suppress("Unused static function") (used in pvm-cmd.c)
+static inline struct p param(int pntr, int size) {
 #define PVM_PARAM_FAIL r.valid = 0; return r;
 	struct p r;
 	r.valid = 1;
-	switch (ia.bp[pol++]) {
+	r.changed = 0;
+	switch (ia.bp[param_param_type_index++]) {
 	case P_NUM:
 		if (pntr) {
 			r.valid = 0;
-		} else if (ris <= size + ((poq - 1) << 3)) {
+		} else if (remain_instruct_space
+				<= size + ((param_num_value_index - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 			PVM_PARAM_FAIL
 		} else if (size == 8) {
-			r.p.n = ia.np[poq++];
+			r.p.n = ia.np[param_num_value_index++];
 		} else if (size == 4) {
-			r.p.dw = *(double_word*) (ia.np + poq++);
+			r.p.dw = *(double_word*) (ia.np + param_num_value_index++);
 		} else if (size == 2) {
-			r.p.w = *(word*) (ia.np + poq++);
+			r.p.w = *(word*) (ia.np + param_num_value_index++);
 		} else if (size == 1) {
-			r.p.b = *(byte*) (ia.np + poq++);
+			r.p.b = *(byte*) (ia.np + param_num_value_index++);
 		} else {
 			abort();
 		}
 		break;
 	case P_REG:
 		if (pntr) {
-			r.p.np = &pvm.regs[ia.bp[poh--]];
+			r.p.pntr = &pvm.regs[ia.bp[param_byte_value_index--]];
 		} else {
-			r.p.n = pvm.regs[ia.bp[poh--]];
+			r.p.n = pvm.regs[ia.bp[param_byte_value_index--]];
 		}
 		break;
 	case P_NUM_NUM: {
-		if (ris <= size + ((poq - 1) << 3)) {
+		if (remain_instruct_space
+				<= size + ((param_num_value_index - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 			PVM_PARAM_FAIL
 		}
-		num adr = ia.np[poq] + ia.np[poq + 1];
-		struct memory *mem = chk(adr);
-		if (!mem) {
+		num adr = ia.np[param_num_value_index]
+				+ ia.np[param_num_value_index + 1];
+		struct memory_check mem = chk(adr, size);
+		if (!mem.mem) {
 			PVM_PARAM_FAIL
 		}
-		poq += 2;
+		param_num_value_index += 2;
 		if (pntr) {
-			r.p.np = mem->offset + adr;
+			r.p.pntr = mem.mem->offset + adr;
+			r.changed = mem.changed;
 		} else if (size == 8) {
-			r.p.n = *(num*) (mem->offset + adr);
+			r.p.n = *(num*) (mem.mem->offset + adr);
 		} else if (size == 4) {
-			r.p.dw = *(double_word*) (mem->offset + adr);
+			r.p.dw = *(double_word*) (mem.mem->offset + adr);
 		} else if (size == 2) {
-			r.p.w = *(word*) (mem->offset + adr);
+			r.p.w = *(word*) (mem.mem->offset + adr);
 		} else if (size == 1) {
-			r.p.b = *(byte*) (mem->offset + adr);
+			r.p.b = *(byte*) (mem.mem->offset + adr);
 		} else {
 			abort();
 		}
@@ -238,51 +280,57 @@ static inline struct p param(_Bool pntr, int size) { // @suppress("Unused static
 	}
 	case P_REG_NUM:
 	case P_NUM_REG: {
-		if (ris <= size + ((poq - 1) << 3)) {
+		if (remain_instruct_space
+				<= size + ((param_num_value_index - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 			PVM_PARAM_FAIL
 		}
-		num adr = ia.np[poq++] + pvm.regs[ia.bp[poh--]];
-		struct memory *mem = chk(adr);
-		if (!mem) {
+		num adr = ia.np[param_num_value_index++]
+				+ pvm.regs[ia.bp[param_byte_value_index--]];
+		struct memory_check mem = chk(adr, size);
+		if (!mem.mem) {
 			PVM_PARAM_FAIL
 		}
 		if (pntr) {
-			r.p.np = mem->offset + adr;
+			r.p.pntr = mem.mem->offset + adr;
+			r.changed = mem.changed;
 		} else if (size == 8) {
-			r.p.n = *(num*) (mem->offset + adr);
+			r.p.n = *(num*) (mem.mem->offset + adr);
 		} else if (size == 4) {
-			r.p.dw = *(double_word*) (mem->offset + adr);
+			r.p.dw = *(double_word*) (mem.mem->offset + adr);
 		} else if (size == 2) {
-			r.p.w = *(word*) (mem->offset + adr);
+			r.p.w = *(word*) (mem.mem->offset + adr);
 		} else if (size == 1) {
-			r.p.b = *(byte*) (mem->offset + adr);
+			r.p.b = *(byte*) (mem.mem->offset + adr);
 		} else {
 			abort();
 		}
 		break;
 	}
 	case P_REG_REG: {
-		if (ris <= size + ((poq - 1) << 3)) {
+		if (remain_instruct_space
+				<= size + ((param_num_value_index - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 			PVM_PARAM_FAIL
 		}
-		num adr = pvm.regs[ia.bp[poh]] + pvm.regs[ia.bp[poh - 1]];
-		struct memory *mem = chk(adr);
-		if (!mem) {
+		num adr = pvm.regs[ia.bp[param_byte_value_index]]
+				+ pvm.regs[ia.bp[param_byte_value_index - 1]];
+		struct memory_check mem = chk(adr, size);
+		if (!mem.mem) {
 			PVM_PARAM_FAIL
 		}
-		poh -= 1;
+		param_byte_value_index -= 1;
 		if (pntr) {
-			r.p.np = mem->offset + adr;
+			r.p.np = mem.mem->offset + adr;
+			r.changed = mem.changed;
 		} else if (size == 8) {
-			r.p.n = *(num*) (mem->offset + adr);
+			r.p.n = *(num*) (mem.mem->offset + adr);
 		} else if (size == 4) {
-			r.p.dw = *(double_word*) (mem->offset + adr);
+			r.p.dw = *(double_word*) (mem.mem->offset + adr);
 		} else if (size == 2) {
-			r.p.w = *(word*) (mem->offset + adr);
+			r.p.w = *(word*) (mem.mem->offset + adr);
 		} else if (size == 1) {
-			r.p.b = *(byte*) (mem->offset + adr);
+			r.p.b = *(byte*) (mem.mem->offset + adr);
 		} else {
 			abort();
 		}
@@ -290,22 +338,27 @@ static inline struct p param(_Bool pntr, int size) { // @suppress("Unused static
 	}
 	default:
 		r.valid = 0;
+		interrupt(INT_ERRORS_UNKNOWN_COMMAND);
 	}
 	return r;
 #undef PVM_PARAM_FAIL
 }
 
 static inline void exec() {
-	struct memory *ipmem = chk(pvm.ip);
-	ris = ipmem->end - pvm.ip;
-	if (ris < 8) {
+	struct memory_check ipmem = chk(pvm.ip, 8);
+	if (!ipmem.mem) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 		return;
 	}
-	ia.pntr = ipmem->offset + pvm.ip;
-	pol = 1;
-	poh = 7;
-	poq = 1;
+	remain_instruct_space = ipmem.mem->end - pvm.ip;
+	if (remain_instruct_space < 8) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		return;
+	}
+	ia.pntr = ipmem.mem->offset + pvm.ip;
+	param_param_type_index = 1;
+	param_byte_value_index = 7;
+	param_num_value_index = 1;
 	cmds[ia.bp[0]]();
 }
 
@@ -365,12 +418,13 @@ PVM_SI_PREFIX struct memory2 alloc_memory(num size, unsigned flags) {
 	}
 	return r;
 }
-PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize) {
-	struct memory *mem = chk(adr);
+PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize, _Bool auto_growing) {
+	struct memory_check mem_chk = chk(adr, 0);
+	struct memory *mem = mem_chk.mem;
 	if (!mem) {
 		return NULL;
 	}
-	if ((mem->start != adr) || (adr & MEM_NO_RESIZE)) {
+	if (!auto_growing && ((mem->start != adr) || (adr & MEM_NO_RESIZE))) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 		return NULL;
 	}
@@ -397,7 +451,7 @@ PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize) {
 				mem->offset = new_pntr - mem->start;
 				return mem;
 			}
-			// index can not be zero, because all addresses are above the PVM address
+			// index can not be zero, because all addresses are above the PVM address, which is not changeable
 			for (int ii = index - 1; 1; ii--) {
 				if (memory[ii].start == -1) {
 					continue;
@@ -405,15 +459,21 @@ PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize) {
 				maxsize = memory[i].start - memory[ii].end
 						- (ADRESS_HOLE_MINIMUM_SIZE << 1);
 				if (maxsize >= newsize) {
-					num start = (maxsize - newsize) >> 1;
-					mem->start = start;
-					mem->end = start + newsize;
-					mem->offset = new_pntr - start;
+					num new_start = (maxsize - newsize) >> 1;
+					if (auto_growing) {
+						mem->change_pntr += new_start - mem->start;
+					}
+					mem->start = new_start;
+					mem->end = new_start + newsize;
+					mem->offset = new_pntr - new_start;
 					return mem;
 				}
 				struct memory *res = alloc_memory2(new_pntr, newsize,
 						mem->flags);
-				mem->start = -1;
+				if (auto_growing) {
+					mem->change_pntr += res->start - mem->start;
+				}
+				memset(mem, 0xFF, sizeof(struct memory));
 				return res;
 			}
 		}
@@ -431,16 +491,16 @@ PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize) {
 	}
 }
 PVM_SI_PREFIX void free_memory(num adr) {
-	struct memory *mem = chk(adr);
-	if (!mem) {
+	struct memory_check mem = chk(adr, 0);
+	if (!mem.mem) {
 		return;
 	}
-	if (mem->start != adr || adr == REGISTER_START) {
+	if (mem.mem->start != adr || adr == REGISTER_START) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
 		return;
 	}
-	free(mem->offset + mem->start);
-	mem->start = -1;
+	free(mem.mem->offset + mem.mem->start);
+	memset(mem.mem, 0xFF, sizeof(struct memory));
 }
 
 #ifdef PVM_DEBUG

@@ -104,7 +104,7 @@ struct memory {
 	void *offset;
 	unsigned flags;
 	unsigned grow_size;
-	num *end_pntr;
+	num *change_pntr;
 };
 
 struct memory2 {
@@ -149,7 +149,7 @@ static num next_adress = REGISTER_START;
 
 PVM_SI_PREFIX struct memory2 alloc_memory(num size, unsigned flags);
 PVM_SI_PREFIX struct memory* alloc_memory2(void *mem, num size, unsigned flags);
-PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize);
+PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize, _Bool auto_growing);
 PVM_SI_PREFIX void free_memory(num adr);
 #endif /* defined PVM | defined PVM_DEBUG */
 

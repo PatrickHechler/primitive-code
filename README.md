@@ -46,12 +46,13 @@ the assembler language for the Primitive-Virtual-Machine
         2. this is when the memory blocks last address is a little below an address which is tried be used
             * a address `A` is considered a little below an other address `B` when `B - A` is less then or equal to `8`
         3. when this happens, the `SP` register will be changed to point to the same data in the new memory block
+        * note that the stack pointer will NOT be modified, when the memory block is resized manually.
         * when the stack is not able to grow, it will cause the `INT_ERRORS_ILLEGAL_MEMORY` to be executed instead
         * this means the `PUSH` command can be used without caring about a stack overflow
             * (the `POP` command can still cause a stack underflow)
         * note that this also means that the `SP` register is the only reliable source of the stack memory block
-            * any other address in the stack memory block can get outdated when a `PUSH` (or somethingsimmilar) command is executed
-            * example:
+            * any other address in the stack memory block can get outdated when a `PUSH` (or something simmilar) command is executed
+            * example of how it not works:
                 1. `PUSH X00 |> push the X00 value to the stack`
                 2. `MVAD [SP], SP, 8 |> push the address of the X00 value to the stack`
                 3. `ADD SP, 8`
@@ -59,19 +60,19 @@ the assembler language for the Primitive-Virtual-Machine
                 5. `CALL sub`
                 6. `|> note that the call also stores the current address in the stack and thus the X00 address stored previously may get corrupt/invalid`
                 7. `|> also note that the sub may also use the stack before using the stored address its last time`
-            * note that there is no example of how it works, because it whould be just regulary using the stack until hitting the point of a stack grow
-                1. `LOOP:`
-                2. `  PUSH X00`
-                3. `  JMP LOOP`
-                * this is an example of letting the stack grow, until there is no longer enugh memory to let the stack grow, which will cause an INT_ERRORS_ILLEGAL_MEMORY
-                1. `XOR X00, X00 |> set X00 to 0`
-                2. `MOV X01, MIN_STACK_GROWABLE |> define MIN_STACK_GROWABLE to any positive number before`
-                3. `LOOP:`
-                4. `  MOV [SP + X00], [SP + X00] |> only read or write access is needed (here is both used)`
-                5. `  ADD X00, 8`
-                6. `  DEC X01`
-                7. `  JMPNZ LOOP`
-                * this example, can be used to ensure that the stack can still grow `X01` entries
+        * also note that this means that the `SP` register can not be used to store other information, because it will get corruopted whwn the stack grows
+        * this is an example of letting the stack grow, until there is no longer enugh memory to let the stack grow, which will cause an INT_ERRORS_ILLEGAL_MEMORY
+            1. `LOOP:`
+            2. `  PUSH X00`
+            3. `  JMP LOOP`
+        * this example, can be used to ensure that the stack can still grow `X01` entries
+            1. `XOR X00, X00 |> set X00 to 0`
+            2. `MOV X01, MIN_STACK_GROWABLE |> define MIN_STACK_GROWABLE to a positive number before`
+            3. `LOOP:`
+            4. `  MOV [SP + X00], [SP + X00] |> only read or write access is needed (here is both used)`
+            5. `  ADD X00, 8`
+            6. `  DEC X01`
+            7. `  JMPZC LOOP`
 
 ## Register
 
@@ -81,7 +82,7 @@ the assembler language for the Primitive-Virtual-Machine
         * initialized with the begin of the loaded machine code file
     * `SP`
         * the stack pointer points to the command to be executed
-        * initialized with the begin of a spezial automatically growing memory block
+        * initialized with the begin of an automatic growing memory block
     * `INTP`
         * points to the interrupt-table
         * initialized with the interrupt table
@@ -387,7 +388,6 @@ the assembler language for the Primitive-Virtual-Machine
         * then it will be deleted as normal and as export constant
     * to change a normal constant to an export constant, just redefine it: `#EXP~<NAME> <NAME>`
 
-
 `: [...] >`
 * a constant pool contains a constant sequence of bytes
     * to write an constant, write the constant and than `WRITE`
@@ -397,6 +397,42 @@ the assembler language for the Primitive-Virtual-Machine
         * values outside of this range will cause an error
     * only before and after a constant pool the code may be aligned
 
+`MVB <NO_CONST_PARAM> , <PARAM>`
+* copies the byte value of the second parameter to the first byte parameter
+* definition:
+    * `p1 <-8-bit- p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    *  `01 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`MVW <NO_CONST_PARAM> , <PARAM>`
+* copies the word value of the second parameter to the first word parameter
+* definition:
+    * `p1 <-16-bit- p2 `
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`MVDW <NO_CONST_PARAM> , <PARAM>`
+* copies the double-word value of the second parameter to the first double-word parameter
+* definition:
+    * `p1 <-32-bit- p2 `
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `03 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
 `MOV <NO_CONST_PARAM> , <PARAM>`
 * copies the value of the second parameter to the first parameter
 * definition:
@@ -404,6 +440,45 @@ the assembler language for the Primitive-Virtual-Machine
     * `IP <- IP + CMD_LEN`
 * binary:
     * `04 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`LEA <NO_CONST_PARAM> , <PARAM>`
+* sets the first parameter of the value of the second parameter plus the instruction pointer
+* definition:
+    * `p1 <- p2 + IP`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `05 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`MVAD <NO_CONST_PARAM> , <PARAM> , <CONST_PARAM>`
+* copies the value of the second parameter plus the third parameter to the first parameter
+* definition:
+    * `p1 <- p2 + p3`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `06 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+    * `<P3.NUM_NUM>`
+
+`SWAP <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* swaps the value of the first and the second parameter
+* definition:
+    * `ZW <- p1`
+    * `p1 <- p2`
+    * `p2 <- ZW`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `07 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -467,7 +542,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `04 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `12 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -480,7 +555,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p2 <- p1 mod p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `05 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `13 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1063,14 +1138,14 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` will be set to `1` or `0` on error
     * `25 : INT_ELEMENT_DELETE`: element delete
         * `X00` contains the ELEMENT-ID
-        * `X01` will be set to `1` or `0` on error
         * note that this operation automatically closes the given ELEMENT-ID, the close interrupt should not be invoked after this interrupt returned
+        * `X01` will be set to `1` or `0` on error
     * `26 : INT_ELEMENT_MOVE`: element move
         * `X00` contains the ELEMENT-ID
-        * `X01` points to a STRING which will be the new name. or `X02` is set to `-1` if the name should not be changed
+        * `X01` points to a STRING which will be the new name or it is set to `-1` if the name should not be changed
         * `X02` contains the ELEMENT-ID of the new parent of `-1` if the new parent should not be changed
-        * `X01` will be set to `1` or `0` on error
         * when both `X01` and `X02` are set to `-1` this operation will do nothing
+        * `X01` will be set to `1` or `0` on error
     * `27 : INT_ELEMENT_GET_NAME`: element get name
         * `X00` contains the ELEMENT-ID
         * `X01` points the the a memory block, which should be used to store the name as a STRING
@@ -1511,45 +1586,6 @@ the assembler language for the Primitive-Virtual-Machine
 * binary:
     * `23 00 00 00 00 00 00 00
 
-`SWAP <NO_CONST_PARAM> , <NO_CONST_PARAM>`
-* swaps the value of the first and the second parameter
-* definition:
-    * `ZW <- p1`
-    * `p1 <- p2`
-    * `p2 <- ZW`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `07 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`LEA <NO_CONST_PARAM> , <PARAM>`
-* sets the first parameter of the value of the second parameter plus the instruction pointer
-* definition:
-    * `p1 <- p2 + IP`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `05 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`MVAD <NO_CONST_PARAM> , <PARAM> , <CONST_PARAM>`
-* copies the value of the second parameter plus the third parameter to the first parameter
-* definition:
-    * `p1 <- p2 + p3`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `06 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-    * `<P3.NUM_NUM>`
-
 `CALO <PARAM>, <LABEL/CONST_PARAM>`
 * sets the instruction pointer to position of the label
 * and pushes the current instruction pointer to the stack
@@ -1798,42 +1834,6 @@ the assembler language for the Primitive-Virtual-Machine
     * `IP <- IP + CMD_LEN`
 * binary:
     * `38 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`MVB <NO_CONST_PARAM> , <PARAM>`
-* copies the byte value of the second parameter to the first byte parameter
-* definition:
-    * `p1 <-8-bit- p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    *  `01 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`MVW <NO_CONST_PARAM> , <PARAM>`
-* copies the word value of the second parameter to the first word parameter
-* definition:
-    * `p1 <-16-bit- p2 `
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `02 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`MVDW <NO_CONST_PARAM> , <PARAM>`
-* copies the double-word value of the second parameter to the first double-word parameter
-* definition:
-    * `p1 <-32-bit- p2 `
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `03 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
