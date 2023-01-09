@@ -561,6 +561,55 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
+`NEG <NO_CONST_PARAM>`
+* uses the arithmetic negation operation with the parameter and stores the result in the parameter 
+* this instruction works like `MUL p1, -1`
+* definition:
+    * `if p1 = UHEX-8000000000000000`
+        * `OVERFLOW <- 1`
+    * `else`
+        * `OVERFLOW <- 0`
+    * `p1 <- 0 - p1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `0A <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`ADDC <NO_CONST_PARAM> , <PARAM>`
+* adds the values of both parameters and the OVERFLOW flag and stores the sum in the first parameter
+* definition:
+    * `ZW <- p1 + (p2 + OVERFLOW)`
+    * `if ((p1 > 0) & ((p2 + OVERFLOW) > 0) & ((p1 + p2 + OVERFLOW) < 0)) | ((p1 < 0) & ((p2 + OVERFLOW) < 0) & ((p1 + (p2 + OVERFLOW)) > 0))`
+        * `OVERFLOW <- 1`
+    * `else`
+        * `OVERFLOW <- 0`
+    * `p1 <- ZW`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `30 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`SUBC <NO_CONST_PARAM> , <PARAM>`
+* subtracts the second parameter with the OVERFLOW flag from the first parameter and stores the result in the first parameter
+* definition:
+    * `ZW <- p1 - (p2 + OVERFLOW)`
+    * `if (p1 > 0) & ((p2 + OVERFLOW) < 0) & ((p1 - (p2 + OVERFLOW)) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - (p2 + OVERFLOW)) > 0))`
+        * `OVERFLOW <- 1`
+    * `else`
+        * `OVERFLOW <- 0`
+    * `p1 <- ZW`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `31 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
 `AND <NO_CONST_PARAM> , <PARAM>`
 * uses the logical AND operator with the first and the second parameter and stores the result in the first parameter
 * definition:
@@ -621,26 +670,6 @@ the assembler language for the Primitive-Virtual-Machine
     * `IP <- IP + CMD_LEN`
 * binary:
     * `09 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`NEG <NO_CONST_PARAM>`
-* uses the arithmetic negation operation with the parameter and stores the result in the parameter 
-* this instruction works like `MUL p1, -1`
-* definition:
-    * `if p1 = 0`
-        * `OVERFLOW <- 0`
-        * `ZERO <- 1`
-    * `if p1 = UHEX-8000000000000000`
-        * `OVERFLOW <- 1`
-        * `ZERO <- 0`
-    * `else`
-        * `OVERFLOW <- 0`
-        * `ZERO <- 0`
-    * `p1 <- 0 - p1`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `0A <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
@@ -1680,48 +1709,6 @@ the assembler language for the Primitive-Virtual-Machine
     * `2D <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
-
-`ADDC <NO_CONST_PARAM> , <PARAM>`
-* adds the values of both parameters and the OVERFLOW flag and stores the sum in the first parameter
-* definition:
-    * `ZW <- p1 + (p2 + OVERFLOW)`
-    * `if ((p1 > 0) & ((p2 + OVERFLOW) > 0) & ((p1 + p2 + OVERFLOW) < 0)) | ((p1 < 0) & ((p2 + OVERFLOW) < 0) & ((p1 + (p2 + OVERFLOW)) > 0))`
-        * `OVERFLOW <- 1`
-    * `else`
-        * `OVERFLOW <- 0`
-    * `p1 <- ZW`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `30 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`SUBC <NO_CONST_PARAM> , <PARAM>`
-* subtracts the second parameter with the OVERFLOW flag from the first parameter and stores the result in the first parameter
-* definition:
-    * `ZW <- p1 - (p2 + OVERFLOW)`
-    * `if (p1 > 0) & ((p2 + OVERFLOW) < 0) & ((p1 - (p2 + OVERFLOW)) < 0)) | ((p1 < 0) & (p2 > 0) & ((p1 - (p2 + OVERFLOW)) > 0))`
-        * `OVERFLOW <- 1`
-    * `else`
-        * `OVERFLOW <- 0`
-    * `p1 <- ZW`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `31 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
 
 `ADDFP <NO_CONST_PARAM> , <PARAM>`
 * adds the floating point values of both parameters and stores the floating point sum in the first parameter

@@ -1,5 +1,5 @@
 #ifndef PVM
-#	error "this file should be included insice of pvm-virtual-mashine.c"
+#	error "this file should be included inside of pvm-virtual-mashine.c"
 #endif // PVM
 
 static void c_ill() /* --- */{
@@ -192,14 +192,70 @@ static void c_neg() /* 0x14 */{
 	if (!p1.valid) {
 		return;
 	}
-	*p1.p.np = -*p1.p.np;
+	num np1 = -*p1.p.np;
+	if (np1 < 0 && *p1.p.np < 0) {
+		pvm.status |= S_OVERFLOW;
+	} else {
+		pvm.status &= ~S_OVERFLOW;
+	}
+	*p1.p.np = np1;
 	abort();
 }
 static void c_addc() /* 0x15 */{
-	abort();
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(1, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	num np1 = *p1.p.np + *p2.p.np;
+	if (pvm.status & S_OVERFLOW) {
+		np1++;
+	}
+	if (np1 < 0) {
+		if (*p1.p.np >= 0 && *p2.p.np >= 0) {
+			pvm.status |= S_OVERFLOW;
+		} else {
+			pvm.status &= ~S_OVERFLOW;
+		}
+	} else {
+		if (*p1.p.np < 0 && *p2.p.np < 0) {
+			pvm.status |= S_OVERFLOW;
+		} else {
+			pvm.status &= ~S_OVERFLOW;
+		}
+	}
 }
 static void c_subc() /* 0x16 */{
-	abort();
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(1, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	num np1 = *p1.p.np + *p2.p.np;
+	if (pvm.status & S_OVERFLOW) {
+		np1++;
+	}
+	if (np1 > 0) {
+		if (*p1.p.np < 0 && *p2.p.np >= 0) {
+			pvm.status |= S_OVERFLOW;
+		} else {
+			pvm.status &= ~S_OVERFLOW;
+		}
+	} else {
+		if (*p1.p.np > 0 && *p2.p.np < 0) {
+			pvm.status |= S_OVERFLOW;
+		} else {
+			pvm.status &= ~S_OVERFLOW;
+		}
+	}
 }
 static void c_inc() /* 0x17 */{
 	abort();

@@ -264,7 +264,7 @@ static inline struct p param(int pntr, int size) {
 		param_num_value_index += 2;
 		if (pntr) {
 			r.p.pntr = mem.mem->offset + adr;
-			r.changed = mem.changed;
+			r.changed = 1;
 		} else if (size == 8) {
 			r.p.n = *(num*) (mem.mem->offset + adr);
 		} else if (size == 4) {
@@ -293,7 +293,7 @@ static inline struct p param(int pntr, int size) {
 		}
 		if (pntr) {
 			r.p.pntr = mem.mem->offset + adr;
-			r.changed = mem.changed;
+			r.changed = 1;
 		} else if (size == 8) {
 			r.p.n = *(num*) (mem.mem->offset + adr);
 		} else if (size == 4) {
@@ -322,7 +322,7 @@ static inline struct p param(int pntr, int size) {
 		param_byte_value_index -= 1;
 		if (pntr) {
 			r.p.np = mem.mem->offset + adr;
-			r.changed = mem.changed;
+			r.changed = 1;
 		} else if (size == 8) {
 			r.p.n = *(num*) (mem.mem->offset + adr);
 		} else if (size == 4) {
