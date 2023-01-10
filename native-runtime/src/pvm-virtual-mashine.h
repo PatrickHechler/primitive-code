@@ -39,10 +39,7 @@ EXT struct pvm {
 	num sp; // regs[1]
 	num intp; // regs[2]
 	num intcnt; // regs[3]
-	union {
-		num num;
-		unum unum;
-	} status; // regs[5]
+	unum status; // regs[5]
 	num x[256 - 6]; // reg[6..255] // - 6 because XFA shares its address with the errno register
 	num errno; // regs[255]
 } pvm;
@@ -75,6 +72,9 @@ enum param_type {
 	P_REG_REG = __P_BASE | __P_A_REG | __P_B_REG,
 };
 
+#define NUM_MAX_VALUE 0x7FFFFFFFFFFFFFFF
+#define NUM_MIN_VALUE 0x8000000000000000
+
 #ifdef PVM
 
 #	ifdef PVM_DEBUG
@@ -94,9 +94,9 @@ EXT num depth;
 #define MEM_NO_RESIZE       0x00000001u
 #define MEM_NO_FREE         0x00000002u
 #define MEM_AUTO_GROW       0x00000004U
-// TODO implement auto grow
 #define MEM_AUTO_GROW_BITS  0xFF000000U
 #define MEM_AUTO_GROW_SHIFT 24
+#define MEM_INT             0x00000008U
 
 struct memory {
 	num start;

@@ -16,6 +16,8 @@
 
 #include <stdlib.h>
 #include <string.h>
+#include <stdint.h>
+#include <math.h>
 
 void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	if (next_adress != REGISTER_START) {
@@ -64,7 +66,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 }
 
 static inline void init_int() {
-	struct memory2 mem = alloc_memory(128, 0);
+	struct memory2 mem = alloc_memory(128, MEM_INT | MEM_NO_RESIZE);
 	if (!mem.mem) {
 		exit(127);
 	}
@@ -81,54 +83,53 @@ static inline struct memory_check chk(num pntr, num size);
 
 static inline void interrupt(num intnum) {
 #ifdef PVM_DEBUG
-#	define CALL_INT ints[intnum](intnum)
+#	define callInt ints[intnum](intnum);
 #else // PVM_DEBUG
-#	define CALL_INT ints[intnum]();
+#	define callInt ints[intnum]();
 #endif // PVM_DEBUG
 	if (pvm.intcnt < intnum || intnum < 0) {
-		if (intnum == INT_ERRORS_ILLEGAL_INTERRUPT || pvm.intcnt <= 0) {
+		if (pvm.intcnt <= INT_ERRORS_ILLEGAL_INTERRUPT) {
 			exit(128);
 		}
 		if (pvm.intp == -1) {
 			pvm.x[0] = intnum;
-			CALL_INT;
+			callInt} else {
+				num adr = pvm.intp + (INT_ERRORS_ILLEGAL_INTERRUPT << 3);
+				struct memory *mem = chk(adr, 8).mem;
+				if (!mem) {
+					return;
+				}
+				num deref = *(num*) mem->offset + adr;
+				if (-1 == deref) {
+					callInt
+				} else {
+					init_int();
+					pvm.x[0] = intnum;
+					pvm.ip = deref;
+				}
+			}
+		} else if (pvm.intp == -1) {
+			if (intnum >= INTERRUPT_COUNT) {
+				pvm.x[0] = intnum;
+				intnum = INT_ERRORS_ILLEGAL_INTERRUPT;
+			}
+			callInt
 		} else {
-			num adr = pvm.intp + (INT_ERRORS_ILLEGAL_INTERRUPT << 3);
+			num adr = pvm.intp + (intnum << 3);
 			struct memory *mem = chk(adr, 8).mem;
 			if (!mem) {
 				return;
 			}
 			num deref = *(num*) mem->offset + adr;
 			if (-1 == deref) {
-				CALL_INT;
+				callInt
 			} else {
 				init_int();
-				pvm.x[0] = intnum;
 				pvm.ip = deref;
 			}
 		}
-	} else if (pvm.intp == -1) {
-		if (intnum >= INTERRUPT_COUNT) {
-			pvm.x[0] = intnum;
-			intnum = INT_ERRORS_ILLEGAL_INTERRUPT;
-		}
-		CALL_INT;
-	} else {
-		num adr = pvm.intp + (intnum << 3);
-		struct memory *mem = chk(adr, 8).mem;
-		if (!mem) {
-			return;
-		}
-		num deref = *(num*) mem->offset + adr;
-		if (-1 == deref) {
-			CALL_INT;
-		} else {
-			init_int();
-			pvm.ip = deref;
-		}
+#undef callInt
 	}
-#undef CALL_INT
-}
 
 static inline struct memory_check chk(num pntr, num size) {
 	for (struct memory *m = memory; m->start != -1; m++) {
@@ -145,8 +146,9 @@ static inline struct memory_check chk(num pntr, num size) {
 					if (pntr < auto_grow_end) {
 						num grow_size = (size / m->grow_size) + m->grow_size;
 						num new_size = m->end - m->start + grow_size;
-						num old_start= m->start;
-						struct memory *new_mem = realloc_memory(m->start, new_size, 1);
+						num old_start = m->start;
+						struct memory *new_mem = realloc_memory(m->start,
+								new_size, 1);
 						if (new_mem) {
 							struct memory_check result;
 							result.changed = new_mem->start != old_start;
@@ -180,6 +182,8 @@ union param {
 	void *pntr;
 	fpnum fpn;
 	fpnum *fpnp;
+	unum u;
+	unum *up;
 	num n;
 	num *np;
 	double_word dw;
@@ -218,18 +222,18 @@ static union instruction_adres {
 static num remain_instruct_space;
 
 static inline struct p param(int pntr, int size) {
-#define PVM_PARAM_FAIL r.valid = 0; return r;
+#define paramFail r.valid = 0; return r;
 	struct p r;
 	r.valid = 1;
 	r.changed = 0;
 	switch (ia.bp[param_param_type_index++]) {
 	case P_NUM:
 		if (pntr) {
-			r.valid = 0;
+			paramFail
 		} else if (remain_instruct_space
 				<= size + ((param_num_value_index - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-			PVM_PARAM_FAIL
+			paramFail
 		} else if (size == 8) {
 			r.p.n = ia.np[param_num_value_index++];
 		} else if (size == 4) {
@@ -245,6 +249,12 @@ static inline struct p param(int pntr, int size) {
 	case P_REG:
 		if (pntr) {
 			r.p.pntr = &pvm.regs[ia.bp[param_byte_value_index--]];
+			if (size > 8) {
+				if ((256 - ia.bp[param_byte_value_index + 1]) > (size >> 3)) {
+					interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+					paramFail
+				}
+			}
 		} else {
 			r.p.n = pvm.regs[ia.bp[param_byte_value_index--]];
 		}
@@ -253,13 +263,13 @@ static inline struct p param(int pntr, int size) {
 		if (remain_instruct_space
 				<= size + ((param_num_value_index - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-			PVM_PARAM_FAIL
+			paramFail
 		}
 		num adr = ia.np[param_num_value_index]
 				+ ia.np[param_num_value_index + 1];
 		struct memory_check mem = chk(adr, size);
 		if (!mem.mem) {
-			PVM_PARAM_FAIL
+			paramFail
 		}
 		param_num_value_index += 2;
 		if (pntr) {
@@ -283,13 +293,13 @@ static inline struct p param(int pntr, int size) {
 		if (remain_instruct_space
 				<= size + ((param_num_value_index - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-			PVM_PARAM_FAIL
+			paramFail
 		}
 		num adr = ia.np[param_num_value_index++]
 				+ pvm.regs[ia.bp[param_byte_value_index--]];
 		struct memory_check mem = chk(adr, size);
 		if (!mem.mem) {
-			PVM_PARAM_FAIL
+			paramFail
 		}
 		if (pntr) {
 			r.p.pntr = mem.mem->offset + adr;
@@ -311,13 +321,13 @@ static inline struct p param(int pntr, int size) {
 		if (remain_instruct_space
 				<= size + ((param_num_value_index - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-			PVM_PARAM_FAIL
+			paramFail
 		}
 		num adr = pvm.regs[ia.bp[param_byte_value_index]]
 				+ pvm.regs[ia.bp[param_byte_value_index - 1]];
 		struct memory_check mem = chk(adr, size);
 		if (!mem.mem) {
-			PVM_PARAM_FAIL
+			paramFail
 		}
 		param_byte_value_index -= 1;
 		if (pntr) {
@@ -341,7 +351,7 @@ static inline struct p param(int pntr, int size) {
 		interrupt(INT_ERRORS_UNKNOWN_COMMAND);
 	}
 	return r;
-#undef PVM_PARAM_FAIL
+#undef paramFail
 }
 
 static inline void exec() {
@@ -418,7 +428,8 @@ PVM_SI_PREFIX struct memory2 alloc_memory(num size, unsigned flags) {
 	}
 	return r;
 }
-PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize, _Bool auto_growing) {
+PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize,
+		_Bool auto_growing) {
 	struct memory_check mem_chk = chk(adr, 0);
 	struct memory *mem = mem_chk.mem;
 	if (!mem) {

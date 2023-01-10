@@ -41,32 +41,33 @@ static void int_memory_alloc INT_PARAMS /* 5 */{
 	if (pvm.x[0] <= 0) {
 		if (pvm.x[0] != 0) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-		}
-		pvm.x[0] = -1;
-	} else {
-		struct memory2 mem = alloc_memory(pvm.x[0], 0);
-		if (mem.mem) {
-			pvm.x[0] = mem.mem->start;
 		} else {
 			pvm.x[0] = -1;
 		}
+		return;
+	}
+	struct memory2 mem = alloc_memory(pvm.x[0], 0);
+	if (mem.mem) {
+		pvm.x[0] = mem.mem->start;
+	} else {
+		pvm.x[0] = -1;
 	}
 }
 static void int_memory_realloc INT_PARAMS /* 6 */{
 	if (pvm.x[1] <= 0) {
 		if (pvm.x[1] == 0) {
 			free_memory(pvm.x[0]);
+			pvm.x[0] = -1;
 		} else {
 			pvm.errno = PE_ILLEGAL_ARG;
 		}
-		pvm.x[0] = -1;
+		return;
+	}
+	struct memory *mem = realloc_memory(pvm.x[0], pvm.x[1], 0);
+	if (mem) {
+		pvm.x[0] = mem->start;
 	} else {
-		struct memory *mem = realloc_memory(pvm.x[0], pvm.x[1], 0);
-		if (mem) {
-			pvm.x[0] = mem->start;
-		} else {
-			pvm.x[0] = -1;
-		}
+		pvm.x[0] = -1;
 	}
 }
 static void int_memory_free INT_PARAMS /* 7 */{
@@ -79,7 +80,7 @@ static void int_open_stream INT_PARAMS /* 8 */{
 		return;
 	}
 	check_string_len(0, 1, 0)
-	pvm.x[0] = pfs_stream(name, pvm.x[1]);
+pvm.x[0] = pfs_stream(name, pvm.x[1]);
 }
 static void int_streams_write INT_PARAMS /* 9 */{
 	if (pvm.x[1] < 0) {
@@ -89,7 +90,6 @@ static void int_streams_write INT_PARAMS /* 9 */{
 	}
 	struct memory* mem = chk(pvm.x[0], pvm.x[1]).mem;
 	if (!mem) {
-		pvm.x[1] = 0;
 		return;
 	}
 	pvm.x[1] = pfs_stream_write(pvm.x[0], mem->offset + pvm.x[2], pvm.x[1]);
@@ -124,38 +124,34 @@ static void int_streams_seek_eof INT_PARAMS /* 15 */{
 static void int_open_element_file INT_PARAMS /* 16 */{
 	struct memory* mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
-		pvm.x[0] = -1;
 		return;
 	}
 	check_string_len(0, 1, 0)
-	pvm.x[0] = pfs_handle_file(name);
+pvm.x[0] = pfs_handle_file(name);
 }
 static void int_open_element_folder INT_PARAMS /* 17 */{
 	struct memory* mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
-		pvm.x[0] = -1;
 		return;
 	}
 	check_string_len(0, 1, 0)
-	pvm.x[0] = pfs_handle_folder(name);
+pvm.x[0] = pfs_handle_folder(name);
 }
 static void int_open_element_pipe INT_PARAMS /* 18 */{
 	struct memory* mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
-		pvm.x[0] = -1;
 		return;
 	}
 	check_string_len(0, 1, 0)
-	pvm.x[0] = pfs_handle_pipe(name);
+pvm.x[0] = pfs_handle_pipe(name);
 }
 static void int_open_element INT_PARAMS /* 19 */{
 	struct memory* mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
-		pvm.x[0] = -1;
 		return;
 	}
 	check_string_len(0, 1, 0)
-	pvm.x[0] = pfs_handle(name);
+pvm.x[0] = pfs_handle(name);
 }
 static void int_element_open_parent INT_PARAMS /* 20 */{
 	pvm.x[0] = pfs_element_parent(pvm.x[0]);
@@ -179,11 +175,10 @@ static void int_element_move INT_PARAMS /* 26 */{
 	if (pvm.x[1] != -1) {
 		struct memory* mem = chk(pvm.x[1], 1).mem;
 		if (!mem) {
-			pvm.x[1] = 0;
 			return;
 		}
 		check_string_len0(0, mem, new_name, max_len, 1, 0)
-		if (pvm.x[2] != -1) {
+if (pvm.x[2] != -1) {
 			pvm.x[1] = pfs_element_move(pvm.x[0], pvm.x[2], new_name);
 		} else {
 			pvm.x[1] = pfs_element_set_name(pvm.x[0], new_name);
@@ -215,7 +210,11 @@ static void int_element_get_name INT_PARAMS /* 27 */{
 			char *buf = mem->offset + mem->start;
 			num size = mem->end - mem->start;
 			if (pfs_element_get_name(pvm.x[0], &buf, &size)) {
-//				pvm.x[1] = mem->start;
+				if (size > mem->end - mem->start) {
+					mem->offset = (void*) buf - mem->start;
+					mem = realloc_memory(mem->start, size, 0);
+				}
+				pvm.x[1] = mem->start;
 				pvm.x[2] = size;
 			} else {
 				pvm.x[1] = -1;
@@ -257,7 +256,6 @@ static void int_folder_get_child_of_name INT_PARAMS /* 31 */{
 	num name_len = strnlen(name, max_len);
 	if (name_len == max_len) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
-		pvm.x[1] = -1;
 		return;
 	}
 	pvm.x[1] = pfs_folder_child(pvm.x[0], name);
@@ -265,38 +263,34 @@ static void int_folder_get_child_of_name INT_PARAMS /* 31 */{
 static void int_folder_get_folder_of_name INT_PARAMS /* 32 */{
 	struct memory* mem = chk(pvm.x[1], 1).mem;
 	if (!mem) {
-		pvm.x[1] = -1;
 		return;
 	}
 	check_string_len(1, 1, -1)
-	pvm.x[1] = pfs_folder_child_folder(pvm.x[0], name);
+pvm.x[1] = pfs_folder_child_folder(pvm.x[0], name);
 }
 static void int_folder_get_file_of_name INT_PARAMS /* 33 */{
 	struct memory* mem = chk(pvm.x[1], 1).mem;
 	if (!mem) {
-		pvm.x[1] = -1;
 		return;
 	}
 	check_string_len(1, 1, -1)
-	pvm.x[1] = pfs_folder_child_file(pvm.x[0], name);
+pvm.x[1] = pfs_folder_child_file(pvm.x[0], name);
 }
 static void int_folder_get_pipe_of_name INT_PARAMS /* 34 */{
 	struct memory* mem = chk(pvm.x[1], 1).mem;
 	if (!mem) {
-		pvm.x[1] = -1;
 		return;
 	}
 	check_string_len(1, 1, -1)
-	pvm.x[1] = pfs_folder_child_pipe(pvm.x[0], name);
+pvm.x[1] = pfs_folder_child_pipe(pvm.x[0], name);
 }
 static void int_folder_add_folder INT_PARAMS /* 35 */{
 	struct memory* mem = chk(pvm.x[1], 1).mem;
 	if (!mem) {
-		pvm.x[1] = -1;
 		return;
 	}
 	check_string_len(1, 1, -1)
-	pvm.x[1] = pfs_folder_create_folder(pvm.x[0], name);
+pvm.x[1] = pfs_folder_create_folder(pvm.x[0], name);
 }
 //TODO continue impl
 static void int_folder_add_file INT_PARAMS /* 36 */{abort();}

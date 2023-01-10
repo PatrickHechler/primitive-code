@@ -63,21 +63,22 @@ static void c_push(); /* 0x35 */
 static void c_pop(); /* 0x36 */
 
 static void c_cmp(); /* 0x40 */
-static void c_bcmp(); /* 0x41 */
+static void c_bcp(); /* 0x41 */
 
-static void c_fpcmp(); /* 0x50 */
-static void c_fpchk(); /* 0x51 */
-static void c_fpadd(); /* 0x52 */
-static void c_fpsub(); /* 0x53 */
-static void c_fpmul(); /* 0x54 */
-static void c_fpdiv(); /* 0x55 */
-static void c_fpneg(); /* 0x56 */
+static void c_cmpfp(); /* 0x50 */
+static void c_chkfp(); /* 0x51 */
+static void c_addfp(); /* 0x52 */
+static void c_subfp(); /* 0x53 */
+static void c_mulfp(); /* 0x54 */
+static void c_divfp(); /* 0x55 */
+static void c_negfp(); /* 0x56 */
 static void c_fptn(); /* 0x57 */
 static void c_ntfp(); /* 0x58 */
 static void c_uadd(); /* 0x59 */
 static void c_usub(); /* 0x5A */
 static void c_umul(); /* 0x5B */
 static void c_udiv(); /* 0x5C */
+static void c_bmul(); /* 0x5D */
 
 static void (*cmds[])() = {
 		// 0x0.
@@ -97,12 +98,12 @@ static void (*cmds[])() = {
 		c_ill,   c_ill,   c_ill,   c_ill,    c_ill,   c_ill,   c_ill,   c_ill,
 
 		// 0x4.
-		c_cmp,   c_bcmp,  c_ill,   c_ill,    c_ill,   c_ill,   c_ill,   c_ill,
+		c_cmp,   c_bcp,  c_ill,   c_ill,    c_ill,   c_ill,   c_ill,   c_ill,
 		c_ill,   c_ill,   c_ill,   c_ill,    c_ill,   c_ill,   c_ill,   c_ill,
 
 		// 0x5.
-		c_fpcmp, c_fpchk, c_fpadd, c_fpsub,  c_fpmul, c_fpdiv, c_fpneg, c_fptn,
-		c_ntfp,  c_uadd,  c_usub,  c_umul,   c_udiv,  c_ill,   c_ill,   c_ill,
+		c_cmpfp, c_chkfp, c_addfp, c_subfp,  c_mulfp, c_divfp, c_negfp, c_fptn,
+		c_ntfp,  c_uadd,  c_usub,  c_umul,   c_udiv,  c_bmul,   c_ill,   c_ill,
 
 		// 0x6.
 		c_ill,   c_ill,   c_ill,   c_ill,    c_ill,   c_ill,   c_ill,   c_ill,

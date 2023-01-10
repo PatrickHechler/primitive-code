@@ -572,7 +572,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- 0 - p1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `0A <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `14 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
@@ -587,7 +587,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- ZW`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `30 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `15 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -604,153 +604,11 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- ZW`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `31 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `16 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
-
-`AND <NO_CONST_PARAM> , <PARAM>`
-* uses the logical AND operator with the first and the second parameter and stores the result in the first parameter
-* definition:
-    * `p1 <- p1 & p2`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `06 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`OR <NO_CONST_PARAM> , <PARAM>`
-* uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
-* definition:
-    * `p1 <- p1 | p2`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `07 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`XOR <NO_CONST_PARAM> , <PARAM>`
-* uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
-* definition:
-    * `p1 <- p1 ^ p2`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `08 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`NOT <NO_CONST_PARAM>`
-* uses the logical NOT operator with every bit of the parameter and stores the result in the parameter
-* this instruction works like `XOR p1, -1` 
-* definition:
-    * `p1 <- ~ p1`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `09 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`LSH <NO_CONST_PARAM>, <PARAM>`
-* shifts bits of the parameter logically left
-* definition:
-    * `if ((p1 << p2) >>> p2) = p1`
-        * `OVERFLOW <- 0`
-    * `else`
-        * `OVERFLOW <- 1`
-    * `p1 <- p1 << p2`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `0B <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`RLSH <NO_CONST_PARAM>, <PARAM>`
-* shifts bits of the parameter logically right
-* definition:
-    * `if ((p1 >> p2) << p2) = p1`
-        * `OVERFLOW <- 1`
-    * `else`
-        * `OVERFLOW <- 0`
-    * `p1 <- p1 >> 1`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `0C <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`RASH <NO_CONST_PARAM>, <PARAM>`
-* shifts bits of the parameter arithmetic right
-* definition:
-    * `if ((p1 >>> p2) <<< p2) = p1`
-        * `OVERFLOW <- 1`
-    * `else`
-        * `OVERFLOW <- 0`
-    * `p1 <- p1 >>> 2`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `0D <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`DEC <NO_CONST_PARAM>`
-* decrements the param by one
-* definition:
-    * `if p1 = MIN_VALUE`
-        * `OVERFLOW <- 1`
-        * `ZERO <- 0`
-    * `else if p1 = 1`
-        * `OVERFLOW <- 0`
-        * `ZERO <- 1`
-    * `else`
-        * `OVERFLOW <- 0`
-        * `ZREO <- 0`
-    * `p1 <- p1 - 1`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `0E <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
 
 `INC <NO_CONST_PARAM>`
 * increments the param by one
@@ -767,17 +625,146 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p1 + 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `0F <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `17 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
+
+`DEC <NO_CONST_PARAM>`
+* decrements the param by one
+* definition:
+    * `if p1 = MIN_VALUE`
+        * `OVERFLOW <- 1`
+        * `ZERO <- 0`
+    * `else if p1 = 1`
+        * `OVERFLOW <- 0`
+        * `ZERO <- 1`
+    * `else`
+        * `OVERFLOW <- 0`
+        * `ZREO <- 0`
+    * `p1 <- p1 - 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `18 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`OR <NO_CONST_PARAM> , <PARAM>`
+* uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
+* definition:
+    * `if (p1 | p2) = 0`
+        * `ZERO <- 1`
+    * `else`
+        * `ZERO <- 0`
+    * `p1 <- p1 | p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `19 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`AND <NO_CONST_PARAM> , <PARAM>`
+* uses the logical AND operator with the first and the second parameter and stores the result in the first parameter
+* definition:
+    * `if (p1 & p2) = 0`
+        * `ZERO <- 1`
+    * `else`
+        * `ZERO <- 0`
+    * `p1 <- p1 & p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `1A <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`XOR <NO_CONST_PARAM> , <PARAM>`
+* uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
+* definition:
+    * `if (p1 ^ p2) = 0`
+        * `ZERO <- 1`
+    * `else`
+        * `ZERO <- 0`
+    * `p1 <- p1 ^ p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `1B <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`NOT <NO_CONST_PARAM>`
+* uses the logical NOT operator with every bit of the parameter and stores the result in the parameter
+* this instruction works like `XOR p1, -1` 
+* definition:
+    * `if p1 = -1`
+        * `ZERO <- 1`
+    * `else`
+        * `ZERO <- 0`
+    * `p1 <- ~ p1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `1C <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`LSH <NO_CONST_PARAM>, <PARAM>`
+* shifts bits of the parameter logically left
+* definition:
+    * `if ((p1 << p2) >> p2) = p1`
+        * `OVERFLOW <- 0`
+    * `else`
+        * `OVERFLOW <- 1`
+    * `p1 <- p1 << p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `1D <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`RASH <NO_CONST_PARAM>, <PARAM>`
+* shifts bits of the parameter arithmetic right
+* definition:
+    * `if ((p1 >> p2) << p2) = p1`
+        * `OVERFLOW <- 1`
+    * `else`
+        * `OVERFLOW <- 0`
+    * `p1 <- p1 >> 2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `1E <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`RLSH <NO_CONST_PARAM>, <PARAM>`
+* shifts bits of the parameter logically right
+* definition:
+    * `if ((p1 >>> p2) << p2) = p1`
+        * `OVERFLOW <- 1`
+    * `else`
+        * `OVERFLOW <- 0`
+    * `p1 <- p1 >>> 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `1F <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
 
 `JMP <LABEL>`
 * sets the instruction pointer to position of the command after the label
 * definition:
     * `IP <- IP + RELATIVE_LABEL`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `10 00 00 00 00 00 00 00`
+    * `20 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPEQ <LABEL>`
@@ -787,9 +774,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `11 00 00 00 00 00 00 00`
+    * `21 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPNE <LABEL>`
@@ -799,9 +785,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + CMD_LEN`
     * `else`
         * `IP <- IP + RELATIVE_LABEL`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `12 00 00 00 00 00 00 00`
+    * `22 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPGT <LABEL>`
@@ -811,9 +796,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `13 00 00 00 00 00 00 00`
+    * `23 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPGE <LABEL>`
@@ -823,9 +807,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `14 00 00 00 00 00 00 00`
+    * `24 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPLT <LABEL>`
@@ -835,9 +818,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `15 00 00 00 00 00 00 00`
+    * `25 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPLE <LABEL>`
@@ -847,9 +829,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `16 00 00 00 00 00 00 00`
+    * `26 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPCS <LABEL>`
@@ -859,21 +840,19 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `17 00 00 00 00 00 00 00`
+    * `27 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPCC <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is cleared
 * definition:
-    * `if OVERFLOW`
+    * `if ! OVERFLOW`
         * `IP <- IP + CMD_LEN`
     * `else`
         * `IP <- IP + RELATIVE_LABEL`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `18 00 00 00 00 00 00 00`
+    * `28 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPZS <LABEL>`
@@ -883,9 +862,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `19 00 00 00 00 00 00 00`
+    * `29 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPZC <LABEL>`
@@ -895,9 +873,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `1A 00 00 00 00 00 00 00`
+    * `2A 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPNAN <LABEL>`
@@ -907,9 +884,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `1B 00 00 00 00 00 00 00`
+    * `2B 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPAN <LABEL>`
@@ -919,9 +895,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `1C 00 00 00 00 00 00 00`
+    * `2C 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 
@@ -932,9 +907,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `1D 00 00 00 00 00 00 00`
+    * `2D 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPSB <LABEL>`
@@ -944,9 +918,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `1D 00 00 00 00 00 00 00`
+    * `2D 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
 
 `JMPNB <LABEL>`
@@ -956,58 +929,18 @@ the assembler language for the Primitive-Virtual-Machine
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
-    * note that all jumps and calls are relative, so it does not matter if the code was loaded to the memory address 0 or not
 * binary:
-    * `1D 00 00 00 00 00 00 00`
+    * `2D 00 00 00 00 00 00 00`
     * `<RELATIVE_LABEL>`
-
-`CALL <LABEL>`
-* sets the instruction pointer to position of the label
-* and pushes the current instruction pointer to the stack
-* definition:
-    * `[SP] <- IP`
-    * `SP <- SP + 8`
-    * `IP <- IP + RELATIVE_LABEL`
-* binary:
-    * `20 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
-
-`CMP <PARAM> , <PARAM>`
-* compares the two values and stores the result in the status register
-* definition:
-    * `if p1 > p2`
-        * `GREATHER <- 1`
-        * `LOWER <- 0`
-        * `EQUAL <- 0`
-    * `else if p1 < p2`
-        * `GREATHER <- 0`
-        * `LOWER <- 1`
-        * `EQUAL <- 0`
-    * `else`
-        * `GREATHER <- 0`
-        * `LOWER <- 0`
-        * `EQUAL <- 1`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `21 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`RET`
-* sets the instruction pointer to the position which was secured in the stack
-* definition:
-    * `SP <- SP - 8`
-    * `IP <- [SP]`
-* binary:
-    * `22 00 00 00 00 00 00 00`
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-* default interrupts may get called with a diffrent routine
 * definition:
-    * `ZW <- MEM-ALLOC{size=128}`
+    * note that default interrupts get called with a diffrent routine
+    * `ZW         <- MEM-ALLOC{size=128}`
+        * if the memory allocation fails, the program will terminate with 127
+        * the allocated memory block will not be resizable, but can be freed normally with the free interrupt or with the `IRET` command
+    * `IP         <- IP + CMD_LEN`
     * `[ZW]       <- IP`
     * `[ZW + 8]   <- SP`
     * `[ZW + 16]  <- STATUS`
@@ -1031,11 +964,10 @@ the assembler language for the Primitive-Virtual-Machine
     * to overwrite the interrupt `N`, write to `(INTP + (N * 8))` the absolute position of the address
     * on failure the default interrupts use the `ERRNO` register to store information about the error which caused the interrupt to fail
     * example:
-        * `PUSH X00` |> only needed when the value of `X00` should not be overwritten
-        * `MOV X00, IP` |> this and the next command is not needed if the absolute position is already known
-        * `ADD/SUB X00, #RELATIVE-POS-FROM-GET-TO-INTERRUPT`
+        * `PUSH X00`
+        * `LEA X00, #RELATIVE-POS-FROM-GET-TO-INTERRUPT`
         * `MOV [INTP + #OVERWRITE_INT_NUM_MULTIPLIED_WITH_8], X00`
-        * `POP X00` |> only needed when the value of `X00` should not be overwritten
+        * `POP X00`
 * negative interrupts will always cause the illegal interrup to be called instead
 * when `INTCNT` is greather then the number of default interrupts and the called interrupt is not overwritten, the illegal interrupt will be called instead
 * default interrupts:
@@ -1564,34 +1496,13 @@ the assembler language for the Primitive-Virtual-Machine
         * `X02` will be set to `1` if the file has been loaded as result of this interrupt and `0` if the file was previously loaded
         * when an error occurred `X00` will be set to `-1`
 * binary:
-    * `23 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`PUSH <PARAM>`
-* pushes the parameter to the stack
-* definition:
-    * `[SP] <- p1`
-    * `SP <- SP + 8`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `24 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`POP <NO_CONST_PARAM>`
-* pops the highest value from the stack to the parameter
-* definition:
-    * `SP <- SP - 8`
-    * `p1 <- [SP]`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `25 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `30 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
 `IRET`
 * returns from an interrupt
+* if the address stored in `X09` was not retrieved from an `INT` execution, the PVM will call the illegal memory interrupt
 * definition:
     * `ZW      <- X09`
     * `IP      <- [X09]`
@@ -1613,9 +1524,20 @@ the assembler language for the Primitive-Virtual-Machine
     * `FREE ZW`
         * this does not use the free interrupt, but works like the default free interrupt (without calling the interrupt (what could cause an infinite recursion))
 * binary:
-    * `23 00 00 00 00 00 00 00
+    * `31 00 00 00 00 00 00 00
 
-`CALO <PARAM>, <LABEL/CONST_PARAM>`
+`CALL <LABEL>`
+* sets the instruction pointer to position of the label
+* and pushes the current instruction pointer to the stack
+* definition:
+    * `[SP] <- IP`
+    * `SP <- SP + 8`
+    * `IP <- IP + RELATIVE_LABEL`
+* binary:
+    * `32 00 00 00 00 00 00 00`
+    * `<RELATIVE_LABEL>`
+
+`CALO <PARAM>, <CONST_PARAM>`
 * sets the instruction pointer to position of the label
 * and pushes the current instruction pointer to the stack
     * `[SP] <- IP`
@@ -1623,28 +1545,81 @@ the assembler language for the Primitive-Virtual-Machine
     * `IP <- p1 + p2`
         * the call will not be made relative from this position, so the label remains relative to the start of the file it is declared in
 * binary:
-    * `2A <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `33 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `<P2.NUM_NUM>`
 
+`RET`
+* sets the instruction pointer to the position which was secured in the stack
+* definition:
+    * `IP <- [SP + -8]`
+    * `SP <- SP - 8`
+* binary:
+    * `34 00 00 00 00 00 00 00`
+
+`PUSH <PARAM>`
+* pushes the parameter to the stack
+* definition:
+    * `[SP] <- p1`
+    * `SP <- SP + 8`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `35 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`POP <NO_CONST_PARAM>`
+* pops the highest value from the stack to the parameter
+* definition:
+    * `SP <- SP - 8`
+    * `p1 <- [SP]`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `36 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`CMP <PARAM> , <PARAM>`
+* compares the two values and stores the result in the status register
+* definition:
+    * `if p1 > p2`
+        * `GREATHER <- 1`
+        * `LOWER <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < p2`
+        * `GREATHER <- 0`
+        * `LOWER <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `GREATHER <- 0`
+        * `LOWER <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `40 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
 `BCP <PARAM> , <PARAM>`
 * compares the two values on bit level
 * definition
-    * `if (p1 & p2) = 0`
-        * `ALL_BITS <- 0`
-        * `SOME_BITS <- 0`
-        * `NONE_BITS <- 1`
-    * `else if (p1 & p2) = p2`
+    * `if (p1 & p2) = p2`
         * `ALL_BITS <- 1`
+        * `SOME_BITS <- 1`
+        * `NONE_BITS <- 0`
+    * `else if (p1 & p2) != 0`
+        * `ALL_BITS <- 0`
         * `SOME_BITS <- 1`
         * `NONE_BITS <- 0`
     * `else`
         * `ALL_BITS <- 0`
-        * `SOME_BITS <- 1`
-        * `NONE_BITS <- 0`
+        * `SOME_BITS <- 0`
+        * `NONE_BITS <- 1`
 * binary:
-    * `2B <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `41 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1675,7 +1650,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `2C <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `50 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1706,26 +1681,18 @@ the assembler language for the Primitive-Virtual-Machine
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `2D <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `51 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
 `ADDFP <NO_CONST_PARAM> , <PARAM>`
 * adds the floating point values of both parameters and stores the floating point sum in the first parameter
 * definition:
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
     * `p1 <- p1 fp-add p2`
-    * `if p1 = 0.0`
-        * `ZERO <- 1`
-        * `NAN <- 0`
-    * `else if p1 = NaN`
-        * `ZERO <- 0`
-        * `NAN <- 1`
-    * `else`
-        * `ZERO <- 0`
-        * `NAN <- 0`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `32 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `52 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1734,18 +1701,11 @@ the assembler language for the Primitive-Virtual-Machine
 `SUBFP <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
 * definition:
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
     * `p1 <- p1 fp-sub p2`
-    * `if p1 = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `if p1 = NaN`
-        * `NAN <- 1`
-    * `else`
-        * `NAN <- 0`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `33 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `53 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1754,18 +1714,11 @@ the assembler language for the Primitive-Virtual-Machine
 `MULFP <NO_CONST_PARAM> , <PARAM>`
 * multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
 * definition:
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
     * `p1 <- p1 fp-mul p2`
-    * `if p1 = 0.0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `if p1 = NaN`
-        * `NAN <- 1`
-    * `else`
-        * `NAN <- 0`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `34 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `54 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1774,22 +1727,38 @@ the assembler language for the Primitive-Virtual-Machine
 `DIVFP <NO_CONST_PARAM> , <PARAM>`
 * divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
 * definition:
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
     * `p1 <- p1 fp-div p2`
-    * `if p1 = 0.0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `if p1 = NaN`
-        * `NAN <- 1`
-    * `else`
-        * `NAN <- 0`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `35 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `55 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
+
+`NEGFP <NO_CONST_PARAM>`
+* multiplies the fp parameter with -1.0
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 is NAN
+    * `p1 <- p1 fp-mul -1.0`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `56 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`FPTN <NO_CONST_PARAM>`
+* converts the value of the floating point param to a number
+* the value after the 
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 is no normal value
+    * `p1 <- as_num(p1)`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `57 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
 
 `NTFP <NO_CONST_PARAM>`
 * converts the value of the number param to a floating point
@@ -1798,20 +1767,45 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- as_fp(p1)`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `36 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `58 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
-`FPTN <NO_CONST_PARAM>`
-* converts the value of the floating point param to a number
-* the value after the 
+`UADD <NO_CONST_PARAM> , <PARAM>`
+* like ADD, but uses the parameters as unsigned parameters
 * definition:
-    * `p1 <- as_num(p1)`
+    * `p1 <- p1 uadd p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `37 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `59 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`USUB <NO_CONST_PARAM> , <PARAM>`
+* like SUB, but uses the parameters as unsigned parameters
+* definition:
+    * `p1 <- p1 usub p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `5A <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`UMUL <NO_CONST_PARAM> , <PARAM>`
+* like MUL, but uses the parameters as unsigned parameters
+* definition:
+    * `p1 <- p1 umul p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `5C <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
 
 `UDIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
 * like DIV, but uses the parameters as unsigned parameters
@@ -1820,25 +1814,35 @@ the assembler language for the Primitive-Virtual-Machine
     * `p2 <- p1 umod p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `38 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `5D <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
+`BMUL <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* like MUL, but uses the parameters as 128 bit value parameters
+    * if registers are used the next register is also used
+    * the last register will cause the illegal memory interrupt
+* definition:
+    * `p1 <- p1 big-mul p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `5D <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
 ## not (yet) there/supported
 * Multi-threading
-    * encapsuling of threads
-    * maby allow overwrite of default interrupts for child threads
-    * maby thread-groups
-* (Multi-progressing)
-    * only multi-threading currently planned
-* syncronizing/locks
+    * maby thread-groups/processes
+    * maby allow overwrite of default interrupts for child threads/processes
+    * syncronizing/locks
+    * execute other programs
+        * already possible when done manually
+            * jump to the main function of the target program
+                * memory is not freed by that way
+                * loaded files with the get interrupt are not unloaded by that way
+        * maby make an own interrupt
 * sockets
-* execute other programs
-    * already possible when done manually
-        * jump to the main function of the target program
-            * memory is not freed by that way
-            * loaded files with the get interrupt are not unloaded by that way
-    * maby make an own interrupt
 * support for enviroment-variables
