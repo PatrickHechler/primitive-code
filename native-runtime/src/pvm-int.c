@@ -292,35 +292,106 @@ static void int_folder_add_folder INT_PARAMS /* 35 */{
 	check_string_len(1, 1, -1)
 pvm.x[1] = pfs_folder_create_folder(pvm.x[0], name);
 }
-//TODO continue impl
-static void int_folder_add_file INT_PARAMS /* 36 */{abort();}
-static void int_folder_add_pipe INT_PARAMS /* 37 */{abort();}
-static void int_folder_open_iter INT_PARAMS /* 38 */{abort();}
-static void int_folder_create_folder INT_PARAMS /* 39 */{abort();}
-static void int_folder_create_file INT_PARAMS /* 40 */{abort();}
-static void int_folder_create_pipe INT_PARAMS /* 41 */{abort();}
-static void int_file_length INT_PARAMS /* 42 */{abort();}
-static void int_file_truncate INT_PARAMS /* 43 */{abort();}
-static void int_file_open_stream INT_PARAMS /* 44 */{abort();}
-static void int_pipe_length INT_PARAMS /* 45 */{abort();}
-static void int_pipe_truncate INT_PARAMS /* 46 */{abort();}
-static void int_pipe_open_stream INT_PARAMS /* 47 */{abort();}
-static void int_time_get INT_PARAMS /* 48 */{abort();}
-static void int_time_wait INT_PARAMS /* 49 */{abort();}
-static void int_random INT_PARAMS /* 50 */{abort();}
-static void int_memory_copy INT_PARAMS /* 51 */{abort();}
-static void int_memory_move INT_PARAMS /* 52 */{abort();}
-static void int_memory_bset INT_PARAMS /* 53 */{abort();}
-static void int_memory_set INT_PARAMS /* 54 */{abort();}
-static void int_string_length INT_PARAMS /* 55 */{abort();}
-static void int_string_compare INT_PARAMS /* 56 */{abort();}
-static void int_number_to_string INT_PARAMS /* 57 */{abort();}
-static void int_fpnumber_to_string INT_PARAMS /* 58 */{abort();}
-static void int_string_to_number INT_PARAMS /* 59 */{abort();}
-static void int_string_to_fpnumber INT_PARAMS /* 60 */{abort();}
-static void int_string_to_u16string INT_PARAMS /* 61 */{abort();}
-static void int_string_to_u32string INT_PARAMS /* 62 */{abort();}
-static void int_u16string_to_string INT_PARAMS /* 63 */{abort();}
-static void int_u32string_to_string INT_PARAMS /* 64 */{abort();}
-static void int_string_format INT_PARAMS /* 65 */{abort();}
-static void int_load_file INT_PARAMS /* 66 */{abort();}
+static void int_folder_add_file INT_PARAMS /* 36 */{
+	struct memory* mem = chk(pvm.x[1], 1).mem;
+	if (!mem) {
+		return;
+	}
+	check_string_len(1, 1, -1)
+pvm.x[1] = pfs_folder_create_file(pvm.x[0], name);
+}
+static void int_folder_add_pipe INT_PARAMS /* 37 */{
+	struct memory* mem = chk(pvm.x[1], 1).mem;
+	if (!mem) {
+		return;
+	}
+	check_string_len(1, 1, -1)
+pvm.x[1] = pfs_folder_create_pipe(pvm.x[0], name);
+} // TODO continue impl
+static void int_folder_open_iter INT_PARAMS /* 38 */{
+	pvm.x[1] = pfs_folder_open_iter(pvm.x[0], pvm.x[1] != 0);
+}
+static void int_folder_create_folder INT_PARAMS /* 39 */{
+	abort();
+}
+static void int_folder_create_file INT_PARAMS /* 40 */{
+	abort();
+}
+static void int_folder_create_pipe INT_PARAMS /* 41 */{
+	abort();
+}
+static void int_file_length INT_PARAMS /* 42 */{
+	abort();
+}
+static void int_file_truncate INT_PARAMS /* 43 */{
+	abort();
+}
+static void int_file_open_stream INT_PARAMS /* 44 */{
+	abort();
+}
+static void int_pipe_length INT_PARAMS /* 45 */{
+	abort();
+}
+static void int_pipe_truncate INT_PARAMS /* 46 */{
+	abort();
+}
+static void int_pipe_open_stream INT_PARAMS /* 47 */{
+	abort();
+}
+static void int_time_get INT_PARAMS /* 48 */{
+	abort();
+}
+static void int_time_wait INT_PARAMS /* 49 */{
+	abort();
+}
+static void int_random INT_PARAMS /* 50 */{
+	abort();
+}
+static void int_memory_copy INT_PARAMS /* 51 */{
+	abort();
+}
+static void int_memory_move INT_PARAMS /* 52 */{
+	abort();
+}
+static void int_memory_bset INT_PARAMS /* 53 */{
+	abort();
+}
+static void int_memory_set INT_PARAMS /* 54 */{
+	abort();
+}
+static void int_string_length INT_PARAMS /* 55 */{
+	abort();
+}
+static void int_string_compare INT_PARAMS /* 56 */{
+	abort();
+}
+static void int_number_to_string INT_PARAMS /* 57 */{
+	abort();
+}
+static void int_fpnumber_to_string INT_PARAMS /* 58 */{
+	abort();
+}
+static void int_string_to_number INT_PARAMS /* 59 */{
+	abort();
+}
+static void int_string_to_fpnumber INT_PARAMS /* 60 */{
+	abort();
+}
+static void int_string_to_u16string INT_PARAMS /* 61 */{
+	abort();
+}
+static void int_string_to_u32string INT_PARAMS /* 62 */{
+	abort();
+}
+static void int_u16string_to_string INT_PARAMS /* 63 */{
+	abort();
+}
+static void int_u32string_to_string INT_PARAMS /* 64 */{
+	abort();
+}
+static void int_string_format INT_PARAMS /* 65 */{
+	abort();
+}
+static void int_load_file INT_PARAMS /* 66 */{
+	abort();
+}

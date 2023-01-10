@@ -3,7 +3,7 @@
 #endif // PVM
 
 static void c_ill() /* --- */{
-	interrupt(INT_ERRORS_UNKNOWN_COMMAND);
+	interrupt(INT_ERRORS_UNKNOWN_COMMAND, 0);
 }
 
 #define check_chaged(arg0, arg1) \
@@ -17,6 +17,7 @@ static void c_ill() /* --- */{
 			} \
 		}
 
+#define incIPVal param_num_value_index << 3
 #define incIP0(postfix) pvm.ip += (param_num_value_index postfix) << 3;
 #define incIP incIP0()
 #define incIPAddOneNum incIP0(+ 1)
@@ -97,7 +98,7 @@ static void c_mvad() /* 0x06 */{
 	}
 	num old_num_index = param_num_value_index;
 	if (remain_instruct_space <= ((old_num_index) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	check_chaged(1, 8)
@@ -195,7 +196,7 @@ static void c_div() /* 0x13 */{
 	num a = *p1.p.np;
 	num b = *p2.p.np;
 	if (!b) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR);
+		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
 		return;
 	}
 	*p1.p.np = a / b;
@@ -430,14 +431,14 @@ static void c_rlsh() /* 0x1F */{
 
 static void c_jmp() /* 0x20 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	pvm.ip += ia.np[param_num_value_index];
 }
 static void c_jmpeq() /* 0x21 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_EQUAL) {
@@ -448,7 +449,7 @@ static void c_jmpeq() /* 0x21 */{
 }
 static void c_jmpne() /* 0x22 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_EQUAL) {
@@ -459,7 +460,7 @@ static void c_jmpne() /* 0x22 */{
 }
 static void c_jmpgt() /* 0x23 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_GREATHER) {
@@ -470,7 +471,7 @@ static void c_jmpgt() /* 0x23 */{
 }
 static void c_jmpge() /* 0x24 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & (S_EQUAL | S_GREATHER)) {
@@ -481,7 +482,7 @@ static void c_jmpge() /* 0x24 */{
 }
 static void c_jmplt() /* 0x25 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_LOWER) {
@@ -492,7 +493,7 @@ static void c_jmplt() /* 0x25 */{
 }
 static void c_jmple() /* 0x26 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & (S_EQUAL | S_LOWER)) {
@@ -503,7 +504,7 @@ static void c_jmple() /* 0x26 */{
 }
 static void c_jmpcs() /* 0x27 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_OVERFLOW) {
@@ -514,7 +515,7 @@ static void c_jmpcs() /* 0x27 */{
 }
 static void c_jmpcc() /* 0x28 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_OVERFLOW) {
@@ -525,7 +526,7 @@ static void c_jmpcc() /* 0x28 */{
 }
 static void c_jmpzs() /* 0x29 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_ZERO) {
@@ -536,7 +537,7 @@ static void c_jmpzs() /* 0x29 */{
 }
 static void c_jmpzc() /* 0x2A */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_ZERO) {
@@ -547,7 +548,7 @@ static void c_jmpzc() /* 0x2A */{
 }
 static void c_jmpnan() /* 0x2B */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_NAN) {
@@ -558,7 +559,7 @@ static void c_jmpnan() /* 0x2B */{
 }
 static void c_jmpan() /* 0x2C */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_NAN) {
@@ -569,7 +570,7 @@ static void c_jmpan() /* 0x2C */{
 }
 static void c_jmpab() /* 0x2D */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_ALL_BITS) {
@@ -580,7 +581,7 @@ static void c_jmpab() /* 0x2D */{
 }
 static void c_jmpsb() /* 0x2E */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_SOME_BITS) {
@@ -591,7 +592,7 @@ static void c_jmpsb() /* 0x2E */{
 }
 static void c_jmpnb() /* 0x2F */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	if (pvm.status & S_NONE_BITS) {
@@ -602,8 +603,11 @@ static void c_jmpnb() /* 0x2F */{
 }
 
 static void c_int() /* 0x30 */{
-	incIP
-	interrupt(pvm.x[0]);
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	interrupt(p1.p.n, incIPVal);
 }
 static void c_iret() /* 0x31 */{
 	struct p p1 = param(0, 8);
@@ -615,21 +619,21 @@ static void c_iret() /* 0x31 */{
 		return;
 	}
 	if ((mem.mem->flags & MEM_INT) == 0) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 	}
 	memcpy(&pvm, mem.mem->offset + p1.p.n, 128);
 	free_memory(p1.p.n);
 }
 static void c_call() /* 0x32 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	struct memory_check mem = chk(pvm.sp, 8);
 	if (!mem.mem) {
 		return;
 	}
-	*(num*)(mem.mem->offset + pvm.sp) = pvm.ip;
+	*(num*) (mem.mem->offset + pvm.sp) = pvm.ip;
 	pvm.sp += 8;
 	pvm.ip += ia.np[param_num_value_index];
 }
@@ -639,14 +643,14 @@ static void c_calo() /* 0x33 */{
 		return;
 	}
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	struct memory_check mem = chk(pvm.sp, 8);
 	if (!mem.mem) {
 		return;
 	}
-	*(num*)(mem.mem->offset + pvm.sp) = pvm.ip;
+	*(num*) (mem.mem->offset + pvm.sp) = pvm.ip;
 	pvm.sp += 8;
 	pvm.ip += p1.p.n + ia.np[param_num_value_index];
 }
@@ -656,7 +660,7 @@ static void c_ret() /* 0x34 */{
 		return;
 	}
 	pvm.sp -= 8;
-	pvm.ip = *(num*)(mem.mem->offset + pvm.sp);
+	pvm.ip = *(num*) (mem.mem->offset + pvm.sp);
 }
 static void c_push() /* 0x35 */{
 	struct p p1 = param(0, 8);
@@ -667,7 +671,7 @@ static void c_push() /* 0x35 */{
 	if (!mem.mem) {
 		return;
 	}
-	*(num*)(mem.mem->offset + pvm.sp) = p1.p.n;
+	*(num*) (mem.mem->offset + pvm.sp) = p1.p.n;
 	pvm.sp += 8;
 	incIP
 }
@@ -681,7 +685,7 @@ static void c_pop() /* 0x36 */{
 		return;
 	}
 	pvm.sp -= 8;
-	*p1.p.np = *(num*)(mem.mem->offset + pvm.sp);
+	*p1.p.np = *(num*) (mem.mem->offset + pvm.sp);
 	incIP
 }
 
@@ -704,7 +708,7 @@ static void c_cmp() /* 0x40 */{
 	}
 	incIP
 }
-static void c_bcp() /* 0x41 */{
+static void c_cmpl() /* 0x41 */{
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -723,8 +727,7 @@ static void c_bcp() /* 0x41 */{
 	}
 	incIP
 }
-
-static void c_cmpfp() /* 0x50 */{
+static void c_cmpfp() /* 0x42 */{
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -745,7 +748,7 @@ static void c_cmpfp() /* 0x50 */{
 	}
 	incIP
 }
-static void c_chkfp() /* 0x51 */{
+static void c_chkfp() /* 0x43 */{
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -770,8 +773,8 @@ static void c_chkfp() /* 0x51 */{
 	}
 	incIP
 }
-static void c_addfp() /* 0x52 */{
-	struct p p1 = param(1, 8);
+static void c_cmpu() /* 0x44 */{
+	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
 	}
@@ -779,91 +782,130 @@ static void c_addfp() /* 0x52 */{
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR);
-		return;
+	check_chaged(0, 8)
+	if (p1.p.u > p2.p.u) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER)) | S_GREATHER;
+	} else if (p1.p.u < p2.p.u) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_GREATHER)) | S_LOWER;
+	} else {
+		pvm.status = (pvm.status & ~(S_GREATHER | S_LOWER)) | S_EQUAL;
 	}
-	*p1.p.fpnp += p2.p.fpn;
+	incIP
 }
-static void c_subfp() /* 0x53 */{
-	struct p p1 = param(1, 8);
+static void c_cmpb() /* 0x45 */{
+	struct p p1 = param(1, 16);
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(0, 8);
+	struct p p2 = param(1, 16);
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR);
-		return;
+	check_chaged(1, 16)
+	if (*p1.p.bigp > *p2.p.bigp) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER)) | S_GREATHER;
+	} else if (*p1.p.bigp < *p2.p.bigp) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_GREATHER)) | S_LOWER;
+	} else {
+		pvm.status = (pvm.status & ~(S_GREATHER | S_LOWER)) | S_EQUAL;
 	}
-	*p1.p.fpnp -= p2.p.fpn;
+	incIP
 }
-static void c_mulfp() /* 0x54 */{
-	struct p p1 = param(1, 8);
-	if (!p1.valid) {
-		return;
-	}
-	struct p p2 = param(0, 8);
-	if (!p2.valid) {
-		return;
-	}
-	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR);
-		return;
-	}
-	*p1.p.fpnp *= p2.p.fpn;
-}
-static void c_divfp() /* 0x55 */{
-	struct p p1 = param(1, 8);
-	if (!p1.valid) {
-		return;
-	}
-	struct p p2 = param(0, 8);
-	if (!p2.valid) {
-		return;
-	}
-	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR);
-		return;
-	}
-	*p1.p.fpnp /= p2.p.fpn;
-}
-static void c_negfp() /* 0x56 */{
-	struct p p1 = param(1, 8);
-	if (!p1.valid) {
-		return;
-	}
-	if (isnan(*p1.p.fpnp)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR);
-		return;
-	}
-	*p1.p.fpnp = -*p1.p.fpnp;
-}
-static void c_fptn() /* 0x57 */{
+static void c_fptn() /* 0x46 */{
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
 	}
 	if (isnormal(*p1.p.fpnp)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR);
+		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
 		return;
 	}
 	*p1.p.np = *p1.p.fpnp;
 }
-static void c_ntfp() /* 0x58 */{
+static void c_ntfp() /* 0x47 */{
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
 	}
 	*p1.p.fpnp = *p1.p.np;
 }
-static void c_uadd() /* 0x59 */{
+
+static void c_addfp() /* 0x50 */{
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp += p2.p.fpn;
+}
+static void c_subfp() /* 0x51 */{
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp -= p2.p.fpn;
+}
+static void c_mulfp() /* 0x52 */{
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp *= p2.p.fpn;
+}
+static void c_divfp() /* 0x53 */{
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp /= p2.p.fpn;
+}
+static void c_negfp() /* 0x54 */{
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (isnan(*p1.p.fpnp)) {
+		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp = -*p1.p.fpnp;
+}
+static void c_uadd() /* 0x55 */{
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -875,7 +917,7 @@ static void c_uadd() /* 0x59 */{
 	check_chaged(1, 8)
 	*p1.p.up += p2.p.u;
 }
-static void c_usub() /* 0x5A */{
+static void c_usub() /* 0x56 */{
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -887,7 +929,7 @@ static void c_usub() /* 0x5A */{
 	check_chaged(1, 8)
 	*p1.p.up -= p2.p.u;
 }
-static void c_umul() /* 0x5B */{
+static void c_umul() /* 0x57 */{
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -899,7 +941,7 @@ static void c_umul() /* 0x5B */{
 	check_chaged(1, 8)
 	*p1.p.up *= p2.p.u;
 }
-static void c_udiv() /* 0x5C */{
+static void c_udiv() /* 0x58 */{
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -913,7 +955,7 @@ static void c_udiv() /* 0x5C */{
 	*p1.p.up = a / b;
 	*p2.p.up = a % b;
 }
-static void c_bmul() /* 0x5D */{
+static void c_badd() /* 0x59 */{
 	struct p p1 = param(1, 16);
 	if (!p1.valid) {
 		return;
@@ -922,6 +964,50 @@ static void c_bmul() /* 0x5D */{
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(1, 8)
-	*(__int128*) p1.p.pntr = *(__int128*) p1.p.pntr * *(__int128*) p2.p.pntr;
+	check_chaged(1, 16)
+	*p1.p.bigp = *p1.p.bigp + *p2.p.bigp;
+}
+static void c_bsub() /* 0x5A */{
+	struct p p1 = param(1, 16);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(1, 16);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 16)
+	*p1.p.bigp = *p1.p.bigp - *p2.p.bigp;
+}
+static void c_bmul() /* 0x5B */{
+	struct p p1 = param(1, 16);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(1, 16);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 16)
+	*p1.p.bigp = *p1.p.bigp * *p2.p.bigp;
+}
+static void c_bdiv() /* 0x5C */{
+	struct p p1 = param(1, 16);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(1, 16);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 16)
+	*p1.p.bigp = *p1.p.bigp * *p2.p.bigp;
+	*p1.p.bigp = *p1.p.bigp * *p2.p.bigp;
+}
+static void c_bneg() /* 0x5D */{
+	struct p p1 = param(1, 16);
+	if (!p1.valid) {
+		return;
+	}
+	*p1.p.bigp = -*p1.p.bigp;
 }

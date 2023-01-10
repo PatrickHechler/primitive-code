@@ -936,11 +936,11 @@ the assembler language for the Primitive-Virtual-Machine
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
 * definition:
+    * `IP         <- IP + CMD_LEN`
     * note that default interrupts get called with a diffrent routine
     * `ZW         <- MEM-ALLOC{size=128}`
         * if the memory allocation fails, the program will terminate with 127
         * the allocated memory block will not be resizable, but can be freed normally with the free interrupt or with the `IRET` command
-    * `IP         <- IP + CMD_LEN`
     * `[ZW]       <- IP`
     * `[ZW + 8]   <- SP`
     * `[ZW + 16]  <- STATUS`
@@ -1158,10 +1158,10 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X01` points to the STRING name of the new child element
         * `X01` will be set to a newly opened/created ELEMENT/PIPE-ID for the child or `-1` on error
-    * `38`: file length
-        * `X00` points to the fs-element file
-        * `X01` will be set to the length of the file in bytes
-        * `X01` will be set to `-1` on error
+    * `38`: INT_FOLDER_OPEN_ITER`: open child iterator of folder
+        * `X00` contains the ELEMENT/FOLDER-ID
+        * `X01` is set to `0` if hidden files should be skipped and any other value if not
+        * `X01` will be set to the FOLDER-ITER-ID or `-1` on error
     * `39 : `: file hash
         * `X00` points to the fs-element file
         * `X01` points to a at least 32-byte large memory block (256-bits : 32-bytes)
@@ -1603,8 +1603,8 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`BCP <PARAM> , <PARAM>`
-* compares the two values on bit level
+`CMPL <PARAM> , <PARAM>`
+* compares the two values on logical/bit level
 * definition
     * `if (p1 & p2) = p2`
         * `ALL_BITS <- 1`
@@ -1650,7 +1650,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `50 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `42 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1681,7 +1681,76 @@ the assembler language for the Primitive-Virtual-Machine
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `51 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `43 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`CMPU <PARAM> , <PARAM>`
+* compares the two unsigned values and stores the result in the status register
+* definition:
+    * `if p1 > p2`
+        * `GREATHER <- 1`
+        * `LOWER <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < p2`
+        * `GREATHER <- 0`
+        * `LOWER <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `GREATHER <- 0`
+        * `LOWER <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `44 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`CMPB <PARAM> , <PARAM>`
+* compares the two 128 bit values and stores the result in the status register
+* definition:
+    * `if p1 > p2`
+        * `GREATHER <- 1`
+        * `LOWER <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < p2`
+        * `GREATHER <- 0`
+        * `LOWER <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `GREATHER <- 0`
+        * `LOWER <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `45 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`FPTN <NO_CONST_PARAM>`
+* converts the value of the floating point param to a number
+* the value after the 
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 is no normal value
+    * `p1 <- as_num(p1)`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `46 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`NTFP <NO_CONST_PARAM>`
+* converts the value of the number param to a floating point
+* the value after the 
+* definition:
+    * `p1 <- as_fp(p1)`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `47 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
@@ -1692,7 +1761,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p1 fp-add p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `52 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `50 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1705,7 +1774,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p1 fp-sub p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `53 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `51 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1718,7 +1787,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p1 fp-mul p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `54 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `52 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1731,7 +1800,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p1 fp-div p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `55 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `53 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1744,30 +1813,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p1 fp-mul -1.0`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `56 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`FPTN <NO_CONST_PARAM>`
-* converts the value of the floating point param to a number
-* the value after the 
-* definition:
-    * note that the aritmetic error interrupt is executed instead if p1 is no normal value
-    * `p1 <- as_num(p1)`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `57 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`NTFP <NO_CONST_PARAM>`
-* converts the value of the number param to a floating point
-* the value after the 
-* definition:
-    * `p1 <- as_fp(p1)`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `58 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `54 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
@@ -1777,7 +1823,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p1 uadd p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `59 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `55 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1789,7 +1835,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p1 usub p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `5A <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `56 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1801,7 +1847,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p1 umul p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `5C <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `57 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1810,11 +1856,39 @@ the assembler language for the Primitive-Virtual-Machine
 `UDIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
 * like DIV, but uses the parameters as unsigned parameters
 * definition:
-    * `p1 <- p1 udiv p2`
-    * `p2 <- p1 umod p2`
+    * `p1 <- oldp1 udiv oldp2`
+    * `p2 <- oldp1 umod oldp2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `5D <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `58 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`BADD <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* like ADD, but uses the parameters as 128 bit value parameters
+    * if registers are used the next register is also used
+    * the last register will cause the illegal memory interrupt
+* definition:
+    * `p1 <- p1 big-add p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `59 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`BSUB <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* like SUB, but uses the parameters as 128 bit value parameters
+    * if registers are used the next register is also used
+    * the last register will cause the illegal memory interrupt
+* definition:
+    * `p1 <- p1 big-sub p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `5A <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1828,11 +1902,39 @@ the assembler language for the Primitive-Virtual-Machine
     * `p1 <- p1 big-mul p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `5D <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `5B <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
+
+`BDIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* like DIV, but uses the parameters as 128 bit value parameters
+    * if registers are used the next register is also used
+    * the last register will cause the illegal memory interrupt
+* definition:
+    * `p1 <- oldp1 big-div oldp2`
+    * `p2 <- oldp1 big-mod oldp2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `5C <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`BNEG <NO_CONST_PARAM>
+* like NEG, but uses the parameters as 128 bit value parameters
+    * if registers are used the next register is also used
+    * the last register will cause the illegal memory interrupt
+* definition:
+    * `p1 <- big-neg p1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `5D <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
 ## not (yet) there/supported
 * Multi-threading
     * maby thread-groups/processes

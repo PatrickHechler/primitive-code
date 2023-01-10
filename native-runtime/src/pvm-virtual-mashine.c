@@ -81,7 +81,7 @@ struct memory_check {
 
 static inline struct memory_check chk(num pntr, num size);
 
-static inline void interrupt(num intnum) {
+static inline void interrupt(num intnum, num incIPVal) {
 #ifdef PVM_DEBUG
 #	define callInt ints[intnum](intnum);
 #else // PVM_DEBUG
@@ -93,43 +93,46 @@ static inline void interrupt(num intnum) {
 		}
 		if (pvm.intp == -1) {
 			pvm.x[0] = intnum;
-			callInt} else {
-				num adr = pvm.intp + (INT_ERRORS_ILLEGAL_INTERRUPT << 3);
-				struct memory *mem = chk(adr, 8).mem;
-				if (!mem) {
-					return;
-				}
-				num deref = *(num*) mem->offset + adr;
-				if (-1 == deref) {
-					callInt
-				} else {
-					init_int();
-					pvm.x[0] = intnum;
-					pvm.ip = deref;
-				}
-			}
-		} else if (pvm.intp == -1) {
-			if (intnum >= INTERRUPT_COUNT) {
-				pvm.x[0] = intnum;
-				intnum = INT_ERRORS_ILLEGAL_INTERRUPT;
-			}
-			callInt
+			callInt;
 		} else {
-			num adr = pvm.intp + (intnum << 3);
+			num adr = pvm.intp + (INT_ERRORS_ILLEGAL_INTERRUPT << 3);
 			struct memory *mem = chk(adr, 8).mem;
 			if (!mem) {
 				return;
 			}
 			num deref = *(num*) mem->offset + adr;
 			if (-1 == deref) {
-				callInt
+				callInt;
 			} else {
 				init_int();
+				pvm.x[0] = intnum;
 				pvm.ip = deref;
 			}
 		}
-#undef callInt
+	} else if (pvm.intp == -1) {
+		if (incIPVal) { pvm.ip += incIPVal; }
+		if (intnum >= INTERRUPT_COUNT) {
+			pvm.x[0] = intnum;
+			intnum = INT_ERRORS_ILLEGAL_INTERRUPT;
+		}
+		callInt;
+	} else {
+		num adr = pvm.intp + (intnum << 3);
+		struct memory *mem = chk(adr, 8).mem;
+		if (!mem) {
+			return;
+		}
+		if (incIPVal) { pvm.ip += incIPVal; }
+		num deref = *(num*) mem->offset + adr;
+		if (-1 == deref) {
+			callInt;
+		} else {
+			init_int();
+			pvm.ip = deref;
+		}
 	}
+#undef callInt
+}
 
 static inline struct memory_check chk(num pntr, num size) {
 	for (struct memory *m = memory; m->start != -1; m++) {
@@ -158,7 +161,7 @@ static inline struct memory_check chk(num pntr, num size) {
 					}
 				}
 			}
-			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 			struct memory_check result;
 			result.mem = NULL;
 			return result;
@@ -172,7 +175,7 @@ static inline struct memory_check chk(num pntr, num size) {
 		result.changed = 0;
 		return result;
 	}
-	interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+	interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 	struct memory_check result;
 	result.mem = NULL;
 	return result;
@@ -180,6 +183,7 @@ static inline struct memory_check chk(num pntr, num size) {
 
 union param {
 	void *pntr;
+	__int128 *bigp;
 	fpnum fpn;
 	fpnum *fpnp;
 	unum u;
@@ -232,7 +236,7 @@ static inline struct p param(int pntr, int size) {
 			paramFail
 		} else if (remain_instruct_space
 				<= size + ((param_num_value_index - 1) << 3)) {
-			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 			paramFail
 		} else if (size == 8) {
 			r.p.n = ia.np[param_num_value_index++];
@@ -251,7 +255,7 @@ static inline struct p param(int pntr, int size) {
 			r.p.pntr = &pvm.regs[ia.bp[param_byte_value_index--]];
 			if (size > 8) {
 				if ((256 - ia.bp[param_byte_value_index + 1]) > (size >> 3)) {
-					interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+					interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 					paramFail
 				}
 			}
@@ -262,7 +266,7 @@ static inline struct p param(int pntr, int size) {
 	case P_NUM_NUM: {
 		if (remain_instruct_space
 				<= size + ((param_num_value_index - 1) << 3)) {
-			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 			paramFail
 		}
 		num adr = ia.np[param_num_value_index]
@@ -292,7 +296,7 @@ static inline struct p param(int pntr, int size) {
 	case P_NUM_REG: {
 		if (remain_instruct_space
 				<= size + ((param_num_value_index - 1) << 3)) {
-			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 			paramFail
 		}
 		num adr = ia.np[param_num_value_index++]
@@ -320,7 +324,7 @@ static inline struct p param(int pntr, int size) {
 	case P_REG_REG: {
 		if (remain_instruct_space
 				<= size + ((param_num_value_index - 1) << 3)) {
-			interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 			paramFail
 		}
 		num adr = pvm.regs[ia.bp[param_byte_value_index]]
@@ -348,7 +352,7 @@ static inline struct p param(int pntr, int size) {
 	}
 	default:
 		r.valid = 0;
-		interrupt(INT_ERRORS_UNKNOWN_COMMAND);
+		interrupt(INT_ERRORS_UNKNOWN_COMMAND, 0);
 	}
 	return r;
 #undef paramFail
@@ -357,12 +361,12 @@ static inline struct p param(int pntr, int size) {
 static inline void exec() {
 	struct memory_check ipmem = chk(pvm.ip, 8);
 	if (!ipmem.mem) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	remain_instruct_space = ipmem.mem->end - pvm.ip;
 	if (remain_instruct_space < 8) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	ia.pntr = ipmem.mem->offset + pvm.ip;
@@ -436,7 +440,7 @@ PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize,
 		return NULL;
 	}
 	if (!auto_growing && ((mem->start != adr) || (adr & MEM_NO_RESIZE))) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return NULL;
 	}
 	void *new_pntr = realloc(mem->offset + mem->start, newsize);
@@ -507,7 +511,7 @@ PVM_SI_PREFIX void free_memory(num adr) {
 		return;
 	}
 	if (mem.mem->start != adr || adr == REGISTER_START) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY);
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	free(mem.mem->offset + mem.mem->start);
