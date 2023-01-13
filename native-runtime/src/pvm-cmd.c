@@ -688,6 +688,50 @@ static void c_pop() /* 0x36 */{
 	*p1.p.np = *(num*) (mem.mem->offset + pvm.sp);
 	incIP
 }
+static void c_pushblk() /* 0x37 */{
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (p1.p.n < 0) {
+		interrupt(INT_ERRORS_UNKNOWN_COMMAND, 0);
+		return;
+	}
+	struct p p2 = param(1, p1.p.n);
+	if (!p2.valid) {
+		return;
+	}
+	struct memory mem = chk(pvm.sp, p1.p.n).mem;
+	if (!mem) {
+		return;
+	}
+	memmove(mem.offset + pvm.sp, p2.p.pntr, p1.p.n);
+	pvm.sp += p1.p.n;
+}
+static void c_popblk() /* 0x37 */{
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (p1.p.n < 0) {
+		interrupt(INT_ERRORS_UNKNOWN_COMMAND, 0);
+		return;
+	}
+	struct p p2 = param(1, p1.p.n);
+	if (!p2.valid) {
+		return;
+	}
+	struct memory mem = chk(pvm.sp, 0).mem;
+	if (!mem) {
+		return;
+	}
+	if (p1.p.n > pvm.sp - mem.start) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	pvm.sp -= p1.p.n;
+	memmove(p2.p.pntr, mem.offset + pvm.sp, p1.p.n);
+}
 
 static void c_cmp() /* 0x40 */{
 	struct p p1 = param(0, 8);
@@ -698,7 +742,6 @@ static void c_cmp() /* 0x40 */{
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(0, 8)
 	if (p1.p.n > p2.p.n) {
 		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER)) | S_GREATHER;
 	} else if (p1.p.n < p2.p.n) {
@@ -717,7 +760,6 @@ static void c_cmpl() /* 0x41 */{
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(0, 8)
 	if ((p1.p.n & p2.p.n) == p1.p.n) {
 		pvm.status = (pvm.status & ~(S_NONE_BITS)) | (S_SOME_BITS | S_ALL_BITS);
 	} else if (p1.p.n < p2.p.n) {
@@ -736,7 +778,6 @@ static void c_cmpfp() /* 0x42 */{
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(0, 8)
 	if (isnan(p1.p.fpn) || isnan(p2.p.fpn)) {
 		pvm.status = (pvm.status & ~(S_GREATHER | S_EQUAL | S_LOWER)) | S_NAN;
 	} else if (p1.p.fpn > p2.p.fpn) {
@@ -782,7 +823,6 @@ static void c_cmpu() /* 0x44 */{
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(0, 8)
 	if (p1.p.u > p2.p.u) {
 		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER)) | S_GREATHER;
 	} else if (p1.p.u < p2.p.u) {

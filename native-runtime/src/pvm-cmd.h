@@ -65,6 +65,8 @@ static void c_calo(); /* 0x33 */
 static void c_ret(); /* 0x34 */
 static void c_push(); /* 0x35 */
 static void c_pop(); /* 0x36 */
+static void c_pushblk(); /* 0x37 */
+static void c_popblk(); /* 0x37 */
 
 /* 0x4. : compare/check and convert */
 static void c_cmp(); /* 0x40 */

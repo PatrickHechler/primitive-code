@@ -225,7 +225,7 @@ static union instruction_adres {
 } ia;
 static num remain_instruct_space;
 
-static inline struct p param(int pntr, int size) {
+static inline struct p param(int pntr, num size) {
 #define paramFail r.valid = 0; return r;
 	struct p r;
 	r.valid = 1;
@@ -254,7 +254,7 @@ static inline struct p param(int pntr, int size) {
 		if (pntr) {
 			r.p.pntr = &pvm.regs[ia.bp[param_byte_value_index--]];
 			if (size > 8) {
-				if ((256 - ia.bp[param_byte_value_index + 1]) > (size >> 3)) {
+				if ((256 - ia.bp[param_byte_value_index + 1]) > ((size + 7) >> 3)) {
 					interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 					paramFail
 				}

@@ -1543,7 +1543,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `[SP] <- IP`
     * `SP <- SP + 8`
     * `IP <- p1 + p2`
-        * the call will not be made relative from this position, so the label remains relative to the start of the file it is declared in
+        * note that this call is not relative from the current position
 * binary:
     * `33 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
@@ -1572,11 +1572,35 @@ the assembler language for the Primitive-Virtual-Machine
 `POP <NO_CONST_PARAM>`
 * pops the highest value from the stack to the parameter
 * definition:
+    * `p1 <- [SP - 8]`
     * `SP <- SP - 8`
-    * `p1 <- [SP]`
     * `IP <- IP + CMD_LEN`
 * binary:
     * `36 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`PUSHBLK <PARAM> <NO_CONST_PARAM>`
+* pushes the memory block, which is refered by p2 and p1 large to the stack
+* definition:
+    * `note that p1 is not allowed to be negative`
+    * `MEMORY_COPY{TARGET=SP,SOURCE=p2,BYTES=p1}`
+    * `SP <- SP + p1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `37 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`POPBLK <PARAM> , <NO_CONST_PARAM>`
+* pops the memory block, which will be saved to p2 and is p1 large from the stack
+* definition:
+    * `note that p1 is not allowed to be negative`
+    * `MEMORY_COPY{TARGET=p2,SOURCE=SP-p1,BYTES=p1}`
+    * `SP <- SP - p1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `38 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
