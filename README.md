@@ -1162,222 +1162,87 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` contains the ELEMENT/FOLDER-ID
         * `X01` is set to `0` if hidden files should be skipped and any other value if not
         * `X01` will be set to the FOLDER-ITER-ID or `-1` on error
-    * `39 : `: file hash
-        * `X00` points to the fs-element file
-        * `X01` points to a at least 32-byte large memory block (256-bits : 32-bytes)
-            * the memory block from `X01` will be filled with the SHA-256 hash code of the file
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no file
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `40`: file read
-        * `X00` points to the fs-element file
-        * `X01` contains the number of bytes to read
-        * `X01` points to a memory block to which the file data should be filled
-        * `X03` contains the offset from the file
-        * `X02` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no file
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or the offset / read count is invalid
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-                    * or if the read count or file offset is negative
-                    * or if the read count + file offset is larger than the file length
-    * `41`: file write
-        * `X00` points to the fs-element file
-        * `X01` contains the number of bytes to write
-        * `X02` points to the memory block with the data to write
-        * `X03` contains the offset from the file
-        * `X02` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no file
-                * `UHEX-0400000000000000` : `STATUS_ELEMENT_READ_ONLY`: operation was denied because read-only
-                    * if the element is marked as read-only
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or the offset / read count is invalid
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-                    * or if the write count or file offset is negative
-                    * or if the write count + file offset is larger than the file length
-    * `42`: file append
-        * `X00` points to the fs-element file
-        * `X01` contains the number of bytes to append
-        * `X02` points to the memory block with the data to write
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no file
-                * `UHEX-0200000000000000` : `STATUS_OUT_OF_SPACE`: operation failed bcause the there could not be allocated enugh space for the larger file
-                    * the file system could either not allocate enugh blocks for the new larger file
-                    * or the file system could not allocate enugh space for the larger file system entry of the file
-                * `UHEX-0400000000000000` : `STATUS_ELEMENT_READ_ONLY`: operation was denied because read-only
-                    * if the element is marked as read-only
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or the offset / read count is invalid
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-                    * or if the write count or file offset is negative
-                    * or if the write count + file offset is larger than the file length
-    * `43`: file truncate
-        * `X00` points to the fs-element file
-        * `X01` contains the new length of the file
-        * removes all data from the file which is behind the new length
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no file
-                * `UHEX-0200000000000000` : `STATUS_OUT_OF_SPACE`: operation failed bcause the there could not be allocated enugh space
-                    * the file system was not able to resize the file system entry to a smaller size
-                        * the block intern table sometimes grow when a area is released
-                        * if the block intern table can not grow this error occurres
-                * `UHEX-0400000000000000` : `STATUS_ELEMENT_READ_ONLY`: operation was denied because read-only
-                    * if the element is marked as read-only
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or the offset / read count is invalid
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-                    * or if the new length is larger than the current file length
-                    * or if the new length is negative
-    * `44`: link get target
-        * `X00` points to the fs-element link
-        * `[X00]` : `[X00 + FS_ELEMENT_OFFSET_ID]` will be set to the target ID
-        * `X01` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no link
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or the offset / read count is invalid
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `45`: link set target
-        * `X00` points to the fs-element link
-        * `X01` points to the new target element
-        * sets the target element of the link
-            * also flags the link with file or folder and rremoves the other flag (`HEX-00000001` : `FLAG_FOLDER` or `HEX-00000002` : `FLAG_FILE`)
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no link
-                * `UHEX-0400000000000000` : `STATUS_ELEMENT_READ_ONLY`: operation was denied because read-only
-                    * if the element is marked as read-only
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the element is locked with a diffrent lock
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` contains an invalid ID or the offset / read count is invalid
-                    * if the given ID of the fs-element is invalid (because it was deleted)
-    * `46`: lock file-system
-        * `X00` contains the new lock data
-        * the lock is like a lock for elements, but it works for all elements
-        * if the file system is already exclusively locked the operation will fail
-        * if the file system is locked with a shared lock and the lock data of the given lock is the same to the lock data of the current lock:
-            * a shared lock is flaged with `UHEX-4000000000000000` : `LOCK_SHARED_LOCK`
-            * the new lock will not contain the shared lock counter
-            * the lock should be released like a exclusive lock, when it is no longer needed
-            * a shared lock does not give you any permissions, it just blocks operations for all (also for those with the lock)
-        * if the given lock is not flagged with `UHEX-8000000000000000` : `LOCK_LOCKED_LOCK`, it will be automatically be flagged with `UHEX-8000000000000000`: `LOCK_LOCKED_LOCK`
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the file syste, is already locked
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X00` does not only contain lock data bits
-                    * if the given lock does not only specify the lock data
-        * the lock of the file system will be remembered in the `FS_LOCK` register
-    * `47`: unlock file-system
-        * if the file system is not locked with the given lock the operation will fail
-            * if the `FS_LOCK` is `UHEX-0000000000000000` : `LOCK_NO_LOCK`, the operation will always try to remove the lock of the element
-        * if the file system is locked with a shared lock:
-            * if this is the last lock, the shared lock will be removed
-            * else the shared lock counter will be decremented
-        * `X00` will be set to `-1` on error
-            * the `ERRNO` register will be set:
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the file system is locked with a diffrent lock or not locked at all
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified io error occurred
-                    * if some IO error occurred
-    * `48`: to get the time in milliseconds
-        * `X00` will contain the time in milliseconds or `-1` if not available
-    * `49`: to wait the given time in nanoseconds
+    * `39 : INT_FILE_LENGTH`: get the length of a file
+        * `X00` contains the ELEMENT/FILE-ID
+        * `X01` will be set to the file length in bytes or `-1` on error
+    * `40 : INT_FILE_TRUNCATE`: set the length of a file
+        * `X00` contains the ELEMENT/FILE-ID
+        * `X01` is set to the new length of the file
+        * this interrupt will append zeros to the file when the new length is larger than the old length or remove all content after the new length
+        * `X01` will be set `1` on success or `0` on error
+    * `41 : INT_HANDLE_OPEN_STREAM`: opens a stream from a file or pipe handle
+        * `X00` contains the ELEMENT/FILE/PIPE-ID
+            * note that this interrupt works for both files and pipes, but will fail for folders
+        * `X01` is set to the open flags
+            * note that the high 32-bit of the flags are ignored
+        * `X01` will be set to the STREAM-ID or `-1` on error
+    * `42 : INT_PIPE_LENGTH`: get the length of a pipe
+        * `X00` contains the ELEMENT/PIPE-ID
+        * `X01` will be set to the pipe length in bytes or `-1` on error
+    * `43 : INT_TIME_GET`: get the current system time
+        * `X00` will be set to `1` on success and `0` on error
+        * `X01` will be set to the curent system time in seconds since the epoch
+        * `X02` will be set to the additional curent system time in nanoseconds
+    * `44 : INT_TIME_GET`: get the system time resolution
+        * `X00` will be set to `1` on success and `0` on error
+        * `X01` will be set to the resolution in seconds
+        * `X02` will be set to the additional resolution in nanoseconds
+    * `45 : INT_TIME_SLEEP`: to sleep the given time in nanoseconds
         * `X00` contain the number of nanoseconds to wait (only values from `0` to `999999999` are allowed)
-        * `X01` contain the number of seconds to wait
+        * `X01` contain the number of seconds to wait (only values greather or equal to `0` are allowed)
         * `X00` and `X01` will contain the remaining time (both `0` if it finished waiting)
         * `X02` will be `1` if the call was successfully and `0` if something went wrong
-            * if `X02` is `1` the remaining time will always be `0`
-            * if `X02` is `0` the remaining time will be greater `0`
         * `X00` will not be negative if the progress waited too long
-    * `50`: random
-        * `X00` will be filled with random bits
-    * `51`: memory copy
+    * `46 : INT_TIME_WAIT`: to wait the given time in nanoseconds
+        * `X00` contain the number of seconds since the epoch
+        * `X01` contain the additional number of nanoseconds
+        * this interrupt will wait until the current system time is equal or after the given absolute time.
+        * `X00` and `X01` will contain the remaining time (both `0` if it finished waiting)
+        * `X02` will be `1` if the call was successfully and `0` if something went wrong
+    * `47 : INT_RND_OPEN`: open a read stream which delivers random values
+        * `X00` will be set to the STREAM-ID or `-1` on error
+            * the stream will only support read operations
+                * not write/append or seek/setpos operations
+    * `48 : INT_RND_NUM`: sets `X00` to a random number
+        * `X00` will be set to a random non negative number or `-1` on error
+    * `49 : INT_MEM_CPY`: memory copy
         * copies a block of memory
         * this function has undefined behavior if the two blocks overlap
         * `X00` points to the target memory block
         * `X01` points to the source memory block
         * `X02` has the length of bytes to bee copied
-    * `52`: memory move
+    * `50 : INT_MEM_MOV`: memory move
         * copies a block of memory
         * this function makes sure, that the original values of the source block are copied to the target block (even if the two block overlap)
         * `X00` points to the target memory block
         * `X01` points to the source memory block
         * `X02` has the length of bytes to bee copied
-    * `53`: memory byte set
+    * `53 : INT_MEM_BSET`: memory byte set
         * sets a memory block to the given byte-value
         * `X00` points to the block
         * `X01` the first byte contains the value to be written to each byte
         * `X02` contains the length in bytes
-    * `54`: memory set
-        * sets a memory block to the given int64-value
-        * `X00` points to the block
-        * `X01` contains the value to be written to each element
-        * `X02` contains the count of elements to be set
-    * `55`: string length
+    * `55 : INT_STR_LEN`: string length
         * `X00` points to the STRING
         * `X00` will be set to the length of the string/ the (byte-)offset of the first byte from the `'\0'` character
-    * `56`: string compare
+    * `56 : INT_STR_CMP`: string compare
         * `X00` points to the first STRING
         * `X01` points to the second STRING
         * `X00` will be set to zero if both are equal STRINGs, a value greather zero if the first is greather and below zero if the second is greather
             * a STRING is greather if the first missmatching char has numeric greather value
-    * `57`: number to string
+    * `57 : INT_STR_FROM_NUM`: number to string
         * `X00` is set to the number to convert
         * `X01` is points to the buffer to be filled with the number in a STRING format
         * `X02` contains the base of the number system
             * the minimum base is `2`
             * the maximum base is `36`
-            * other values lead to undefined behavior
         * `X03` is set to the length of the buffer
             * `0` when the buffer should be allocated by this interrupt
-        * `X00` will be set to the size of the STRING
+        * `X00` will be set to the size of the STRING (without the `\0` terminating character)
         * `X01` will be set to the new buffer
         * `X03` will be set to the new size of the buffer
             * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
         * on error `X01` will be set to `-1`
-            * the `ERRNO` register will be set:
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X02` is an invalid number system or an invalid buffer size
-                    * if the given number system is smaller than `2` or larger than `36`
-                    * or if the buffer size is negative
-                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
-                    * the system tries to allocate some memory but was not able to allocate the needed memory
     * `58`: floating point number to string
         * `X00` is set to the number to convert
         * `X01` points to the buffer to be filled with the number in a STRING format
@@ -1960,15 +1825,10 @@ the assembler language for the Primitive-Virtual-Machine
     * `[P1.OFF_NUM]`
 
 ## not (yet) there/supported
+* support for enviroment-variables
 * Multi-threading
     * maby thread-groups/processes
     * maby allow overwrite of default interrupts for child threads/processes
     * syncronizing/locks
     * execute other programs
-        * already possible when done manually
-            * jump to the main function of the target program
-                * memory is not freed by that way
-                * loaded files with the get interrupt are not unloaded by that way
-        * maby make an own interrupt
 * sockets
-* support for enviroment-variables

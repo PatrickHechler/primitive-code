@@ -22,6 +22,7 @@ enum perr {
     PE_OUT_OF_MEMORY         = 10, /* if an IO operation failed because there was not enough space in the file system */
     PE_ROOT_FOLDER           = 11, /* if an IO operation failed because the root folder has some restrictions */
     PE_PARENT_IS_CHILD       = 12, /* if an folder can not be moved because the new child (maybe a deep/indirect child) is a child of the folder */
+	PE_ELEMENT_USED          = 13, /* if an element which is opened elsewhere is tried to be deleted */
 };
 
 #ifndef NO_CHECK_WITH_PFS

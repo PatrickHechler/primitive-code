@@ -8,8 +8,8 @@
 #ifndef SRC_PVM_VIRTUAL_MASHINE_H_
 #define SRC_PVM_VIRTUAL_MASHINE_H_
 
-#include <stddef.h>
 #include <stdint.h>
+#include <stdlib.h>
 
 #ifdef PVM
 #	define EXT
@@ -40,8 +40,9 @@ EXT struct pvm {
 	num intp; // regs[2]
 	num intcnt; // regs[3]
 	unum status; // regs[5]
+	fpnum fpx[0]; // reg[6..255] // array size set to zero, because this is no union
 	num x[256 - 6]; // reg[6..255] // - 6 because XFA shares its address with the errno register
-	num errno; // regs[255]
+	num err; // regs[255]
 } pvm;
 
 _Static_assert((sizeof(num) * 256) == sizeof(struct pvm), "Error!");
@@ -120,12 +121,13 @@ struct memory2 {
  *
  * since memory can grow and shrink memory previously used by a
  * memory block can be 'moved' to be inside of an other memory block
- * which has already been freed or mooved away
+ * which has already been freed or moved away
  *
- * this PVM implementation requires the holes exist (size 1 should work)
+ * this value should at least be 256, if lower the automatic grow range
+ * of a automatic grow memory block could overlap with an other memory block
  */
-#	define ADRESS_HOLE_DEFAULT_SIZE 1024
-#	define ADRESS_HOLE_MINIMUM_SIZE 32
+#	define ADRESS_HOLE_DEFAULT_SIZE 4096
+#	define ADRESS_HOLE_MINIMUM_SIZE 512
 
 #	define REGISTER_START 0x0000000000001000
 #	define REGISTER_END   0x0000000000001800

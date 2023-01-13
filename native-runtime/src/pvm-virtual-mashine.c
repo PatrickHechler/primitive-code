@@ -7,6 +7,13 @@
 #define PVM
 
 #include <pfs-constants.h>
+#include <pfs.h>
+#include <pfs-stream.h>
+#include <pfs-iter.h>
+#include <pfs-element.h>
+#include <pfs-folder.h>
+#include <pfs-file.h>
+#include <pfs-pipe.h>
 
 #include "pvm-virtual-mashine.h"
 #include "pvm-err.h"
@@ -14,15 +21,32 @@
 #include "pvm-int.h"
 #include "pvm-cmd.h"
 
-#include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
+#include <time.h>
+#include <errno.h>
+#include <unistd.h>
+#include <fcntl.h>
 
 void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	if (next_adress != REGISTER_START) {
 		abort();
 	}
+
+	if (pfs_stream_open_delegate(STDIN_FILENO, PFS_SO_PIPE | PFS_SO_READ)
+			!= 0) {
+		abort();
+	}
+	if (pfs_stream_open_delegate(STDOUT_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
+			!= 1) {
+		abort();
+	}
+	if (pfs_stream_open_delegate(STDERR_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
+			!= 2) {
+		abort();
+	}
+
 	struct memory *pvm_mem = alloc_memory2(&pvm, sizeof(pvm),
 	/*		*/MEM_NO_FREE | MEM_NO_RESIZE);
 	if (!pvm_mem) {
@@ -110,7 +134,7 @@ static inline void interrupt(num intnum, num incIPVal) {
 			}
 		}
 	} else if (pvm.intp == -1) {
-		if (incIPVal) { pvm.ip += incIPVal; }
+		if (incIPVal) {pvm.ip += incIPVal;}
 		if (intnum >= INTERRUPT_COUNT) {
 			pvm.x[0] = intnum;
 			intnum = INT_ERRORS_ILLEGAL_INTERRUPT;
@@ -122,7 +146,7 @@ static inline void interrupt(num intnum, num incIPVal) {
 		if (!mem) {
 			return;
 		}
-		if (incIPVal) { pvm.ip += incIPVal; }
+		if (incIPVal) {pvm.ip += incIPVal;}
 		num deref = *(num*) mem->offset + adr;
 		if (-1 == deref) {
 			callInt;
@@ -254,7 +278,8 @@ static inline struct p param(int pntr, num size) {
 		if (pntr) {
 			r.p.pntr = &pvm.regs[ia.bp[param_byte_value_index--]];
 			if (size > 8) {
-				if ((256 - ia.bp[param_byte_value_index + 1]) > ((size + 7) >> 3)) {
+				if ((256 - ia.bp[param_byte_value_index + 1])
+						> ((size + 7) >> 3)) {
 					interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 					paramFail
 				}
@@ -420,7 +445,7 @@ PVM_SI_PREFIX struct memory2 alloc_memory(num size, unsigned flags) {
 	if (!mem) {
 		r.mem = NULL;
 		r.adr = NULL;
-		pvm.errno = PE_OUT_OF_MEMORY;
+		pvm.err = PE_OUT_OF_MEMORY;
 		return r;
 	}
 	r.mem = alloc_memory2(mem, size, flags);

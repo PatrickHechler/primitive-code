@@ -701,11 +701,11 @@ static void c_pushblk() /* 0x37 */{
 	if (!p2.valid) {
 		return;
 	}
-	struct memory mem = chk(pvm.sp, p1.p.n).mem;
+	struct memory *mem = chk(pvm.sp, p1.p.n).mem;
 	if (!mem) {
 		return;
 	}
-	memmove(mem.offset + pvm.sp, p2.p.pntr, p1.p.n);
+	memmove(mem->offset + pvm.sp, p2.p.pntr, p1.p.n);
 	pvm.sp += p1.p.n;
 }
 static void c_popblk() /* 0x37 */{
@@ -721,16 +721,16 @@ static void c_popblk() /* 0x37 */{
 	if (!p2.valid) {
 		return;
 	}
-	struct memory mem = chk(pvm.sp, 0).mem;
+	struct memory *mem = chk(pvm.sp, 0).mem;
 	if (!mem) {
 		return;
 	}
-	if (p1.p.n > pvm.sp - mem.start) {
+	if (p1.p.n > pvm.sp - mem->start) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	pvm.sp -= p1.p.n;
-	memmove(p2.p.pntr, mem.offset + pvm.sp, p1.p.n);
+	memmove(p2.p.pntr, mem->offset + pvm.sp, p1.p.n);
 }
 
 static void c_cmp() /* 0x40 */{
