@@ -28,6 +28,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include <fcntl.h>
+#include <ctype.h>
+#include <iconv.h>
 
 void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	if (next_adress != REGISTER_START) {
@@ -464,7 +466,10 @@ PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize,
 	if (!mem) {
 		return NULL;
 	}
-	if (!auto_growing && ((mem->start != adr) || (adr & MEM_NO_RESIZE))) {
+	if ((adr & MEM_NO_RESIZE) || ((!auto_growing) && (mem->start != adr))) {
+		if (auto_growing) {
+			abort();
+		}
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return NULL;
 	}
@@ -530,17 +535,21 @@ PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize,
 		return mem;
 	}
 }
+static inline void free_mem_impl(struct memory *mem) {
+	free(mem->offset + mem->start);
+	memset(mem, 0xFF, sizeof(struct memory));
+}
+
 PVM_SI_PREFIX void free_memory(num adr) {
-	struct memory_check mem = chk(adr, 0);
-	if (!mem.mem) {
+	struct memory *mem = chk(adr, 0).mem;
+	if (!mem) {
 		return;
 	}
-	if (mem.mem->start != adr || adr == REGISTER_START) {
+	if ((mem->start != adr) || (mem->flags & MEM_NO_FREE)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
-	free(mem.mem->offset + mem.mem->start);
-	memset(mem.mem, 0xFF, sizeof(struct memory));
+	free_mem_impl(mem);
 }
 
 #ifdef PVM_DEBUG

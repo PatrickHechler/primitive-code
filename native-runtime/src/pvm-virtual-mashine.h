@@ -98,6 +98,7 @@ EXT num depth;
 #define MEM_AUTO_GROW_BITS  0xFF000000U
 #define MEM_AUTO_GROW_SHIFT 24
 #define MEM_INT             0x00000008U
+#define MEM_LIB             0x00000010U
 
 struct memory {
 	num start;

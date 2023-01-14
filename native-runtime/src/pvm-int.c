@@ -315,7 +315,7 @@ static void int_handle_open_stream( INT_PARAMS) /* 41 */{
 static void int_pipe_length( INT_PARAMS) /* 42 */{
 	pvm.x[1] = pfs_pipe_length(pvm.x[0]);
 }
-static void int_time_get( INT_PARAMS) /* 45 */{ // TODO correct values / add to table
+static void int_time_get( INT_PARAMS) /* 45 */{
 	struct timespec spec;
 	if (clock_gettime(CLOCK_REALTIME, &spec) == -1) {
 		pvm.x[0] = 0;
@@ -352,7 +352,7 @@ static void int_time_sleep( INT_PARAMS) /* 46 */{
 		pvm.x[2] = 1;
 	}
 }
-static void int_time_sleep( INT_PARAMS) /* 46 */{
+static void int_time_wait( INT_PARAMS) /* 46 */{
 	struct timespec want;
 	want.tv_nsec = pvm.x[0];
 	want.tv_sec = pvm.x[1];
@@ -369,7 +369,7 @@ static void int_time_sleep( INT_PARAMS) /* 46 */{
 		pvm.x[2] = 1;
 	}
 }
-static void int_random_stream( INT_PARAMS) /* 47 */{
+static void int_rnd_open( INT_PARAMS) /* 47 */{
 	int fd = open("/dev/urandom", O_RDONLY);
 	if (fd == -1) {
 		pvm.err = PE_UNKNOWN_ERROR;
@@ -382,7 +382,7 @@ static void int_random_stream( INT_PARAMS) /* 47 */{
 	}
 	pvm.x[0] = sh;
 }
-static void int_random_num( INT_PARAMS) /* 47 */{
+static void int_rnd_num( INT_PARAMS) /* 47 */{
 	long int r = random();
 	if (r < 0) {
 		r = -1;
@@ -390,7 +390,7 @@ static void int_random_num( INT_PARAMS) /* 47 */{
 	}
 	pvm.x[0] = r;
 }
-static void int_memory_copy( INT_PARAMS) /* 48 */{
+static void int_mem_cpy( INT_PARAMS) /* 48 */{
 	if (pvm.x[2] < 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -408,7 +408,7 @@ static void int_memory_copy( INT_PARAMS) /* 48 */{
 	}
 	memcpy(dst.mem->offset + pvm.x[1], src->offset + pvm.x[0], pvm.x[2]);
 }
-static void int_memory_move( INT_PARAMS) /* 49 */{
+static void int_mem_mov( INT_PARAMS) /* 49 */{
 	if (pvm.x[2] < 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -426,7 +426,7 @@ static void int_memory_move( INT_PARAMS) /* 49 */{
 	}
 	memmove(dst.mem->offset + pvm.x[1], src->offset + pvm.x[0], pvm.x[2]);
 }
-static void int_memory_set( INT_PARAMS) /* 50 */{
+static void int_mem_set( INT_PARAMS) /* 50 */{
 	if (pvm.x[2] < 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -437,7 +437,7 @@ static void int_memory_set( INT_PARAMS) /* 50 */{
 	}
 	memset(src->offset + pvm.x[0], pvm.x[1], pvm.x[2]);
 }
-static void int_string_length( INT_PARAMS) /* 52 */{
+static void int_str_len( INT_PARAMS) /* 52 */{
 	struct memory *str = chk(pvm.x[0], 1).mem;
 	if (!str) {
 		return;
@@ -450,7 +450,7 @@ static void int_string_length( INT_PARAMS) /* 52 */{
 		pvm.x[0] = len;
 	}
 }
-static void int_string_compare( INT_PARAMS) /* 53 */{
+static void int_str_cmp( INT_PARAMS) /* 53 */{
 	struct memory *str_a = chk(pvm.x[0], 1).mem;
 	if (!str_a) {
 		return;
@@ -483,8 +483,12 @@ static inline num num_to_str(char *dest, num maxlen, num number, int base) {
 	if (number < 0) {
 		nts_add('-');
 		num nn = -(number / base);
-		num mod = number % base;
-		nts_add('0' - mod);
+		num mod = -(number % base);
+		if (mod < 10) {
+			nts_add('0' + mod);
+		} else {
+			nts_add('A' + mod);
+		}
 		n = nn;
 	} else if (number) {
 		n = number;
@@ -495,14 +499,18 @@ static inline num num_to_str(char *dest, num maxlen, num number, int base) {
 	while (n) {
 		num nn = n / base;
 		num mod = n % base;
-		nts_add('0' + mod);
+		if (mod < 10) {
+			nts_add('0' + mod);
+		} else {
+			nts_add('A' + mod);
+		}
 		n = nn;
 	}
 	return index;
 #undef nts_add
 #undef nts_add0
 }
-static void int_number_to_string( INT_PARAMS) /* 54 */{
+static void int_str_from_num( INT_PARAMS) /* 54 */{
 	num len = pvm.x[3];
 	if (len < 0) {
 		pvm.x[1] = -1;
@@ -522,7 +530,7 @@ static void int_number_to_string( INT_PARAMS) /* 54 */{
 			pvm.err = PE_OUT_OF_MEMORY;
 			return;
 		}
-		num_to_str(mem.adr, strlen + 1, "%ld", pvm.x[0]);
+		num_to_str(mem.adr, strlen + 1, pvm.x[0], pvm.x[2]);
 		pvm.x[0] = strlen;
 		pvm.x[1] = mem.mem->start;
 		pvm.x[3] = strlen + 1;
@@ -544,12 +552,12 @@ static void int_number_to_string( INT_PARAMS) /* 54 */{
 			}
 			pvm.x[1] = mem->start;
 		}
-		num_to_str(mem->offset + pvm.x[1], strlen + 1, "%ld", pvm.x[0]);
+		num_to_str(mem->offset + pvm.x[1], strlen + 1, pvm.x[0], pvm.x[2]);
 		pvm.x[0] = strlen;
 		pvm.x[3] = strlen + 1;
 	}
 }
-static void int_fpnumber_to_string( INT_PARAMS) /* 55 */{
+static void int_str_from_fpnum( INT_PARAMS) /* 55 */{
 	num len = pvm.x[3];
 	if (len < 0) {
 		pvm.x[1] = -1;
@@ -591,30 +599,522 @@ static void int_fpnumber_to_string( INT_PARAMS) /* 55 */{
 		pvm.x[3] = strlen + 1;
 	}
 }
-static void int_string_to_number( INT_PARAMS) /* 56 */{
-	abort();
+static void int_str_to_num( INT_PARAMS) /* 56 */{
+	if (pvm.x[2] < 2 || pvm.x[2] > 23) {
+		pvm.err = PE_ILLEGAL_ARG;
+		pvm.x[1] = 0;
+		return;
+	}
+	struct memory *mem = chk(pvm.x[0], 1).mem;
+	if (!mem) {
+		return;
+	}
+	num max_len = mem->end - pvm.x[0];
+	char *str = mem->offset + pvm.x[0];
+	if (isspace(*str)) {
+		pvm.err = PE_ILLEGAL_ARG;
+		pvm.x[1] = 0;
+		return;
+	}
+	num str_len = strnlen(str, max_len);
+	if (str_len == max_len) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	char *end;
+	errno = 0;
+	num val = strtol(str, &end, pvm.x[2]);
+	if (errno) {
+		pvm.x[0] = 0;
+		if (errno == ERANGE) {
+			pvm.err = PE_OUT_OF_RANGE;
+		} else if (errno == EINVAL) {
+			pvm.err = PE_ILLEGAL_ARG;
+		} else {
+			pvm.err = PE_UNKNOWN_ERROR;
+		}
+	} else if (*end) {
+		pvm.err = PE_ILLEGAL_ARG;
+		pvm.x[0] = 0;
+	} else {
+		pvm.x[0] = 1;
+	}
+	pvm.x[0] = val;
 }
-static void int_string_to_fpnumber( INT_PARAMS) /* 57 */{
-	abort();
+static void int_str_to_fpnum( INT_PARAMS) /* 57 */{
+	struct memory *mem = chk(pvm.x[0], 1).mem;
+	if (!mem) {
+		return;
+	}
+	num max_len = mem->end - pvm.x[0];
+	const char *str = mem->offset + pvm.x[0];
+	if (isspace(*str)) {
+		pvm.err = PE_ILLEGAL_ARG;
+		pvm.x[1] = 0;
+		return;
+	}
+	num str_len = strnlen(str, max_len);
+	if (str_len == max_len) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	char *end;
+	errno = 0;
+	fpnum val = strtod(str, &end);
+	if (errno) {
+		pvm.x[0] = 0;
+		if (errno == ERANGE) {
+			pvm.err = PE_OUT_OF_RANGE;
+		} else if (errno == EINVAL) {
+			pvm.err = PE_ILLEGAL_ARG;
+		} else {
+			pvm.err = PE_UNKNOWN_ERROR;
+		}
+	} else if (*end) {
+		pvm.err = PE_ILLEGAL_ARG;
+		pvm.x[0] = 0;
+	} else {
+		pvm.x[0] = 1;
+	}
+	pvm.fpx[0] = val;
 }
-static void int_string_to_u16string( INT_PARAMS) /* 58 */{
-	abort();
+static inline num simple_len(const char *string, num max_len, int size) {
+	num cur_len = 0;
+	while (1) {
+		for (int i = size; i; i--) {
+			if (i > max_len - cur_len) {
+				return max_len;
+			}
+			if (string[cur_len]) {
+				cur_len += size;
+				break;
+			}
+		}
+		return cur_len;
+	}
 }
-static void int_string_to_u32string( INT_PARAMS) /* 59 */{
-	abort();
+static inline void conv_unicode_strings(const char *to_identy,
+		const char *from_identy, int size) {
+	if (pvm.x[2] < 0) {
+		pvm.err = PE_ILLEGAL_ARG;
+		pvm.x[1] = -1;
+		return;
+	}
+	iconv_t cd = iconv_open(to_identy, from_identy);
+	if (cd == (iconv_t) -1) {
+		pvm.err = PE_UNKNOWN_ERROR;
+		pvm.x[1] = -1;
+		return;
+	}
+	struct memory *in_mem = chk(pvm.x[0], 1).mem;
+	if (!in_mem) {
+		return;
+	}
+	num max_in_len = in_mem->end - pvm.x[0];
+	char *in_str = in_mem->offset + pvm.x[0];
+	num in_len = simple_len(in_str, max_in_len, size);
+	if (in_len == max_in_len) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	struct memory_check out_mem = chk(pvm.x[1], pvm.x[2]);
+	if (!out_mem.mem) {
+		return;
+	}
+	if (out_mem.changed) {
+		in_mem = chk(pvm.x[0], 1).mem;
+		if (!in_mem) {
+			return;
+		}
+		max_in_len = in_mem->end - pvm.x[0];
+		in_str = in_mem->offset + pvm.x[0];
+		in_len = simple_len(in_str, max_in_len, size);
+		if (in_len == max_in_len) {
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+			return;
+		}
+	}
+	char *out_str = out_mem.mem->offset + pvm.x[1];
+	in_len++; // include \0
+	pvm.x[3] = iconv(cd, &in_str, &in_len, &out_str, &pvm.x[2]);
+	iconv_close(cd);
 }
-static void int_u16string_to_string( INT_PARAMS) /* 60 */{
-	abort();
+#define identy_str_std "UTF-8"
+#define identy_str_u16 "UTF-16"
+#define identy_str_u32 "UTF-32"
+static void int_str_to_u16str( INT_PARAMS) /* 58 */{
+	conv_unicode_strings(identy_str_u16, identy_str_std, 1);
 }
-static void int_u32string_to_string( INT_PARAMS) /* 61 */{
-	abort();
+static void int_str_to_u32str( INT_PARAMS) /* 59 */{
+	conv_unicode_strings(identy_str_u32, identy_str_std, 1);
 }
-static void int_string_format( INT_PARAMS) /* 62 */{
-	abort();
+static void int_str_from_u16str( INT_PARAMS) /* 60 */{
+	conv_unicode_strings(identy_str_std, identy_str_u16, 2);
+}
+static void int_str_from_u32str( INT_PARAMS) /* 61 */{
+	conv_unicode_strings(identy_str_std, identy_str_u32, 4);
+}
+#undef identy_str_std
+#undef identy_str_u16
+#undef identy_str_u32
+static void int_str_format( INT_PARAMS) /* 62 */{
+	struct memory *input_mem = chk(pvm.x[0], 1).mem;
+	if (!input_mem) {
+		return;
+	}
+	struct memory_check arg_mem = chk(pvm.x[3], 0);
+	if (!arg_mem.mem) {
+		return;
+	}
+	if (arg_mem.changed) {
+		input_mem = chk(pvm.x[0], 1).mem;
+		if (!input_mem) {
+			return;
+		}
+	}
+	num remain_out = pvm.x[2];
+	char *out;
+	if (remain_out) {
+		if (remain_out < 0) {
+			pvm.err = PE_ILLEGAL_ARG;
+			pvm.x[0] = -1;
+			return;
+		}
+		struct memory_check out_mem = chk(pvm.x[1], remain_out);
+		if (!out_mem.mem) {
+			return;
+		}
+		if (out_mem.changed) {
+			input_mem = chk(pvm.x[0], 1).mem;
+			if (!input_mem) {
+				return;
+			}
+			arg_mem = chk(pvm.x[3], 0);
+			if (!arg_mem.mem) {
+				return;
+			}
+		}
+		out = out_mem.mem->offset + pvm.x[1];
+	}
+	const char *in = input_mem->offset + pvm.x[0];
+	num max_in_len = input_mem->end - pvm.x[0];
+	num in_len = strnlen(in, max_in_len);
+	if (in_len == max_in_len) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	num remain_args = (arg_mem.mem->end - pvm.x[3]) >> 3;
+	void *arg_pntr = arg_mem.mem->offset + pvm.x[3];
+	num len = 0;
+#define add0(c) \
+	if (remain_out) { \
+		remain_out--; \
+		*(out++) = c; \
+	}
+#define add(c) len ++; add0(c);
+	for (; *in; in++) {
+		if (*in != '%') {
+			add(*in);
+			continue;
+		}
+		in++;
+		if (*in == '%') {
+			add('%');
+			continue;
+		}
+		if (!remain_args) {
+			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+			return;
+		}
+		switch (*in) {
+		case 's': {
+			num pntr_num = *(num*) arg_pntr;
+			struct memory_check str_mem = chk(pntr_num, 1);
+			if (!str_mem.mem) {
+				return;
+			}
+			if (str_mem.changed) {
+				input_mem = chk(pvm.x[0], 1).mem;
+				if (!input_mem) {
+					return;
+				}
+				arg_mem = chk(pvm.x[3], 0);
+				if (!arg_mem.mem) {
+					return;
+				}
+				if (remain_out) {
+					struct memory *out_mem = chk(pvm.x[1], remain_out).mem;
+					out = out_mem->offset + pvm.x[1] + len;
+				}
+			}
+			num max_str_len = str_mem.mem->end - pntr_num;
+			char *str_pntr = str_mem.mem->offset + pntr_num;
+			num str_len = strnlen(str_pntr, max_str_len);
+			if (str_len == max_str_len) {
+				interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+				return;
+			}
+			len += str_len;
+			if (remain_out) {
+				num cpy_len = remain_out > str_len ? str_len : remain_out;
+				memmove(out, str_pntr, cpy_len);
+				remain_out -= cpy_len;
+				out += cpy_len;
+			}
+			break;
+		}
+		case 'c': {
+			add(*(char* )arg_pntr);
+			break;
+		}
+		case 'n': {
+			num base = *(num*) arg_pntr;
+			remain_args--;
+			arg_pntr += sizeof(num);
+			if (!remain_args) {
+				interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+				return;
+			}
+			if (base < 2 || base > 36) {
+				pvm.x[0] = -1;
+				pvm.err = PE_ILLEGAL_ARG;
+				return;
+			}
+			num num_str_len = num_to_str(out, remain_out, *(num*) arg_pntr,
+					base);
+			len += num_str_len;
+			out += num_str_len;
+			if (num_str_len > remain_out) {
+				remain_out = 0;
+			} else {
+				remain_out -= num_str_len;
+			}
+			break;
+		}
+		case 'd': {
+			num num_str_len = num_to_str(out, remain_out, *(num*) arg_pntr, 10);
+			len += num_str_len;
+			out += num_str_len;
+			if (num_str_len > remain_out) {
+				remain_out = 0;
+			} else {
+				remain_out -= num_str_len;
+			}
+			break;
+		}
+		case 'f': {
+			num num_str_len = snprintf(out, remain_out, "%.10g",
+					*(fpnum*) arg_pntr);
+			len += num_str_len;
+			out += num_str_len;
+			if (num_str_len > remain_out) {
+				remain_out = 0;
+			} else {
+				remain_out -= num_str_len;
+			}
+			break;
+		}
+		case 'p': {
+			num pntr = *(num*) arg_pntr;
+			add('p');
+			add('-');
+			if (pntr == -1) {
+				add('i');
+				add('n');
+				add('v');
+				add('a');
+				add('l');
+			} else {
+				num num_str_len = num_to_str(out, remain_out, *(num*) arg_pntr,
+						16);
+				len += num_str_len;
+				out += num_str_len;
+				if (num_str_len > remain_out) {
+					remain_out = 0;
+				} else {
+					remain_out -= num_str_len;
+				}
+			}
+			break;
+		}
+		case 'h': {
+			num num_str_len = num_to_str(out, remain_out, *(num*) arg_pntr, 16);
+			len += num_str_len;
+			out += num_str_len;
+			if (num_str_len > remain_out) {
+				remain_out = 0;
+			} else {
+				remain_out -= num_str_len;
+			}
+			break;
+		}
+		case 'b': {
+			num num_str_len = num_to_str(out, remain_out, *(num*) arg_pntr, 2);
+			len += num_str_len;
+			out += num_str_len;
+			if (num_str_len > remain_out) {
+				remain_out = 0;
+			} else {
+				remain_out -= num_str_len;
+			}
+			break;
+		}
+		case 'o': {
+			num num_str_len = num_to_str(out, remain_out, *(num*) arg_pntr, 8);
+			len += num_str_len;
+			out += num_str_len;
+			if (num_str_len > remain_out) {
+				remain_out = 0;
+			} else {
+				remain_out -= num_str_len;
+			}
+			break;
+		}
+		default:
+			pvm.x[0] = -1;
+			pvm.err = PE_ILLEGAL_ARG;
+			return;
+		}
+		remain_args--;
+		arg_pntr += 8;
+	}
+#undef add
+#undef add0
 }
 static void int_load_file( INT_PARAMS) /* 63 */{
-	abort();
+	struct memory *name_mem = chk(pvm.x[0], 1).mem;
+	if (!name_mem) {
+		return;
+	}
+	num max_name_len = name_mem->end - pvm.x[0];
+	const char *name = name_mem->offset + pvm.x[0];
+	num name_len = strnlen(name, max_name_len);
+	if (name_len == max_name_len) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	int sh = pfs_stream(name, PFS_SO_FILE | PFS_SO_READ);
+	if (sh == -1) {
+		pvm.x[0] = -1;
+		return;
+	}
+	i64 eof = pfs_stream_seek_eof(sh);
+	if (eof == -1) {
+		pvm.x[0] = -1;
+		return;
+	}
+	if (!pfs_stream_set_pos(sh, 0)) {
+		pvm.x[0] = -1;
+		return;
+	}
+	struct memory2 file_mem = alloc_memory(eof, 0);
+	if (!file_mem.mem) {
+		pvm.x[0] = -1;
+		return;
+	}
+	i64 reat = pfs_stream_read(sh, file_mem.adr, eof);
+	if (reat != eof) {
+		free_memory(file_mem.mem->start);
+		pvm.x[0] = -1;
+		return;
+	}
+	pvm.x[0] = file_mem.mem->start;
+	pvm.x[1] = eof;
 }
-static void int_get_file( INT_PARAMS) /* 64 */{
-	abort();
+
+#define MAX_LIB_NAME_LEN 512 /* library with a path larger than this value will always be reloaded */
+struct loaded_libs_entry {
+	const char *name;
+	struct memory *mem;
+};
+int loaded_libs_equal(const void *a, const void *b) {
+	const struct loaded_libs_entry *ea = a, *eb = b;
+	return strcmp(ea->name, eb->name) == 0;
+}
+unsigned int loaded_libs_hash(const void *f) {
+	unsigned res = 0;
+	const unsigned char *c = ((struct loaded_libs_entry*) f)->name;
+	for (int i = 0; *c; i = (i + 1) & 3) {
+		res ^= (*c) << i;
+	}
+	return res;
+}
+static struct hashset loaded_libs = { //
+		/*	  */.entrycount = 0, //
+				.setsize = 0, //
+				.equalizer = loaded_libs_equal, //
+				.hashmaker = loaded_libs_hash, //
+				.entries = NULL, //
+		};
+
+static void int_load_lib( INT_PARAMS) /* 64 */{
+	struct memory *name_mem = chk(pvm.x[0], 1).mem;
+	if (!name_mem) {
+		return;
+	}
+	num max_name_len = name_mem->end - pvm.x[0];
+	const char *name = name_mem->offset + pvm.x[0];
+	num name_len = strnlen(name, max_name_len);
+	if (name_len == max_name_len) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	struct loaded_libs_entry _e;
+	_e.name = name;
+	void *old = hashset_get(&loaded_libs, loaded_libs_hash(&_e), &_e);
+	if (old) {
+		struct loaded_libs_entry *entry = old;
+		pvm.x[0] = entry->mem->start;
+		pvm.x[1] = entry->mem->end - entry->mem->start;
+		pvm.x[2] = 0;
+	}
+	int sh = pfs_stream(name, PFS_SO_FILE | PFS_SO_READ);
+	if (sh == -1) {
+		pvm.x[0] = -1;
+		return;
+	}
+	i64 eof = pfs_stream_seek_eof(sh);
+	if (eof == -1) {
+		pvm.x[0] = -1;
+		return;
+	}
+	if (!pfs_stream_set_pos(sh, 0)) {
+		pvm.x[0] = -1;
+		return;
+	}
+	struct memory2 lib_mem = alloc_memory(eof, MEM_NO_FREE | MEM_NO_RESIZE | MEM_LIB);
+	if (!lib_mem.mem) {
+		pvm.x[0] = -1;
+		return;
+	}
+	i64 reat = pfs_stream_read(sh, lib_mem.adr, eof);
+	if (reat != eof) {
+		free_memory(lib_mem.mem->start);
+		pvm.x[0] = -1;
+		return;
+	}
+	if (name_len < MAX_LIB_NAME_LEN) {
+		char *name_cpy = malloc(name_len + 1);
+		if (name_cpy) {
+			struct loaded_libs_entry *new_entry = malloc(sizeof(struct loaded_libs_entry));
+			if (new_entry) {
+				memcpy(name_cpy, name, name_len + 1);
+				new_entry->name = name;
+				new_entry->mem = lib_mem.mem;
+			} else {
+				free(name_cpy);
+			}
+		}
+	}
+	pvm.x[0] = lib_mem.mem->start;
+	pvm.x[1] = eof;
+	pvm.x[2] = 1;
+}
+static void int_unload_lib(INT_PARAMS) /* 64 */ {
+	struct memory *mem = chk(pvm.x[0], 0).mem;
+	if ((mem->flags & MEM_LIB) == 0) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	free_mem_impl(mem);
 }

@@ -326,8 +326,6 @@ the assembler language for the Primitive-Virtual-Machine
 ## STRINGS
 * a string is an array of multiple characters of the `UTF-8` encoding
 * a string ends with a `'\0'` character
-* a `U16-STRING` is a `STRING`, but with `UTF-16LE` encoding
-* a `U32-STRING` is a `STRING`, but with `UTF-32LE` encoding
 
 ## COMMANDS
 
@@ -1243,8 +1241,8 @@ the assembler language for the Primitive-Virtual-Machine
         * `X03` will be set to the new size of the buffer
             * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
         * on error `X01` will be set to `-1`
-    * `58`: floating point number to string
-        * `X00` is set to the number to convert
+    * `58 : INT_STR_FROM_FPNUM`: floating point number to string
+        * `X00` is set to the floating point number to convert
         * `X01` points to the buffer to be filled with the number in a STRING format
         * `X02` is set to the current size of the buffer
             * `0` when the buffer should be allocated by this interrupt
@@ -1253,113 +1251,102 @@ the assembler language for the Primitive-Virtual-Machine
         * `X02` will be set to the new size of the buffer
             * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
         * on error `X01` will be set to `-1`
-            * the `ERRNO` register will be set:
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: `X02` is an invalid number system
-                    * if the buffer size is negative
-                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
-                    * the system tries to allocate some memory but was not able to allocate the needed memory
-    * `59`: string to number
+    * `59 : INT_STR_TO_NUM`: string to number
         * `X00` points to the STRING
         * `X01` points to the base of the number system
             * (for example `10` for the decimal system or `2` for the binary system)
+            * the minimum base is `2`
+            * the maximum base is `36`
         * `X00` will be set to the converted number
-        * this function will ignore leading and following white-space characters
         * on success `X01` will be set to `1`
         * on error `X01` will be set to `0`
             * the STRING contains illegal characters
             * or the base is not valid
-    * `60`: string to floating point number
+            * if `ERRNO` is set to out of range, the string value displayed a value outside of the 64-bit number range and `X00` will either be min or max value
+    * `60 : INT_STR_TO_FPNUM`: string to floating point number
         * `X00` points to the STRING
         * `X00` will be set to the converted number
-        * if the STRING contains illegal characters or the base is not valid, the behavior is undefined
-        * this function will ignore leading and following white-space characters
         * on success `X01` will be set to `1`
         * on error `X01` will be set to `0`
             * the STRING contains illegal characters
             * or the base is not valid
-    * `61`: format string
+    * `60 : INT_STR_TO_U16STR`: STRING to U16-STRING
+        * `X00` points to the STRING (`UTF-8`)
+        * `X01` points to the buffer to be filled with the to `UTF-16` converted string
+        * `X02` is set to the length of the buffer
+        * `X00` points to the start of the unconverted sequenze (or behind the `\0` terminator)
+        * `X01` points to the start of the unmodified space of the target buffer
+        * `X02` will be set to unmodified space at the end of the buffer
+        * `X03` will be set to the number of converted characters or `-1` on error
+    * `60 : INT_STR_TO_U32STR`: STRING to U32-STRING
+        * `X00` points to the STRING (`UTF-8`)
+        * `X01` points to the buffer to be filled with the to `UTF-32` converted string
+        * `X02` is set to the length of the buffer
+        * `X00` points to the start of the unconverted sequenze (or behind the `\0` terminator)
+        * `X01` points to the start of the unmodified space of the target buffer
+        * `X02` will be set to unmodified space at the end of the buffer
+        * `X03` will be set to the number of converted characters or `-1` on error
+    * `60 : INT_STR_FROM_U16STR`: U16-STRING to STRING
+        * `X00` points to the `UTF-16` STRING
+        * `X01` points to the buffer to be filled with the converted STRING (`UTF-8`)
+        * `X02` is set to the length of the buffer
+        * `X00` points to the start of the unconverted sequenze (or behind the `\0` terminator (note that the `\0` char needs two bytes))
+        * `X01` points to the start of the unmodified space of the target buffer
+        * `X02` will be set to unmodified space at the end of the buffer
+        * `X03` will be set to the number of converted characters or `-1` on error
+    * `60 : INT_STR_FROM_U16STR`: U32-STRING to STRING
+        * `X00` points to the `UTF-32` STRING
+        * `X01` points to the buffer to be filled with the converted STRING (`UTF-8`)
+        * `X02` is set to the length of the buffer
+        * `X00` points to the start of the unconverted sequenze (or behind the `\0` terminator (note that the `\0` char needs four bytes))
+        * `X01` points to the start of the unmodified space of the target buffer
+        * `X02` will be set to unmodified space at the end of the buffer
+        * `X03` will be set to the number of converted characters or `-1` on error
+    * `61 : INT_STR_FORMAT`: format string
         * `X00` is set to the STRING input
         * `X01` contains the buffer for the STRING output
-        * `X02` is the current size of the buffer in bytes
-        * the register `X03..XNN` are for the formatting arguments
-            * that leads to a maximum of 248 arguments
-        * `X00` will be set to the length of the output string (the offset of the `\0` character)
-        * `X01` will be set to the output buffer
-        * `X02` will be set to the new buffer size in bytes
-        * if an error occured `X00` will be set to `-1`
-            * the `ERRNO` register will be set:
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: operation failed because because there were invalid arguments
-                    * if the last charactet of the input string is a `%` character
-                    * or if there are invalid formatting characters
-                        * a `%` is not followed by a `%`, `s`, `c`, `B`, `d`, `f`, `p`, `h`, `b` or `o` character
-                    * or if there are too many arguments needed
-                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
-                    * if the buffer could not be resized
-            * `X02` will be set to the current size of the buffer
+        * `X02` is the size of the buffer in bytes
+        * the register `X03` points to the formatting arguments
+        * `X00` will be set to the length of the output string (the offset of the `\0` character) or `-1` on error
+            * if `X00` is larger or equal to `X02`, only the first `X02` bytes will be written to the buffer
         * formatting:
             * `%%`: to escape an `%` character (only one `%` will be in the formatted STRING)
             * `%s`: the next argument points to a STRING, which should be inserted here
-            * `%c`: the next argument starts with a word, which should be inserted here
-                * note that UTF-16 characters contain not always two bytes, but there will always be only two bytes used
+            * `%c`: the next argument starts with a byte, which should be inserted here
+                * note that UTF-8 characters are not always represented by one byte, but there will always be only one byte used
+            * `%n`: consumes two arguments
+                1. the next argument contains a number in the range of `2..36`.
+                    * if the first argument is less than `2` or larger than `36` the interrupt will fail
+                2. which should be converted to a STRING using the number system with the basoe of the first argument and than be inserted here
             * `%d`: the next argument contains a number, which should be converted to a STRING using the decimal number system and than be inserted here
             * `%f`: the next argument contains a floating point number, which should be converted to a STRING and than be inserted here
             * `%p`: the next argument contains a pointer, which should be converted to a STRING
-                * if not the pointer will be converted by placing a `"p-"` and then the unsigned pointer-number converted to a STRING using the hexadecimal number system
+                * if the pointer is not `-1` the pointer will be converted by placing a `"p-"` and then the unsigned pointer-number converted to a STRING using the hexadecimal number system
                 * if the pointer is `-1` it will be converted to the STRING `"p-inval"`
             * `%h`: the next argument contains a number, which should be converted to a STRING using the hexadecimal number system and than be inserted here
             * `%b`: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here
             * `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here
-    * `62`: STRING to U8-STRING
-        * `X00` contains the STRING
-        * `X01` points to a buffer for the U8-SRING
-        * `X02` is set to the size of the size of the buffer
-        * `X01` will point to the U8-STRING
-        * `X02` will be set to the U8-STRING buffer size
-        * `X03` will contain the offset of the `\0` character from the U8-STRING
-        * on error `X03` will be set to `-1`
-            * the `ERRNO` register will be set:
-                * `UHEX-2000000000000000` : `STATUS_ILLEGAL_ARG`: operation failed because of invalid arguments
-                    * if the old buffer length is negative
-                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
-                    * if the buffer could not be resized
-    * `63`: U8-STRING to STRING
-        * `X00` contains the U8-STRING
-        * `X01` points to a buffer for the SRING
-        * `X02` is set to the size of the size of the buffer
-        * `X01` will point to the STRING
-        * `X02` will be set to the STRING buffer size
-        * `X03` will point to the `\0` character of the STRING
-    * `64`: load file
+    * `64 : INT_LOAD_FILE`: load a file
         * `X00` is set to the path (inclusive name) of the file
-        * `X00` will point to the memory block, in which the file has been loaded
+        * `X00` will point to the memory block, in which the file has been loaded or `-1` on error
         * `X01` will be set to the length of the file (and the memory block)
-        * when an error occurred `X00` will be set to `-1`
-            * the `ERRNO` register will be set:
-                * `UHEX-0040000000000000`: `STATUS_ELEMENT_WRONG_TYPE`: the given element is of the wrong type
-                    * if the given element is no file
-                * `UHEX-0080000000000000` : `STATUS_ELEMENT_NOT_EXIST`: operation failed because the element does not exist
-                    * if the given file does not exists
-                * `UHEX-0800000000000000` : `STATUS_ELEMENT_LOCKED`: operation was denied because of lock
-                    * if the file system is locked with a different lock or not locked at all
-                * `UHEX-1000000000000000` : `STATUS_IO_ERR`: an unspecified IO error occurred
-                    * if some IO error occurred
-                * `UHEX-4000000000000000` : `STATUS_OUT_OF_MEMORY`: operation failed because the system could not allocate enough memory
-                    * if the buffer could not be resized
-    * `65`: get file 
-        * similar like `64` (`INT_LOAD_FILE`) this interrupt loads a file for the program.
-            * the only difference is that this interrupt remembers which files has been loaded
+    * `65 : INT_LOAD_LIB`: load a library file 
+        * similar like the load file interrupt loads a file for the program.
+            * the difference is that this interrupt may remember which files has been loaded
+                * there are no guarantees, when the same memory block is reused and when a new memory block is created
+            * the other difference is that the file may only be unloaded with the unload lib interrupt (not with the free interrupt)
+                * the returned memory block also can not be resized
             * if the interrupt is executed multiple times with the same file, it will return every time the same memory block.
-            * file changes after the file has already been loaded with this interrupt are ignored.
-                * only if the file moved or deleted the interrupt recognize the change.
-                * if the file gets moved and the new file path is used the interrupt recognizes the old file
-                * thus the same memory block is still returned if the file gets moved and the new path is used
-                    * thus changes in the content of the file are never recognized
             * this interrupt does not recognize files loaded with the `64` (`INT_LOAD_FILE`) interrupt.
         * `X00` is set to the path (inclusive name) of the file
         * `X00` will point to the memory block, in which the file has been loaded
         * `X01` will be set to the length of the file (and the memory block)
         * `X02` will be set to `1` if the file has been loaded as result of this interrupt and `0` if the file was previously loaded
         * when an error occurred `X00` will be set to `-1`
+    * `65 : INT_UNLOAD_LIB`: unload a library file 
+        * unloads a library previously loaded with the load lib interrupt
+        * this interrupt will ensure that the given memory block will be freed and never again be returned from the load lib interrupt
+        * `X00` points to the (start of the) memory block
 * binary:
     * `30 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
