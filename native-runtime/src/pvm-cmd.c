@@ -9,7 +9,7 @@ static void c_ill() /* --- */{
 #define check_chaged(arg0, arg1) \
 		if (p2.changed) { \
 			param_byte_value_index = 7; \
-			param_param_type_index = 1; \
+			param_param_type_index = 2; \
 			param_num_value_index = 1; \
 			p1 = param(arg0, arg1); \
 			if (!p1.valid) { \
@@ -435,6 +435,17 @@ static void c_jmp() /* 0x20 */{
 		return;
 	}
 	pvm.ip += ia.np[param_num_value_index];
+}
+static void c_jmperr() /* 0x21 */{
+	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	if (pvm.err) {
+		pvm.ip += ia.np[param_num_value_index];
+	} else {
+		incIPAddOneNum
+	}
 }
 static void c_jmpeq() /* 0x21 */{
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {

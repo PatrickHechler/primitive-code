@@ -10,153 +10,100 @@
 #endif
 #define SRC_PVM_CMD_H_
 
-static void c_ill(); /* --- */
+static void c_ill();
 
-/* 0x0. : move data */
-static void c_mvb(); /* 0x01 */
-static void c_mvw(); /* 0x02 */
-static void c_mvdw(); /* 0x03 */
-static void c_mov(); /* 0x04 */
-static void c_lea(); /* 0x05 */
-static void c_mvad(); /* 0x06 */
-static void c_swap(); /* 0x07 */
+/* 00.. : data */
+/* 000. : move data */
+	/* 0001 */ static void c_mvb();
+	/* 0002 */ static void c_mvw();
+	/* 0003 */ static void c_mvdw();
+	/* 0004 */ static void c_mov();
+	/* 0005 */ static void c_lea();
+	/* 0006 */ static void c_mvad();
+	/* 0007 */ static void c_swap();
 
-/* 0x1. : simple aritmetic and logic */
-static void c_add(); /* 0x10 */
-static void c_sub(); /* 0x11 */
-static void c_mul(); /* 0x12 */
-static void c_div(); /* 0x13 */
-static void c_neg(); /* 0x14 */
-static void c_addc(); /* 0x15 */
-static void c_subc(); /* 0x16 */
-static void c_inc(); /* 0x17 */
-static void c_dec(); /* 0x18 */
-static void c_or(); /* 0x19 */
-static void c_and(); /* 0x1A */
-static void c_xor(); /* 0x1B */
-static void c_not(); /* 0x1C */
-static void c_lsh(); /* 0x1D */
-static void c_rash(); /* 0x1E */
-static void c_rlsh(); /* 0x1F */
+/* 01.. : math */
+/* 010. : logic */
+	/* 0100 */ static void c_or();
+	/* 0101 */ static void c_and();
+	/* 0102 */ static void c_xor();
+	/* 0103 */ static void c_not();
+	/* 0104 */ static void c_lsh();
+	/* 0105 */ static void c_rash();
+	/* 0106 */ static void c_rlsh();
+/* 011. : simple arithmetic */
+	/* 0110 */ static void c_add();
+	/* 0111 */ static void c_sub();
+	/* 0112 */ static void c_mul();
+	/* 0113 */ static void c_div();
+	/* 0114 */ static void c_neg();
+	/* 0115 */ static void c_addc();
+	/* 0116 */ static void c_subc();
+	/* 0117 */ static void c_inc();
+	/* 0118 */ static void c_dec();
+/* 012. : floating-point arithmetic */
+	/* 0120 */ static void c_addfp();
+	/* 0121 */ static void c_subfp();
+	/* 0122 */ static void c_mulfp();
+	/* 0123 */ static void c_divfp();
+	/* 0124 */ static void c_negfp();
+/* 013. : unsigned arithmetic */
+	/* 0130 */ static void c_uadd();
+	/* 0131 */ static void c_usub();
+	/* 0132 */ static void c_umul();
+	/* 0133 */ static void c_udiv();
+/* 014. : big arithmetic */
+	/* 0140 */ static void c_badd();
+	/* 0141 */ static void c_bsub();
+	/* 0142 */ static void c_bmul();
+	/* 0143 */ static void c_bdiv();
+	/* 0144 */ static void c_bneg();
+/* 015. : convert */
+	/* 0150 */ static void c_fptn();
+	/* 0151 */ static void c_ntfp();
 
-/* 0x2. : jump and conditional jumps */
-static void c_jmp(); /* 0x20 */
-static void c_jmpeq(); /* 0x21 */
-static void c_jmpne(); /* 0x22 */
-static void c_jmpgt(); /* 0x23 */
-static void c_jmpge(); /* 0x24 */
-static void c_jmplt(); /* 0x25 */
-static void c_jmple(); /* 0x26 */
-static void c_jmpcs(); /* 0x27 */
-static void c_jmpcc(); /* 0x28 */
-static void c_jmpzs(); /* 0x29 */
-static void c_jmpzc(); /* 0x2A */
-static void c_jmpnan(); /* 0x2B */
-static void c_jmpan(); /* 0x2C */
-static void c_jmpab(); /* 0x2D */
-static void c_jmpsb(); /* 0x2E */
-static void c_jmpnb(); /* 0x2F */
+/* 02.. : program control  */
+/* 020. : compare/check */
+	/* 0200 */ static void c_cmp();
+	/* 0201 */ static void c_cmpl();
+	/* 0202 */ static void c_cmpfp();
+	/* 0203 */ static void c_chkfp();
+	/* 0204 */ static void c_cmpu();
+	/* 0205 */ static void c_cmpb();
+/* 021. : conditional jump */
+	/* 0210 */ static void c_jmperr();
+	/* 0211 */ static void c_jmpeq();
+	/* 0212 */ static void c_jmpne();
+	/* 0213 */ static void c_jmpgt();
+	/* 0214 */ static void c_jmpge();
+	/* 0215 */ static void c_jmplt();
+	/* 0216 */ static void c_jmple();
+	/* 0217 */ static void c_jmpcs();
+	/* 0218 */ static void c_jmpcc();
+	/* 0219 */ static void c_jmpzs();
+	/* 021A */ static void c_jmpzc();
+	/* 021B */ static void c_jmpnan();
+	/* 021C */ static void c_jmpan();
+	/* 021D */ static void c_jmpab();
+	/* 021E */ static void c_jmpsb();
+	/* 021F */ static void c_jmpnb();
+/* 022. : jump */
+	/* 0220 */ static void c_jmp();
+/* 023. : interrupt */
+	/* 0230 */ static void c_int();
+	/* 0231 */ static void c_iret();
 
-/* 0x3. : interrupt and stack */
-static void c_int(); /* 0x30 */
-static void c_iret(); /* 0x31 */
-static void c_call(); /* 0x32 */
-static void c_calo(); /* 0x33 */
-static void c_ret(); /* 0x34 */
-static void c_push(); /* 0x35 */
-static void c_pop(); /* 0x36 */
-static void c_pushblk(); /* 0x37 */
-static void c_popblk(); /* 0x37 */
+/* 03.. : stack */
+/* 030. : call and return */
+	/* 0300 */ static void c_call();
+	/* 0301 */ static void c_calo();
+	/* 0302 */ static void c_ret();
+/* 031. : push and pop */
+	/* 0310 */ static void c_push();
+	/* 0311 */ static void c_pop();
+	/* 0312 */ static void c_pushblk();
+	/* 0313 */ static void c_popblk();
 
-/* 0x4. : compare/check and convert */
-static void c_cmp(); /* 0x40 */
-static void c_cmpl(); /* 0x41 */
-static void c_cmpfp(); /* 0x42 */
-static void c_chkfp(); /* 0x43 */
-static void c_cmpu(); /* 0x44 */
-static void c_cmpb(); /* 0x45 */
-static void c_fptn(); /* 0x46 */
-static void c_ntfp(); /* 0x47 */
+#include "pvm-cmd-cmds-gen.h"
 
-/* 0x5. : floating-point/unsigned/big aritmetic */
-static void c_addfp(); /* 0x50 */
-static void c_subfp(); /* 0x51 */
-static void c_mulfp(); /* 0x52 */
-static void c_divfp(); /* 0x53 */
-static void c_negfp(); /* 0x54 */
-static void c_uadd(); /* 0x55 */
-static void c_usub(); /* 0x56 */
-static void c_umul(); /* 0x57 */
-static void c_udiv(); /* 0x58 */
-static void c_badd(); /* 0x59 */
-static void c_bsub(); /* 0x5A */
-static void c_bmul(); /* 0x5B */
-static void c_bdiv(); /* 0x5C */
-static void c_bneg(); /* 0x5D */
-
-static void (*cmds[])() = {
-	// 0x0.
-	c_ill, c_mvb, c_mvw, c_mvdw, c_mov, c_lea, c_mvad, c_swap,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0x1.
-	c_add, c_sub, c_mul, c_div, c_neg, c_addc, c_subc, c_inc,
-	c_dec, c_or, c_and, c_xor, c_not, c_lsh, c_rash, c_rlsh,
-
-	// 0x2.
-	c_jmp, c_jmpeq, c_jmpne, c_jmpgt, c_jmpge, c_jmplt, c_jmple, c_jmpcs,
-	c_jmpcc, c_jmpzs, c_jmpzc, c_jmpnan, c_jmpan, c_jmpab, c_jmpsb, c_jmpnb,
-
-	// 0x3.
-	c_int, c_iret, c_call, c_calo, c_ret, c_push, c_pop, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0x4.
-	c_cmp, c_cmpl, c_cmpfp, c_chkfp, c_cmpu, c_cmpb, c_fptn, c_ntfp,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0x5.
-	c_addfp, c_subfp, c_mulfp, c_divfp, c_negfp, c_uadd , c_usub , c_umul,
-	c_udiv, c_badd, c_bsub, c_bmul, c_bdiv, c_bneg, c_ill, c_ill,
-
-	// 0x6.
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0x7.
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0x8.
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0x9.
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0xA.
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0xB.
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0xC.
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0xD.
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0xE.
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-
-	// 0xF.
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill,
-	c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill, c_ill
-
-	};
+_Static_assert(sizeof(cmds) == (0x10000 * sizeof(void (*)())), "err");

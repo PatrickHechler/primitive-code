@@ -248,6 +248,7 @@ static union instruction_adres {
 	void *pntr;
 	num *np;
 	byte *bp;
+	word *wp;
 } ia;
 static num remain_instruct_space;
 
@@ -397,10 +398,10 @@ static inline void exec() {
 		return;
 	}
 	ia.pntr = ipmem.mem->offset + pvm.ip;
-	param_param_type_index = 1;
+	param_param_type_index = 2;
 	param_byte_value_index = 7;
 	param_num_value_index = 1;
-	cmds[ia.bp[0]]();
+	cmds[*ia.wp]();
 }
 
 PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size, unsigned flags) {
