@@ -101,6 +101,15 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 }
 
 #ifdef PVM_DEBUG
+
+static inline void wait5ms() {
+	struct timespec wait_time = { //
+			/*	  */.tv_sec = 0, // 0 sec
+					.tv_nsec = 5000000 // 5 ms
+			};
+	nanosleep(&wait_time, NULL);
+}
+
 // static FILE *new_stderr; // TODO use
 
 static pthread_mutex_t debug_mutex;
@@ -109,10 +118,10 @@ struct pvm_thread_arg {
 	int val;
 };
 
-static int same_fd(const void *a, const void *b) {
+static int pvm_same_address(const void *a, const void *b) {
 	return a == b;
 }
-unsigned int fd_hash(const void *a) {
+static unsigned int pvm_address_hash(const void *a) {
 	return (unsigned) (long) a;
 }
 
@@ -134,11 +143,7 @@ static void* pvm_delegate_func(void *_arg) {
 		if (reat == -1) {
 			switch (errno) {
 			case EAGAIN:
-				struct timespec wait_time = { //
-						/*	  */.tv_sec = 0, // 0 sec
-								.tv_nsec = 5000000 // 5 ms
-						};
-				nanosleep(&wait_time, NULL);
+				wait5ms();
 				/* no break */
 			case EINTR:
 				errno = 0;
@@ -186,8 +191,6 @@ static void* pvm_debug_thread_deamon(void *_arg) {
 		struct sockaddr sa;
 		struct sockaddr_in sa_in;
 	} my_sock_adr;
-	int domain_identy = (arg.val >> 16) & 0xFFFF;
-	arg.val &= 0xFFFF;
 	domain = AF_INET;
 	my_sock_adr.sa_in = (struct sockaddr_in ) { //
 			/*	  */.sin_family = AF_INET, //
@@ -351,12 +354,12 @@ void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 
 	init_syncronisation();
 
+	pvm_state = pvm_ds_init;
 	if (wait) {
-		state = waiting;
+		pvm_next_state = pvm_ds_waiting;
 	} else {
-		state = running;
+		pvm_next_state = pvm_ds_running;
 	}
-	changeing = 1;
 
 	struct pvm_thread_arg *arg = malloc(sizeof(struct pvm_thread_arg));
 	if (!arg) {
@@ -386,9 +389,20 @@ static inline void int_init() {
 struct memory_check {
 	struct memory *mem;
 	_Bool changed;
+#ifdef PVM_DEBUG
+	_Bool valid;
+#endif // PVM_DEBUG
 };
 
+#ifdef PVM_DEBUG
+static inline struct memory_check chk0(num pntr, num size, _Bool use_valid);
+#else
 static inline struct memory_check chk(num pntr, num size);
+#endif // PVM_DEBUG
+
+#ifdef PVM_DEBUG
+#define chk(pntr, size) chk0(pntr, size, 0)
+#endif // PVM_DEBUG
 
 static inline void interrupt(num intnum, num incIPVal) {
 #ifdef PVM_DEBUG
@@ -443,9 +457,22 @@ static inline void interrupt(num intnum, num incIPVal) {
 #undef callInt
 }
 
+#ifdef PVM_DEBUG
+#undef chk
+static inline struct memory_check chk0(num pntr, num size, _Bool use_valid) {
+#else
 static inline struct memory_check chk(num pntr, num size) {
+#endif //  PVM_DEBUG
 	for (struct memory *m = memory; m->start != -1; m++) {
 		if (m->start > pntr) {
+#ifdef PVM_DEBUG
+			if (use_valid) {
+				struct memory_check result;
+				result.mem = NULL;
+				result.valid = 0;
+				return result;
+			}
+#endif // PVM_DEBUG
 			if (m != memory) {
 				m--;
 				check_grow: if (m->flags & MEM_AUTO_GROW) {
@@ -484,11 +511,17 @@ static inline struct memory_check chk(num pntr, num size) {
 		result.changed = 0;
 		return result;
 	}
+#ifdef PVM_DEBUG
+#endif // PVM_DEBUG
 	interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 	struct memory_check result;
 	result.mem = NULL;
 	return result;
 }
+
+#ifdef PVM_DEBUG
+#define chk(pntr, size) chk0(pntr, size, 0)
+#endif // PVM_DEBUG
 
 union param {
 	void *pntr;
@@ -859,6 +892,63 @@ static inline void pvm_unlock() {
 	}
 }
 
+static inline char to_hex(int val) {
+	if (val < 10) {
+		return '0' + val;
+	} else {
+		return 'A' - 10 + val;
+	}
+}
+
+static inline void print_pvm(FILE *file, int end) {
+	pvm_lock();
+	if (pvm_state != pvm_ds_waiting) {
+		fprintf(file, "I can not display the pvm, the pvm is not waiting!\n");
+		return;
+	}
+	struct pvm pvm_copy = pvm;
+	pvm_unlock();
+	fprintf(file, "PVM:\n");
+	if (end == 0) {
+		return;
+	}
+	fprintf(file, "  IP:     UHEX-%lX : %ld\n", pvm_copy.ip, pvm_copy.ip);
+	if (end == 1) {
+		return;
+	}
+	fprintf(file, "  SP:     UHEX-%lX : %ld\n", pvm_copy.sp, pvm_copy.sp);
+	if (end == 2) {
+		return;
+	}
+	fprintf(file, "  INTP:   UHEX-%lX : %ld\n", pvm_copy.intp, pvm_copy.intp);
+	if (end == 3) {
+		return;
+	}
+	fprintf(file, "  INTCNT: UHEX-%lX : %ld\n", pvm_copy.intcnt,
+			pvm_copy.intcnt);
+	if (end == 4) {
+		return;
+	}
+	fprintf(file, "  STATUS: UHEX-%lX : %ld\n", pvm_copy.status,
+			pvm_copy.status);
+	if (end == 5) {
+		return;
+	}
+	fprintf(file, "  ERRNO:  UHEX-%lX : %ld\n", pvm_copy.err, pvm_copy.err);
+	for (int i = 0; i < end - 6; i++) {
+		int c0 = to_hex(0xF & (i >> 4)), c1 = to_hex(0xF & i);
+		fprintf(file, "  X%c%c:     UHEX-%lX : %ld\n", //
+				c0, c1, pvm.x[i], pvm.x[i]);
+	}
+}
+
+static inline void state_to_stepping(int dep) {
+	pvm_lock();
+	pvm_next_state = pvm_ds_new_stepping;
+	pvm_depth = dep;
+	pvm_unlock();
+}
+
 static void* pvm_debug_thread_func(void *_arg) {
 	struct pvm_thread_arg arg = *(struct pvm_thread_arg*) _arg;
 	free(_arg);
@@ -881,15 +971,12 @@ static void* pvm_debug_thread_func(void *_arg) {
 		exit(1);
 	}
 	while (1) {
+		big_loop_start: ;
 		char white;
 		if (fscanf(file, "%127s%1c", buffer, &white) == -1) {
 			switch (errno) {
 			case EAGAIN:
-				struct timespec wait_time = { //
-						/*	  */.tv_sec = 0, // 0 sec
-								.tv_nsec = 5000000 // 5 ms
-						};
-				nanosleep(&wait_time, NULL);
+				wait5ms();
 				/* no break */
 			case EINTR:
 				errno = 0;
@@ -900,38 +987,105 @@ static void* pvm_debug_thread_func(void *_arg) {
 			exit(1);
 		}
 		if (strcmp("help", buffer) == 0) {
-			fprintf(file, "db-pvm debug console\n" //
-							"\n"
-							"all commands will unless otherwise noted fail,\n"
-							"if the db-pvm is not currently is a waiting state.\n"
-							"\n"
-							"commands:\n"//
-							"  help"
-							"    display this message\n"
-							"    this command can be used in any state.\n"
-							"  version\n"
-							"    display the version\n"
-							"    this command can be used in any state.\n"
-							"  detach\n"
-							"    detach the debug console without\n"
-							"    terminating the program.\n"
-							"    WARN: when this is the last debug\n"
-							"    console and the db-pvm does not\n"
-							"    listen on a port, and the db-pvm is\n"
-							"    currently not running, it will not\n"
-							"    change it's state and has to be killed\n"
-							"    with a signal.\n"
-							"    this command can be used in any state.\n"
-							"  exit [EXIT_NUM]\n"
-							"    terminate the db-pvm with the given\n"
-							"    exit number. If the exit number is not\n"
-							"    given the db-pvm will terminate with\n"
-							"    the exit code 1.\n"
-							"    this command can be used in any state.\n"
-							"  state\n"
-							"    display the current state of the db-pvm\n"
-							"    this command can be used in any state.\n"
-							""); // TODO more commands
+			fprintf(file, "db-pvm debug console\n"
+					"\n"
+					"numbers:\n"
+					"  when a command accepts an number (or address)\n"
+					"  by default the number will be interpreted as a\n"
+					"  decimal number. When a '0' is put before the number\n"
+					"  it will be interpreted as an octal number and if a\n"
+					"  '0x' is before the number it will be interpreted as\n"
+					"  an hexadecimal number.\n"
+					"  for negative numbers the '-' prefix is put before the\n"
+					"  prefix which indicates, which number system is used.\n"
+					"\n"
+					"the following commands can be used in any state\n"
+					"of the db-pvm.\n"
+					"any state commands:"
+					"  help"
+					"    display this message\n"
+					"  version\n"
+					"    display the version\n"
+					"  detach\n"
+					"    detach the debug console without\n"
+					"    terminating the program.\n"
+					"    WARN: when this is the last debug\n"
+					"    console and the db-pvm does not\n"
+					"    listen on a port, and the db-pvm is\n"
+					"    currently not running, it will not\n"
+					"    change it's state and has to be killed\n"
+					"    with a signal.\n"
+					"  exit [EXIT_NUM]\n"
+					"    terminate the db-pvm with the given\n"
+					"    exit number. If the exit number is not\n"
+					"    given the db-pvm will terminate with\n"
+					"    the exit code 1.\n"
+					"  state\n"
+					"    display the current state of the db-pvm\n"
+					"  wait\n"
+					"    change the db-pvm state to waiting\n"
+					"  run\n"
+					"    change the db-pvm state to running\n"
+					"  step-in\n"
+					"    change the db-pvm state to stepping\n"
+					"    and set the step depth to -1.\n"
+					"    this means, that only one command\n"
+					"    will be executed.\n"
+					"  step\n"
+					"    change the db-pvm state to stepping\n"
+					"    and set the step depth to 0.\n"
+					"    this means, that the db-pvm will execute\n"
+					"    commands until an equal amount of call and\n"
+					"    return commands has been executed (the\n"
+					"    db-pvm will execute at least one command).\n"
+					"  step-out\n"
+					"    change the db-pvm state to stepping\n"
+					"    and set the step depth to 1.\n"
+					"    this means, that the db-pvm will execute\n"
+					"    commands until an less call than return\n"
+					"    commands has been executed.\n"
+					"  step-dep <DEPTH>\n"
+					"    change the db-pvm state to stepping\n"
+					"    and set the step depth to the given value.\n"
+					"    the db-pvm will execute, until (at least) depth\n"
+					"    more returns has been made than calls.\n"
+					"    so if depth is negative the command behaves\n"
+					"    like 'step-in' and if depth is zero the command\n"
+					"    behaves like 'step'."
+					"\n"
+					"the following commands can only be used when\n"
+					"the db-pvm is in a waiting state.\n"
+					"only on wait commands:"
+					"  break <ADDRESS>\n"
+					"    change the db-pvm state to waiting when the\n"
+					"    Instruction at the given address should be\n"
+					"    executed.\n"
+					"    when the instruction pointer is already the\n"
+					"    given address while the db-pvm is waiting and\n"
+					"    the state is changed to a executing state, the\n"
+					"    breakpoint will be ignored.\n"
+					"      In other words, when telling the db-pvm to\n"
+					"      execute, it will execute at least one command\n"
+					"      until a breakpoint can change the state.\n"
+					"  pvm\n"
+					"    display the virtual machine\n"
+					"    this includes the instruction pointer\n"
+					"    the stack pointer\n"
+					"    the interrupt table pointer\n"
+					"    the interrupt count register\n"
+					"    the status register\n"
+					"    the error number register\n"
+					"    all XNN registers\n"
+					"  regs <LENGTH>\n"
+					"    display first length registers of the\n"
+					"    virtual machine.\n"
+					"    this is similar to the pvm command, but\n"
+					"    display only the first length registers and\n"
+					"    not all registers. when length is 256 the two\n"
+					"    commands are equally.\n"
+					"  mem <ADDRESS> <LENGTH>"
+					"    display the given memory block.\n"
+					""); // TODO more commands
 		} else if (strcmp("version", buffer) == 0) {
 			fprintf(file, "db-pvm " PVM_VERSION_STR "\n");
 		} else if (strcmp("detach", buffer) == 0) {
@@ -939,56 +1093,249 @@ static void* pvm_debug_thread_func(void *_arg) {
 			fclose(file);
 		} else if (strcmp("exit", buffer) == 0) {
 			int exit_num;
-			if (fscanf(file, "%d", &exit_num) == -1) {
+			if (fscanf(file, "%i", &exit_num) == -1) {
 				exit_num = 1;
 			}
 			fprintf(file, "bye, exit now with %d\n", exit_num);
 			exit(exit_num);
 		} else if (strcmp("state", buffer) == 0) {
 			pvm_lock();
+			enum pvm_db_state state = pvm_state, next_state = pvm_next_state;
+			pvm_unlock();
 			switch (state) {
-			case running:
+			case pvm_ds_running:
 				fprintf(file, "the db-pvm is currently running\n");
 				break;
-			case stepping:
+			case pvm_ds_stepping:
 				fprintf(file, "the db-pvm is currently stepping\n");
 				break;
-			case waiting:
+			case pvm_ds_waiting:
 				fprintf(file, "the db-pvm is currently waiting\n");
 				break;
 			default:
-				fprintf(file, "the db-pvm currently has an unknown state: %d\n", state);
+				fprintf(file, "the db-pvm currently has an unknown state: %d\n",
+						pvm_state);
 				break;
 			}
+			if (state != next_state) {
+				switch (next_state) {
+				case pvm_ds_running:
+					fprintf(file, "the db-pvm will soon run\n");
+					break;
+				case pvm_ds_stepping:
+					fprintf(file, "the db-pvm will soon step\n");
+					break;
+				case pvm_ds_waiting:
+					fprintf(file, "the db-pvm will soon wait\n");
+					break;
+				default:
+					fprintf(file,
+							"the db-pvm will soon has an unknown state: %d\n",
+							pvm_state);
+					break;
+				}
+			}
+		} else if (strcmp("wait", buffer) == 0) {
+			pvm_lock();
+			pvm_next_state = pvm_ds_waiting;
 			pvm_unlock();
-		} else { // TODO more commands
+			fprintf(file, "the db-pvm will soon wait\n");
+		} else if (strcmp("run", buffer) == 0) {
+			pvm_lock();
+			pvm_next_state = pvm_ds_running;
+			pvm_unlock();
+			fprintf(file, "the db-pvm will soon run\n");
+		} else if (strcmp("step-in", buffer) == 0) {
+			state_to_stepping(-1);
+		} else if (strcmp("step", buffer) == 0) {
+			state_to_stepping(0);
+		} else if (strcmp("step-out", buffer) == 0) {
+			state_to_stepping(1);
+		} else if (strcmp("step-dep", buffer) == 0) {
+			int dep;
+			while (fscanf(file, "%i", &dep) == -1) {
+				int e = errno;
+				errno = 0;
+				switch (e) {
+				case EAGAIN:
+					wait5ms();
+					continue;
+				case EINTR:
+					continue;
+				case EILSEQ:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "could not parse the depth ('%s')\n", buffer);
+					break;
+				case ERANGE:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "depth is out of range ('%s')\n", buffer);
+					break;
+				default:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "could not scanf the depth ('%s'): %s\n",
+							buffer, strerror(e));
+					break;
+				}
+				goto big_loop_start;
+			}
+			state_to_stepping(dep);
+		} else if (strcmp("break", buffer) == 0) {
+			num addr;
+			while (fscanf(file, "%li", &addr) == -1) {
+				int e = errno;
+				errno = 0;
+				switch (e) {
+				case EAGAIN:
+					wait5ms();
+					continue;
+				case EINTR:
+					continue;
+				case EILSEQ:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "could not parse the address ('%s')\n",
+							buffer);
+					break;
+				case ERANGE:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "address is out of range ('%s')\n", buffer);
+					break;
+				default:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "could not scanf the number ('%s'): %s\n",
+							buffer, strerror(e));
+					break;
+				}
+				goto big_loop_start;
+			}
+		} else if (strcmp("pvm", buffer) == 0) {
+			print_pvm(file, 256);
+		} else if (strcmp("regs", buffer) == 0) {
+			int len;
+			while (fscanf(file, "%i", &len) == -1) {
+				int e = errno;
+				errno = 0;
+				switch (e) {
+				case EAGAIN:
+					wait5ms();
+					continue;
+				case EINTR:
+					continue;
+				case EILSEQ:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "could not parse the length ('%s')\n",
+							buffer);
+					break;
+				case ERANGE:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "length is out of range ('%s')\n", buffer);
+					break;
+				default:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "could not scanf the length ('%s'): %s\n",
+							buffer, strerror(e));
+					break;
+				}
+				goto big_loop_start;
+			}
+			if (len > 256) {
+				fprintf(file, "length is out of range (%d) (max=256)\n", len);
+			} else if (len < 0) {
+				fprintf(file, "length is out of range (%d) (min=0)\n", len);
+			} else {
+				print_pvm(file, 256);
+			}
+		} else if (strcmp("mem", buffer) == 0) {
+			num addr, len;
+			while (fscanf(file, "%li%li", &addr, &len) == -1) {
+				int e = errno;
+				errno = 0;
+				switch (e) {
+				case EAGAIN:
+					wait5ms();
+					continue;
+				case EINTR:
+					continue;
+				case EILSEQ:
+					fscanf(file, "%127s", buffer);
+					fprintf(file,
+							"could not parse the address or length ('%s')\n",
+							buffer);
+					break;
+				case ERANGE:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "address or length is out of range ('%s')\n",
+							buffer);
+					break;
+				default:
+					fscanf(file, "%127s", buffer);
+					fprintf(file,
+							"could not scanf the address and length ('%s'): %s\n",
+							buffer, strerror(e));
+					break;
+				}
+				goto big_loop_start;
+			}
+			if (len < 0) {
+				fprintf(file,
+						"the length of the memory block is negative (addr=HEX-%lX, len=HEX-%lX)\n",
+						addr, len);
+				goto big_loop_start;
+			}
+			struct memory_check mem_chk = chk0(addr, len, 1);
+			if (!mem_chk.valid) {
+				fprintf(file,
+						"the given memory block is invalid (addr=HEX-%lX, len=HEX-%lX)\n",
+						addr, len);
+				goto big_loop_start;
+			}
+			ui8 buf[17];
+			buf[16] = '\0';
+			for (; len; len -= 8, addr += 8) {
+				if (len > 8) {
+					num n = *(num*) (mem_chk.mem->offset + addr);
+					for (int i = 15; i; i--) {
+						buf[i] = to_hex(0xF & (n >> (60 - (4 * i))));
+					}
+					fprintf(file, "HEX-%lX : %s\n", addr, buf);
+				} else {
+					ui8 *p = mem_chk.mem->offset + addr;
+					buf[len << 1] = '\0';
+					for (int i = 0; len; len--, p++, i++) {
+						buf[i] = to_hex(0xF & (*p));
+						buf[++i] = to_hex(0xF & ((*p) >> 4));
+					}
+					fprintf(file, "HEX-%lX : %s\n", addr, buf);
+					break;
+				}
+			}
+		} else {
 			fprintf(file, "unknown command: '%s'\n", buffer);
 		}
-
 	}
 }
 
 static inline void d_wait() {
 	while (1) {
 		pvm_lock();
-		changeing = 0;
-		switch (state) {
-		case running:
+		pvm_state = pvm_next_state;
+		switch (pvm_state) {
+		case pvm_ds_running:
 			pvm_unlock();
 			return;
-		case waiting:
+		case pvm_ds_waiting:
 			state_wait: pvm_unlock();
-			struct timespec wait_time = { //
-					/*	  */.tv_sec = 0, // 0 sec
-							.tv_nsec = 5000000 // 5 ms
-					};
-			nanosleep(&wait_time, NULL);
+			wait5ms();
 			continue;
-		case stepping:
-			if (depth <= 0) {
-				state = waiting;
+		case pvm_ds_stepping:
+			if (pvm_depth <= 0) {
+				pvm_state = pvm_ds_waiting;
 				goto state_wait;
 			}
+			pvm_unlock();
+			return;
+		case pvm_ds_new_stepping:
+			pvm_state = pvm_ds_stepping;
+			pvm_next_state = pvm_ds_stepping;
 			pvm_unlock();
 			return;
 		default:

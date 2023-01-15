@@ -14,7 +14,7 @@
 
 #define PVM_VERSION_STR "1.0.0"
 
-#define PVM_VERSION_HEX ((PVM_VERSION_MAJOR << 16) | (PVM_VERSION_MINOR << 8) | (PVM_VERSION_FIX=)
+#define PVM_VERSION_HEX ((PVM_VERSION_MAJOR << 16) | (PVM_VERSION_MINOR << 8) | (PVM_VERSION_FIX)
 
 #define PVM_TO_MAJOR(a) ((a) << 16)
 #define PVM_TO_MINOR(a) ((a) << 8)

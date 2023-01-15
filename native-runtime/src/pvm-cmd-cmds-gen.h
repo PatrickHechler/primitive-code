@@ -1,3 +1,7 @@
+#if defined SRC_PVM_CMD_CMDS_GEN_H_ | !defined SRC_PVM_CMD_H_
+#	error "Multiple includes of pvm-cmd-cmds-gen.h or SRC_PVM_CMD_H_ is not defined!"
+#endif
+#define SRC_PVM_CMD_CMDS_GEN_H_
 /*
  * WARNING: this file is generated, DO NOT MODIFY
  */

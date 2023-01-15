@@ -45,9 +45,9 @@ EXT struct pvm {
 	num intp; // regs[2]
 	num intcnt; // regs[3]
 	unum status; // regs[5]
-	fpnum fpx[0]; // reg[6..255] // array size set to zero, because this is no union
-	num x[256 - 6]; // reg[6..255] // - 6 because XFA shares its address with the errno register
-	num err; // regs[255]
+	num err; // regs[6]
+	fpnum fpx[0]; // reg[7..255] // array size set to zero, because this is no union
+	num x[256 - 6]; // reg[7..255]
 } pvm;
 
 _Static_assert((sizeof(num) * 256) == sizeof(struct pvm), "Error!");
@@ -84,17 +84,31 @@ enum param_type {
 #ifdef PVM
 
 #	ifdef PVM_DEBUG
-static volatile enum {
-	running,
 
-	stepping,
+static int pvm_same_address(const void *a, const void *b);
+static unsigned int pvm_address_hash(const void *a);
 
-	waiting,
-} state;
+static struct hashset breakpoints = {
+		.entries = NULL,
+		.entrycount = 0,
+		.equalizer = pvm_same_address,
+		.hashmaker = pvm_address_hash,
+		.setsize = 0,
+};
+static enum pvm_db_state {
+	pvm_ds_running,
 
-_Bool changeing;
+	pvm_ds_stepping,
 
-num depth;
+	pvm_ds_waiting,
+
+	pvm_ds_new_stepping,
+
+	pvm_ds_init = pvm_ds_waiting,
+} pvm_state, pvm_next_state;
+
+static int pvm_depth;
+
 #	endif // PVM_DEBUG
 
 #endif // PVM
