@@ -16,8 +16,7 @@ DEBUG_TARGET = db-pvm
 
 LDFLAGS = -L$(PFS_LIB_FOLDER) -lpfs-core
 
-DEBUG_LDFLAGS = 
-#-lpthread
+DEBUG_LDFLAGS = -lpthread
 
 CC = gcc
 

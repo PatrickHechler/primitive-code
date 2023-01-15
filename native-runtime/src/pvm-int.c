@@ -1024,8 +1024,8 @@ static void int_load_file( INT_PARAMS) /* 63 */{
 
 #define MAX_LIB_NAME_LEN 512 /* library with a path larger than this value will always be reloaded */
 struct loaded_libs_entry {
-	const char *name;
-	struct memory *mem;
+	char *name;
+	num pntr;
 };
 int loaded_libs_equal(const void *a, const void *b) {
 	const struct loaded_libs_entry *ea = a, *eb = b;
@@ -1053,19 +1053,20 @@ static void int_load_lib( INT_PARAMS) /* 64 */{
 		return;
 	}
 	num max_name_len = name_mem->end - pvm.x[0];
-	const char *name = name_mem->offset + pvm.x[0];
+	char *name = name_mem->offset + pvm.x[0];
 	num name_len = strnlen(name, max_name_len);
 	if (name_len == max_name_len) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
-	struct loaded_libs_entry _e;
-	_e.name = name;
-	void *old = hashset_get(&loaded_libs, loaded_libs_hash(&_e), &_e);
+	struct loaded_libs_entry tmp_entry;
+	tmp_entry.name = name;
+	void *old = hashset_get(&loaded_libs, loaded_libs_hash(&tmp_entry), &tmp_entry);
 	if (old) {
 		struct loaded_libs_entry *entry = old;
-		pvm.x[0] = entry->mem->start;
-		pvm.x[1] = entry->mem->end - entry->mem->start;
+		struct memory *old_mem = chk(entry->pntr, 0).mem;
+		pvm.x[0] = old_mem->start;
+		pvm.x[1] = old_mem->end - old_mem->start;
 		pvm.x[2] = 0;
 	}
 	int sh = pfs_stream(name, PFS_SO_FILE | PFS_SO_READ);
@@ -1082,7 +1083,8 @@ static void int_load_lib( INT_PARAMS) /* 64 */{
 		pvm.x[0] = -1;
 		return;
 	}
-	struct memory2 lib_mem = alloc_memory(eof, MEM_NO_FREE | MEM_NO_RESIZE | MEM_LIB);
+	struct memory2 lib_mem = alloc_memory(eof,
+			MEM_NO_FREE | MEM_NO_RESIZE | MEM_LIB);
 	if (!lib_mem.mem) {
 		pvm.x[0] = -1;
 		return;
@@ -1096,11 +1098,12 @@ static void int_load_lib( INT_PARAMS) /* 64 */{
 	if (name_len < MAX_LIB_NAME_LEN) {
 		char *name_cpy = malloc(name_len + 1);
 		if (name_cpy) {
-			struct loaded_libs_entry *new_entry = malloc(sizeof(struct loaded_libs_entry));
+			struct loaded_libs_entry *new_entry = malloc(
+					sizeof(struct loaded_libs_entry));
 			if (new_entry) {
 				memcpy(name_cpy, name, name_len + 1);
 				new_entry->name = name;
-				new_entry->mem = lib_mem.mem;
+				new_entry->pntr = lib_mem.mem->start;
 			} else {
 				free(name_cpy);
 			}
@@ -1110,11 +1113,24 @@ static void int_load_lib( INT_PARAMS) /* 64 */{
 	pvm.x[1] = eof;
 	pvm.x[2] = 1;
 }
-static void int_unload_lib(INT_PARAMS) /* 64 */ {
+static void int_unload_lib( INT_PARAMS) /* 64 */{
 	struct memory *mem = chk(pvm.x[0], 0).mem;
 	if ((mem->flags & MEM_LIB) == 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
+	}
+	for (int i = 0;; i++) {
+		if (!loaded_libs.entries[i] || loaded_libs.entries[i] == &illegal) {
+			continue;
+		}
+		struct loaded_libs_entry *e = loaded_libs.entries[i];
+		if (e->pntr != mem->start) {
+			continue;
+		}
+		hashset_remove(&loaded_libs, loaded_libs_hash(e), e);
+		free(e->name);
+		free(e);
+		break;
 	}
 	free_mem_impl(mem);
 }

@@ -30,6 +30,14 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <iconv.h>
+#ifdef PVM_DEBUG
+#include <pthread.h>
+#include <sys/socket.h>
+#include <netinet/ip.h>
+#include <sys/un.h>
+#include <linux/membarrier.h>
+#include <sys/syscall.h>
+#endif // PVM_DEBUG
 
 void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	if (next_adress != REGISTER_START) {
@@ -91,7 +99,281 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	*(num*) argv = -1;
 }
 
-static inline void init_int() {
+#ifdef PVM_DEBUG
+// static FILE *new_stderr; // TODO use
+
+static pthread_mutex_t debug_mutex;
+
+struct pvm_thread_arg {
+	int val;
+};
+
+static int same_fd(const void *a, const void *b) {
+	return a == b;
+}
+unsigned int fd_hash(const void *a) {
+	return (unsigned) (long) a;
+}
+
+struct pvm_delegate_arg {
+	int srcfd;
+	struct hashset *dst_fds;
+};
+
+static void* pvm_delegate_func(void *_arg) {
+	struct pvm_delegate_arg arg = *(struct pvm_delegate_arg*) _arg;
+	free(_arg);
+	void *buffer = malloc(1024);
+	if (!buffer) {
+		fprintf(stderr, "could not allocate delegate buffer\n");
+		exit(1);
+	}
+	while (1) {
+		ssize_t reat = read(arg.srcfd, buffer, 1024);
+		if (reat == -1) {
+			switch (errno) {
+			case EAGAIN:
+				struct timespec wait_time = { //
+						/*	  */.tv_sec = 0, // 0 sec
+								.tv_nsec = 5000000 // 5 ms
+						};
+				nanosleep(&wait_time, NULL);
+				/* no break */
+			case EINTR:
+				errno = 0;
+				continue;
+			}
+			perror("read");
+			fprintf(stderr, "error on read\n");
+			exit(1);
+		} else if (read == 0) {
+			return NULL;
+		}
+		for (int i = arg.dst_fds->setsize; i;) {
+			if (!arg.dst_fds->entries[i]) {
+				continue;
+			}
+			int dstfd = ((int) (arg.dst_fds->entries[i] - NULL)) - 1;
+			for (ssize_t wrote = 0; wrote < reat;) {
+				ssize_t w = write(dstfd, buffer + wrote, reat - wrote);
+				if (w == -1) {
+					switch (errno) {
+					case EAGAIN:
+					case EINTR:
+						errno = 0;
+						continue;
+					}
+					perror("write");
+					fprintf(stderr, "error on write\n");
+					exit(1);
+				}
+				wrote += w;
+			}
+		}
+	}
+}
+
+static void* pvm_debug_thread_func(void *_arg);
+
+#define DEBUG_SOCKET_BACKLOG 1
+
+static void* pvm_debug_thread_deamon(void *_arg) {
+	struct pvm_thread_arg arg = *(struct pvm_thread_arg*) _arg;
+	free(_arg);
+	int domain;
+	union {
+		struct sockaddr sa;
+		struct sockaddr_in sa_in;
+	} my_sock_adr;
+	int domain_identy = (arg.val >> 16) & 0xFFFF;
+	arg.val &= 0xFFFF;
+	domain = AF_INET;
+	my_sock_adr.sa_in = (struct sockaddr_in ) { //
+			/*	  */.sin_family = AF_INET, //
+					.sin_port = htons(arg.val), //
+					.sin_addr.s_addr = INADDR_ANY, //
+			};
+	int my_sok = socket(domain, SOCK_STREAM, 0);
+	if (my_sok == -1) {
+		perror("socket");
+		fprintf(stderr, "could not create my socket\n");
+		exit(1);
+	}
+	if (listen(my_sok, DEBUG_SOCKET_BACKLOG) == -1) {
+		perror("listen");
+		fprintf(stderr, "could not open my socket for listening\n");
+		exit(1);
+	}
+	while (1) {
+		int sok = accept(my_sok, NULL, NULL);
+		if (sok == -1) {
+			perror("accept");
+			fprintf(stderr, "could not accept a debug connection\n");
+			exit(1);
+		}
+
+		struct pvm_thread_arg *child_arg = malloc(
+				sizeof(struct pvm_thread_arg));
+		if (!child_arg) {
+			fprintf(stderr, "could not allocate the argument for the thread\n");
+			exit(1);
+		}
+		child_arg->val = sok;
+		pthread_t debug_thread;
+		pthread_attr_t debug_attrs;
+		pthread_attr_init(&debug_attrs);
+		pthread_create(&debug_thread, &debug_attrs, pvm_debug_thread_func,
+				child_arg);
+		pthread_attr_destroy(&debug_attrs);
+	}
+}
+
+static inline void make_std_noblock() {
+	int flags = fcntl(STDIN_FILENO, F_GETFD);
+	if (flags == -1) {
+		perror("fcntl");
+		fprintf(stderr, "could not get the flags of stdin\n");
+		exit(1);
+	}
+	if ((flags & O_NONBLOCK) == 0) {
+		if (fcntl(STDIN_FILENO, F_SETFD, flags | O_NONBLOCK) == -1) {
+			perror("fcntl");
+			fprintf(stderr, "could not set the NOBLOCK flag for stdin\n");
+			exit(1);
+		}
+	}
+	flags = fcntl(STDOUT_FILENO, F_GETFD);
+	if (flags == -1) {
+		perror("fcntl");
+		fprintf(stderr, "could not get the flags of stdout\n");
+		exit(1);
+	}
+	if ((flags & O_NONBLOCK) == 0) {
+		if (fcntl(STDOUT_FILENO, F_SETFD, flags | O_NONBLOCK) == -1) {
+			perror("fcntl");
+			fprintf(stderr, "could not set the NOBLOCK flag for stdout\n");
+			exit(1);
+		}
+	}
+	flags = fcntl(STDERR_FILENO, F_GETFD);
+	if (flags == -1) {
+		perror("fcntl");
+		fprintf(stderr, "could not get the flags of stderr\n");
+		exit(1);
+	}
+	if ((flags & O_NONBLOCK) == 0) {
+		if (fcntl(STDERR_FILENO, F_SETFD, flags | O_NONBLOCK) == -1) {
+			perror("fcntl");
+			fprintf(stderr, "could not set the NOBLOCK flag for stderr\n");
+			exit(1);
+		}
+	}
+}
+
+static inline void create_pipes(int stdin_pipe[2], int stdout_pipe[2],
+		int stderr_pipe[2]) {
+	if (pipe2(stdin_pipe, O_NONBLOCK) == -1) {
+		perror("pipe");
+		fprintf(stderr, "could not open a debug pipe!\n");
+		exit(1);
+	}
+	if (pipe2(stdout_pipe, O_NONBLOCK) == -1) {
+		perror("pipe");
+		fprintf(stderr, "could not open a debug pipe!\n");
+		exit(1);
+	}
+	if (pipe2(stderr_pipe, O_NONBLOCK) == -1) {
+		perror("pipe");
+		fprintf(stderr, "could not open a debug pipe!\n");
+		exit(1);
+	}
+}
+
+static inline void overwrite_std(int stdin_pipe[2], int stdout_pipe[2],
+		int stderr_pipe[2]) {
+	if (dup2(stdin_pipe[0], STDIN_FILENO) == -1) {
+		perror("pipe");
+		fprintf(stderr, "could not set stdin!\n");
+		exit(1);
+	}
+	if (dup2(stdout_pipe[1], STDOUT_FILENO) == -1) {
+		perror("pipe");
+		fprintf(stderr, "could not set stdout!\n");
+		exit(1);
+	}
+	if (dup2(stderr_pipe[1], STDERR_FILENO) == -1) {
+		perror("pipe");
+		fprintf(stderr, "could not set stderr!\n");
+		exit(1);
+	}
+}
+
+static inline void init_syncronisation() {
+	pthread_mutexattr_t attr;
+	pthread_mutexattr_init(&attr);
+	pthread_mutex_init(&debug_mutex, &attr);
+	pthread_mutexattr_destroy(&attr);
+
+	if (syscall(SYS_membarrier, MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED, 0U,
+			0) == -1) {
+		perror("membarrier");
+		fprintf(stderr,
+				"could not register myself for the memory barrier syscall\n");
+		exit(1);
+	}
+}
+
+void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
+	int stdin_dup = dup(STDIN_FILENO);
+	int stdout_dup = dup(STDOUT_FILENO);
+	int stderr_dup = dup(STDERR_FILENO);
+	switch (input) {
+	case STDIN_FILENO:
+		input = stdin_dup;
+		break;
+	case STDOUT_FILENO:
+		input = stdout_dup;
+		break;
+	case STDERR_FILENO:
+		input = stderr_dup;
+		break;
+	}
+
+	make_std_noblock();
+
+	int stdin_pipe[2];
+	int stdout_pipe[2];
+	int stderr_pipe[2];
+	create_pipes(stdin_pipe, stdout_pipe, stderr_pipe);
+
+	overwrite_std(stdin_pipe, stdout_pipe, stderr_pipe);
+
+	init_syncronisation();
+
+	if (wait) {
+		state = waiting;
+	} else {
+		state = running;
+	}
+	changeing = 1;
+
+	struct pvm_thread_arg *arg = malloc(sizeof(struct pvm_thread_arg));
+	if (!arg) {
+		fprintf(stderr, "could not allocate the argument for the thread\n");
+		exit(1);
+	}
+	arg->val = input;
+	pthread_t deamon_thread;
+	pthread_attr_t deamon_attrs;
+	pthread_attr_init(&deamon_attrs);
+	pthread_create(&deamon_thread, &deamon_attrs,
+			input_is_pipe ? pvm_debug_thread_func : pvm_debug_thread_deamon,
+			arg);
+	pthread_attr_destroy(&deamon_attrs);
+}
+#endif // PVM_DEBUG
+
+static inline void int_init() {
 	struct memory2 mem = alloc_memory(128, MEM_INT | MEM_NO_RESIZE);
 	if (!mem.mem) {
 		exit(127);
@@ -130,7 +412,7 @@ static inline void interrupt(num intnum, num incIPVal) {
 			if (-1 == deref) {
 				callInt;
 			} else {
-				init_int();
+				int_init();
 				pvm.x[0] = intnum;
 				pvm.ip = deref;
 			}
@@ -153,7 +435,7 @@ static inline void interrupt(num intnum, num incIPVal) {
 		if (-1 == deref) {
 			callInt;
 		} else {
-			init_int();
+			int_init();
 			pvm.ip = deref;
 		}
 	}
@@ -554,22 +836,82 @@ PVM_SI_PREFIX void free_memory(num adr) {
 }
 
 #ifdef PVM_DEBUG
+static void* pvm_debug_thread_func(void *_arg) {
+	struct pvm_thread_arg arg = *(struct pvm_thread_arg*) _arg;
+	free(_arg);
+	if (syscall(SYS_membarrier, MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED, 0U,
+			0) == -1) {
+		perror("membarrier");
+		fprintf(stderr,
+				"could not register a debug thread for the memory barrier syscall\n");
+		exit(1);
+	}
+	FILE *file = fdopen(arg.val, "rw");
+	if (!file) {
+		perror("fdopen");
+		fprintf(stderr, "could not open a FILE\* from my file descriptor\n");
+		exit(1);
+	}
+	char *buffer = malloc(128);
+	if (!buffer) {
+		fprintf(stderr, "could not allocate my debug string buffer\n");
+		exit(1);
+	}
+	while (1) {
+		char white;
+		if (fscanf(file, "%127s%1c", buffer, &white) == -1) {
+			switch(errno) {
+			case EAGAIN:
+				struct timespec wait_time = { //
+						/*	  */.tv_sec = 0, // 0 sec
+								.tv_nsec = 5000000 // 5 ms
+						};
+				nanosleep(&wait_time, NULL);
+				/* no break */
+			case EINTR:
+				errno = 0;
+				continue;
+			}
+			perror("fscanf");
+			fprintf(stderr, "could not scanf the debug input\n");
+			exit(1);
+		}
+		// TODO lock what was scanned
+	}
+}
+
 static inline void d_wait() {
 	while (1) {
+		if (pthread_mutex_lock(&debug_mutex) == -1) {
+			perror("pthread_mutex_lock");
+			fprintf(stderr, "could not register lock the mutex\n");
+			exit(1);
+		}
+		if (syscall(SYS_membarrier, MEMBARRIER_CMD_PRIVATE_EXPEDITED, 0U, 0)
+				== -1) {
+			perror("membarrier");
+			fprintf(stderr, "membarrier failed\n");
+			exit(1);
+		}
+		changeing = 0;
 		switch (state) {
 		case running:
+			pthread_mutex_unlock(&debug_mutex);
 			return;
 		case waiting:
-			struct timespec time = { //
-					.tv_sec = 0, // 0 sec
+			state_wait: pthread_mutex_unlock(&debug_mutex);
+			struct timespec wait_time = { //
+					/*	  */.tv_sec = 0, // 0 sec
 							.tv_nsec = 5000000 // 5 ms
 					};
-			nanosleep(&time, NULL);
+			nanosleep(&wait_time, NULL);
 			continue;
 		case stepping:
 			if (depth <= 0) {
 				state = waiting;
+				goto state_wait;
 			}
+			pthread_mutex_unlock(&debug_mutex);
 			return;
 		default:
 			abort();

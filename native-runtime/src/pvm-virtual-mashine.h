@@ -10,6 +10,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stddef.h>
 
 #ifdef PVM
 #	define EXT
@@ -27,6 +28,10 @@ typedef uint32_t double_word;
 void execute() __attribute__ ((__noreturn__));
 
 void pvm_init(char **argv, num argc_ount, void *exe, num exe_size);
+
+#ifdef PVM_DEBUG
+void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait);
+#endif // PVM_DEBUG
 
 _Static_assert(sizeof(num) == 8, "Error!");
 _Static_assert(sizeof(num) == sizeof(unum), "Error!");
@@ -87,7 +92,9 @@ static volatile enum {
 	waiting,
 } state;
 
-EXT num depth;
+_Bool changeing;
+
+num depth;
 #	endif // PVM_DEBUG
 
 #endif // PVM

@@ -9,6 +9,8 @@
 #include <pfs.h>
 #include <pfs-stream.h>
 #include <pfs-constants.h>
+#include <pfs-element.h>
+#include <pfs-file.h>
 #include <pfs-err.h>
 
 #include "pvm-version.h"
@@ -28,9 +30,9 @@ static void print_help(void);
 static void print_version(void);
 
 #ifdef PVM_DEBUG
-_Bool wait;
-int input;
-_Bool input_is_pipe;
+static _Bool wait;
+static int input;
+static _Bool input_is_pipe;
 #endif
 
 static void setup(int argc, char **argv) {
@@ -38,6 +40,7 @@ static void setup(int argc, char **argv) {
 	wait = 0;
 	input = -1;
 #endif
+	_Bool pmf_in_lfs = 0;
 	_Bool pfs_set = 0;
 	char *cwd = NULL;
 	for (argv++; *argv; argv++, argc--) {
@@ -67,6 +70,7 @@ static void setup(int argc, char **argv) {
 				UINT16_MAX);
 				exit(1);
 			}
+			input = val;
 			input_is_pipe = 0;
 		} else if (!memcmp("--pipe=", *argv, 7)) {
 			if (input != -1) {
@@ -76,22 +80,43 @@ static void setup(int argc, char **argv) {
 			input = open(*argv + 7, O_RDONLY);
 			if (input == -1) {
 				perror("open");
-				fprintf(stderr, "could not open the debug input (pipe)!\n",
+				fprintf(stderr, "could not open the debug input (pipe/file)!\n",
 						*argv + 7);
 				exit(1);
 			}
 			input_is_pipe = 1;
+		} else if (!memcmp("--std=", *argv, 6)) {
+			if (input != -1) {
+				fprintf(stderr, "debug input already set!\n", *argv + 7);
+				exit(1);
+			}
+			char *end;
+			long val = strtol((*argv) + 6, &end, 0);
+			input = val;
+			if (val != input || errno) {
+				perror("strtol");
+				fprintf(stderr, "could not parse the file descriptor '%s'\n",
+						*argv + 6);
+				exit(1);
+			}
+			input_is_pipe = 1;
 #endif // PVM_DEBUG
+		} else if (!strcmp("--pmf-in-lfs", *argv)) {
+			pmf_in_lfs = 1;
+		} else if (!strcmp("--pmf-in-pfs", *argv)) {
+			pmf_in_lfs = 0;
 		} else if (!memcmp("--cwd=", *argv, 6)) {
 			if (cwd) {
 				fprintf(stderr, "cwd already set!\n", *argv);
 				exit(1);
 			}
-			if (pfs_set) {
-				fprintf(stderr, "set cwd before pfs!\n", *argv);
-				exit(1);
-			}
 			cwd = *argv + 6;
+			if (pfs_set) {
+				if (!pfs_change_working_directoy(cwd)) {
+					fprintf(stderr, "could not set cwd to '%s' (%s)!\n", cwd,
+							pfs_error());
+				}
+			}
 		} else if (!memcmp("--pfs=", *argv, 6)) {
 			if (pfs_set) {
 				fprintf(stderr, "pfs already set!\n", *argv);
@@ -111,7 +136,7 @@ static void setup(int argc, char **argv) {
 				fprintf(stderr, "could not load the PFS (%s)!\n", pfs_error());
 				exit(1);
 			}
-		} else if (!memcmp("--bin=", *argv, 6)) {
+		} else if (!memcmp("--pmf=", *argv, 6)) {
 			if (!pfs_set) {
 				fprintf(stderr, "pfs not set!\n");
 				exit(1);
@@ -123,31 +148,62 @@ static void setup(int argc, char **argv) {
 			}
 #endif
 			(*argv) += 6;
-			int fd = open(*argv, O_RDONLY);
-			num exe_size = lseek(fd, 0, SEEK_END);
-			lseek(fd, 0, SEEK_SET);
-			void *exe_data = malloc(exe_size);
-			if (!exe_data) {
-				fprintf(stderr, "could not load the bin file in memory\n");
-				exit(1);
-			}
-			for (num reat = exe_size; reat < exe_size;) {
-				num reat_ = read(fd, exe_data + reat, exe_size - reat);
-				if (reat_ == -1) {
-					switch (errno) {
-					case EAGAIN:
-					case EINTR:
-						continue;
-					default:
-						perror("read");
-						fprintf(stderr, "failed to read the bin file\n");
-						exit(1);
-					}
-				} else if (!reat_) {
-					fprintf(stderr, "the bin file has been modified\n");
+			num exe_size;
+			void *exe_data;
+			if (pmf_in_lfs) {
+				int fd = open(*argv, O_RDONLY);
+				exe_size = lseek(fd, 0, SEEK_END);
+				lseek(fd, 0, SEEK_SET);
+				exe_data = malloc(exe_size);
+				if (!exe_data) {
+					fprintf(stderr,
+							"could not load the primitive machine file file in memory\n");
 					exit(1);
 				}
-				reat += reat_;
+				for (num reat = exe_size; reat < exe_size;) {
+					num reat_ = read(fd, exe_data + reat, exe_size - reat);
+					if (reat_ == -1) {
+						switch (errno) {
+						case EAGAIN:
+						case EINTR:
+							continue;
+						default:
+							perror("read");
+							fprintf(stderr, "failed to read the bin file\n");
+							exit(1);
+						}
+					} else if (!reat_) {
+						fprintf(stderr, "the bin file has been modified\n");
+						exit(1);
+					}
+					reat += reat_;
+				}
+			} else {
+				int fh = pfs_handle_file(*argv);
+				exe_size = pfs_file_length(fh);
+				exe_data = malloc(exe_size);
+				if (!exe_data) {
+					fprintf(stderr,
+							"could not load the primitive machine file file in memory\n");
+					exit(1);
+				}
+				int sh = pfs_open_stream(fh, PFS_SO_READ);
+				pfs_element_close(fh);
+				for (num reat = exe_size; reat < exe_size;) {
+					num reat_ = pfs_stream_read(sh, exe_data + reat,
+							exe_size - reat);
+					if (reat_ == -1) {
+						fprintf(stderr,
+								"failed to read the machine file (%s)\n",
+								pfs_error());
+						exit(1);
+					} else if (!reat_) {
+						fprintf(stderr, "the machine file has been modified\n");
+						exit(1);
+					}
+					reat += reat_;
+				}
+				pfs_stream_close(sh);
 			}
 			pvm_init(argv, argc, exe_data, exe_size);
 		} else {
@@ -175,10 +231,10 @@ static void print_help(void) {
 #else // PVM_DEBUG
 			"Usage: pvm [Options] --pmf=[EXECUTE_FILE] [ARGUMENTS]\n"
 #endif // PVM_DEBUG
-			"Options-Rules:\n"
-			"  --pfs=[PFS_FILE]\n"
-			"    this Option is NOT optional!\n"
-			"  --pmf=[EXECUTE_FILE]\n"
+					"Options-Rules:\n"
+					"  --pfs=[PFS_FILE]\n"
+					"    this Option is NOT optional!\n"
+					"  --pmf=[EXECUTE_FILE]\n"
 #ifdef PVM_DEBUG
 			"    this Option is only optional when --wait is set!\n"
 			"  --wait\n"
@@ -234,5 +290,10 @@ static void print_version(void) {
 
 int main(int argc, char **argv) {
 	setup(argc, argv);
+#ifdef PVM_DEBUG
+	if (input != -1) {
+		pvm_debug_init(input, input_is_pipe, wait);
+	}
+#endif
 	execute();
 }
