@@ -31,6 +31,7 @@
 #include <ctype.h>
 #include <iconv.h>
 #ifdef PVM_DEBUG
+#include "pvm-version.h"
 #include <pthread.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
@@ -836,6 +837,28 @@ PVM_SI_PREFIX void free_memory(num adr) {
 }
 
 #ifdef PVM_DEBUG
+static inline void pvm_lock() {
+	if (pthread_mutex_lock(&debug_mutex) == -1) {
+		perror("pthread_mutex_lock");
+		fprintf(stderr, "could not lock the debug mutex\n");
+		exit(1);
+	}
+	if (syscall(SYS_membarrier, MEMBARRIER_CMD_PRIVATE_EXPEDITED, 0U, 0)
+			== -1) {
+		perror("membarrier");
+		fprintf(stderr, "membarrier failed\n");
+		exit(1);
+	}
+}
+
+static inline void pvm_unlock() {
+	if (pthread_mutex_unlock(&debug_mutex) == -1) {
+		perror("pthread_mutex_unlock");
+		fprintf(stderr, "could not unlock the debug mutex\n");
+		exit(1);
+	}
+}
+
 static void* pvm_debug_thread_func(void *_arg) {
 	struct pvm_thread_arg arg = *(struct pvm_thread_arg*) _arg;
 	free(_arg);
@@ -849,7 +872,7 @@ static void* pvm_debug_thread_func(void *_arg) {
 	FILE *file = fdopen(arg.val, "rw");
 	if (!file) {
 		perror("fdopen");
-		fprintf(stderr, "could not open a FILE\* from my file descriptor\n");
+		fprintf(stderr, "could not open a FILE* from my file descriptor\n");
 		exit(1);
 	}
 	char *buffer = malloc(128);
@@ -860,7 +883,7 @@ static void* pvm_debug_thread_func(void *_arg) {
 	while (1) {
 		char white;
 		if (fscanf(file, "%127s%1c", buffer, &white) == -1) {
-			switch(errno) {
+			switch (errno) {
 			case EAGAIN:
 				struct timespec wait_time = { //
 						/*	  */.tv_sec = 0, // 0 sec
@@ -876,30 +899,85 @@ static void* pvm_debug_thread_func(void *_arg) {
 			fprintf(stderr, "could not scanf the debug input\n");
 			exit(1);
 		}
-		// TODO lock what was scanned
+		if (strcmp("help", buffer) == 0) {
+			fprintf(file, "db-pvm debug console\n" //
+							"\n"
+							"all commands will unless otherwise noted fail,\n"
+							"if the db-pvm is not currently is a waiting state.\n"
+							"\n"
+							"commands:\n"//
+							"  help"
+							"    display this message\n"
+							"    this command can be used in any state.\n"
+							"  version\n"
+							"    display the version\n"
+							"    this command can be used in any state.\n"
+							"  detach\n"
+							"    detach the debug console without\n"
+							"    terminating the program.\n"
+							"    WARN: when this is the last debug\n"
+							"    console and the db-pvm does not\n"
+							"    listen on a port, and the db-pvm is\n"
+							"    currently not running, it will not\n"
+							"    change it's state and has to be killed\n"
+							"    with a signal.\n"
+							"    this command can be used in any state.\n"
+							"  exit [EXIT_NUM]\n"
+							"    terminate the db-pvm with the given\n"
+							"    exit number. If the exit number is not\n"
+							"    given the db-pvm will terminate with\n"
+							"    the exit code 1.\n"
+							"    this command can be used in any state.\n"
+							"  state\n"
+							"    display the current state of the db-pvm\n"
+							"    this command can be used in any state.\n"
+							""); // TODO more commands
+		} else if (strcmp("version", buffer) == 0) {
+			fprintf(file, "db-pvm " PVM_VERSION_STR "\n");
+		} else if (strcmp("detach", buffer) == 0) {
+			fprintf(file, "bye\n");
+			fclose(file);
+		} else if (strcmp("exit", buffer) == 0) {
+			int exit_num;
+			if (fscanf(file, "%d", &exit_num) == -1) {
+				exit_num = 1;
+			}
+			fprintf(file, "bye, exit now with %d\n", exit_num);
+			exit(exit_num);
+		} else if (strcmp("state", buffer) == 0) {
+			pvm_lock();
+			switch (state) {
+			case running:
+				fprintf(file, "the db-pvm is currently running\n");
+				break;
+			case stepping:
+				fprintf(file, "the db-pvm is currently stepping\n");
+				break;
+			case waiting:
+				fprintf(file, "the db-pvm is currently waiting\n");
+				break;
+			default:
+				fprintf(file, "the db-pvm currently has an unknown state: %d\n", state);
+				break;
+			}
+			pvm_unlock();
+		} else { // TODO more commands
+			fprintf(file, "unknown command: '%s'\n", buffer);
+		}
+
 	}
 }
 
 static inline void d_wait() {
 	while (1) {
-		if (pthread_mutex_lock(&debug_mutex) == -1) {
-			perror("pthread_mutex_lock");
-			fprintf(stderr, "could not register lock the mutex\n");
-			exit(1);
-		}
-		if (syscall(SYS_membarrier, MEMBARRIER_CMD_PRIVATE_EXPEDITED, 0U, 0)
-				== -1) {
-			perror("membarrier");
-			fprintf(stderr, "membarrier failed\n");
-			exit(1);
-		}
+		pvm_lock();
 		changeing = 0;
 		switch (state) {
 		case running:
-			pthread_mutex_unlock(&debug_mutex);
+			pvm_unlock();
 			return;
 		case waiting:
-			state_wait: pthread_mutex_unlock(&debug_mutex);
+			state_wait: pvm_unlock();
 			struct timespec wait_time = { //
 					/*	  */.tv_sec = 0, // 0 sec
 							.tv_nsec = 5000000 // 5 ms
@@ -911,7 +989,7 @@ static inline void d_wait() {
 				state = waiting;
 				goto state_wait;
 			}
-			pthread_mutex_unlock(&debug_mutex);
+			pvm_unlock();
 			return;
 		default:
 			abort();
