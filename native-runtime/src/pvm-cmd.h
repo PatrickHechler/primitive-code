@@ -94,15 +94,20 @@ static void c_ill();
 	/* 0231 */ static void c_iret();
 
 /* 03.. : stack */
-/* 030. : call and return */
+/* 030. : call*/
+#define CALL_COMMANDS_START 0x0300
 	/* 0300 */ static void c_call();
 	/* 0301 */ static void c_calo();
-	/* 0302 */ static void c_ret();
-/* 031. : push and pop */
-	/* 0310 */ static void c_push();
-	/* 0311 */ static void c_pop();
-	/* 0312 */ static void c_pushblk();
-	/* 0313 */ static void c_popblk();
+#define CALL_COMMANDS_COUNT 0x2
+/* 031. : return */
+#define RETURN_COMMANDS_START 0x0310
+	/* 0310 */ static void c_ret();
+#define RETURN_COMMANDS_COUNT 0x1
+/* 032. : push and pop */
+	/* 0320 */ static void c_push();
+	/* 0321 */ static void c_pop();
+	/* 0322 */ static void c_pushblk();
+	/* 0323 */ static void c_popblk();
 
 #include "pvm-cmd-cmds-gen.h"
 

@@ -40,6 +40,18 @@
 #include <sys/syscall.h>
 #endif // PVM_DEBUG
 
+static int param_param_type_index;
+static int param_byte_value_index;
+static int param_num_value_index;
+
+static union instruction_adres {
+	void *pntr;
+	num *np;
+	byte *bp;
+	word *wp;
+} ia;
+static num remain_instruct_space;
+
 void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	if (next_adress != REGISTER_START) {
 		abort();
@@ -102,6 +114,30 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 
 #ifdef PVM_DEBUG
 
+static pthread_mutex_t debug_mutex;
+
+static inline void pvm_lock() {
+	if (pthread_mutex_lock(&debug_mutex) == -1) {
+		perror("pthread_mutex_lock");
+		fprintf(stderr, "could not lock the debug mutex\n");
+		exit(1);
+	}
+	if (syscall(SYS_membarrier, MEMBARRIER_CMD_PRIVATE_EXPEDITED, 0U, 0)
+			== -1) {
+		perror("membarrier");
+		fprintf(stderr, "membarrier failed\n");
+		exit(1);
+	}
+}
+
+static inline void pvm_unlock() {
+	if (pthread_mutex_unlock(&debug_mutex) == -1) {
+		perror("pthread_mutex_unlock");
+		fprintf(stderr, "could not unlock the debug mutex\n");
+		exit(1);
+	}
+}
+
 static inline void wait5ms() {
 	struct timespec wait_time = { //
 			/*	  */.tv_sec = 0, // 0 sec
@@ -109,10 +145,6 @@ static inline void wait5ms() {
 			};
 	nanosleep(&wait_time, NULL);
 }
-
-// static FILE *new_stderr; // TODO use
-
-static pthread_mutex_t debug_mutex;
 
 struct pvm_thread_arg {
 	int val;
@@ -327,6 +359,42 @@ static inline void init_syncronisation() {
 	}
 }
 
+static void (*do_calls[CALL_COMMANDS_COUNT])();
+static void (*do_returns[RETURN_COMMANDS_COUNT])();
+
+static void call_command_wrapper() {
+	if (pvm_next_state == pvm_ds_stepping) {
+		pvm_lock();
+		if (pvm_next_state == pvm_ds_stepping) {
+			pvm_depth ++;
+		}
+		pvm_unlock();
+	}
+	do_calls[(*ia.wp) - CALL_COMMANDS_START]();
+}
+
+static void return_command_wrapper() {
+	if (pvm_next_state == pvm_ds_stepping) {
+		pvm_lock();
+		if (pvm_next_state == pvm_ds_stepping) {
+			pvm_depth --;
+		}
+		pvm_unlock();
+	}
+	do_returns[(*ia.wp) - RETURN_COMMANDS_START]();
+}
+
+static inline void init_debug_cmds() {
+	for (int i = CALL_COMMANDS_COUNT; i >= 0; i--) {
+		do_calls[i] = cmds[CALL_COMMANDS_START + i];
+		cmds[CALL_COMMANDS_START + i] = call_command_wrapper;
+	}
+	for (int i = RETURN_COMMANDS_COUNT; i >= 0; i--) {
+		do_returns[i] = cmds[CALL_COMMANDS_START + i];
+		cmds[CALL_COMMANDS_START + i] = return_command_wrapper;
+	}
+}
+
 void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 	int stdin_dup = dup(STDIN_FILENO);
 	int stdout_dup = dup(STDOUT_FILENO);
@@ -353,6 +421,8 @@ void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 	overwrite_std(stdin_pipe, stdout_pipe, stderr_pipe);
 
 	init_syncronisation();
+
+	init_debug_cmds();
 
 	pvm_state = pvm_ds_init;
 	if (wait) {
@@ -556,17 +626,6 @@ struct p {
 		name = p.p; \
 	}
 
-static int param_param_type_index;
-static int param_byte_value_index;
-static int param_num_value_index;
-
-static union instruction_adres {
-	void *pntr;
-	num *np;
-	byte *bp;
-	word *wp;
-} ia;
-static num remain_instruct_space;
 
 static inline struct p param(int pntr, num size) {
 #define paramFail r.valid = 0; return r;
@@ -870,27 +929,6 @@ PVM_SI_PREFIX void free_memory(num adr) {
 }
 
 #ifdef PVM_DEBUG
-static inline void pvm_lock() {
-	if (pthread_mutex_lock(&debug_mutex) == -1) {
-		perror("pthread_mutex_lock");
-		fprintf(stderr, "could not lock the debug mutex\n");
-		exit(1);
-	}
-	if (syscall(SYS_membarrier, MEMBARRIER_CMD_PRIVATE_EXPEDITED, 0U, 0)
-			== -1) {
-		perror("membarrier");
-		fprintf(stderr, "membarrier failed\n");
-		exit(1);
-	}
-}
-
-static inline void pvm_unlock() {
-	if (pthread_mutex_unlock(&debug_mutex) == -1) {
-		perror("pthread_mutex_unlock");
-		fprintf(stderr, "could not unlock the debug mutex\n");
-		exit(1);
-	}
-}
 
 static inline char to_hex(int val) {
 	if (val < 10) {
@@ -1112,6 +1150,9 @@ static void* pvm_debug_thread_func(void *_arg) {
 			case pvm_ds_waiting:
 				fprintf(file, "the db-pvm is currently waiting\n");
 				break;
+			case pvm_ds_new_stepping:
+				fprintf(file, "the db-pvm is currently starting to step\n");
+				break;
 			default:
 				fprintf(file, "the db-pvm currently has an unknown state: %d\n",
 						pvm_state);
@@ -1127,6 +1168,9 @@ static void* pvm_debug_thread_func(void *_arg) {
 					break;
 				case pvm_ds_waiting:
 					fprintf(file, "the db-pvm will soon wait\n");
+					break;
+				case pvm_ds_new_stepping:
+					fprintf(file, "the db-pvm will soon start to step\n");
 					break;
 				default:
 					fprintf(file,
@@ -1334,7 +1378,6 @@ static inline void d_wait() {
 			pvm_unlock();
 			return;
 		case pvm_ds_new_stepping:
-			pvm_state = pvm_ds_stepping;
 			pvm_next_state = pvm_ds_stepping;
 			pvm_unlock();
 			return;
