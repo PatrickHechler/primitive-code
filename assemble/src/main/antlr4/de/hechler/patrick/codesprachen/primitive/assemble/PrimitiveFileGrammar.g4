@@ -4,9 +4,9 @@
  * '\s*\[([^\[\]"]|("([^"\r\n]|\\")*"))*\]' -> '' 
  * '\s*{[^({}]|("([^"\r\n]|\\")*")|({[^({}]|("([^"\r\n]|\\")*")|({[^({}]|("([^"\r\n]|\\")*"))*}))*}))*}' -> '' 
  */
- grammar PrimitiveFileGrammar;
+grammar PrimitiveFileGrammar;
 
- @parser::header {
+@parser::header {
 import java.util.function.*;
 import java.util.*;
 import java.io.*;
@@ -21,7 +21,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleErr
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 }
 
- @parser::members {
+@parser::members {
 	private int getAlign(boolean align, long pos) {
 		if (align) {
 			int mod = (int) (pos % 8);
@@ -81,11 +81,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 	}
  }
 
- parse
- [Path path, long startpos, boolean align, Map<String,PrimitiveConstant> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles]
- returns
- [List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are, boolean enabled, Map<String, PrimitiveConstant> exports]
- @init {
+parse
+[Path path, long startpos, boolean align, Map<String,PrimitiveConstant> constants, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles]
+returns
+[List<Command> commands, Map<String,Long> labels, long pos, AssembleRuntimeException are, boolean enabled, Map<String, PrimitiveConstant> exports]
+@init {
  	$pos = startpos;
  	$labels = new LinkedHashMap<>();
  	$commands = new ArrayList<>();
@@ -111,11 +111,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  	 */
  	List<Boolean> stack = new ArrayList();
  }
- :
- 	(
- 		anything
- 		[path, $enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp, $exports, asm, antlrin, $thisFile, $readFiles, lastComment]
- 		{
+:
+	(
+		anything
+		[path, $enabled, disabledSince, stack, align, constants, $commands, $labels, $pos, bailError, errorHandler, errorListener, ecp, $exports, asm, antlrin, $thisFile, $readFiles, lastComment]
+		{
  			$enabled = $anything.enabled;
  			disabledSince = $anything.disabledSince;
 			stack = $anything.stack;
@@ -135,14 +135,14 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 			}
  		}
 
- 	)* EOF
- ;
+	)* EOF
+;
 
- anything
- [Path path, boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, PrimitiveConstant> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, Map<String, PrimitiveConstant> exports_, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles, String lastComment_]
- returns
- [boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, PrimitiveConstant> constants, List<Command> commands, Map<String, Long> labels, long pos, Object zusatz, AssembleRuntimeException are, Map<String, PrimitiveConstant> exports, String lastComment]
- @init {
+anything
+[Path path, boolean enabled_, int disabledSince_, List<Boolean> stack_, boolean align_, Map<String, PrimitiveConstant> constants_, List<Command> commands_, Map<String, Long> labels_, long pos_, boolean be, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> ecp, Map<String, PrimitiveConstant> exports_, PrimitiveAssembler asm, ANTLRInputStream antlrin, String thisFile, Map<String, List<Map<String, Long>>> readFiles, String lastComment_]
+returns
+[boolean enabled, int disabledSince, List<Boolean> stack, boolean align, Map<String, PrimitiveConstant> constants, List<Command> commands, Map<String, Long> labels, long pos, Object zusatz, AssembleRuntimeException are, Map<String, PrimitiveConstant> exports, String lastComment]
+@init {
 	$enabled = enabled_;
 	$disabledSince = disabledSince_;
 	$stack = stack_;
@@ -155,21 +155,21 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 	$exports = new LinkedHashMap<>(exports_);
 	$lastComment = null;
  }
- :
- 	(
- 		(
- 			(
- 				comment
- 				{$lastComment = $comment.text;}
+:
+	(
+		(
+			(
+				comment
+				{$lastComment = $comment.text;}
 
- 			)+
- 		)
- 		|
- 		(
- 			{$pos += getAlign($align, $pos);}
+			)+
+		)
+		|
+		(
+			{$pos += getAlign($align, $pos);}
 
- 			CONSTANT_POOL
- 			{
+			CONSTANT_POOL
+			{
 				if ($enabled) {
 					ecp.accept($CONSTANT_POOL.getLine(), $CONSTANT_POOL.getStartIndex());
 					ConstsContext cc = Command.parseCP($CONSTANT_POOL.getText(), $constants, $labels, $pos, $align, $CONSTANT_POOL.getLine(), $CONSTANT_POOL.getCharPositionInLine(), $CONSTANT_POOL.getStartIndex(), be, errorHandler, errorListener);
@@ -181,13 +181,13 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 				}
 			}
 
- 		)
- 		|
- 		(
- 			{$pos += getAlign($align, $pos);}
+		)
+		|
+		(
+			{$pos += getAlign($align, $pos);}
 
- 			command [$pos, $constants, $labels, $align, be & $enabled]
- 			{
+			command [$pos, $constants, $labels, $align, be & $enabled]
+			{
  				$zusatz = $command.c;
  				if ($enabled && $command.c != null) {
  					$commands.add($command.c);
@@ -203,37 +203,37 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				}
  			}
 
- 		)
- 		|
- 		(
- 		{
+		)
+		|
+		(
+		{
 			String constName = null;
 			boolean export = false;
 		}
 
- 			(
- 				(
- 					CONSTANT
- 					{
+			(
+				(
+					CONSTANT
+					{
 						constName = $CONSTANT.getText().substring(1);
 						export = false;
 					}
 
- 				)
- 				|
- 				(
- 					EXPORT_CONSTANT
- 					{
+				)
+				|
+				(
+					EXPORT_CONSTANT
+					{
 						constName = $EXPORT_CONSTANT.getText().substring(5);
 						export = true;
 					}
 
- 				)
- 			) comment*
- 			(
- 				(
- 					constBerechnungDirekt [$pos, $constants, be & $enabled]
- 					{
+				)
+			) comment*
+			(
+				(
+					constBerechnungDirekt [$pos, $constants, be & $enabled]
+					{
  						if ($enabled) {
 		 					$are = $constBerechnungDirekt.are;
 		 					PrimitiveConstant primConst = new PrimitiveConstant(constName, lastComment_, $constBerechnungDirekt.num, path, _localctx.constBerechnungDirekt.getStart().getLine());
@@ -244,11 +244,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  						}
  					}
 
- 				)
- 				|
- 				(
- 					DEL
- 					{
+				)
+				|
+				(
+					DEL
+					{
  						if ($enabled) {
 	 						$constants.remove(constName);
 	 						if (export) {
@@ -257,13 +257,13 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  						}
  					}
 
- 				)
- 			)
- 		)
- 		|
- 		(
- 			READ_SYM STR_STR
- 			{
+				)
+			)
+		)
+		|
+		(
+			READ_SYM STR_STR
+			{
 				String readFile = null;
 				Boolean isSource = null;
 				String prefix = null;
@@ -276,10 +276,10 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 				}
 			}
 
- 			(
- 				(
- 					CONSTANT
- 					{
+			(
+				(
+					CONSTANT
+					{
  						if (prefix == null) {
  							prefix = $CONSTANT.getText().substring(1);
  						} else if ($enabled) {
@@ -293,11 +293,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  						}
  					}
 
- 				)
- 				|
- 				(
- 					MY_CONSTS
- 					{
+				)
+				|
+				(
+					MY_CONSTS
+					{
  						if (!useMyConsts) {
  							useMyConsts = true;
  						} else if ($enabled) {
@@ -311,11 +311,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  						}
  					}
 
- 				)
- 				|
- 				(
- 					ADD_CONSTANT constBerechnung [$pos, $constants, $be]
- 					{
+				)
+				|
+				(
+					ADD_CONSTANT constBerechnung [$pos, $constants, $be]
+					{
  						String name = $ADD_CONSTANT.getText().substring(5);
  						addConsts.put(name, new PrimitiveConstant(name, null, $constBerechnung.num, path, _localctx.constBerechnung.getStart().getLine()));
  						if ($constBerechnung.are != null)  {
@@ -327,25 +327,25 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  						}
  					}
 
- 				)
- 				|
- 				(
- 					{boolean iss = false;}
+				)
+				|
+				(
+					{boolean iss = false;}
 
- 					(
- 						(
- 							sourceOrSymbol = SOURCE
- 							{iss = true;}
+					(
+						(
+							sourceOrSymbol = SOURCE
+							{iss = true;}
 
- 						)
- 						|
- 						(
- 							sourceOrSymbol = SYMBOL
- 							{iss = false;}
+						)
+						|
+						(
+							sourceOrSymbol = SYMBOL
+							{iss = false;}
 
- 						)
- 					)
- 					{
+						)
+					)
+					{
  						if (isSource == null) {
  							isSource = iss;
  						} else if ($enabled) {
@@ -359,9 +359,9 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  						}
  					}
 
- 				)
- 			)* GROESSER
- 			{
+				)
+			)* GROESSER
+			{
  				if ($enabled) {
 	 				addConsts.putAll(useMyConsts ? $constants : PrimAsmConstants.START_CONSTANTS);
 	 				try {
@@ -385,33 +385,33 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				}
  			}
 
- 		)
- 		|
- 		(
- 			CD_ALIGN
- 			{
+		)
+		|
+		(
+			CD_ALIGN
+			{
 				if ($enabled) {
 					$commands.add(new CompilerCommandCommand(CompilerCommand.align));
 					$align = true;
 				}
 			}
 
- 		)
- 		|
- 		(
- 			CD_NOT_ALIGN
- 			{
+		)
+		|
+		(
+			CD_NOT_ALIGN
+			{
 				if ($enabled) {
 					$commands.add(new CompilerCommandCommand(CompilerCommand.notAlign));
 					$align = false;
 				}
 			}
 
- 		)
- 		|
- 		(
- 			IF comment* constBerechnungDirekt [$pos, $constants, be & $enabled]
- 			{
+		)
+		|
+		(
+			IF comment* constBerechnungDirekt [$pos, $constants, be & $enabled]
+			{
  				boolean top = $constBerechnungDirekt.num != 0;
  				$stack.add(top);
  				if ($enabled) {
@@ -423,11 +423,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				}
  			}
 
- 		)
- 		|
- 		(
- 			ELSE_IF comment* constBerechnungDirekt [$pos, $constants, be & $enabled]
- 			{
+		)
+		|
+		(
+			ELSE_IF comment* constBerechnungDirekt [$pos, $constants, be & $enabled]
+			{
  				if ($stack.isEmpty()) {
  					assert $enabled;
 					if (be) {
@@ -453,11 +453,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				}
  			}
 
- 		)
- 		|
- 		(
- 			ELSE
- 			{
+		)
+		|
+		(
+			ELSE
+			{
  				if ($stack.isEmpty()) {
  					assert $enabled;
 					if (be) {
@@ -480,11 +480,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				}
  			}
 
- 		)
- 		|
- 		(
- 			ENDIF
- 			{
+		)
+		|
+		(
+			ENDIF
+			{
  				if ($stack.isEmpty()) {
  					assert $enabled;
 					if (be) {
@@ -501,40 +501,40 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  				}
  			}
 
- 		)
- 		|
- 		(
- 			ERROR comment*
- 			{StringBuilder msg = new StringBuilder();}
+		)
+		|
+		(
+			ERROR comment*
+			{StringBuilder msg = new StringBuilder();}
 
- 			(
- 				(
- 					(
- 						constBerechnungDirekt [$pos, $constants, be & $enabled]
- 						{
+			(
+				(
+					(
+						constBerechnungDirekt [$pos, $constants, be & $enabled]
+						{
 							msg.append(" error: ").append(_localctx.constBerechnungDirekt.getText()).append('=').append($constBerechnungDirekt.num);
 							$are = $constBerechnungDirekt.are;
 						}
 
- 					)
- 					|
- 					(
- 						ERROR_MESSAGE_START comment*
- 						(
- 							comment*
- 							(
- 								STR_STR
- 								{
+					)
+					|
+					(
+						ERROR_MESSAGE_START comment*
+						(
+							comment*
+							(
+								STR_STR
+								{
 									if ($enabled) {
 										$are = appendString(msg, $STR_STR, be, $are);
 									}
 								}
 
- 							)
- 							|
- 							(
- 								constBerechnungDirekt [$pos, $constants, be & $enabled]
- 								{
+							)
+							|
+							(
+								constBerechnungDirekt [$pos, $constants, be & $enabled]
+								{
 									msg.append($constBerechnungDirekt.num);
 									if ($constBerechnungDirekt.are != null) {
 										if ($are != null) {
@@ -545,12 +545,12 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 									}
 								}
 
- 							)
- 							|
- 							(
- 								ERROR_HEX comment* constBerechnungDirekt
- 								[$pos, $constants, be & $enabled]
- 								{
+							)
+							|
+							(
+								ERROR_HEX comment* constBerechnungDirekt
+								[$pos, $constants, be & $enabled]
+								{
 									if ($constBerechnungDirekt.are != null) {
 										if ($are != null) {
 											$are.addSuppressed($constBerechnungDirekt.are);
@@ -561,12 +561,12 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 									msg.append(Long.toHexString($constBerechnungDirekt.num));
 								}
 
- 							)
- 						)* comment* ERROR_MESSAGE_END
- 					)
- 				)?
- 			)
- 			{
+							)
+						)* comment* ERROR_MESSAGE_END
+					)
+				)?
+			)
+			{
 				$zusatz = msg.toString();
 				if ($enabled) {
 					if (be) {
@@ -579,11 +579,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 				}
 			}
 
- 		)
- 		|
- 		(
- 			ANY
- 			{
+		)
+		|
+		(
+			ANY
+			{
 				if ($enabled) {
 					if (be) {
 						throw new AssembleError($ANY.getLine(), $ANY.getCharPositionInLine(), 1, $ANY.getStartIndex(), "illegal character: char='" + $ANY.getText() + "'");
@@ -595,61 +595,61 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 				}
 			}
 
- 		)
- 	)
- ;
+		)
+	)
+;
 
- sr returns [int srnum]
- :
- 	(
- 		IP
- 		{$srnum = ParamBuilder.SR_IP;}
+sr returns [int srnum]
+:
+	(
+		IP
+		{$srnum = ParamBuilder.SR_IP;}
 
- 	)
- 	|
- 	(
- 		SP
- 		{$srnum = ParamBuilder.SR_SP;}
+	)
+	|
+	(
+		SP
+		{$srnum = ParamBuilder.SR_SP;}
 
- 	)
- 	|
- 	(
- 		STATUS
- 		{$srnum = ParamBuilder.SR_STATUS;}
+	)
+	|
+	(
+		STATUS
+		{$srnum = ParamBuilder.SR_STATUS;}
 
- 	)
- 	|
- 	(
- 		INTCNT
- 		{$srnum = ParamBuilder.SR_INTCNT;}
+	)
+	|
+	(
+		INTCNT
+		{$srnum = ParamBuilder.SR_INTCNT;}
 
- 	)
- 	|
- 	(
- 		INTP
- 		{$srnum = ParamBuilder.SR_INTP;}
+	)
+	|
+	(
+		INTP
+		{$srnum = ParamBuilder.SR_INTP;}
 
- 	)
- 	|
- 	(
- 		FS_LOCK
- 		{$srnum = ParamBuilder.SR_FS_LOCK;}
+	)
+	|
+	(
+		ERRNO
+		{$srnum = ParamBuilder.SR_ERRNO;}
 
- 	)
- 	|
- 	(
- 		XNN
- 		{$srnum= ParamBuilder.SR_X_ADD + Integer.parseInt($XNN.getText().substring(1), 16);}
+	)
+	|
+	(
+		XNN
+		{$srnum = ParamBuilder.SR_X_ADD + Integer.parseInt($XNN.getText().substring(1), 16);}
 
- 	)
- ;
+	)
+;
 
- param [long pos, Map <String, PrimitiveConstant> constants, boolean be]
- returns [Param p, AssembleRuntimeException are]
- :
- 	(
- 		NAME
- 		{
+param [long pos, Map <String, PrimitiveConstant> constants, boolean be]
+returns [Param p, AssembleRuntimeException are]
+:
+	(
+		NAME
+		{
 			if (constants.containsKey($NAME.getText())) {
 				ParamBuilder builder = new ParamBuilder();
  				builder.art = ParamBuilder.A_NUM;
@@ -660,81 +660,81 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 			}
 		}
 
- 	)
- 	|
- 	(
- 		{ParamBuilder builder = new ParamBuilder();}
+	)
+	|
+	(
+		{ParamBuilder builder = new ParamBuilder();}
 
- 		(
- 			(
- 				sr
- 				{
+		(
+			(
+				sr
+				{
 	 				builder.art = ParamBuilder.A_SR;
 	 				builder.v1 = $sr.srnum;
 	 			}
 
- 			)
- 			|
- 			(
- 				nummerNoConstant [pos, be]
- 				{
+			)
+			|
+			(
+				nummerNoConstant [pos, be]
+				{
 	 				builder.art = ParamBuilder.A_NUM;
 	 				builder.v1 = $nummerNoConstant.num;
 	 			}
 
- 			)
- 		)
- 		{$p = builder.build();}
+			)
+		)
+		{$p = builder.build();}
 
- 	)
- 	|
- 	(
- 		ECK_KL_AUF
- 		{
+	)
+	|
+	(
+		ECK_KL_AUF
+		{
  			ParamBuilder build = new ParamBuilder();
  			build.art = ParamBuilder.B_REG;
  		}
 
- 		comment*
- 		(
- 			(
- 				(
- 					(
- 						sr
- 						{
+		comment*
+		(
+			(
+				(
+					(
+						sr
+						{
 							build.art |= ParamBuilder.A_SR;
 							build.v1 = $sr.srnum;
 						}
 
- 					)
- 					|
- 					(
- 						nummer [pos,constants,be]
- 						{
+					)
+					|
+					(
+						nummer [pos,constants,be]
+						{
 							build.art |= ParamBuilder.A_NUM;
 							build.v1 = $nummer.num;
 							$are = $nummer.are;
 						}
 
- 					)
- 				)
- 				(
- 					comment* PLUS comment*
- 					{build.art &= ~ParamBuilder.B_REG;}
+					)
+				)
+				(
+					comment* PLUS comment*
+					{build.art &= ~ParamBuilder.B_REG;}
 
- 					(
- 						(
- 							sr
- 							{
+					(
+						(
+							sr
+							{
 								build.art |= ParamBuilder.B_SR;
 								build.v2 = $sr.srnum;
 							}
 
- 						)
- 						|
- 						(
- 							nummer [pos,constants,be]
- 							{
+						)
+						|
+						(
+							nummer [pos,constants,be]
+							{
 								build.art |= ParamBuilder.B_NUM;
 								build.v2 = $nummer.num;
 								if ($nummer.are != null) {
@@ -746,31 +746,31 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 								}
 							}
 
- 						)
- 					)
- 				)?
- 			)
- 		) comment* ECK_KL_ZU
- 		{$p = build.build();}
+						)
+					)
+				)?
+			)
+		) comment* ECK_KL_ZU
+		{$p = build.build();}
 
- 	)
- ;
+	)
+;
 
- constBerechnung
- [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	c1 = constBerechnungInclusivoder [pos, constants, be]
- 	{
+constBerechnung
+[long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	c1 = constBerechnungInclusivoder [pos, constants, be]
+	{
  		$num = $c1.num;
  		$are = $c1.are;
  	}
 
- 	(
- 		comment* FRAGEZEICHEN comment* c2 = constBerechnung [pos, constants, be]
- 		comment* DOPPELPUNKT comment* c3 = constBerechnungInclusivoder
- 		[pos, constants, be]
- 		{
+	(
+		comment* FRAGEZEICHEN comment* c2 = constBerechnung [pos, constants, be]
+		comment* DOPPELPUNKT comment* c3 = constBerechnungInclusivoder
+		[pos, constants, be]
+		{
  			$num = ($num != 0L) ? $c2.num : $c3.num;
  			if ($c2.are != null) {
  				if ($are != null) {
@@ -781,23 +781,23 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			}
  		}
 
- 	)?
- ;
+	)?
+;
 
- constBerechnungInclusivoder
- [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	c1 = constBerechnungExclusivoder [pos, constants, be]
- 	{
+constBerechnungInclusivoder
+[long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	c1 = constBerechnungExclusivoder [pos, constants, be]
+	{
  		$num = $c1.num;
  		$are = $c1.are;
  	}
 
- 	(
- 		comment* INCLUSIVODER comment* c2 = constBerechnungExclusivoder
- 		[pos, constants, be]
- 		{
+	(
+		comment* INCLUSIVODER comment* c2 = constBerechnungExclusivoder
+		[pos, constants, be]
+		{
  			$num |= $c2.num;
  			if ($c2.are != null) {
  				if ($are != null) {
@@ -808,22 +808,22 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungExclusivoder
- [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	c1 = constBerechnungUnd [pos, constants, be]
- 	{
+constBerechnungExclusivoder
+[long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	c1 = constBerechnungUnd [pos, constants, be]
+	{
  		$num = $c1.num;
  		$are = $c1.are;
  	}
 
- 	(
- 		comment* EXCLUSIVPDER comment* c2 = constBerechnungUnd [pos, constants, be]
- 		{
+	(
+		comment* EXCLUSIVPDER comment* c2 = constBerechnungUnd [pos, constants, be]
+		{
  			$num ^= $c2.num;
  			if ($c2.are != null) {
  				if ($are != null) {
@@ -834,22 +834,22 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungUnd
- [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	c1 = constBerechnungGleichheit [pos, constants, be]
- 	{
+constBerechnungUnd
+[long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	c1 = constBerechnungGleichheit [pos, constants, be]
+	{
  		$num = $c1.num;
  		$are = $c1.are;
  	}
 
- 	(
- 		comment* UND comment* c2 = constBerechnungGleichheit [pos, constants, be]
- 		{
+	(
+		comment* UND comment* c2 = constBerechnungGleichheit [pos, constants, be]
+		{
  			$num &= $c2.num;
  			if ($c2.are != null) {
  				if ($are != null) {
@@ -860,37 +860,37 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungGleichheit
- [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	c1 = constBerechnungRelativeTests [pos, constants, be]
- 	{
+constBerechnungGleichheit
+[long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	c1 = constBerechnungRelativeTests [pos, constants, be]
+	{
  		$num = $c1.num;
  		$are = $c1.are;
  	}
 
- 	(
- 		{boolean gleich = false;}
+	(
+		{boolean gleich = false;}
 
- 		comment*
- 		(
- 			(
- 				GLEICH_GLEICH
- 				{gleich = true;}
+		comment*
+		(
+			(
+				GLEICH_GLEICH
+				{gleich = true;}
 
- 			)
- 			|
- 			(
- 				UNGLEICH
- 				{gleich = false;}
+			)
+			|
+			(
+				UNGLEICH
+				{gleich = false;}
 
- 			)
- 		) comment* c2 = constBerechnungRelativeTests [pos, constants, be]
- 		{
+			)
+		) comment* c2 = constBerechnungRelativeTests [pos, constants, be]
+		{
  			if (gleich) {
  				$num = ($num == $c2.num) ? 1L : 0L;
  			} else {
@@ -905,52 +905,52 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungRelativeTests
- [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	c1 = constBerechnungSchub [pos, constants, be]
- 	{
+constBerechnungRelativeTests
+[long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	c1 = constBerechnungSchub [pos, constants, be]
+	{
  		$num = $c1.num;
  		$are = $c1.are;
  	}
 
- 	(
- 	{
+	(
+	{
 		final int type_gr = 1, type_gr_gl = 2, type_kl_gl = 3, type_kl = 4;
 		int type = -1;
 	}
 
- 		comment*
- 		(
- 			(
- 				GROESSER
- 				{type = type_gr;}
+		comment*
+		(
+			(
+				GROESSER
+				{type = type_gr;}
 
- 			)
- 			|
- 			(
- 				GROESSER_GLEICH
- 				{type = type_gr_gl;}
+			)
+			|
+			(
+				GROESSER_GLEICH
+				{type = type_gr_gl;}
 
- 			)
- 			|
- 			(
- 				KLEINER_GLEICH
- 				{type = type_kl_gl;}
+			)
+			|
+			(
+				KLEINER_GLEICH
+				{type = type_kl_gl;}
 
- 			)
- 			|
- 			(
- 				KLEINER
- 				{type = type_kl;}
+			)
+			|
+			(
+				KLEINER
+				{type = type_kl;}
 
- 			)
- 		) comment* c2 = constBerechnungSchub [pos, constants, be]
- 		{
+			)
+		) comment* c2 = constBerechnungSchub [pos, constants, be]
+		{
 			switch(type) {
 			case type_gr:
 				$num = ($num > $c2.num) ? 1L : 0L;
@@ -976,46 +976,46 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			}
 		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungSchub
- [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	c1 = constBerechnungStrich [pos, constants, be]
- 	{
+constBerechnungSchub
+[long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	c1 = constBerechnungStrich [pos, constants, be]
+	{
  		$num = $c1.num;
  		$are = $c1.are;
  	}
 
- 	(
- 	{
+	(
+	{
 		final int type_ls = 1, type_lrs = 2, type_ars = 3;
 		int type = -1;
 	}
 
- 		comment*
- 		(
- 			(
- 				LINKS_SCHUB
- 				{type = type_ls;}
+		comment*
+		(
+			(
+				LINKS_SCHUB
+				{type = type_ls;}
 
- 			)
- 			|
- 			(
- 				LOGISCHER_RECHTS_SCHUB
- 				{type = type_lrs;}
+			)
+			|
+			(
+				LOGISCHER_RECHTS_SCHUB
+				{type = type_lrs;}
 
- 			)
- 			|
- 			(
- 				ARITMETISCHER_RECHTS_SCHUB
- 				{type = type_ars;}
+			)
+			|
+			(
+				ARITMETISCHER_RECHTS_SCHUB
+				{type = type_ars;}
 
- 			)
- 		) comment* c2 = constBerechnungStrich [pos, constants, be]
- 		{
+			)
+		) comment* c2 = constBerechnungStrich [pos, constants, be]
+		{
  			switch(type) {
 			case type_ls:
 				$num <<= $c2.num;
@@ -1038,61 +1038,61 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungStrich
- [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	c1 = constBerechnungPunkt [pos, constants, be]
- 	{
+constBerechnungStrich
+[long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	c1 = constBerechnungPunkt [pos, constants, be]
+	{
  		$num = $c1.num;
  		$are = $c1.are;
  	}
 
- 	(
- 		{boolean add = false, fp = false;}
+	(
+		{boolean add = false, fp = false;}
 
- 		comment*
- 		(
- 			(
- 				PLUS
- 				{
+		comment*
+		(
+			(
+				PLUS
+				{
  					fp = false;
  					add = true;
  				}
 
- 			)
- 			|
- 			(
- 				MINUS
- 				{
+			)
+			|
+			(
+				MINUS
+				{
  					fp = false;
  					add = false;
  				}
 
- 			)
- 			|
- 			(
- 				KOMMA_PLUS
- 				{
+			)
+			|
+			(
+				KOMMA_PLUS
+				{
  					fp = true;
  					add = true;
  				}
 
- 			)
- 			|
- 			(
- 				KOMMA_MINUS
- 				{
+			)
+			|
+			(
+				KOMMA_MINUS
+				{
  					fp = true;
  					add = false;
  				}
 
- 			)
- 		) comment* c2 = constBerechnungPunkt [pos, constants, be]
- 		{
+			)
+		) comment* c2 = constBerechnungPunkt [pos, constants, be]
+		{
  			if (fp) {
 	 			if (add) {
 	 				$num = Double.doubleToRawLongBits(Double.longBitsToDouble($num) + Double.longBitsToDouble($c2.num));
@@ -1115,58 +1115,58 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungPunkt
- [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	c1 = constBerechnungDirekt [pos, constants, be]
- 	{
+constBerechnungPunkt
+[long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	c1 = constBerechnungDirekt [pos, constants, be]
+	{
  		$num = $c1.num;
  		$are = $c1.are;
  	}
 
- 	(
- 	{
+	(
+	{
 		final int type_mal = 1, type_geteilt = 2, type_modulo = 3, type_komma_mal = 4, type_komma_geteilt = 5;
 		int type = -1;
 	}
 
- 		comment*
- 		(
- 			(
- 				MAL
- 				{type = type_mal;}
+		comment*
+		(
+			(
+				MAL
+				{type = type_mal;}
 
- 			)
- 			|
- 			(
- 				GETEILT
- 				{type = type_geteilt;}
+			)
+			|
+			(
+				GETEILT
+				{type = type_geteilt;}
 
- 			)
- 			|
- 			(
- 				KOMMA_MAL
- 				{type = type_komma_mal;}
+			)
+			|
+			(
+				KOMMA_MAL
+				{type = type_komma_mal;}
 
- 			)
- 			|
- 			(
- 				KOMMA_GETEILT
- 				{type = type_komma_geteilt;}
+			)
+			|
+			(
+				KOMMA_GETEILT
+				{type = type_komma_geteilt;}
 
- 			)
- 			|
- 			(
- 				MODULO
- 				{type = type_modulo;}
+			)
+			|
+			(
+				MODULO
+				{type = type_modulo;}
 
- 			)
- 		) comment* c2 = constBerechnungDirekt [pos, constants, be]
- 		{
+			)
+		) comment* c2 = constBerechnungDirekt [pos, constants, be]
+		{
  			switch(type) {
 			case type_mal:
 				$num *= $c2.num; 
@@ -1195,50 +1195,50 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			}
  		}
 
- 	)*
- ;
+	)*
+;
 
- constBerechnungDirekt
- [long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	(
- 		nummer [pos, constants, be]
- 		{
+constBerechnungDirekt
+[long pos, Map <String, PrimitiveConstant> constants, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	(
+		nummer [pos, constants, be]
+		{
  			$num = $nummer.num;
  			$are = $nummer.are;
  		}
 
- 	)
- 	|
- 	(
- 		EXIST_CONSTANT
- 		{$num = constants.containsKey($EXIST_CONSTANT.getText().substring(2)) ? 1L : 0L;}
+	)
+	|
+	(
+		EXIST_CONSTANT
+		{$num = constants.containsKey($EXIST_CONSTANT.getText().substring(2)) ? 1L : 0L;}
 
- 	)
- 	|
- 	(
- 		RND_KL_AUF comment* constBerechnung [pos, constants, be] comment* RND_KL_ZU
- 		{
+	)
+	|
+	(
+		RND_KL_AUF comment* constBerechnung [pos, constants, be] comment* RND_KL_ZU
+		{
  			$num = $constBerechnung.num;
  			$are = $constBerechnung.are;
  		}
 
- 	)
- ;
+	)
+;
 
- nummer [long pos, Map <String, PrimitiveConstant> constants, boolean be]
- returns [long num, AssembleRuntimeException are]
- :
- 	(
- 		nummerNoConstant [pos, be]
- 		{$num = $nummerNoConstant.num;}
+nummer [long pos, Map <String, PrimitiveConstant> constants, boolean be]
+returns [long num, AssembleRuntimeException are]
+:
+	(
+		nummerNoConstant [pos, be]
+		{$num = $nummerNoConstant.num;}
 
- 	)
- 	|
- 	(
- 		NAME
- 		{
+	)
+	|
+	(
+		NAME
+		{
  			PrimitiveConstant zw = constants.get($NAME.getText());
  			if (zw == null) {
  				if (be) {
@@ -1251,15 +1251,15 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  			$num = zw.value;
  		}
 
- 	)
- ;
+	)
+;
 
- nummerNoConstant [long pos, boolean be] returns
- [long num, AssembleRuntimeException are]
- :
- 	(
- 		tok = DEC_FP_NUM
- 		{
+nummerNoConstant [long pos, boolean be] returns
+[long num, AssembleRuntimeException are]
+:
+	(
+		tok = DEC_FP_NUM
+		{
  			try {
 	 			$num = Double.doubleToRawLongBits(Double.parseDouble($tok.getText()));
  			} catch (NumberFormatException nfe) {
@@ -1267,11 +1267,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = UNSIGNED_HEX_NUM
- 		{
+	)
+	|
+	(
+		tok = UNSIGNED_HEX_NUM
+		{
  			try {
 	 			$num = Long.parseUnsignedLong($tok.getText().substring(5), 16);
  			} catch (NumberFormatException nfe) {
@@ -1279,11 +1279,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = HEX_NUM
- 		{
+	)
+	|
+	(
+		tok = HEX_NUM
+		{
  			try {
 	 			$num = Long.parseLong($tok.getText().substring(4), 16);
  			} catch (NumberFormatException nfe) {
@@ -1291,11 +1291,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = DEC_NUM
- 		{
+	)
+	|
+	(
+		tok = DEC_NUM
+		{
  			try {
  				$num = Long.parseLong($tok.getText(), 10);
  			} catch (NumberFormatException nfe) {
@@ -1303,11 +1303,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = DEC_NUM0
- 		{
+	)
+	|
+	(
+		tok = DEC_NUM0
+		{
  			try {
  				$num = Long.parseLong($tok.getText().substring(4), 10);
  			} catch (NumberFormatException nfe) {
@@ -1315,11 +1315,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = OCT_NUM
- 		{
+	)
+	|
+	(
+		tok = OCT_NUM
+		{
  			try {
  				$num = Long.parseLong($tok.getText().substring(4), 8);
  			} catch (NumberFormatException nfe) {
@@ -1327,11 +1327,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = BIN_NUM
- 		{
+	)
+	|
+	(
+		tok = BIN_NUM
+		{
  			try {
 	 			$num = Long.parseLong($tok.getText().substring(4), 2);
  			} catch (NumberFormatException nfe) {
@@ -1339,11 +1339,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = NEG_HEX_NUM
- 		{
+	)
+	|
+	(
+		tok = NEG_HEX_NUM
+		{
  			try {
  				$num = Long.parseLong($tok.getText().substring(4), 16);
  			} catch (NumberFormatException nfe) {
@@ -1351,11 +1351,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = NEG_DEC_NUM
- 		{
+	)
+	|
+	(
+		tok = NEG_DEC_NUM
+		{
  			try {
  				$num = Long.parseLong($tok.getText().substring(4), 10);
  			} catch (NumberFormatException nfe) {
@@ -1363,11 +1363,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = NEG_DEC_NUM0
- 		{
+	)
+	|
+	(
+		tok = NEG_DEC_NUM0
+		{
  			try {
  				$num = Long.parseLong($tok.getText(), 10);
  			} catch (NumberFormatException nfe) {
@@ -1375,11 +1375,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = NEG_OCT_NUM
- 		{
+	)
+	|
+	(
+		tok = NEG_OCT_NUM
+		{
  			try {
  				$num = Long.parseLong($tok.getText().substring(4), 8);
  			} catch (NumberFormatException nfe) {
@@ -1387,11 +1387,11 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		tok = NEG_BIN_NUM
- 		{
+	)
+	|
+	(
+		tok = NEG_BIN_NUM
+		{
  			try {
  				$num = Long.parseLong($tok.getText().substring(4), 2);
  			} catch (NumberFormatException nfe) {
@@ -1399,1145 +1399,1111 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
   			}
  		}
 
- 	)
- 	|
- 	(
- 		POS
- 		{$num = pos;}
+	)
+	|
+	(
+		POS
+		{$num = pos;}
 
- 	)
- ;
+	)
+;
 
- command
- [long pos, Map <String, PrimitiveConstant> constants, Map<String,Long> labels, boolean align, boolean be]
- returns [Command c] @init {Commands cmd = null;}
- :
- 	(
- 		(
- 			MVAD
- 			{cmd = Commands.CMD_MVAD;}
+command
+[long pos, Map <String, PrimitiveConstant> constants, Map<String,Long> labels, boolean align, boolean be]
+returns [Command c] @init {Commands cmd = null;}
+:
+	(
+		(
+			MVAD
+			{cmd = Commands.CMD_MVAD;}
 
- 		) comment* p1 = param [pos, constants, be] comment* COMMA //
- 		comment* p2 = param [pos, constants, be] comment* COMMA //
- 		comment* p3 = param [pos, constants, be] //
- 		{$c = new Command(cmd, $p1.p, $p2.p, $p3.p);}
+		) comment* p1 = param [pos, constants, be] comment* COMMA //
+		comment* p2 = param [pos, constants, be] comment* COMMA //
+		comment* p3 = param [pos, constants, be] //
+		{$c = new Command(cmd, $p1.p, $p2.p, $p3.p);}
 
- 	)
- 	|
- 	(
- 		(
- 			(
- 				MOV
- 				{cmd = Commands.CMD_MOV;}
+	)
+	|
+	(
+		(
+			MVB
+			{cmd = Commands.CMD_MVB;}
 
- 			)
- 			|
- 			(
- 				ADD
- 				{cmd = Commands.CMD_ADD;}
+			| MVW
+			{cmd = Commands.CMD_MVW;}
 
- 			)
- 			|
- 			(
- 				SUB
- 				{cmd = Commands.CMD_SUB;}
+			| MVDW
+			{cmd = Commands.CMD_MVDW;}
 
- 			)
- 			|
- 			(
- 				MUL
- 				{cmd = Commands.CMD_MUL;}
+			| MOV
+			{cmd = Commands.CMD_MOV;}
 
- 			)
- 			|
- 			(
- 				DIV
- 				{cmd = Commands.CMD_DIV;}
+			| LEA
+			{cmd = Commands.CMD_LEA;}
 
- 			)
- 			|
- 			(
- 				AND
- 				{cmd = Commands.CMD_AND;}
+			| SWAP
+			{cmd = Commands.CMD_SWAP;}
 
- 			)
- 			|
- 			(
- 				OR
- 				{cmd = Commands.CMD_OR;}
+			| OR
+			{cmd = Commands.CMD_OR;}
 
- 			)
- 			|
- 			(
- 				XOR
- 				{cmd = Commands.CMD_XOR;}
+			| AND
+			{cmd = Commands.CMD_AND;}
 
- 			)
- 			|
- 			(
- 				LSH
- 				{cmd = Commands.CMD_LSH;}
+			| XOR
+			{cmd = Commands.CMD_XOR;}
 
- 			)
- 			|
- 			(
- 				RLSH
- 				{cmd = Commands.CMD_RLSH;}
+			| LSH
+			{cmd = Commands.CMD_LSH;}
 
- 			)
- 			|
- 			(
- 				RASH
- 				{cmd = Commands.CMD_RASH;}
+			| RASH
+			{cmd = Commands.CMD_RASH;}
 
- 			)
- 			|
- 			(
- 				CMP
- 				{cmd = Commands.CMD_CMP;}
+			| RLSH
+			{cmd = Commands.CMD_RLSH;}
 
- 			)
- 			|
- 			(
- 				SWAP
- 				{cmd = Commands.CMD_SWAP;}
+			| ADD
+			{cmd = Commands.CMD_ADD;}
 
- 			)
- 			|
- 			(
- 				LEA
- 				{cmd = Commands.CMD_LEA;}
+			| SUB
+			{cmd = Commands.CMD_SUB;}
 
- 			)
- 			|
- 			(
- 				CALO
- 				{cmd = Commands.CMD_CALO;}
+			| MUL
+			{cmd = Commands.CMD_MUL;}
 
- 			)
- 			|
- 			(
- 				BCP
- 				{cmd = Commands.CMD_BCP;}
+			| DIV
+			{cmd = Commands.CMD_DIV;}
 
- 			)
- 			|
- 			(
- 				CMPFP
- 				{cmd = Commands.CMD_CMPFP;}
+			| NEG
+			{cmd = Commands.CMD_NEG;}
 
- 			)
- 			|
- 			(
- 				ADDC
- 				{cmd = Commands.CMD_ADDC;}
+			| ADDC
+			{cmd = Commands.CMD_ADDC;}
 
- 			)
- 			|
- 			(
- 				SUBC
- 				{cmd = Commands.CMD_SUBC;}
+			| SUBC
+			{cmd = Commands.CMD_SUBC;}
 
- 			)
- 			|
- 			(
- 				ADDFP
- 				{cmd = Commands.CMD_ADDFP;}
+			| ADDFP
+			{cmd = Commands.CMD_ADDFP;}
 
- 			)
- 			|
- 			(
- 				SUBFP
- 				{cmd = Commands.CMD_SUBFP;}
+			| SUBFP
+			{cmd = Commands.CMD_SUBFP;}
 
- 			)
- 			|
- 			(
- 				MULFP
- 				{cmd = Commands.CMD_MULFP;}
+			| MULFP
+			{cmd = Commands.CMD_MULFP;}
 
- 			)
- 			|
- 			(
- 				DIVFP
- 				{cmd = Commands.CMD_DIVFP;}
+			| DIVFP
+			{cmd = Commands.CMD_DIVFP;}
 
- 			)
- 			|
- 			(
- 				UDIV
- 				{cmd = Commands.CMD_UDIV;}
+			| UADD
+			{cmd = Commands.CMD_UADD;}
 
- 			)
- 			|
- 			(
- 				MVB
- 				{cmd = Commands.CMD_MVB;}
+			| USUB
+			{cmd = Commands.CMD_USUB;}
 
- 			)
- 			|
- 			(
- 				MVW
- 				{cmd = Commands.CMD_MVW;}
+			| UMUL
+			{cmd = Commands.CMD_UMUL;}
 
- 			)
- 			|
- 			(
- 				MVDW
- 				{cmd = Commands.CMD_MVDW;}
+			| UDIV
+			{cmd = Commands.CMD_UDIV;}
 
- 			)
- 		) comment* p1 = param [pos, constants, be] comment* COMMA //
- 		comment* p2 = param [pos, constants, be] //
- 		{$c = new Command(cmd, $p1.p, $p2.p);}
+			| BADD
+			{cmd = Commands.CMD_BADD;}
 
- 	)
- 	|
- 	(
- 		(
- 			(
- 				DEC
- 				{cmd = Commands.CMD_DEC;}
+			| BSUB
+			{cmd = Commands.CMD_BSUB;}
 
- 			)
- 			|
- 			(
- 				INC
- 				{cmd = Commands.CMD_INC;}
+			| BMUL
+			{cmd = Commands.CMD_BMUL;}
 
- 			)
- 			|
- 			(
- 				JMP
- 				{cmd = Commands.CMD_JMP;}
+			| BDIV
+			{cmd = Commands.CMD_BDIV;}
 
- 			)
- 			|
- 			(
- 				JMPEQ
- 				{cmd = Commands.CMD_JMPEQ;}
+			| BNEG
+			{cmd = Commands.CMD_BNEG;}
 
- 			)
- 			|
- 			(
- 				JMPNE
- 				{cmd = Commands.CMD_JMPNE;}
+			| FPTN
+			{cmd = Commands.CMD_FPTN;}
 
- 			)
- 			|
- 			(
- 				JMPGT
- 				{cmd = Commands.CMD_JMPGT;}
+			| NTFP
+			{cmd = Commands.CMD_NTFP;}
 
- 			)
- 			|
- 			(
- 				JMPGE
- 				{cmd = Commands.CMD_JMPGE;}
+			| CMP
+			{cmd = Commands.CMD_CMP;}
 
- 			)
- 			|
- 			(
- 				JMPLT
- 				{cmd = Commands.CMD_JMPLT;}
+			| CMPL
+			{cmd = Commands.CMD_CMPL;}
 
- 			)
- 			|
- 			(
- 				JMPLE
- 				{cmd = Commands.CMD_JMPLE;}
+			| CMPFP
+			{cmd = Commands.CMD_CMPFP;}
 
- 			)
- 			|
- 			(
- 				JMPCS
- 				{cmd = Commands.CMD_JMPCS;}
+			| CHKFP
+			{cmd = Commands.CMD_CHKFP;}
 
- 			)
- 			|
- 			(
- 				JMPCC
- 				{cmd = Commands.CMD_JMPCC;}
+			| CMPU
+			{cmd = Commands.CMD_CMPU;}
 
- 			)
- 			|
- 			(
- 				JMPZS
- 				{cmd = Commands.CMD_JMPZS;}
+			| CMPB
+			{cmd = Commands.CMD_CMPB;}
 
- 			)
- 			|
- 			(
- 				JMPZC
- 				{cmd = Commands.CMD_JMPZC;}
+			| CALO
+			{cmd = Commands.CMD_CALO;}
 
- 			)
- 			|
- 			(
- 				JMPNAN
- 				{cmd = Commands.CMD_JMPNAN;}
+			comment* p1 = param [pos, constants, be] comment* COMMA //
+			comment* p2 = param [pos, constants, be] //
+			{$c = new Command(cmd, $p1.p, $p2.p);}
 
- 			)
- 			|
- 			(
- 				JMPAN
- 				{cmd = Commands.CMD_JMPAN;}
+		)
+		|
+		(
+			(
+				NOT
+				{cmd = Commands.CMD_NOT;}
 
- 			)
- 			|
- 			(
- 				JMPAB
- 				{cmd = Commands.CMD_JMPAB;}
+				| INC
+				{cmd = Commands.CMD_INC;}
 
- 			)
- 			|
- 			(
- 				JMPSB
- 				{cmd = Commands.CMD_JMPSB;}
+				| DEC
+				{cmd = Commands.CMD_DEC;}
 
- 			)
- 			|
- 			(
- 				JMPNB
- 				{cmd = Commands.CMD_JMPNB;}
+				| NEGFP
+				{cmd = Commands.CMD_NEGFP;}
 
- 			)
- 			|
- 			(
- 				CALL
- 				{cmd = Commands.CMD_CALL;}
+				| JMPERR
+				{cmd = Commands.CMD_JMPERR;}
 
- 			)
- 			|
- 			(
- 				INT
- 				{cmd = Commands.CMD_INT;}
+				| JMPEQ
+				{cmd = Commands.CMD_JMPEQ;}
 
- 			)
- 			|
- 			(
- 				PUSH
- 				{cmd = Commands.CMD_PUSH;}
+				| JMPNE
+				{cmd = Commands.CMD_JMPNE;}
 
- 			)
- 			|
- 			(
- 				POP
- 				{cmd = Commands.CMD_POP;}
+				| JMPGT
+				{cmd = Commands.CMD_JMPGT;}
 
- 			)
- 			|
- 			(
- 				CHKFP
- 				{cmd = Commands.CMD_CHKFP;}
+				| JMPGE
+				{cmd = Commands.CMD_JMPGE;}
 
- 			)
- 			|
- 			(
- 				NTFP
- 				{cmd = Commands.CMD_NTFP;}
+				| JMPLT
+				{cmd = Commands.CMD_JMPLT;}
 
- 			)
- 			|
- 			(
- 				FPTN
- 				{cmd = Commands.CMD_FPTN;}
+				| JMPLE
+				{cmd = Commands.CMD_JMPLE;}
 
- 			)
- 			|
- 			(
- 				NOT
- 				{cmd = Commands.CMD_NOT;}
+				| JMPCS
+				{cmd = Commands.CMD_JMPCS;}
 
- 			)
- 			|
- 			(
- 				NEG
- 				{cmd = Commands.CMD_NEG;}
+				| JMPCC
+				{cmd = Commands.CMD_JMPCC;}
 
- 			)
- 		) comment* p1 = param [pos, constants, be] //
- 		{$c = new Command(cmd, $p1.p, null);}
+				| JMPZS
+				{cmd = Commands.CMD_JMPZS;}
 
- 	)
- 	|
- 	(
- 		(
- 			(
- 				RET
- 				{cmd = Commands.CMD_RET;}
+				| JMPZC
+				{cmd = Commands.CMD_JMPZC;}
 
- 			)
- 			|
- 			(
- 				IRET
- 				{cmd = Commands.CMD_IRET;}
+				| JMPNAN
+				{cmd = Commands.CMD_JMPNAN;}
 
- 			)
- 		)
- 		{$c = new Command(cmd, null, null);}
+				| JMPAN
+				{cmd = Commands.CMD_JMPAN;}
 
- 	)
- 	|
- 	(
- 		LABEL_DECLARATION
- 		{
+				| JMPAB
+				{cmd = Commands.CMD_JMPAB;}
+
+				| JMPSB
+				{cmd = Commands.CMD_JMPSB;}
+
+				| JMPNB
+				{cmd = Commands.CMD_JMPNB;}
+
+				| JMP
+				{cmd = Commands.CMD_JMP;}
+
+				| INT
+				{cmd = Commands.CMD_INT;}
+
+				| CALL
+				{cmd = Commands.CMD_CALL;}
+
+				| PUSH
+				{cmd = Commands.CMD_PUSH;}
+
+				| POP
+				{cmd = Commands.CMD_POP;}
+
+				| PUSHBLK
+				{cmd = Commands.CMD_PUSHBLK;}
+
+				| POPBLK
+				{cmd = Commands.CMD_POPBLK;}
+
+			) comment* p1 = param [pos, constants, be] //
+			{$c = new Command(cmd, $p1.p, null);}
+
+		)
+		|
+		(
+			(
+				IRET
+				{cmd = Commands.CMD_IRET;}
+
+				| RET
+				{cmd = Commands.CMD_RET;}
+
+			)
+			{$c = new Command(cmd, null, null);}
+
+		)
+		|
+		(
+			LABEL_DECLARATION
+			{
  			labels.put($LABEL_DECLARATION.getText().substring(1), (Long) pos);
 	 		$c = null;
 	 	}
 
- 	)
- ;
-
- comment returns [String text]
- :
- 	(
- 		t = LINE_COMMENT
- 		| t = BLOCK_COMMENT
- 	)
- 	{$text = $t.getText();}
-
- ;
-
- MOV
- :
- 	'MOV'
- ;
-
- ADD
- :
- 	'ADD'
- ;
-
- SUB
- :
- 	'SUB'
- ;
-
- MUL
- :
- 	'MUL'
- ;
-
- DIV
- :
- 	'DIV'
- ;
-
- AND
- :
- 	'AND'
- ;
-
- OR
- :
- 	'OR'
- ;
-
- XOR
- :
- 	'XOR'
- ;
-
- NOT
- :
- 	'NOT'
- ;
-
- NEG
- :
- 	'NEG'
- ;
-
- LSH
- :
- 	'LSH'
- ;
-
- RLSH
- :
- 	'RLSH'
- ;
-
- RASH
- :
- 	'RASH'
- ;
-
- DEC
- :
- 	'DEC'
- ;
-
- INC
- :
- 	'INC'
- ;
-
- JMP
- :
- 	'JMP'
- ;
-
- JMPEQ
- :
- 	'JMPEQ'
- ;
-
- JMPNE
- :
- 	'JMPNE'
- ;
-
- JMPGT
- :
- 	'JMPGT'
- ;
-
- JMPGE
- :
- 	'JMPGE'
- ;
-
- JMPLT
- :
- 	'JMPLT'
- ;
-
- JMPLE
- :
- 	'JMPLE'
- ;
-
- JMPCS
- :
- 	'JMPCS'
- ;
-
- JMPCC
- :
- 	'JMPCC'
- ;
-
- JMPZS
- :
- 	'JMPZS'
- ;
-
- JMPZC
- :
- 	'JMPZC'
- ;
-
- JMPNAN
- :
- 	'JMPNAN'
- ;
-
- JMPAN
- :
- 	'JMPAN'
- ;
-
- JMPAB
- :
- 	'JMPAB'
- ;
-
- JMPSB
- :
- 	'JMPSB'
- ;
-
- JMPNB
- :
- 	'JMPNB'
- ;
-
- CALL
- :
- 	'CALL'
- ;
-
- CMP
- :
- 	'CMP'
- ;
-
- RET
- :
- 	'RET'
- ;
-
- INT
- :
- 	'INT'
- ;
-
- PUSH
- :
- 	'PUSH'
- ;
-
- POP
- :
- 	'POP'
- ;
-
- IRET
- :
- 	'IRET'
- ;
-
- SWAP
- :
- 	'SWAP'
- ;
-
- LEA
- :
- 	'LEA'
- ;
-
- MVAD
- :
- 	'MVAD'
- ;
-
- CALO
- :
- 	'CALO'
- ;
-
- BCP
- :
- 	'BCP'
- ;
-
- CMPFP
- :
- 	'CMPFP'
- ;
-
- CHKFP
- :
- 	'CHKFP'
- ;
-
- ADDC
- :
- 	'ADDC'
- ;
-
- SUBC
- :
- 	'SUBC'
- ;
-
- ADDFP
- :
- 	'ADDFP'
- ;
-
- SUBFP
- :
- 	'SUBFP'
- ;
-
- MULFP
- :
- 	'MULFP'
- ;
-
- DIVFP
- :
- 	'DIVFP'
- ;
-
- NTFP
- :
- 	'NTFP'
- ;
-
- FPTN
- :
- 	'FPTN'
- ;
-
- UDIV
- :
- 	'UDIV'
- ;
-
- MVB
- :
- 	'MVB'
- ;
-
- MVW
- :
- 	'MVW'
- ;
-
- MVDW
- :
- 	'MVDW'
- ;
-
- IP
- :
- 	'IP'
- ;
-
- SP
- :
- 	'SP'
- ;
-
- STATUS
- :
- 	'STATUS'
- ;
-
- INTCNT
- :
- 	'INTCNT'
- ;
-
- INTP
- :
- 	'INTP'
- ;
-
- FS_LOCK
- :
- 	'FS_LOCK'
- ;
-
- XNN
- :
- 	'X'
- 	(
- 		(
- 			[0-9A-E] [0-9A-F]
- 		)
- 		|
- 		(
- 			'F' [0-9]
- 		)
- 	)
- ;
-
- ECK_KL_AUF
- :
- 	'['
- ;
-
- ECK_KL_ZU
- :
- 	']'
- ;
-
- PLUS
- :
- 	'+'
- ;
-
- KOMMA_PLUS
- :
- 	'fp-add'
- ;
-
- COMMA
- :
- 	','
- ;
-
- RND_KL_AUF
- :
- 	'('
- ;
-
- RND_KL_ZU
- :
- 	')'
- ;
-
- MINUS
- :
- 	'-'
- ;
-
- KOMMA_MINUS
- :
- 	'fp-sub'
- ;
-
- MAL
- :
- 	'*'
- ;
-
- GETEILT
- :
- 	'/'
- ;
-
- KOMMA_MAL
- :
- 	'fp-mul'
- ;
-
- KOMMA_GETEILT
- :
- 	'fp-div'
- ;
-
- MODULO
- :
- 	'%'
- ;
-
- LINKS_SCHUB
- :
- 	'<<'
- ;
-
- LOGISCHER_RECHTS_SCHUB
- :
- 	'>>'
- ;
-
- ARITMETISCHER_RECHTS_SCHUB
- :
- 	'>>>'
- ;
-
- GROESSER
- :
- 	'>'
- ;
-
- GROESSER_GLEICH
- :
- 	'>='
- ;
-
- KLEINER_GLEICH
- :
- 	'<='
- ;
-
- KLEINER
- :
- 	'<'
- ;
-
- GLEICH_GLEICH
- :
- 	'=='
- ;
-
- UNGLEICH
- :
- 	'!='
- ;
-
- UND
- :
- 	'&'
- ;
-
- EXCLUSIVPDER
- :
- 	'^'
- ;
-
- INCLUSIVODER
- :
- 	'|'
- ;
-
- DOPPELPUNKT
- :
- 	':'
- ;
-
- FRAGEZEICHEN
- :
- 	'?'
- ;
-
- UNSIGNED_HEX_NUM
- :
- 	'UHEX-' [0-9a-fA-F]+
- ;
-
- NEG_HEX_NUM
- :
- 	'NHEX-' [0-9a-fA-F]+
- ;
-
- NEG_DEC_NUM
- :
- 	'NDEC-' [0-9]+
- ;
-
- NEG_DEC_NUM0
- :
- 	'-' [0-9]+
- ;
-
- NEG_OCT_NUM
- :
- 	'NOCT-' [0-7]+
- ;
-
- NEG_BIN_NUM
- :
- 	'NBIN-' [01]+
- ;
-
- HEX_NUM
- :
- 	'HEX-' [0-9a-fA-F]+
- ;
-
- DEC_NUM0
- :
- 	'DEC-' [0-9]+
- ;
-
- DEC_NUM
- :
- 	[0-9]+
- ;
-
- DEC_FP_NUM
- :
- 	'-'? [0-9]+ '.' [0-9]*
- 	| [0-9]* '.' [0-9]+
- ;
-
- OCT_NUM
- :
- 	'OCT-' [0-7]+
- ;
-
- BIN_NUM
- :
- 	'BIN-' [01]+
- ;
-
- DEL
- :
- 	'~DEL'
- ;
-
- IF
- :
- 	'~IF'
- ;
-
- ELSE_IF
- :
- 	'~ELSE-IF'
- ;
-
- ELSE
- :
- 	'~ELSE'
- ;
-
- ENDIF
- :
- 	'~ENDIF'
- ;
-
- ERROR
- :
- 	'~ERROR'
- ;
-
- POS
- :
- 	'--POS--'
- ;
-
- MY_CONSTS
- :
- 	'--MY_CONSTS--'
- ;
-
- SOURCE
- :
- 	'--SOURCE--'
- ;
-
- SYMBOL
- :
- 	'--SYMBOL--'
- ;
-
- ADD_CONSTANT
- :
- 	'#ADD~' NAME
- ;
-
- READ_SYM
- :
- 	'~READ_SYM'
- ;
-
- EXPORT_CONSTANT
- :
- 	'#EXP~' NAME
- ;
-
- EXIST_CONSTANT
- :
- 	'#~' NAME
- ;
-
- NAME
- :
- 	[a-zA-Z_] [a-zA-Z_0-9]*
- ;
-
- CONSTANT
- :
- 	'#' NAME
- ;
-
- LABEL_DECLARATION
- :
- 	'@' NAME
- ;
-
- CD_NOT_ALIGN
- :
- 	'$NOT_ALIGN'
- 	| '$NOT-ALIGN'
- 	| '$not_align'
- 	| '$not-align'
- ;
-
- CD_ALIGN
- :
- 	'$ALIGN'
- 	| '$align'
- ;
-
- CONSTANT_POOL
- :
- 	':'
- 	(
- 		(
- 			BLOCK_COMMENT
- 		)
- 		|
- 		(
- 			LINE_COMMENT
- 		)
- 		|
- 		(
- 			'\''
- 			(
- 				(
- 					~[\r\n'\\]
- 				)
- 				|
- 				(
- 					'\\' .
- 				)
- 			)* '\''
- 		)
- 		|
- 		(
- 			'"'
- 			(
- 				(
- 					~[\r\n"\\]
- 				)
- 				|
- 				(
- 					'\\' .
- 				)
- 			)* '"'
- 		)
- 		|
- 		(
- 			~( '>' )
- 		)
- 	)* '>'
- ;
-
- ERROR_HEX
- :
- 	[hH] ':'
- ;
-
- ERROR_MESSAGE_START
- :
- 	'{'
- ;
-
- ERROR_MESSAGE_END
- :
- 	'}'
- ;
-
- STR_STR
- :
- 	'"'
- 	(
- 		(
- 			~( '"' | '\\' )
- 		)
- 		|
- 		(
- 			'\\' ~( '\r' | '\n' )
- 		)
- 	)* '"'
- ;
-
- LINE_COMMENT
- :
- 	(
- 		'|>'
- 		(
- 			~( [\r\n] )
- 		)*
- 	)
- ;
-
- BLOCK_COMMENT
- :
- 	(
- 		'|:'
- 		(
- 			(
- 				(
- 					~( ':' )
- 				)
- 				|
- 				(
- 					':'
- 					(
- 						~( '>' )
- 					)
- 				)
- 			)*
- 		) ':>'
- 	)
- ;
-
- WS
- :
- 	[ \t\r\n]+ -> skip
- ;
-
- ANY
- :
- 	.
- ;
+		)
+	)
+;
+
+comment returns [String text]
+:
+	(
+		t = LINE_COMMENT
+		| t = BLOCK_COMMENT
+	)
+	{$text = $t.getText();}
+
+;
+
+// COMMANDS START
+
+MVB
+:
+	'MVB'
+;
+
+MVW
+:
+	'MVW'
+;
+
+MVDW
+:
+	'MVDW'
+;
+
+MOV
+:
+	'MOV'
+;
+
+LEA
+:
+	'LEA'
+;
+
+MVAD
+:
+	'MVAD'
+;
+
+SWAP
+:
+	'SWAP'
+;
+
+OR
+:
+	'OR'
+;
+
+AND
+:
+	'AND'
+;
+
+XOR
+:
+	'XOR'
+;
+
+NOT
+:
+	'NOT'
+;
+
+LSH
+:
+	'LSH'
+;
+
+RASH
+:
+	'RASH'
+;
+
+RLSH
+:
+	'RLSH'
+;
+
+ADD
+:
+	'ADD'
+;
+
+SUB
+:
+	'SUB'
+;
+
+MUL
+:
+	'MUL'
+;
+
+DIV
+:
+	'DIV'
+;
+
+NEG
+:
+	'NEG'
+;
+
+ADDC
+:
+	'ADDC'
+;
+
+SUBC
+:
+	'SUBC'
+;
+
+INC
+:
+	'INC'
+;
+
+DEC
+:
+	'DEC'
+;
+
+ADDFP
+:
+	'ADDFP'
+;
+
+SUBFP
+:
+	'SUBFP'
+;
+
+MULFP
+:
+	'MULFP'
+;
+
+DIVFP
+:
+	'DIVFP'
+;
+
+NEGFP
+:
+	'NEGFP'
+;
+
+UADD
+:
+	'UADD'
+;
+
+USUB
+:
+	'USUB'
+;
+
+UMUL
+:
+	'UMUL'
+;
+
+UDIV
+:
+	'UDIV'
+;
+
+BADD
+:
+	'BADD'
+;
+
+BSUB
+:
+	'BSUB'
+;
+
+BMUL
+:
+	'BMUL'
+;
+
+BDIV
+:
+	'BDIV'
+;
+
+BNEG
+:
+	'BNEG'
+;
+
+FPTN
+:
+	'FPTN'
+;
+
+NTFP
+:
+	'NTFP'
+;
+
+CMP
+:
+	'CMP'
+;
+
+CMPL
+:
+	'CMPL'
+;
+
+CMPFP
+:
+	'CMPFP'
+;
+
+CHKFP
+:
+	'CHKFP'
+;
+
+CMPU
+:
+	'CMPU'
+;
+
+CMPB
+:
+	'CMPB'
+;
+
+JMPERR
+:
+	'JMPERR'
+;
+
+JMPEQ
+:
+	'JMPEQ'
+;
+
+JMPNE
+:
+	'JMPNE'
+;
+
+JMPGT
+:
+	'JMPGT'
+;
+
+JMPGE
+:
+	'JMPGE'
+;
+
+JMPLT
+:
+	'JMPLT'
+;
+
+JMPLE
+:
+	'JMPLE'
+;
+
+JMPCS
+:
+	'JMPCS'
+;
+
+JMPCC
+:
+	'JMPCC'
+;
+
+JMPZS
+:
+	'JMPZS'
+;
+
+JMPZC
+:
+	'JMPZC'
+;
+
+JMPNAN
+:
+	'JMPNAN'
+;
+
+JMPAN
+:
+	'JMPAN'
+;
+
+JMPAB
+:
+	'JMPAB'
+;
+
+JMPSB
+:
+	'JMPSB'
+;
+
+JMPNB
+:
+	'JMPNB'
+;
+
+JMP
+:
+	'JMP'
+;
+
+INT
+:
+	'INT'
+;
+
+IRET
+:
+	'IRET'
+;
+
+CALL
+:
+	'CALL'
+;
+
+CALO
+:
+	'CALO'
+;
+
+RET
+:
+	'RET'
+;
+
+PUSH
+:
+	'PUSH'
+;
+
+POP
+:
+	'POP'
+;
+
+PUSHBLK
+:
+	'PUSHBLK'
+;
+
+POPBLK
+:
+	'POPBLK'
+;
+
+// COMMANDS END
+
+// REGISTER START
+
+IP
+:
+	'IP'
+;
+
+SP
+:
+	'SP'
+;
+
+STATUS
+:
+	'STATUS'
+;
+
+INTCNT
+:
+	'INTCNT'
+;
+
+INTP
+:
+	'INTP'
+;
+
+ERRNO
+:
+	'ERRNO'
+;
+
+XNN
+:
+	'X'
+	(
+		(
+			[0-9A-E] [0-9A-F]
+		)
+		|
+		(
+			'F' [0-9]
+		)
+	)
+;
+
+// REGISTER END
+
+// NUMBERS START
+
+UNSIGNED_HEX_NUM
+:
+	'UHEX-' [0-9a-fA-F]+
+;
+
+NEG_HEX_NUM
+:
+	'NHEX-' [0-9a-fA-F]+
+;
+
+NEG_DEC_NUM
+:
+	'NDEC-' [0-9]+
+;
+
+NEG_DEC_NUM0
+:
+	'-' [0-9]+
+;
+
+NEG_OCT_NUM
+:
+	'NOCT-' [0-7]+
+;
+
+NEG_BIN_NUM
+:
+	'NBIN-' [01]+
+;
+
+HEX_NUM
+:
+	'HEX-' [0-9a-fA-F]+
+;
+
+DEC_NUM0
+:
+	'DEC-' [0-9]+
+;
+
+DEC_NUM
+:
+	[0-9]+
+;
+
+DEC_FP_NUM
+:
+	'-'? [0-9]+ '.' [0-9]*
+	| [0-9]* '.' [0-9]+
+;
+
+OCT_NUM
+:
+	'OCT-' [0-7]+
+;
+
+BIN_NUM
+:
+	'BIN-' [01]+
+;
+
+// NUMBERS END
+
+// PSUEDO PREPROCESSOR COMMANDS START
+
+DEL
+:
+	'~DEL'
+;
+
+IF
+:
+	'~IF'
+;
+
+ELSE_IF
+:
+	'~ELSE-IF'
+;
+
+ELSE
+:
+	'~ELSE'
+;
+
+ENDIF
+:
+	'~ENDIF'
+;
+
+ERROR
+:
+	'~ERROR'
+;
+
+POS
+:
+	'--POS--'
+;
+
+MY_CONSTS
+:
+	'--MY_CONSTS--'
+;
+
+SOURCE
+:
+	'--SOURCE--'
+;
+
+SYMBOL
+:
+	'--SYMBOL--'
+;
+
+ADD_CONSTANT
+:
+	'#ADD~' NAME
+;
+
+READ_SYM
+:
+	'~READ_SYM'
+;
+
+EXPORT_CONSTANT
+:
+	'#EXP~' NAME
+;
+
+EXIST_CONSTANT
+:
+	'#~' NAME
+;
+
+NAME
+:
+	[a-zA-Z_] [a-zA-Z_0-9]*
+;
+
+CONSTANT
+:
+	'#' NAME
+;
+
+LABEL_DECLARATION
+:
+	'@' NAME
+;
+
+CD_NOT_ALIGN
+:
+	'$NOT_ALIGN'
+	| '$NOT-ALIGN'
+	| '$not_align'
+	| '$not-align'
+;
+
+CD_ALIGN
+:
+	'$ALIGN'
+	| '$align'
+;
+
+// PSUEDO PREPROCESSOR COMMANDS END
+
+// MISC START
+
+ECK_KL_AUF
+:
+	'['
+;
+
+ECK_KL_ZU
+:
+	']'
+;
+
+PLUS
+:
+	'+'
+;
+
+KOMMA_PLUS
+:
+	'fp-add'
+;
+
+COMMA
+:
+	','
+;
+
+RND_KL_AUF
+:
+	'('
+;
+
+RND_KL_ZU
+:
+	')'
+;
+
+MINUS
+:
+	'-'
+;
+
+KOMMA_MINUS
+:
+	'fp-sub'
+;
+
+MAL
+:
+	'*'
+;
+
+GETEILT
+:
+	'/'
+;
+
+KOMMA_MAL
+:
+	'fp-mul'
+;
+
+KOMMA_GETEILT
+:
+	'fp-div'
+;
+
+MODULO
+:
+	'%'
+;
+
+LINKS_SCHUB
+:
+	'<<'
+;
+
+LOGISCHER_RECHTS_SCHUB
+:
+	'>>'
+;
+
+ARITMETISCHER_RECHTS_SCHUB
+:
+	'>>>'
+;
+
+GROESSER
+:
+	'>'
+;
+
+GROESSER_GLEICH
+:
+	'>='
+;
+
+KLEINER_GLEICH
+:
+	'<='
+;
+
+KLEINER
+:
+	'<'
+;
+
+GLEICH_GLEICH
+:
+	'=='
+;
+
+UNGLEICH
+:
+	'!='
+;
+
+UND
+:
+	'&'
+;
+
+EXCLUSIVPDER
+:
+	'^'
+;
+
+INCLUSIVODER
+:
+	'|'
+;
+
+DOPPELPUNKT
+:
+	':'
+;
+
+FRAGEZEICHEN
+:
+	'?'
+;
+
+CONSTANT_POOL
+:
+	':'
+	(
+		(
+			BLOCK_COMMENT
+		)
+		|
+		(
+			LINE_COMMENT
+		)
+		|
+		(
+			'\''
+			(
+				(
+					~[\r\n'\\]
+				)
+				|
+				(
+					'\\' .
+				)
+			)* '\''
+		)
+		|
+		(
+			'"'
+			(
+				(
+					~[\r\n"\\]
+				)
+				|
+				(
+					'\\' .
+				)
+			)* '"'
+		)
+		|
+		(
+			~( '>' )
+		)
+	)* '>'
+;
+
+ERROR_HEX
+:
+	[hH] ':'
+;
+
+ERROR_MESSAGE_START
+:
+	'{'
+;
+
+ERROR_MESSAGE_END
+:
+	'}'
+;
+
+STR_STR
+:
+	'"'
+	(
+		(
+			~( '"' | '\\' )
+		)
+		|
+		(
+			'\\' ~( '\r' | '\n' )
+		)
+	)* '"'
+;
+
+LINE_COMMENT
+:
+	(
+		'|>'
+		(
+			~( [\r\n] )
+		)*
+	)
+;
+
+BLOCK_COMMENT
+:
+	(
+		'|:'
+		(
+			(
+				(
+					~( ':' )
+				)
+				|
+				(
+					':'
+					(
+						~( '>' )
+					)
+				)
+			)*
+		) ':>'
+	)
+;
+
+WS
+:
+	[ \t\r\n]+ -> skip
+;
+
+ANY
+:
+	.
+;

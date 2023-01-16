@@ -22,8 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.function.BiConsumer;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.antlr.v4.runtime.ANTLRErrorListener;
 import org.antlr.v4.runtime.ANTLRErrorStrategy;
@@ -44,6 +42,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.enums.PrimitiveFileTyp
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
+import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants;
 
 public class PrimitiveAssembler {
 	
@@ -157,20 +156,16 @@ public class PrimitiveAssembler {
 			if (cause == null) {
 				throw e;
 			}
-			if (cause instanceof AssembleError) {
+			if (cause instanceof AssembleError ae) {
 				assert false;// this should never happen
-				AssembleError ae = (AssembleError) cause;
 				handle(ae);
-			} else if (cause instanceof AssembleRuntimeException) {
+			} else if (cause instanceof AssembleRuntimeException are) {
 				assert false;// this should never happen, since this should not
 								// be thrown
-				AssembleRuntimeException ae = (AssembleRuntimeException) cause;
-				handle(ae);
-			} else if (cause instanceof NoViableAltException) {
-				NoViableAltException nvae = (NoViableAltException) cause;
+				handle(are);
+			} else if (cause instanceof NoViableAltException nvae) {
 				handle(nvae);
-			} else if (cause instanceof InputMismatchException) {
-				InputMismatchException ime = (InputMismatchException) cause;
+			} else if (cause instanceof InputMismatchException ime) {
 				handle(ime);
 			} else {
 				handleUnknwon(e);
@@ -193,8 +188,8 @@ public class PrimitiveAssembler {
 	 * they either throw an error or call System.exit(1)
 	 */
 	private void handleUnknwon(Throwable t) {
-		if (t instanceof Error) {
-			throw (Error) t;
+		if (t instanceof Error e) {
+			throw e;
 		}
 		throw new Error("unknwon error: " + t, t);
 	}
@@ -247,15 +242,6 @@ public class PrimitiveAssembler {
 	}
 	
 	private void handle(int line, int posInLine, int len, int charPos, Throwable t) {
-		// StringBuilder build = new StringBuilder();
-		// build.append("an error occured at line:
-		// ").append(line).append(':').append(posInLine).append("
-		// length=").append(len).append('\n');
-		// build.append(msg).append('\n');
-		// build.append("stack:").append('\n');
-		// for (StackTraceElement ste : stack) {
-		// build.append(" at ").append(ste).append('\n');
-		// }
 		throw new AssembleError(line, posInLine, len, charPos, t.getClass().getName() + ": " + t.getMessage(), t);
 	}
 	
@@ -293,59 +279,7 @@ public class PrimitiveAssembler {
 		if (this.exportOut == null) {
 			return;
 		}
-		export(exports, this.exportOut);
-	}
-	
-	public static void export(Map <String, PrimitiveConstant> exports, PrintStream out) {
-		exports.forEach((symbol, pc) -> {
-			assert symbol.equals(pc.name);
-			if (pc.comment != null) {
-				for (String line : pc.comment.split("\r\n?|\n")) {
-					if ( !line.matches("\\s*\\|.*")) {
-						line = "|" + line;
-					}
-					line = line.trim();
-					out.print(line + '\n');
-				}
-			}
-			out.print(symbol + '=' + Long.toUnsignedString(pc.value, 16).toUpperCase() + '\n');
-		});
-	}
-	
-	public static void readSymbols(String prefix, Map <String, PrimitiveConstant> addSymbols, Scanner sc, Path path) {
-		StringBuilder comment = new StringBuilder();
-		int lineNumber = 1;
-		final String regex = "^[#]?([a-zA-Z_0-9]+)\\s*[=]\\s*([0-9a-fA-F]+)$";
-		Pattern pattern = Pattern.compile(regex);
-		while (sc.hasNextLine()) {
-			String line = sc.nextLine().trim();
-			if (line.isEmpty()) {
-				continue;
-			}
-			if (line.charAt(0) == '|') {
-				comment.append(line);
-				continue;
-			}
-			Matcher matcher = pattern.matcher(line);
-			if ( !matcher.matches()) {
-				throw new RuntimeException("line does not match regex: line='" + line + "', regex='" + regex + "'");
-			}
-			String constName = matcher.replaceFirst("$1");
-			long val = Long.parseUnsignedLong(matcher.replaceFirst("$2"), 16);
-			PrimitiveConstant value;
-			if (comment.length() == 0) {
-				value = new PrimitiveConstant(constName, null, val, path, lineNumber);
-			} else {
-				value = new PrimitiveConstant(constName, comment.toString(), val, path, lineNumber);
-				comment = new StringBuilder();
-			}
-			if (prefix == null) {
-				addSymbols.put(constName, value);
-			} else {
-				addSymbols.put(prefix + constName, value);
-			}
-			lineNumber ++ ;
-		}
+		PrimAsmConstants.export(exports, this.exportOut);
 	}
 	
 	public AssembleRuntimeException readSymbols(String readFile, Boolean isSource, String prefix,
@@ -426,11 +360,11 @@ public class PrimitiveAssembler {
 				ParseContext pc = preassemble(path,
 					new ANTLRInputStream(new InputStreamReader(in, StandardCharsets.UTF_8)), startConsts,
 					be ? new BailErrorStrategy() : null, be, null, (line, charPos) -> {}, readFile, readFiles);
-				export(pc.exports, new PrintStream(baos, true, "UTF-8"));
+				PrimAsmConstants.export(pc.exports, new PrintStream(baos, true, "UTF-8"));
 				in = new ByteArrayInputStream(baos.toByteArray());
 			}
-			try (Scanner sc = new Scanner(in, "UTF-8")) {
-				readSymbols(prefix, addSymbols, sc, path);
+			try (Scanner sc = new Scanner(in, StandardCharsets.UTF_8)) {
+				PrimAsmConstants.readSymbols(prefix, addSymbols, sc, path);
 			}
 		}
 		return null;
@@ -438,7 +372,7 @@ public class PrimitiveAssembler {
 	
 	private Map <String, Long> convertPrimConstMapToLongMap(Map <String, PrimitiveConstant> startConsts) {
 		Map <String, Long> nv = new LinkedHashMap <>();
-		startConsts.forEach((n, pc) -> nv.put(n, pc.value));
+		startConsts.forEach((n, pc) -> nv.put(n, pc.value()));
 		return nv;
 	}
 	
@@ -449,17 +383,16 @@ public class PrimitiveAssembler {
 		long index = -1;
 		for (Command cmd : cmds) {
 			index ++ ;
-			while (true) {
+			boolean cond = true;
+			while (cond) {
 				pos = align(pos, alignable && alignMode);
 				if (cmd.getClass() == Command.class) {
 					alignable = false;
 					assmCommand(labels, cmd);
-				} else if (cmd instanceof ConstantPoolCommand) {
+				} else if (cmd instanceof ConstantPoolCommand cpc) {
 					alignable = true;
-					ConstantPoolCommand cpc = (ConstantPoolCommand) cmd;
 					cpc.write(out);
-				} else if (cmd instanceof CompilerCommandCommand) {
-					CompilerCommandCommand ccc = (CompilerCommandCommand) cmd;
+				} else if (cmd instanceof CompilerCommandCommand ccc) {
 					switch (ccc.directive) {
 					case align:
 						alignMode = true;
@@ -483,7 +416,7 @@ public class PrimitiveAssembler {
 					continue;
 				}
 				pos += cmd.length();
-				break;
+				cond = false;
 			}
 		}
 		out.flush();
@@ -519,7 +452,7 @@ public class PrimitiveAssembler {
 			break;
 		case 2:
 			nullCheck(cmd.p3, cmd);
-			switch (cmd.cmd.nokonstParams) {
+			switch (cmd.cmd.noconstParams) {
 			case 2:
 				noConstCheck(cmd.p2, cmd);
 			case 1:
@@ -542,7 +475,7 @@ public class PrimitiveAssembler {
 		case 1:
 			nullCheck(cmd.p3, cmd);
 			nullCheck(cmd.p2, cmd);
-			switch (cmd.cmd.nokonstParams) {
+			switch (cmd.cmd.noconstParams) {
 			case 1:
 				noConstCheck(cmd.p1, cmd);
 			case 0:

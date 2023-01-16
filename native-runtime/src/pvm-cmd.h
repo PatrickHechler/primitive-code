@@ -6,7 +6,7 @@
  */
 
 #if defined SRC_PVM_CMD_H_ | !defined PVM
-#error "Multiple includes oF pvm-cmd.h or PVM is not defined!"
+#error "Multiple includes of pvm-cmd.h or PVM is not defined!"
 #endif
 #define SRC_PVM_CMD_H_
 

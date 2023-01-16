@@ -128,7 +128,7 @@ the assembler language for the Primitive-Virtual-Machine
     * the `STATUS` register has the address `4112` : `HEX-1010`
     * the `INTCNT` register has the address `4120` : `HEX-1018`
     * the `INTP` register has the address `4128` : `HEX-1020`
-    * the `FS_LOCK` register has the address `4136` : `HEX-1028`
+    * the `ERRNO` register has the address `4136` : `HEX-1028`
     * the `X00..XF9` registers has the address space `4144..6144` (`HEX-1030..HEX-1800`)
         * each `XNN` register address can be calculated by multiplying the Hex `NN` value with `8` and than adding `4144` (`HEX-1030`)
         * examples:
@@ -141,7 +141,7 @@ the assembler language for the Primitive-Virtual-Machine
             * `X79` : `[5112]` : `[HEX-13F8]`
             * `X7F` : `[5160]` : `[HEX-1428]`
             * `XF8` : `[6128]` : `[HEX-17F0]`
-            * `XF9` : `[6136]` : `[HEX-17F8] : ERRNO`
+            * `XF9` : `[6136]` : `[HEX-17F8]`
     * the `ERRNO` registers has the address space `6136` (`HEX-17F8`)
 
 ## NUMBERS
@@ -191,136 +191,118 @@ the assembler language for the Primitive-Virtual-Machine
     * to change a normal constant to an export constant, just redefine it: `#EXP~<NAME> <NAME>`
 * predefined constants:
 <pre><code>
-    --POS--                               the current length of the binary code in bytes
-    INT_ERRORS_ILLEGAL_INTERRUPT          0
-    INT_ERRORS_UNKNOWN_COMMAND            1
-    INT_ERRORS_ILLEGAL_MEMORY             2
-    INT_ERRORS_ARITHMETIC_ERROR           3
-    INT_EXIT                              4
-    INT_MEMORY_ALLOC                      5
-    INT_MEMORY_REALLOC                    6
-    INT_MEMORY_FREE                       7
-    INT_OPEN_STREAM                       8
-    INT_STREAMS_WRITE                     9
-    INT_STREAMS_READ                      10
-    INT_STREAMS_CLOSE                     11
-    INT_STREAMS_FILE_GET_POS              12
-    INT_STREAMS_FILE_SET_POS              13
-    INT_STREAMS_FILE_ADD_POS              14
-    INT_STREAMS_FILE_SEEK_EOF             15
-    INT_OPEN_FILE                         16
-    INT_OPEN_FOLDER                       17
-    INT_OPEN_PIPE                         18
-    INT_OPEN_ELEMENT                      19
-    INT_ELEMENT_OPEN_PARENT               20
-    INT_ELEMENT_GET_CREATE                21
-    INT_ELEMENT_GET_LAST_MOD              22
-    INT_ELEMENT_SET_CREATE                23
-    INT_ELEMENT_SET_LAST_MOD              24
-    INT_ELEMENT_DELETE                    25
-    INT_ELEMENT_MOVE                      26
-    INT_ELEMENT_GET_NAME                  27
-    INT_ELEMENT_GET_FLAGS                 28
-    INT_ELEMENT_MODIFY_FLAGS              29
-    INT_FOLDER_CHILD_COUNT                30
-    INT_FOLDER_OPEN_CHILD_OF_NAME         31
-    INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME  32
-    INT_FOLDER_OPEN_CHILD_FILE_OF_NAME    33
-    INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME    34
-    INT_FOLDER_CREATE_CHILD_FOLDER        35
-    INT_FOLDER_CREATE_CHILD_FILE          36
-    INT_FOLDER_CREATE_CHILD_PIPE          37
-    INT_FS_FILE_LENGTH                    38
-    INT_FS_FOLDER_CHILD_COUNT             39
-    INT_FS_FOLDER_GET_CHILD_OF_INDEX      40
-    INT_FS_FOLDER_GET_CHILD_OF_NAME       41
-    INT_FS_FOLDER_ADD_FOLDER              42
-    INT_FS_FOLDER_ADD_FILE                43
-    INT_FS_FOLDER_ADD_LINK                44
-    INT_FS_FILE_LENGTH                    45
-    INT_FS_FILE_HASH                      46
-    INT_FS_FILE_READ                      47
-    INT_FS_FILE_WRITE                     48
-    INT_FS_FILE_APPEND                    49
-    INT_FS_FILE_REM_CONTENT               50
-    INT_FS_FILE_TRUNCATE                  51
-    INT_FS_LINK_GET_TARGET                52
-    INT_FS_LINK_SET_TARGET                53
-    INT_FS_FILE_CREATE                    54
-    INT_FS_FOLDER_CREATE                  55
-    INT_FS_LINK_CREATE                    56
-    INT_FS_LOCK                           57
-    INT_FS_UNLOCK                         58
-    INT_FS_BLOCK                          59
-    INT_FS_UNBLOCK                        60
-    INT_TIME_GET                          61
-    INT_TIME_WAIT                         62
-    INT_RANDOM                            63
-    INT_MEMORY_COPY                       64
-    INT_MEMORY_MOVE                       65
-    INT_MEMORY_BSET                       66
-    INT_MEMORY_SET                        67
-    INT_STRING_LENGTH                     68
-    INT_STRING_COMPARE                    69
-    INT_NUMBER_TO_STRING                  70
-    INT_FPNUMBER_TO_STRING                71
-    INT_STRING_TO_NUMBER                  72
-    INT_STRING_TO_FPNUMBER                73
-    INT_STRING_FORMAT                     74
-    INT_LOAD_FILE                         75
-    INTERRUPT_COUNT                       76
-    MAX_VALUE                         HEX-7FFFFFFFFFFFFFFF
-    MIN_VALUE                        NHEX-8000000000000000
-    STD_IN                                0
-    STD_OUT                               1
-    STD_LOG                               2
-    FS_STREAM_OFFSET_FILE                 0
-    FS_STREAM_OFFSET_POS                  8
-    FS_ELEMENT_OFFSET_ID                  0
-    FS_ELEMENT_OFFSET_LOCK                8
-    LOCK_NO_READ_ALLOWED             UHEX-0000000100000000
-    LOCK_NO_WRITE_ALLOWED_LOCK       UHEX-0000000200000000
-    LOCK_NO_DELETE_ALLOWED_LOCK      UHEX-0000000400000000
-    LOCK_NO_META_CHANGE_ALLOWED_LOCK UHEX-0000000800000000
-    LOCK_SHARED_LOCK                 UHEX-4000000000000000
-    LOCK_LOCKED_LOCK                 UHEX-8000000000000000
-    LOCK_NO_LOCK                     UHEX-0000000000000000
-    FLAG_FOLDER                       HEX-00000001
-    FLAG_FILE                         HEX-00000002
-    FLAG_LINK                         HEX-00000004
-    FLAG_READ_ONLY                    HEX-00000008
-    FLAG_EXECUTABLE                   HEX-00000010
-    FLAG_HIDDEN                       HEX-00000020
-    FLAG_FOLDER_SORTED                HEX-00000040
-    FLAG_FILE_ENCRYPTED               HEX-00000080
-    FP_NAN                           UHEX-7FFE000000000000
-    FP_MAX_VALUE                     UHEX-7FEFFFFFFFFFFFFF
-    FP_MIN_VALUE                     UHEX-0000000000000001
-    FP_POS_INFINITY                  UHEX-7FF0000000000000
-    FP_NEG_INFINITY                  UHEX-FFF0000000000000
-    STATUS_LOWER                     UHEX-0000000000000001
-    STATUS_GREATHER                  UHEX-0000000000000002
-    STATUS_EQUAL                     UHEX-0000000000000004
-    STATUS_OVERFLOW                  UHEX-0000000000000008
-    STATUS_ZERO                      UHEX-0000000000000010
-    STATUS_NAN                       UHEX-0000000000000020
-    STATUS_ALL_BITS                  UHEX-0000000000000040
-    STATUS_SOME_BITS                 UHEX-0000000000000080
-    STATUS_NONE_BITS                 UHEX-0000000000000100
-    STATUS_ELEMENT_WRONG_TYPE        UHEX-0040000000000000
-    STATUS_ELEMENT_NOT_EXIST         UHEX-0080000000000000
-    STATUS_ELEMENT_ALREADY_EXIST     UHEX-0100000000000000
-    STATUS_OUT_OF_SPACE              UHEX-0200000000000000
-    STATUS_READ_ONLY                 UHEX-0400000000000000
-    STATUS_ELEMENT_LOCKED            UHEX-0800000000000000
-    STATUS_IO_ERR                    UHEX-1000000000000000
-    STATUS_ILLEGAL_ARG               UHEX-2000000000000000
-    STATUS_OUT_OF_MEMORY             UHEX-4000000000000000
-    STATUS_ERROR                     UHEX-8000000000000000
-    REGISTER_MEMORY_START             HEX-0000000000001000
-    REGISTER_MEMORY_START_XNN         HEX-0000000000001028
-    REGISTER_MEMORY_LAST_ADDRESS      HEX-00000000000017F8
-    REGISTER_MEMORY_END_ADDRESS_SPACE HEX-0000000000001800
+    --POS--                                   the current length of the binary code in bytes (note that this is not aligned)
+    INT_ERRORS_ILLEGAL_INTERRUPT              0
+    INT_ERRORS_UNKNOWN_COMMAND                1
+    INT_ERRORS_ILLEGAL_MEMORY                 2
+    INT_ERRORS_ARITHMETIC_ERROR               3
+    INT_EXIT                                  4
+    INT_MEMORY_ALLOC                          5
+    INT_MEMORY_REALLOC                        6
+    INT_MEMORY_FREE                           7
+    INT_OPEN_STREAM                           8
+    INT_STREAMS_WRITE                         9
+    INT_STREAMS_READ                          10
+    INT_STREAMS_CLOSE                         11
+    INT_STREAMS_FILE_GET_POS                  12
+    INT_STREAMS_FILE_SET_POS                  13
+    INT_STREAMS_FILE_ADD_POS                  14
+    INT_STREAMS_FILE_SEEK_EOF                 15
+    INT_OPEN_FILE                             16
+    INT_OPEN_FOLDER                           17
+    INT_OPEN_PIPE                             18
+    INT_OPEN_ELEMENT                          19
+    INT_ELEMENT_OPEN_PARENT                   20
+    INT_ELEMENT_GET_CREATE                    21
+    INT_ELEMENT_GET_LAST_MOD                  22
+    INT_ELEMENT_SET_CREATE                    23
+    INT_ELEMENT_SET_LAST_MOD                  24
+    INT_ELEMENT_DELETE                        25
+    INT_ELEMENT_MOVE                          26
+    INT_ELEMENT_GET_NAME                      27
+    INT_ELEMENT_GET_FLAGS                     28
+    INT_ELEMENT_MODIFY_FLAGS                  29
+    INT_FOLDER_CHILD_COUNT                    30
+    INT_FOLDER_OPEN_CHILD_OF_NAME             31
+    INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME      32
+    INT_FOLDER_OPEN_CHILD_FILE_OF_NAME        33
+    INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME        34
+    INT_FOLDER_CREATE_CHILD_FOLDER            35
+    INT_FOLDER_CREATE_CHILD_PIPE              37
+    INT_FOLDER_OPEN_ITER                      38
+    INT_FILE_LENGTH                           39
+    INT_FILE_TRUNCATE                         40
+    INT_HANDLE_OPEN_STREAM                    41
+    INT_PIPE_LENGTH                           42
+    INT_TIME_GET                              43
+    INT_TIME_RES                              44
+    INT_TIME_SLEEP                            45
+    INT_TIME_WAIT                             46
+    INT_RND_OPEN                              47
+    INT_RND_NUM                               48
+    INT_MEM_CPY                               49
+    INT_MEM_MOV                               50
+    INT_MEM_BSET                              51
+    INT_STR_LEN                               52
+    INT_STR_CMP                               53
+    INT_STR_FROM_NUM                          54
+    INT_STR_FROM_FPNUM                        55
+    INT_STR_TO_NUM                            56
+    INT_STR_TO_FPNUM                          57
+    INT_STR_TO_U16STR                         58
+    INT_STR_TO_U32STR                         59
+    INT_STR_FROM_U16STR                       60
+    INT_STR_FROM_U32STR                       61
+    INT_STR_FORMAT                            62
+    INT_LOAD_FILE                             63
+    INT_LOAD_LIB                              64
+    INT_UNLOAD_LIB                            65
+    INTERRUPT_COUNT                           76
+    FP_NAN                               UHEX-7FFE000000000000
+    FP_MAX_VALUE                         UHEX-7FEFFFFFFFFFFFFF
+    FP_MIN_VALUE                         UHEX-0000000000000001
+    FP_POS_INFINITY                      UHEX-7FF0000000000000
+    FP_NEG_INFINITY                      UHEX-FFF0000000000000
+    REGISTER_MEMORY_START                 HEX-0000000000001000
+    REGISTER_MEMORY_START_XNN             HEX-0000000000001028
+    REGISTER_MEMORY_LAST_ADDRESS          HEX-00000000000017F8
+    REGISTER_MEMORY_END_ADDRESS_SPACE     HEX-0000000000001800
+    MAX_VALUE                             HEX-7FFFFFFFFFFFFFFF
+    MIN_VALUE                            NHEX-8000000000000000
+    STD_IN                                    0
+    STD_OUT                                   1
+    STD_LOG                                   2
+    ERR_NONE                                  0
+    ERR_UNKNOWN_ERROR                         1
+    ERR_NO_MORE_ELEMNETS                      2
+    ERR_ELEMENT_WRONG_TYPE                    3
+    ERR_ELEMENT_NOT_EXIST                     4
+    ERR_ELEMENT_ALREADY_EXIST                 5
+    ERR_OUT_OF_SPACE                          6
+    ERR_IO_ERR                                7
+    ERR_ILLEGAL_ARG                           8
+    ERR_ILLEGAL_MAGIC                         9
+    ERR_OUT_OF_MEMORY                         10
+    ERR_ROOT_FOLDER                           11
+    ERR_PARENT_IS_CHILD                       12
+    ERR_ELEMENT_USED                          13
+    ERR_OUT_OF_RANGE                          14
+    UNMODIFIABLE_FLAGS                   UHEX-000000FF
+    FLAG_FOLDER                          UHEX-00000001
+    FLAG_FILE                            UHEX-00000002
+    FLAG_PIPE                            UHEX-00000004
+    FLAG_EXECUTABLE                      UHEX-00000100
+    FLAG_USER_ENCRYPTED                  UHEX-00000200
+    FLAG_HIDDEN                          UHEX-01000000
+    STREAM_ONLY_CREATE                   UHEX-00000001
+    STREAM_ALSO_CREATE                   UHEX-00000002
+    STREAM_FILE                          UHEX-00000004
+    STREAM_PIPE                          UHEX-00000008
+    STREAM_READ                          UHEX-00000100
+    STREAM_WRITE                         UHEX-00000200
+    STREAM_APPEND                        UHEX-00000400
+    STREAM_FILE_TRUNC                    UHEX-00010000
+    STREAM_FILE_EOF                      UHEX-00020000
 </code></pre>
 
 ## STRINGS
@@ -944,7 +926,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `[ZW + 16]  <- STATUS`
     * `[ZW + 24]  <- INTCNT`
     * `[ZW + 32]  <- INTP`
-    * `[ZW + 40]  <- FS_LOCK`
+    * `[ZW + 40]  <- ERRNO`
     * `[ZW + 48]  <- X00`
     * `[ZW + 56]  <- X01`
     * `[ZW + 64]  <- X02`
@@ -1215,20 +1197,20 @@ the assembler language for the Primitive-Virtual-Machine
         * `X00` points to the target memory block
         * `X01` points to the source memory block
         * `X02` has the length of bytes to bee copied
-    * `53 : INT_MEM_BSET`: memory byte set
+    * `51 : INT_MEM_BSET`: memory byte set
         * sets a memory block to the given byte-value
         * `X00` points to the block
         * `X01` the first byte contains the value to be written to each byte
         * `X02` contains the length in bytes
-    * `55 : INT_STR_LEN`: string length
+    * `52 : INT_STR_LEN`: string length
         * `X00` points to the STRING
         * `X00` will be set to the length of the string/ the (byte-)offset of the first byte from the `'\0'` character
-    * `56 : INT_STR_CMP`: string compare
+    * `53 : INT_STR_CMP`: string compare
         * `X00` points to the first STRING
         * `X01` points to the second STRING
         * `X00` will be set to zero if both are equal STRINGs, a value greather zero if the first is greather and below zero if the second is greather
             * a STRING is greather if the first missmatching char has numeric greather value
-    * `57 : INT_STR_FROM_NUM`: number to string
+    * `54 : INT_STR_FROM_NUM`: number to string
         * `X00` is set to the number to convert
         * `X01` is points to the buffer to be filled with the number in a STRING format
         * `X02` contains the base of the number system
@@ -1241,7 +1223,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X03` will be set to the new size of the buffer
             * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
         * on error `X01` will be set to `-1`
-    * `58 : INT_STR_FROM_FPNUM`: floating point number to string
+    * `55 : INT_STR_FROM_FPNUM`: floating point number to string
         * `X00` is set to the floating point number to convert
         * `X01` points to the buffer to be filled with the number in a STRING format
         * `X02` is set to the current size of the buffer
@@ -1251,7 +1233,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X02` will be set to the new size of the buffer
             * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
         * on error `X01` will be set to `-1`
-    * `59 : INT_STR_TO_NUM`: string to number
+    * `56 : INT_STR_TO_NUM`: string to number
         * `X00` points to the STRING
         * `X01` points to the base of the number system
             * (for example `10` for the decimal system or `2` for the binary system)
@@ -1263,14 +1245,14 @@ the assembler language for the Primitive-Virtual-Machine
             * the STRING contains illegal characters
             * or the base is not valid
             * if `ERRNO` is set to out of range, the string value displayed a value outside of the 64-bit number range and `X00` will either be min or max value
-    * `60 : INT_STR_TO_FPNUM`: string to floating point number
+    * `57 : INT_STR_TO_FPNUM`: string to floating point number
         * `X00` points to the STRING
         * `X00` will be set to the converted number
         * on success `X01` will be set to `1`
         * on error `X01` will be set to `0`
             * the STRING contains illegal characters
             * or the base is not valid
-    * `60 : INT_STR_TO_U16STR`: STRING to U16-STRING
+    * `58 : INT_STR_TO_U16STR`: STRING to U16-STRING
         * `X00` points to the STRING (`UTF-8`)
         * `X01` points to the buffer to be filled with the to `UTF-16` converted string
         * `X02` is set to the length of the buffer
@@ -1278,7 +1260,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` points to the start of the unmodified space of the target buffer
         * `X02` will be set to unmodified space at the end of the buffer
         * `X03` will be set to the number of converted characters or `-1` on error
-    * `60 : INT_STR_TO_U32STR`: STRING to U32-STRING
+    * `59: INT_STR_TO_U32STR`: STRING to U32-STRING
         * `X00` points to the STRING (`UTF-8`)
         * `X01` points to the buffer to be filled with the to `UTF-32` converted string
         * `X02` is set to the length of the buffer
@@ -1294,7 +1276,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` points to the start of the unmodified space of the target buffer
         * `X02` will be set to unmodified space at the end of the buffer
         * `X03` will be set to the number of converted characters or `-1` on error
-    * `60 : INT_STR_FROM_U16STR`: U32-STRING to STRING
+    * `61 : INT_STR_FROM_U32TR`: U32-STRING to STRING
         * `X00` points to the `UTF-32` STRING
         * `X01` points to the buffer to be filled with the converted STRING (`UTF-8`)
         * `X02` is set to the length of the buffer
@@ -1302,7 +1284,7 @@ the assembler language for the Primitive-Virtual-Machine
         * `X01` points to the start of the unmodified space of the target buffer
         * `X02` will be set to unmodified space at the end of the buffer
         * `X03` will be set to the number of converted characters or `-1` on error
-    * `61 : INT_STR_FORMAT`: format string
+    * `62 : INT_STR_FORMAT`: format string
         * `X00` is set to the STRING input
         * `X01` contains the buffer for the STRING output
         * `X02` is the size of the buffer in bytes
@@ -1326,11 +1308,11 @@ the assembler language for the Primitive-Virtual-Machine
             * `%h`: the next argument contains a number, which should be converted to a STRING using the hexadecimal number system and than be inserted here
             * `%b`: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here
             * `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here
-    * `64 : INT_LOAD_FILE`: load a file
+    * `63 : INT_LOAD_FILE`: load a file
         * `X00` is set to the path (inclusive name) of the file
         * `X00` will point to the memory block, in which the file has been loaded or `-1` on error
         * `X01` will be set to the length of the file (and the memory block)
-    * `65 : INT_LOAD_LIB`: load a library file 
+    * `64 : INT_LOAD_LIB`: load a library file 
         * similar like the load file interrupt loads a file for the program.
             * the difference is that this interrupt may remember which files has been loaded
                 * there are no guarantees, when the same memory block is reused and when a new memory block is created
@@ -1362,7 +1344,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `STATUS  <- [X09 + 16]`
     * `INTCNT  <- [X09 + 24]`
     * `INTP    <- [X09 + 32]`
-    * `FS_LOCK <- [X09 + 40]`
+    * `ERRNO <- [X09 + 40]`
     * `X00     <- [X09 + 48]`
     * `X01     <- [X09 + 56]`
     * `X02     <- [X09 + 64]`

@@ -3,17 +3,23 @@ package de.hechler.patrick.codesprachen.primitive.core.utils;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
 
 public class PrimAsmConstants {
+	
+	private PrimAsmConstants() { }
 	
 	public static final Path START_CONSTANTS_PATH = Paths.get("[START_CONSTANTS]");
 	
@@ -21,33 +27,9 @@ public class PrimAsmConstants {
 	
 	static {
 		Map <String, PrimitiveConstant> startConsts = new LinkedHashMap<>();
-		int lineNum = 1;
-		try (InputStream in = PrimAsmConstants.class.getResourceAsStream("/de/hechler/patrick/codesprachen/primitive/core/default-constants.psf")) {
-			try (Scanner sc = new Scanner(in, "UTF-8")) {
-				StringBuilder commentbuild = new StringBuilder();
-				while (sc.hasNextLine()) {
-					String line = sc.nextLine();
-					if (line.charAt(0) == '|') {
-						commentbuild.append(line).append('\n');
-					} else {
-						int index = line.indexOf('=');
-						String name = line.substring(0, index);
-						String num = line.substring(index + 1);
-						long val;
-						if (num.matches("[0-9A-F]+")) {
-							val = Long.parseUnsignedLong(num, 16);
-						} else {
-							throw new InternalError();
-						}
-						PrimitiveConstant primConst = new PrimitiveConstant(name, commentbuild.toString(), val, START_CONSTANTS_PATH, lineNum);
-						PrimitiveConstant old = startConsts.put(name, primConst);
-						if (old != null) {
-							throw new AssertionError(name);
-						}
-						commentbuild = new StringBuilder();
-					}
-					lineNum ++ ;
-				}
+		try (InputStream in = PrimAsmConstants.class.getResourceAsStream("/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf")) {
+			try (Scanner sc = new Scanner(in, StandardCharsets.UTF_8)) {
+				readSymbols(null, startConsts, sc, START_CONSTANTS_PATH);
 			}
 		} catch (IOException e) {
 			throw new IOError(e);
@@ -65,8 +47,8 @@ public class PrimAsmConstants {
 				if (primConst == null) {
 					throw new AssertionError("validation error: primConst=null field: " + field.getName() + " (" + val + ")");
 				}
-				if (primConst.value != val) {
-					throw new AssertionError("validation error: field: " + field.getName() + "=" + val + " primConst.val=" + primConst.value + " (comment):\n" + primConst.comment);
+				if (primConst.value() != val) {
+					throw new AssertionError("validation error: field: " + field.getName() + "=" + val + " primConst.val=" + primConst.value() + " (comment):\n" + primConst.comment());
 				}
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				throw new InternalError(e);
@@ -79,10 +61,8 @@ public class PrimAsmConstants {
 	public static final int STATUS  = 2;
 	public static final int INTCNT  = 3;
 	public static final int INTP    = 4;
-	public static final int FS_LOCK = 5;
+	public static final int ERRNO   = 5;
 	public static final int X_ADD   = 6;
-	
-	
 	
 	public static final int PARAM_BASE  = 0x01;
 	public static final int PARAM_A_NUM = 0x00;
@@ -100,5 +80,91 @@ public class PrimAsmConstants {
 	public static final int PARAM_ART_ASR_BNUM  = PARAM_BASE | PARAM_A_SR | PARAM_B_NUM;
 	public static final int PARAM_ART_ANUM_BSR  = PARAM_BASE | PARAM_A_NUM | PARAM_B_SR;
 	public static final int PARAM_ART_ASR_BSR   = PARAM_BASE | PARAM_A_SR | PARAM_B_SR;
+	
+	public static void export(Map <String, PrimitiveConstant> exports, PrintStream out) {
+		exports.forEach((symbol, pc) -> {
+			assert symbol.equals(pc.name());
+			if (pc.comment() != null) {
+				for (String line : pc.comment().split("\r\n?|\n")) {
+					if ( !line.matches("\\s*\\|.*")) {
+						line = "|" + line;
+					}
+					line = line.trim();
+					out.print(line + '\n');
+				}
+			}
+			out.print(symbol + '=' + Long.toUnsignedString(pc.value(), 16).toUpperCase() + '\n');
+		});
+	}
+	
+	private static final String REGEX = "^\\#?(\\w+)\\s*\\=\\s*(([UN]?(HEX\\-|BIN\\-|OCT\\-|DEC\\-)|\\-)?[0-9a-fA-F]+)$";
+	private static final Pattern PATTERN = Pattern.compile(REGEX);
+	
+	public static void readSymbols(String prefix, Map <String, PrimitiveConstant> addSymbols, Scanner sc, Path path) {
+		StringBuilder comment = new StringBuilder();
+		int lineNumber = 1;
+		while (sc.hasNextLine()) {
+			String line = sc.nextLine().trim();
+			if (line.isEmpty()) {
+				continue;
+			}
+			if (line.charAt(0) == '|') {
+				comment.append(line);
+				continue;
+			}
+			Matcher matcher = PATTERN.matcher(line);
+			if ( !matcher.matches()) {
+				throw new IllegalStateException("line does not match regex: line='" + line + "', regex='" + REGEX + "'");
+			}
+			String constName = matcher.group(1);
+			String strVal = matcher.group(2);
+			long val = parseNum(strVal);
+			PrimitiveConstant value;
+			if (comment.length() == 0) {
+				value = new PrimitiveConstant(constName, null, val, path, lineNumber);
+			} else {
+				value = new PrimitiveConstant(constName, comment.toString(), val, path, lineNumber);
+				comment = new StringBuilder();
+			}
+			if (prefix == null) {
+				addSymbols.put(constName, value);
+			} else {
+				addSymbols.put(prefix + constName, value);
+			}
+			lineNumber ++ ;
+		}
+	}
+
+	private static long parseNum(String strVal) {
+		long val;
+		if (strVal.startsWith("UHEX-")) {
+			val = Long.parseUnsignedLong(strVal.substring(5), 16);
+		} else if (strVal.startsWith("HEX-")) {
+			val = Long.parseLong(strVal.substring(4), 16);
+		} else if (strVal.startsWith("NHEX-")) {
+			val = Long.parseLong(strVal.substring(4), 16);
+		} else if (strVal.startsWith("UDEC-")) {
+			val = Long.parseUnsignedLong(strVal.substring(5), 10);
+		} else if (strVal.startsWith("DEC-")) {
+			val = Long.parseLong(strVal.substring(4), 10);
+		} else if (strVal.startsWith("NDEC-")) {
+			val = Long.parseLong(strVal.substring(4), 10);
+		} else if (strVal.startsWith("UOCT-")) {
+			val = Long.parseUnsignedLong(strVal.substring(5), 8);
+		} else if (strVal.startsWith("OCT-")) {
+			val = Long.parseLong(strVal.substring(4), 8);
+		} else if (strVal.startsWith("NOCT-")) {
+			val = Long.parseLong(strVal.substring(4), 8);
+		} else if (strVal.startsWith("UBIN-")) {
+			val = Long.parseUnsignedLong(strVal.substring(5), 2);
+		} else if (strVal.startsWith("BIN-")) {
+			val = Long.parseLong(strVal.substring(4), 2);
+		} else if (strVal.startsWith("NBIN-")) {
+			val = Long.parseLong(strVal.substring(4), 2);
+		} else {
+			val = Long.parseLong(strVal, 10);
+		}
+		return val;
+	}
 	
 }
