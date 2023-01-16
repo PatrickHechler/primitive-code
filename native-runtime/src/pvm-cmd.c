@@ -29,9 +29,7 @@ static void c_ill() /* --- */{
 		pvm.ip += *ia.np & 0x00007FFFFFFFFFFFL; \
 	}
 
-/* 00.. : data */
-/* 000. : move data */
-static void c_mvb() /* 0001 */{
+static void c_mvb() {
 	struct p p1 = param(1, 1);
 	if (!p1.valid) {
 		return;
@@ -44,7 +42,7 @@ static void c_mvb() /* 0001 */{
 	*p1.p.bp = p2.p.b;
 	incIP
 }
-static void c_mvw() /* 0002 */{
+static void c_mvw() {
 	struct p p1 = param(1, 2);
 	if (!p1.valid) {
 		return;
@@ -57,7 +55,7 @@ static void c_mvw() /* 0002 */{
 	*p1.p.wp = p2.p.w;
 	incIP
 }
-static void c_mvdw() /* 0003 */{
+static void c_mvdw() {
 	struct p p1 = param(1, 4);
 	if (!p1.valid) {
 		return;
@@ -70,7 +68,7 @@ static void c_mvdw() /* 0003 */{
 	*p1.p.dwp = p2.p.dw;
 	incIP
 }
-static void c_mov() /* 0004 */{
+static void c_mov() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -83,7 +81,7 @@ static void c_mov() /* 0004 */{
 	*p1.p.np = p2.p.n;
 	incIP
 }
-static void c_lea() /* 0005 */{
+static void c_lea() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -96,7 +94,7 @@ static void c_lea() /* 0005 */{
 	*p1.p.np = pvm.ip + p2.p.n;
 	incIP
 }
-static void c_mvad() /* 0006 */{
+static void c_mvad() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -114,7 +112,7 @@ static void c_mvad() /* 0006 */{
 	*p1.p.np = p2.p.n + ia.np[old_num_index];
 	incIPAddOneNum
 }
-static void c_swap() /* 0007 */{
+static void c_swap() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -130,9 +128,7 @@ static void c_swap() /* 0007 */{
 	incIP
 }
 
-/* 01.. : math */
-/* 010. : logic */
-static void c_or() /* 0x19 */{
+static void c_or() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -150,7 +146,7 @@ static void c_or() /* 0x19 */{
 	*p1.p.np |= *p2.p.np;
 	incIP
 }
-static void c_and() /* 0x1A */{
+static void c_and() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -168,7 +164,7 @@ static void c_and() /* 0x1A */{
 	*p1.p.np &= *p2.p.np;
 	incIP
 }
-static void c_xor() /* 0x1B */{
+static void c_xor() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -186,7 +182,7 @@ static void c_xor() /* 0x1B */{
 	*p1.p.np ^= *p2.p.np;
 	incIP
 }
-static void c_not() /* 0x1C */{
+static void c_not() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -199,7 +195,7 @@ static void c_not() /* 0x1C */{
 	*p1.p.np = ~*p1.p.np;
 	incIP
 }
-static void c_lsh() /* 0x1D */{
+static void c_lsh() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -217,7 +213,7 @@ static void c_lsh() /* 0x1D */{
 	*p1.p.np <<= *p2.p.np;
 	incIP
 }
-static void c_rash() /* 0x1E */{
+static void c_rash() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -235,7 +231,7 @@ static void c_rash() /* 0x1E */{
 	*p1.p.np >>= *p2.p.np;
 	incIP
 }
-static void c_rlsh() /* 0x1F */{
+static void c_rlsh() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -254,7 +250,7 @@ static void c_rlsh() /* 0x1F */{
 	incIP
 }
 
-static void c_add() /* 0x10 */{
+static void c_add() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -276,7 +272,7 @@ static void c_add() /* 0x10 */{
 	}
 	incIP
 }
-static void c_sub() /* 0x11 */{
+static void c_sub() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -298,7 +294,7 @@ static void c_sub() /* 0x11 */{
 	}
 	incIP
 }
-static void c_mul() /* 0x12 */{
+static void c_mul() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -316,7 +312,7 @@ static void c_mul() /* 0x12 */{
 	}
 	incIP
 }
-static void c_div() /* 0x13 */{
+static void c_div() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -336,7 +332,7 @@ static void c_div() /* 0x13 */{
 	*p2.p.np = a % b;
 	incIP
 }
-static void c_neg() /* 0x14 */{
+static void c_neg() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -350,7 +346,7 @@ static void c_neg() /* 0x14 */{
 	*p1.p.np = np1;
 	incIP
 }
-static void c_addc() /* 0x15 */{
+static void c_addc() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -380,7 +376,7 @@ static void c_addc() /* 0x15 */{
 	*p1.p.np = np1;
 	incIP
 }
-static void c_subc() /* 0x16 */{
+static void c_subc() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -410,7 +406,7 @@ static void c_subc() /* 0x16 */{
 	*p1.p.np = np1;
 	incIP
 }
-static void c_inc() /* 0x17 */{
+static void c_inc() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -425,7 +421,7 @@ static void c_inc() /* 0x17 */{
 	(*p1.p.np)++;
 	incIP
 }
-static void c_dec() /* 0x18 */{
+static void c_dec() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -441,14 +437,14 @@ static void c_dec() /* 0x18 */{
 	incIP
 }
 
-static void c_jmp() /* 0x20 */{
+static void c_jmp() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	doJmp
 }
-static void c_jmperr() /* 0x21 */{
+static void c_jmperr() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -459,7 +455,7 @@ static void c_jmperr() /* 0x21 */{
 		incIP
 	}
 }
-static void c_jmpeq() /* 0x21 */{
+static void c_jmpeq() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -470,7 +466,7 @@ static void c_jmpeq() /* 0x21 */{
 		incIP
 	}
 }
-static void c_jmpne() /* 0x22 */{
+static void c_jmpne() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -481,7 +477,7 @@ static void c_jmpne() /* 0x22 */{
 		doJmp
 	}
 }
-static void c_jmpgt() /* 0x23 */{
+static void c_jmpgt() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -492,7 +488,7 @@ static void c_jmpgt() /* 0x23 */{
 		incIP
 	}
 }
-static void c_jmpge() /* 0x24 */{
+static void c_jmpge() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -503,7 +499,7 @@ static void c_jmpge() /* 0x24 */{
 		incIP
 	}
 }
-static void c_jmplt() /* 0x25 */{
+static void c_jmplt() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -514,7 +510,7 @@ static void c_jmplt() /* 0x25 */{
 		incIP
 	}
 }
-static void c_jmple() /* 0x26 */{
+static void c_jmple() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -525,7 +521,7 @@ static void c_jmple() /* 0x26 */{
 		incIP
 	}
 }
-static void c_jmpcs() /* 0x27 */{
+static void c_jmpcs() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -536,7 +532,7 @@ static void c_jmpcs() /* 0x27 */{
 		incIP
 	}
 }
-static void c_jmpcc() /* 0x28 */{
+static void c_jmpcc() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -547,7 +543,7 @@ static void c_jmpcc() /* 0x28 */{
 		doJmp
 	}
 }
-static void c_jmpzs() /* 0x29 */{
+static void c_jmpzs() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -558,7 +554,7 @@ static void c_jmpzs() /* 0x29 */{
 		incIP
 	}
 }
-static void c_jmpzc() /* 0x2A */{
+static void c_jmpzc() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -569,7 +565,7 @@ static void c_jmpzc() /* 0x2A */{
 		doJmp
 	}
 }
-static void c_jmpnan() /* 0x2B */{
+static void c_jmpnan() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -580,7 +576,7 @@ static void c_jmpnan() /* 0x2B */{
 		incIP
 	}
 }
-static void c_jmpan() /* 0x2C */{
+static void c_jmpan() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -591,7 +587,7 @@ static void c_jmpan() /* 0x2C */{
 		doJmp
 	}
 }
-static void c_jmpab() /* 0x2D */{
+static void c_jmpab() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -602,7 +598,7 @@ static void c_jmpab() /* 0x2D */{
 		incIP
 	}
 }
-static void c_jmpsb() /* 0x2E */{
+static void c_jmpsb() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -613,7 +609,7 @@ static void c_jmpsb() /* 0x2E */{
 		incIP
 	}
 }
-static void c_jmpnb() /* 0x2F */{
+static void c_jmpnb() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -625,14 +621,14 @@ static void c_jmpnb() /* 0x2F */{
 	}
 }
 
-static void c_int() /* 0x30 */{
+static void c_int() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
 	}
 	interrupt(p1.p.n, incIPVal);
 }
-static void c_iret() /* 0x31 */{
+static void c_iret() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -647,7 +643,7 @@ static void c_iret() /* 0x31 */{
 	memcpy(&pvm, mem.mem->offset + p1.p.n, 128);
 	free_memory(p1.p.n);
 }
-static void c_call() /* 0x32 */{
+static void c_call() {
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -660,7 +656,7 @@ static void c_call() /* 0x32 */{
 	pvm.sp += 8;
 	doJmp
 }
-static void c_calo() /* 0x33 */{
+static void c_calo() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -677,7 +673,7 @@ static void c_calo() /* 0x33 */{
 	pvm.sp += 8;
 	pvm.ip += p1.p.n + ia.np[param_num_value_index];
 }
-static void c_ret() /* 0x34 */{
+static void c_ret() {
 	struct memory_check mem = chk(pvm.sp - 8, 8);
 	if (!mem.mem) {
 		return;
@@ -685,7 +681,7 @@ static void c_ret() /* 0x34 */{
 	pvm.sp -= 8;
 	pvm.ip = *(num*) (mem.mem->offset + pvm.sp);
 }
-static void c_push() /* 0x35 */{
+static void c_push() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -698,7 +694,7 @@ static void c_push() /* 0x35 */{
 	pvm.sp += 8;
 	incIP
 }
-static void c_pop() /* 0x36 */{
+static void c_pop() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -711,7 +707,7 @@ static void c_pop() /* 0x36 */{
 	*p1.p.np = *(num*) (mem.mem->offset + pvm.sp);
 	incIP
 }
-static void c_pushblk() /* 0x37 */{
+static void c_pushblk() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -731,7 +727,7 @@ static void c_pushblk() /* 0x37 */{
 	memmove(mem->offset + pvm.sp, p2.p.pntr, p1.p.n);
 	pvm.sp += p1.p.n;
 }
-static void c_popblk() /* 0x37 */{
+static void c_popblk() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -756,7 +752,7 @@ static void c_popblk() /* 0x37 */{
 	memmove(p2.p.pntr, mem->offset + pvm.sp, p1.p.n);
 }
 
-static void c_cmp() /* 0x40 */{
+static void c_cmp() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -774,7 +770,7 @@ static void c_cmp() /* 0x40 */{
 	}
 	incIP
 }
-static void c_cmpl() /* 0x41 */{
+static void c_cmpl() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -792,7 +788,7 @@ static void c_cmpl() /* 0x41 */{
 	}
 	incIP
 }
-static void c_cmpfp() /* 0x42 */{
+static void c_cmpfp() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -812,7 +808,7 @@ static void c_cmpfp() /* 0x42 */{
 	}
 	incIP
 }
-static void c_chkfp() /* 0x43 */{
+static void c_chkfp() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -837,7 +833,7 @@ static void c_chkfp() /* 0x43 */{
 	}
 	incIP
 }
-static void c_cmpu() /* 0x44 */{
+static void c_cmpu() {
 	struct p p1 = param(0, 8);
 	if (!p1.valid) {
 		return;
@@ -855,7 +851,7 @@ static void c_cmpu() /* 0x44 */{
 	}
 	incIP
 }
-static void c_cmpb() /* 0x45 */{
+static void c_cmpb() {
 	struct p p1 = param(1, 16);
 	if (!p1.valid) {
 		return;
@@ -874,7 +870,7 @@ static void c_cmpb() /* 0x45 */{
 	}
 	incIP
 }
-static void c_fptn() /* 0x46 */{
+static void c_fptn() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -885,7 +881,7 @@ static void c_fptn() /* 0x46 */{
 	}
 	*p1.p.np = *p1.p.fpnp;
 }
-static void c_ntfp() /* 0x47 */{
+static void c_ntfp() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -893,7 +889,7 @@ static void c_ntfp() /* 0x47 */{
 	*p1.p.fpnp = *p1.p.np;
 }
 
-static void c_addfp() /* 0x50 */{
+static void c_addfp() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -909,7 +905,7 @@ static void c_addfp() /* 0x50 */{
 	}
 	*p1.p.fpnp += p2.p.fpn;
 }
-static void c_subfp() /* 0x51 */{
+static void c_subfp() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -925,7 +921,7 @@ static void c_subfp() /* 0x51 */{
 	}
 	*p1.p.fpnp -= p2.p.fpn;
 }
-static void c_mulfp() /* 0x52 */{
+static void c_mulfp() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -941,7 +937,7 @@ static void c_mulfp() /* 0x52 */{
 	}
 	*p1.p.fpnp *= p2.p.fpn;
 }
-static void c_divfp() /* 0x53 */{
+static void c_divfp() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -957,7 +953,7 @@ static void c_divfp() /* 0x53 */{
 	}
 	*p1.p.fpnp /= p2.p.fpn;
 }
-static void c_negfp() /* 0x54 */{
+static void c_negfp() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -968,7 +964,7 @@ static void c_negfp() /* 0x54 */{
 	}
 	*p1.p.fpnp = -*p1.p.fpnp;
 }
-static void c_uadd() /* 0x55 */{
+static void c_uadd() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -980,7 +976,7 @@ static void c_uadd() /* 0x55 */{
 	check_chaged(1, 8)
 	*p1.p.up += p2.p.u;
 }
-static void c_usub() /* 0x56 */{
+static void c_usub() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -992,7 +988,7 @@ static void c_usub() /* 0x56 */{
 	check_chaged(1, 8)
 	*p1.p.up -= p2.p.u;
 }
-static void c_umul() /* 0x57 */{
+static void c_umul() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -1004,7 +1000,7 @@ static void c_umul() /* 0x57 */{
 	check_chaged(1, 8)
 	*p1.p.up *= p2.p.u;
 }
-static void c_udiv() /* 0x58 */{
+static void c_udiv() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
 		return;
@@ -1018,7 +1014,7 @@ static void c_udiv() /* 0x58 */{
 	*p1.p.up = a / b;
 	*p2.p.up = a % b;
 }
-static void c_badd() /* 0x59 */{
+static void c_badd() {
 	struct p p1 = param(1, 16);
 	if (!p1.valid) {
 		return;
@@ -1030,7 +1026,7 @@ static void c_badd() /* 0x59 */{
 	check_chaged(1, 16)
 	*p1.p.bigp = *p1.p.bigp + *p2.p.bigp;
 }
-static void c_bsub() /* 0x5A */{
+static void c_bsub() {
 	struct p p1 = param(1, 16);
 	if (!p1.valid) {
 		return;
@@ -1042,7 +1038,7 @@ static void c_bsub() /* 0x5A */{
 	check_chaged(1, 16)
 	*p1.p.bigp = *p1.p.bigp - *p2.p.bigp;
 }
-static void c_bmul() /* 0x5B */{
+static void c_bmul() {
 	struct p p1 = param(1, 16);
 	if (!p1.valid) {
 		return;
@@ -1054,7 +1050,7 @@ static void c_bmul() /* 0x5B */{
 	check_chaged(1, 16)
 	*p1.p.bigp = *p1.p.bigp * *p2.p.bigp;
 }
-static void c_bdiv() /* 0x5C */{
+static void c_bdiv() {
 	struct p p1 = param(1, 16);
 	if (!p1.valid) {
 		return;
@@ -1067,7 +1063,7 @@ static void c_bdiv() /* 0x5C */{
 	*p1.p.bigp = *p1.p.bigp * *p2.p.bigp;
 	*p1.p.bigp = *p1.p.bigp * *p2.p.bigp;
 }
-static void c_bneg() /* 0x5D */{
+static void c_bneg() {
 	struct p p1 = param(1, 16);
 	if (!p1.valid) {
 		return;
