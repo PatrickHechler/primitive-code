@@ -1123,7 +1123,8 @@ static void* pvm_debug_thread_func(void *_arg) {
 					"    commands are equally.\n"
 					"  mem <ADDRESS> <LENGTH>"
 					"    display the given memory block.\n"
-					""); // TODO more commands
+					"");
+			// TODO add command to execute new code
 		} else if (strcmp("version", buffer) == 0) {
 			fprintf(file, "db-pvm " PVM_VERSION_STR "\n");
 		} else if (strcmp("detach", buffer) == 0) {
