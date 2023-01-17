@@ -1413,258 +1413,246 @@ command
 returns [Command c] @init {Commands cmd = null;}
 :
 	(
-		(
-			MVAD
-			{cmd = Commands.CMD_MVAD;}
+		MVAD
+		{cmd = Commands.CMD_MVAD;}
 
-		) comment* p1 = param [pos, constants, be] comment* COMMA //
-		comment* p2 = param [pos, constants, be] comment* COMMA //
-		comment* p3 = param [pos, constants, be] //
-		{$c = new Command(cmd, $p1.p, $p2.p, $p3.p);}
+	) comment* p1 = param [pos, constants, be] comment* COMMA //
+	comment* p2 = param [pos, constants, be] comment* COMMA //
+	comment* p3 = param [pos, constants, be] //
+	{$c = new Command(cmd, $p1.p, $p2.p, $p3.p);}
 
-	)
 	|
 	(
-		(
-			MVB
-			{cmd = Commands.CMD_MVB;}
+		MVB
+		{cmd = Commands.CMD_MVB;}
 
-			| MVW
-			{cmd = Commands.CMD_MVW;}
+		| MVW
+		{cmd = Commands.CMD_MVW;}
 
-			| MVDW
-			{cmd = Commands.CMD_MVDW;}
+		| MVDW
+		{cmd = Commands.CMD_MVDW;}
 
-			| MOV
-			{cmd = Commands.CMD_MOV;}
+		| MOV
+		{cmd = Commands.CMD_MOV;}
 
-			| LEA
-			{cmd = Commands.CMD_LEA;}
+		| LEA
+		{cmd = Commands.CMD_LEA;}
 
-			| SWAP
-			{cmd = Commands.CMD_SWAP;}
+		| SWAP
+		{cmd = Commands.CMD_SWAP;}
 
-			| OR
-			{cmd = Commands.CMD_OR;}
+		| OR
+		{cmd = Commands.CMD_OR;}
 
-			| AND
-			{cmd = Commands.CMD_AND;}
+		| AND
+		{cmd = Commands.CMD_AND;}
 
-			| XOR
-			{cmd = Commands.CMD_XOR;}
+		| XOR
+		{cmd = Commands.CMD_XOR;}
 
-			| LSH
-			{cmd = Commands.CMD_LSH;}
+		| LSH
+		{cmd = Commands.CMD_LSH;}
 
-			| RASH
-			{cmd = Commands.CMD_RASH;}
+		| RASH
+		{cmd = Commands.CMD_RASH;}
 
-			| RLSH
-			{cmd = Commands.CMD_RLSH;}
+		| RLSH
+		{cmd = Commands.CMD_RLSH;}
 
-			| ADD
-			{cmd = Commands.CMD_ADD;}
+		| ADD
+		{cmd = Commands.CMD_ADD;}
 
-			| SUB
-			{cmd = Commands.CMD_SUB;}
+		| SUB
+		{cmd = Commands.CMD_SUB;}
 
-			| MUL
-			{cmd = Commands.CMD_MUL;}
+		| MUL
+		{cmd = Commands.CMD_MUL;}
 
-			| DIV
-			{cmd = Commands.CMD_DIV;}
+		| DIV
+		{cmd = Commands.CMD_DIV;}
 
-			| ADDC
-			{cmd = Commands.CMD_ADDC;}
+		| ADDC
+		{cmd = Commands.CMD_ADDC;}
 
-			| SUBC
-			{cmd = Commands.CMD_SUBC;}
+		| SUBC
+		{cmd = Commands.CMD_SUBC;}
 
-			| ADDFP
-			{cmd = Commands.CMD_ADDFP;}
+		| ADDFP
+		{cmd = Commands.CMD_ADDFP;}
 
-			| SUBFP
-			{cmd = Commands.CMD_SUBFP;}
+		| SUBFP
+		{cmd = Commands.CMD_SUBFP;}
 
-			| MULFP
-			{cmd = Commands.CMD_MULFP;}
+		| MULFP
+		{cmd = Commands.CMD_MULFP;}
 
-			| DIVFP
-			{cmd = Commands.CMD_DIVFP;}
+		| DIVFP
+		{cmd = Commands.CMD_DIVFP;}
 
-			| UADD
-			{cmd = Commands.CMD_UADD;}
+		| UADD
+		{cmd = Commands.CMD_UADD;}
 
-			| USUB
-			{cmd = Commands.CMD_USUB;}
+		| USUB
+		{cmd = Commands.CMD_USUB;}
 
-			| UMUL
-			{cmd = Commands.CMD_UMUL;}
+		| UMUL
+		{cmd = Commands.CMD_UMUL;}
 
-			| UDIV
-			{cmd = Commands.CMD_UDIV;}
+		| UDIV
+		{cmd = Commands.CMD_UDIV;}
 
-			| BADD
-			{cmd = Commands.CMD_BADD;}
+		| BADD
+		{cmd = Commands.CMD_BADD;}
 
-			| BSUB
-			{cmd = Commands.CMD_BSUB;}
+		| BSUB
+		{cmd = Commands.CMD_BSUB;}
 
-			| BMUL
-			{cmd = Commands.CMD_BMUL;}
+		| BMUL
+		{cmd = Commands.CMD_BMUL;}
 
-			| BDIV
-			{cmd = Commands.CMD_BDIV;}
+		| BDIV
+		{cmd = Commands.CMD_BDIV;}
 
-			| FPTN
-			{cmd = Commands.CMD_FPTN;}
+		| FPTN
+		{cmd = Commands.CMD_FPTN;}
 
-			| NTFP
-			{cmd = Commands.CMD_NTFP;}
+		| NTFP
+		{cmd = Commands.CMD_NTFP;}
 
-			| CMP
-			{cmd = Commands.CMD_CMP;}
+		| CMP
+		{cmd = Commands.CMD_CMP;}
 
-			| CMPL
-			{cmd = Commands.CMD_CMPL;}
+		| CMPL
+		{cmd = Commands.CMD_CMPL;}
 
-			| CMPFP
-			{cmd = Commands.CMD_CMPFP;}
+		| CMPFP
+		{cmd = Commands.CMD_CMPFP;}
 
-			| CHKFP
-			{cmd = Commands.CMD_CHKFP;}
+		| CHKFP
+		{cmd = Commands.CMD_CHKFP;}
 
-			| CMPU
-			{cmd = Commands.CMD_CMPU;}
+		| CMPU
+		{cmd = Commands.CMD_CMPU;}
 
-			| CMPB
-			{cmd = Commands.CMD_CMPB;}
+		| CMPB
+		{cmd = Commands.CMD_CMPB;}
 
-			| CALO
-			{cmd = Commands.CMD_CALO;}
+		| CALO
+		{cmd = Commands.CMD_CALO;}
 
-			comment* p1 = param [pos, constants, be] comment* COMMA //
-			comment* p2 = param [pos, constants, be] //
-			{$c = new Command(cmd, $p1.p, $p2.p);}
+	) comment* p1 = param [pos, constants, be] comment* COMMA //
+	comment* p2 = param [pos, constants, be] //
+	{$c = new Command(cmd, $p1.p, $p2.p);}
 
-		)
-		|
-		(
-			(
-				NEG
-				{cmd = Commands.CMD_NEG;}
+	|
+	(
+		NEG
+		{cmd = Commands.CMD_NEG;}
 
-				| BNEG
-				{cmd = Commands.CMD_BNEG;}
+		| BNEG
+		{cmd = Commands.CMD_BNEG;}
 
-				| NEGFP
-				{cmd = Commands.CMD_NEGFP;}
+		| NEGFP
+		{cmd = Commands.CMD_NEGFP;}
 
-				| NOT
-				{cmd = Commands.CMD_NOT;}
+		| NOT
+		{cmd = Commands.CMD_NOT;}
 
-				| INC
-				{cmd = Commands.CMD_INC;}
+		| INC
+		{cmd = Commands.CMD_INC;}
 
-				| DEC
-				{cmd = Commands.CMD_DEC;}
+		| DEC
+		{cmd = Commands.CMD_DEC;}
 
-				| JMPERR
-				{cmd = Commands.CMD_JMPERR;}
+		| JMPERR
+		{cmd = Commands.CMD_JMPERR;}
 
-				| JMPEQ
-				{cmd = Commands.CMD_JMPEQ;}
+		| JMPEQ
+		{cmd = Commands.CMD_JMPEQ;}
 
-				| JMPNE
-				{cmd = Commands.CMD_JMPNE;}
+		| JMPNE
+		{cmd = Commands.CMD_JMPNE;}
 
-				| JMPGT
-				{cmd = Commands.CMD_JMPGT;}
+		| JMPGT
+		{cmd = Commands.CMD_JMPGT;}
 
-				| JMPGE
-				{cmd = Commands.CMD_JMPGE;}
+		| JMPGE
+		{cmd = Commands.CMD_JMPGE;}
 
-				| JMPLT
-				{cmd = Commands.CMD_JMPLT;}
+		| JMPLT
+		{cmd = Commands.CMD_JMPLT;}
 
-				| JMPLE
-				{cmd = Commands.CMD_JMPLE;}
+		| JMPLE
+		{cmd = Commands.CMD_JMPLE;}
 
-				| JMPCS
-				{cmd = Commands.CMD_JMPCS;}
+		| JMPCS
+		{cmd = Commands.CMD_JMPCS;}
 
-				| JMPCC
-				{cmd = Commands.CMD_JMPCC;}
+		| JMPCC
+		{cmd = Commands.CMD_JMPCC;}
 
-				| JMPZS
-				{cmd = Commands.CMD_JMPZS;}
+		| JMPZS
+		{cmd = Commands.CMD_JMPZS;}
 
-				| JMPZC
-				{cmd = Commands.CMD_JMPZC;}
+		| JMPZC
+		{cmd = Commands.CMD_JMPZC;}
 
-				| JMPNAN
-				{cmd = Commands.CMD_JMPNAN;}
+		| JMPNAN
+		{cmd = Commands.CMD_JMPNAN;}
 
-				| JMPAN
-				{cmd = Commands.CMD_JMPAN;}
+		| JMPAN
+		{cmd = Commands.CMD_JMPAN;}
 
-				| JMPAB
-				{cmd = Commands.CMD_JMPAB;}
+		| JMPAB
+		{cmd = Commands.CMD_JMPAB;}
 
-				| JMPSB
-				{cmd = Commands.CMD_JMPSB;}
+		| JMPSB
+		{cmd = Commands.CMD_JMPSB;}
 
-				| JMPNB
-				{cmd = Commands.CMD_JMPNB;}
+		| JMPNB
+		{cmd = Commands.CMD_JMPNB;}
 
-				| JMP
-				{cmd = Commands.CMD_JMP;}
+		| JMP
+		{cmd = Commands.CMD_JMP;}
 
-				| INT
-				{cmd = Commands.CMD_INT;}
+		| INT
+		{cmd = Commands.CMD_INT;}
 
-				| CALL
-				{cmd = Commands.CMD_CALL;}
+		| CALL
+		{cmd = Commands.CMD_CALL;}
 
-				| PUSH
-				{cmd = Commands.CMD_PUSH;}
+		| PUSH
+		{cmd = Commands.CMD_PUSH;}
 
-				| POP
-				{cmd = Commands.CMD_POP;}
+		| POP
+		{cmd = Commands.CMD_POP;}
 
-				| PUSHBLK
-				{cmd = Commands.CMD_PUSHBLK;}
+		| PUSHBLK
+		{cmd = Commands.CMD_PUSHBLK;}
 
-				| POPBLK
-				{cmd = Commands.CMD_POPBLK;}
+		| POPBLK
+		{cmd = Commands.CMD_POPBLK;}
 
-			) comment* p1 = param [pos, constants, be] //
-			{$c = new Command(cmd, $p1.p, null);}
+	) comment* p1 = param [pos, constants, be] //
+	{$c = new Command(cmd, $p1.p, null);}
 
-		)
-		|
-		(
-			(
-				IRET
-				{cmd = Commands.CMD_IRET;}
+	|
+	(
+		IRET
+		{cmd = Commands.CMD_IRET;}
 
-				| RET
-				{cmd = Commands.CMD_RET;}
+		| RET
+		{cmd = Commands.CMD_RET;}
 
-			)
-			{$c = new Command(cmd, null, null);}
-
-		)
-		|
-		(
-			LABEL_DECLARATION
-			{
- 			labels.put($LABEL_DECLARATION.getText().substring(1), (Long) pos);
-	 		$c = null;
-	 	}
-
-		)
 	)
+	{$c = new Command(cmd, null, null);}
+
+	| LABEL_DECLARATION
+	{
+		labels.put($LABEL_DECLARATION.getText().substring(1), (Long) pos);
+ 		$c = null;
+ 	}
+
 ;
 
 comment returns [String text]
@@ -1676,8 +1664,6 @@ comment returns [String text]
 	{$text = $t.getText();}
 
 ;
-
-// COMMANDS START
 
 MVB
 :
@@ -2034,10 +2020,6 @@ POPBLK
 	'POPBLK'
 ;
 
-// COMMANDS END
-
-// REGISTER START
-
 IP
 :
 	'IP'
@@ -2081,10 +2063,6 @@ XNN
 		)
 	)
 ;
-
-// REGISTER END
-
-// NUMBERS START
 
 UNSIGNED_HEX_NUM
 :
@@ -2146,10 +2124,6 @@ BIN_NUM
 :
 	'BIN-' [01]+
 ;
-
-// NUMBERS END
-
-// PSUEDO PREPROCESSOR COMMANDS START
 
 DEL
 :

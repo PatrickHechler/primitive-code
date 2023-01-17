@@ -24,6 +24,12 @@
             <artifactId>prim-core</artifactId>
             <version>4.0.0</version>
         </dependency>
+		<dependency>
+			<groupId>de.hechler.patrick.hilfen</groupId>
+			<artifactId>checker</artifactId>
+			<version>7.1.4-SNAPSHOT</version>
+			<scope>test</scope>
+		</dependency>
     </dependencies>
     <build>
         <plugins>

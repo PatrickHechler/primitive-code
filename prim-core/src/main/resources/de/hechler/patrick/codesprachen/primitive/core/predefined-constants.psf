@@ -217,7 +217,7 @@ INT_FOLDER_CREATE_CHILD_FOLDER=35
 |    * `X00` contains the ELEMENT/FOLDER-ID
 |    * `X01` points to the STRING name of the new child element
 |    * `X01` will be set to a newly opened/created ELEMENT/FILE-ID for the child or `-1` on error
-|INT_FOLDER_CREATE_CHILD_FILE=36 
+INT_FOLDER_CREATE_CHILD_FILE=36 
 |: folder add child pipe
 |    * `X00` contains the ELEMENT/FOLDER-ID
 |    * `X01` points to the STRING name of the new child element

@@ -93,14 +93,14 @@ public class PrimAsmConstants {
 					out.print(line + '\n');
 				}
 			}
-			out.print(symbol + '=' + Long.toUnsignedString(pc.value(), 16).toUpperCase() + '\n');
+			out.print(symbol + "=UHEX-" + Long.toUnsignedString(pc.value(), 16).toUpperCase() + '\n');
 		});
 	}
 	
 	private static final String REGEX = "^\\#?(\\w+)\\s*\\=\\s*(([UN]?(HEX\\-|BIN\\-|OCT\\-|DEC\\-)|\\-)?[0-9a-fA-F]+)$";
-	private static final Pattern PATTERN = Pattern.compile(REGEX);
 	
 	public static void readSymbols(String prefix, Map <String, PrimitiveConstant> addSymbols, Scanner sc, Path path) {
+		final Pattern pattern = Pattern.compile(REGEX);
 		StringBuilder comment = new StringBuilder();
 		int lineNumber = 1;
 		while (sc.hasNextLine()) {
@@ -112,7 +112,7 @@ public class PrimAsmConstants {
 				comment.append(line);
 				continue;
 			}
-			Matcher matcher = PATTERN.matcher(line);
+			Matcher matcher = pattern.matcher(line);
 			if ( !matcher.matches()) {
 				throw new IllegalStateException("line does not match regex: line='" + line + "', regex='" + REGEX + "'");
 			}
