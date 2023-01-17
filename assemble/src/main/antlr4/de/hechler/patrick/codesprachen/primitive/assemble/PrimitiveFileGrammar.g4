@@ -653,7 +653,7 @@ returns [Param p, AssembleRuntimeException are]
 			if (constants.containsKey($NAME.getText())) {
 				ParamBuilder builder = new ParamBuilder();
  				builder.art = ParamBuilder.A_NUM;
- 				builder.v1 = constants.get($NAME.getText()).value;
+ 				builder.v1 = constants.get($NAME.getText()).value();
  				$p = builder.build();
 			} else {
 				$p = Param.createLabel($NAME.getText());
@@ -1248,7 +1248,7 @@ returns [long num, AssembleRuntimeException are]
 	 				$are = new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: '" + $NAME.getText() + "', known constants: '" + constants + "'");
  				}
  			}
- 			$num = zw.value;
+ 			$num = zw.value();
  		}
 
 	)
@@ -1474,9 +1474,6 @@ returns [Command c] @init {Commands cmd = null;}
 			| DIV
 			{cmd = Commands.CMD_DIV;}
 
-			| NEG
-			{cmd = Commands.CMD_NEG;}
-
 			| ADDC
 			{cmd = Commands.CMD_ADDC;}
 
@@ -1519,9 +1516,6 @@ returns [Command c] @init {Commands cmd = null;}
 			| BDIV
 			{cmd = Commands.CMD_BDIV;}
 
-			| BNEG
-			{cmd = Commands.CMD_BNEG;}
-
 			| FPTN
 			{cmd = Commands.CMD_FPTN;}
 
@@ -1557,7 +1551,16 @@ returns [Command c] @init {Commands cmd = null;}
 		|
 		(
 			(
-				NOT
+				NEG
+				{cmd = Commands.CMD_NEG;}
+
+				| BNEG
+				{cmd = Commands.CMD_BNEG;}
+
+				| NEGFP
+				{cmd = Commands.CMD_NEGFP;}
+
+				| NOT
 				{cmd = Commands.CMD_NOT;}
 
 				| INC
@@ -1565,9 +1568,6 @@ returns [Command c] @init {Commands cmd = null;}
 
 				| DEC
 				{cmd = Commands.CMD_DEC;}
-
-				| NEGFP
-				{cmd = Commands.CMD_NEGFP;}
 
 				| JMPERR
 				{cmd = Commands.CMD_JMPERR;}

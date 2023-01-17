@@ -10,10 +10,10 @@ import de.hechler.patrick.codesprachen.primitive.disassemble.interfaces.LabelNam
 
 public class Command {
 	
-	public final Commands cmd;
-	public final Param p1;
-	public final Param p2;
-	public final long relativeLabel;
+	public final Commands            cmd;
+	public final Param               p1;
+	public final Param               p2;
+	public final long                relativeLabel;
 	private final LabelNameGenerator lng;
 	
 	
@@ -26,17 +26,11 @@ public class Command {
 		this.lng = lng;
 	}
 	
-	public Command(Commands cmd) {
-		this(cmd, null, null, -1L, null);
-	}
+	public Command(Commands cmd) { this(cmd, null, null, -1L, null); }
 	
-	public Command(Commands cmd, Param p1) {
-		this(cmd, p1, null, -1L, null);
-	}
+	public Command(Commands cmd, Param p1) { this(cmd, p1, null, -1L, null); }
 	
-	public Command(Commands cmd, Param p1, Param p2) {
-		this(cmd, p1, p2, -1L, null);
-	}
+	public Command(Commands cmd, Param p1, Param p2) { this(cmd, p1, p2, -1L, null); }
 	
 	public Command(Commands cmd, long relativeLabel, LabelNameGenerator lng) {
 		this(cmd, null, null, relativeLabel, lng == null ? LabelNameGenerator.SIMPLE_GEN : lng);
@@ -44,43 +38,21 @@ public class Command {
 	
 	@Override
 	public String toString() {
-		StringBuilder build = new StringBuilder(cmd.toString());
-		switch (cmd.art) {
-		case label:
-			build.append(" RELATIVE: ").append(relativeLabel);
-			break;
-		case noParams:
-			break;
-		case oneParamAllowConst:
-		case oneParamNoConst:
-			build.append(' ').append(p1);
-			break;
-		case twoParamsAllowConsts:
-		case twoParamsNoConsts:
-		case twoParamsP1NoConstP2AllowConst:
-			build.append(' ').append(p1).append(", ").append(p2);
-			break;
-		default:
-			break;
-		}
-		return build.toString();
+		return toString(0L);
 	}
 	
 	public String toString(long pos) {
 		StringBuilder build = new StringBuilder(cmd.toString());
 		switch (cmd.art) {
-		case label:
+		case LABEL_OR_CONST:
 			build.append(' ').append(lng.generateName(pos + relativeLabel));
 			break;
-		case noParams:
+		case NO_PARAMS:
 			break;
-		case oneParamAllowConst:
-		case oneParamNoConst:
+		case ONE_PARAM_ALLOW_CONST, ONE_PARAM_NO_CONST:
 			build.append(' ').append(p1);
 			break;
-		case twoParamsAllowConsts:
-		case twoParamsNoConsts:
-		case twoParamsP1NoConstP2AllowConst:
+		case TWO_PARAMS_ALLOW_CONSTS, TWO_PARAMS_NO_CONSTS, TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST:
 			build.append(' ').append(p1).append(", ").append(p2);
 			break;
 		default:
@@ -93,9 +65,7 @@ public class Command {
 		
 		private byte[] bytes = new byte[0];
 		
-		public ConstantPoolCmd() {
-			super(null, null, null, -1, null);
-		}
+		public ConstantPoolCmd() { super(null, null, null, -1, null); }
 		
 		public void add(long val) {
 			final int oldlen = bytes.length;
@@ -106,7 +76,7 @@ public class Command {
 		public void add(long[] vals) {
 			int off = bytes.length;
 			bytes = Arrays.copyOf(bytes, off + (vals.length * 8));
-			for (int i = 0; i < vals.length; i ++ , off += 8) {
+			for (int i = 0; i < vals.length; i++, off += 8) {
 				convertLongToByteArr(bytes, off, vals[i]);
 			}
 		}
@@ -120,7 +90,7 @@ public class Command {
 		@Override
 		public String toString() {
 			StringBuilder build = new StringBuilder(":");
-			int off;
+			int           off;
 			for (off = 0; off < bytes.length - 8; off += 8) {
 				String prefix = "\n    UHEX-";
 				build.append(convertByteArrToHexString(prefix, bytes, off, 8, ""));
@@ -129,7 +99,7 @@ public class Command {
 				String prefix = "\n    UHEX-";
 				build.append(convertByteArrToHexString(prefix, bytes, off, 8, "\n>"));
 			} else {
-				for (; off < bytes.length; off ++ ) {
+				for (; off < bytes.length; off++) {
 					build.append(convertByteArrToHexString("\n    B-HEX-", bytes, off, 1, ""));
 				}
 				build.append("\n>");
@@ -138,13 +108,10 @@ public class Command {
 		}
 		
 		@Override
-		public String toString(long pos) {
-			return toString();
-		}
+		public String toString(long pos) { return toString(); }
 		
-		public int length() {
-			return bytes.length;
-		}
+		@Override
+		public int length() { return bytes.length; }
 		
 		public void get(byte[] bytes, int boff, int off, int len) {
 			System.arraycopy(this.bytes, off, bytes, boff, len);
@@ -153,9 +120,7 @@ public class Command {
 	}
 	
 	public int length() {
-		if (relativeLabel != -1) {
-			return 16;
-		}
+		if (relativeLabel != -1) { return 16; }
 		if (p2 != null) {
 			int len = p1.length();
 			len += p2.length();
@@ -167,15 +132,16 @@ public class Command {
 		}
 	}
 	
-	public byte[] genBytes(long pos) {
+	public byte[] genBytes() {
 		byte[] bytes = new byte[length()];
-		bytes[0] = (byte) cmd.num();
+		bytes[0] = (byte) cmd.num;
+		bytes[1] = (byte) (cmd.num >>> 8);
 		if (p1 != null) {
-			int firstI, retI;
-			bytes[1] = (byte) p1.art;
+			int firstI;
+			int retI;
+			bytes[2] = (byte) p1.art;
 			switch (p1.art) {
-			case Param.ART_ANUM:
-			case Param.ART_ANUM_BREG:
+			case Param.ART_ANUM, Param.ART_ANUM_BREG:
 				convertLongToByteArr(bytes, 8, p1.num);
 				firstI = 7;
 				retI = 16;
@@ -192,8 +158,7 @@ public class Command {
 				firstI = 6;
 				retI = 16;
 				break;
-			case Param.ART_ASR:
-			case Param.ART_ASR_BREG:
+			case Param.ART_ASR, Param.ART_ASR_BREG:
 				bytes[7] = (byte) p1.off;
 				firstI = 6;
 				retI = 8;
@@ -216,8 +181,7 @@ public class Command {
 			if (p2 != null) {
 				bytes[1] = (byte) p2.art;
 				switch (p2.art) {
-				case Param.ART_ANUM:
-				case Param.ART_ANUM_BREG:
+				case Param.ART_ANUM, Param.ART_ANUM_BREG:
 					convertLongToByteArr(bytes, retI, p2.num);
 					break;
 				case Param.ART_ANUM_BNUM:
@@ -228,8 +192,7 @@ public class Command {
 					convertLongToByteArr(bytes, retI, p2.num);
 					bytes[firstI] = (byte) p2.off;
 					break;
-				case Param.ART_ASR:
-				case Param.ART_ASR_BREG:
+				case Param.ART_ASR, Param.ART_ASR_BREG:
 					bytes[firstI] = (byte) p2.off;
 					break;
 				case Param.ART_ASR_BNUM:
@@ -246,9 +209,7 @@ public class Command {
 			}
 		} else {
 			assert p2 == null;
-			if (cmd.art == ParamArt.label) {
-				convertLongToByteArr(bytes, 8, relativeLabel);
-			}
+			if (cmd.art == ParamArt.LABEL_OR_CONST) { convertLongToByteArr(bytes, 8, relativeLabel); }
 		}
 		return bytes;
 	}

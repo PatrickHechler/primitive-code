@@ -41,7 +41,7 @@ public class Param {
 		public static final int SR_STATUS  = STATUS;
 		public static final int SR_INTCNT  = INTCNT;
 		public static final int SR_INTP    = INTP;
-		public static final int SR_FS_LOCK = FS_LOCK;
+		public static final int SR_ERRNO = ERRNO;
 		public static final int SR_X_ADD   = X_ADD;
 		
 		public static final int A_NUM = 0x00000001;
@@ -63,7 +63,7 @@ public class Param {
 		public long v1  = 0L;
 		public long v2  = 0L;
 		
-		public ParamBuilder() {}
+		public ParamBuilder() { /* nothing to be done*/ }
 		
 		public boolean isValid() {
 			try {
@@ -155,8 +155,8 @@ public class Param {
 		}
 	}
 	
-	public static String toSRString(long sr) {
-		assert sr < 0xFF;
+	static String toSRString(long sr) {
+		assert sr <= 0xFF;
 		int reg = (int) sr;
 		switch (reg) {
 		case ParamBuilder.SR_IP:

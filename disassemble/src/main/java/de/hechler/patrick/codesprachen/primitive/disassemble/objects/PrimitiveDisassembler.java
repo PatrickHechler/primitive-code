@@ -27,6 +27,7 @@ import de.hechler.patrick.codesprachen.primitive.disassemble.utils.LongArrayInpu
 
 public class PrimitiveDisassembler {
 	
+	private static final String UNKNOWN_MODE = "unknown mode: ";
 	private final Writer             out;
 	private final LabelNameGenerator lng;
 	private final DisasmMode         mode;
@@ -74,10 +75,10 @@ public class PrimitiveDisassembler {
 			out.write("$not-align\n");
 			break;
 		default:
-			throw new InternalError("unknown mode: " + mode.name());
+			throw new InternalError(UNKNOWN_MODE + mode.name());
 		}
 		for (int i = 0; i < cmds.size(); i ++ ) {
-			if (labels.contains((Long) pos)) {
+			if (labels.contains(pos)) {
 				switch (mode) {
 				case analysable:
 					out.write("@L_");
@@ -88,7 +89,7 @@ public class PrimitiveDisassembler {
 					out.write('\n');
 					break;
 				default:
-					throw new InternalError("unknown mode: " + mode.name());
+					throw new InternalError(UNKNOWN_MODE + mode.name());
 				}
 			} else {
 				switch (mode) {
@@ -98,12 +99,11 @@ public class PrimitiveDisassembler {
 				case executable:
 					break;
 				default:
-					throw new InternalError("unknown mode: " + mode.name());
+					throw new InternalError(UNKNOWN_MODE + mode.name());
 				}
 			}
 			Command cmd = cmds.get(i);
-			if (cmd instanceof ConstantPoolCmd) {
-				ConstantPoolCmd cp = (ConstantPoolCmd) cmd;
+			if (cmd instanceof ConstantPoolCmd cp) {
 				switch (mode) {
 				case analysable: {
 					boolean first = true;
@@ -134,7 +134,7 @@ public class PrimitiveDisassembler {
 					break;
 				}
 				default:
-					throw new InternalError("unknown mode: " + mode.name());
+					throw new InternalError(UNKNOWN_MODE + mode.name());
 				}
 				continue;
 			}
@@ -143,20 +143,19 @@ public class PrimitiveDisassembler {
 				byte[] bytes = new byte[8];
 				bytes[0] = (byte) cmd.cmd.num;
 				switch (cmd.cmd.art) {
-				case label: {
+				case LABEL_OR_CONST: {
 					out.write(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = ")));
 					out.write(cmd.toString(pos));
 					out.write(convertLongToHexString("\n   ", pos + 8, convertLongToHexString(" -> ", cmd.relativeLabel, "   | [relative-label]\n")));
 					break;
 				}
-				case noParams: {
+				case NO_PARAMS: {
 					out.write(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = ")));
 					out.write(cmd.toString());
 					out.write('\n');
 					break;
 				}
-				case oneParamAllowConst:
-				case oneParamNoConst: {
+				case ONE_PARAM_ALLOW_CONST, ONE_PARAM_NO_CONST: {
 					bytes[1] = (byte) cmd.p1.art;
 					int off = 7;
 					if ( (cmd.p1.art & PARAM_A_SR) != 0) {
@@ -178,9 +177,7 @@ public class PrimitiveDisassembler {
 					}
 					break;
 				}
-				case twoParamsAllowConsts:
-				case twoParamsNoConsts:
-				case twoParamsP1NoConstP2AllowConst: {
+				case TWO_PARAMS_ALLOW_CONSTS, TWO_PARAMS_NO_CONSTS, TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST: {
 					bytes[1] = (byte) cmd.p1.art;
 					int off = 7;
 					if ( (cmd.p1.art & PARAM_A_SR) != 0) {
@@ -248,21 +245,16 @@ public class PrimitiveDisassembler {
 					bytes = Arrays.copyOf(bytes, read);
 					cp.add(bytes);
 					cmds.add(cp);
-					pos += cp.length();// not really needed
 				} else if (cp != null) {
 					cmds.add(cp);
-					pos += cp.length();// not really needed
 				}
 				return;
 			}
 			try {
-				Commands cmd = Commands.get(bytes[0]);
+				Commands cmd = Commands.get(0xFF & bytes[0] | (0xFF & (bytes[1]) << 8));
 				Command command;
 				switch (cmd.art) {
-				case label:
-					for (int ii = 1; ii < 8; ii ++ ) {
-						Param.zeroCheck(bytes[ii]);
-					}
+				case LABEL_OR_CONST:
 					if (cp != null) {
 						cmds.add(cp);
 						pos += cp.length();
@@ -271,9 +263,9 @@ public class PrimitiveDisassembler {
 					checkedReadBytes(in, bytes);
 					long val = convertByteArrToLong(bytes);
 					command = new Command(cmd, val, lng);
-					labels.add((Long) (pos + command.relativeLabel));
+					labels.add((pos + command.relativeLabel));
 					break;
-				case noParams:
+				case NO_PARAMS:
 					for (int ii = 1; ii < 8; ii ++ ) {
 						Param.zeroCheck(bytes[ii]);
 					}
@@ -284,7 +276,7 @@ public class PrimitiveDisassembler {
 						cp = null;
 					}
 					break;
-				case oneParamAllowConst:
+				case ONE_PARAM_ALLOW_CONST:
 					command = buildOneParam(bytes, in, cmd);
 					if (cp != null) {
 						cmds.add(cp);
@@ -292,7 +284,7 @@ public class PrimitiveDisassembler {
 						cp = null;
 					}
 					break;
-				case oneParamNoConst:
+				case ONE_PARAM_NO_CONST:
 					command = buildOneParam(bytes, in, cmd);
 					command.p1.checkNoConst();
 					if (cp != null) {
@@ -301,7 +293,7 @@ public class PrimitiveDisassembler {
 						cp = null;
 					}
 					break;
-				case twoParamsAllowConsts:
+				case TWO_PARAMS_ALLOW_CONSTS:
 					command = buildTwoParam(bytes, in, cmd);
 					if (cp != null) {
 						cmds.add(cp);
@@ -309,7 +301,7 @@ public class PrimitiveDisassembler {
 						cp = null;
 					}
 					break;
-				case twoParamsNoConsts:
+				case TWO_PARAMS_NO_CONSTS:
 					command = buildTwoParam(bytes, in, cmd);
 					command.p1.checkNoConst();
 					command.p2.checkNoConst();
@@ -319,7 +311,7 @@ public class PrimitiveDisassembler {
 						cp = null;
 					}
 					break;
-				case twoParamsP1NoConstP2AllowConst:
+				case TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST:
 					command = buildTwoParam(bytes, in, cmd);
 					command.p1.checkNoConst();
 					if (cp != null) {

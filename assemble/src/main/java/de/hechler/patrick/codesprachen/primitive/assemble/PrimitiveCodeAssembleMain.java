@@ -1,22 +1,19 @@
 package de.hechler.patrick.codesprachen.primitive.assemble;
 
-import java.io.Closeable;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintStream;
 import java.io.Reader;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.OpenOption;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardOpenOption;
-import java.util.Collections;
+import java.security.NoSuchProviderException;
+import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.InputMismatchException;
@@ -25,23 +22,37 @@ import org.antlr.v4.runtime.misc.Interval;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRuntimeException;
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
-import de.hechler.patrick.pfs.objects.jfs.PFSFileSystemImpl;
-import de.hechler.patrick.pfs.utils.JavaPFSConsants;
+import de.hechler.patrick.zeugs.pfs.FSProvider;
+import de.hechler.patrick.zeugs.pfs.interfaces.FS;
+import de.hechler.patrick.zeugs.pfs.interfaces.FSElement;
+import de.hechler.patrick.zeugs.pfs.interfaces.File;
+import de.hechler.patrick.zeugs.pfs.interfaces.Folder;
+import de.hechler.patrick.zeugs.pfs.interfaces.ReadStream;
+import de.hechler.patrick.zeugs.pfs.interfaces.WriteStream;
+import de.hechler.patrick.zeugs.pfs.opts.JavaFSOptions;
+import de.hechler.patrick.zeugs.pfs.opts.PatrFSOptions;
+import de.hechler.patrick.zeugs.pfs.opts.StreamOpenOptions;
 
 public class PrimitiveCodeAssembleMain {
 	
+	private static final String SYMBOL_FILE_POSSIX = ".psf";
+	
 	public static final Logger LOG = Logger.getLogger("prim-asm");
+	
+	private static final long CREATE_BLOCK_COUNT = 4096L;
+	private static final int  CREATE_BLOCK_SIZE  = 1024;
 	
 	private static PrimitiveAssembler asm;
 	private static Reader             input;
-	private static Closeable          c;
+	private static FS                 fileSys;
 	
 	public static void main(String[] args) {
 		setup(args);
 		try {
 			asm.assemble(null, input);
 			LOG.info("assembled successful");
-			if (c != null) { c.close(); }
+			if (fileSys != null) { fileSys.close(); }
+			JAVA_FS.close();
 		} catch (ThreadDeath t) {
 			throw t;
 		} catch (Throwable t) {
@@ -120,14 +131,24 @@ public class PrimitiveCodeAssembleMain {
 		}
 	}
 	
+	private static final FS JAVA_FS;
+	
+	static {
+		try {
+			JAVA_FS = FSProvider.ofName(FSProvider.JAVA_FS_PROVIDER_NAME).loadFS(new JavaFSOptions(Paths.get("/")));
+			JAVA_FS.cwd(JAVA_FS.folder(Paths.get(".").toAbsolutePath().toString()));
+		} catch (IOException | NoSuchProviderException e) {
+			throw new InternalError(e);
+		}
+	}
+	
 	private static void setup(String[] args) {
-		FileSystem fileSys      = null;
-		Charset    charset      = null;
-		String     inFile       = null;
-		String     outFile      = null;
-		boolean    suppressWarn = false;
-		boolean    noExport     = false;
-		boolean    force        = false;
+		Charset charset      = null;
+		String  inFile       = null;
+		String  outFile      = null;
+		boolean suppressWarn = false;
+		boolean noExport     = false;
+		boolean force        = false;
 		try {
 			for (int i = 0; i < args.length; i++) {
 				switch (args[i].toLowerCase()) {
@@ -135,8 +156,8 @@ public class PrimitiveCodeAssembleMain {
 				case "--cs", "--charset" -> charset = argCharset(args, charset, ++i);
 				case "--in", "--input" -> inFile = argInput(args, inFile, ++i);
 				case "--out", "--output" -> outFile = argOutput(args, outFile, ++i);
-				case "--rfs", "--real-file-system" -> fileSys = argRfs(args, fileSys, i);
-				case "--pfs", "--patr-file-system" -> fileSys = argPfs(args, fileSys, ++i);
+				case "--rfs", "--real-file-system" -> argRfs(args, i);
+				case "--pfs", "--patr-file-system" -> argPfs(args, ++i);
 				case "-s", "--suppress-warn" -> suppressWarn = true;
 				case "-n", "--no-export" -> noExport = true;
 				case "-f", "--force" -> force = true;
@@ -154,10 +175,68 @@ public class PrimitiveCodeAssembleMain {
 			}
 			if (inFile == null) { crash(args, -1, "no input file set (use --input)"); }
 			charset = charset != null ? charset : StandardCharsets.UTF_8;
-			doSetup(fileSys, charset, inFile, outFile, suppressWarn, noExport, force);
+			doSetup(args, charset, inFile, outFile, suppressWarn, noExport, force);
 		} catch (Exception e) {
 			e.printStackTrace();
 			crash(args, -1, e.getClass() + ": " + e.getMessage());
+		}
+	}
+	
+	private static void doSetup(String[] args, Charset charset, String inFile, String outFile,
+			boolean suppressWarn, boolean noExport, boolean force) throws IOException {
+		@SuppressWarnings("resource")
+		FS outFS = PrimitiveCodeAssembleMain.fileSys == null ? JAVA_FS : PrimitiveCodeAssembleMain.fileSys;
+		try (File in = JAVA_FS.file(inFile)) {
+			WriteStream out;
+			WriteStream expOut;
+			if (outFile == null) {
+				String outName = pmfName(in.name());
+				try (Folder parent = in.parent()) {
+					try {
+						FSElement oldOut = parent.childElement(outName);
+						if (force) {
+							oldOut.delete();
+						} else {
+							crash(args, -1, "out file already exists use --force to overwrite");
+						}
+					} catch (NoSuchFileException e) { /* ignore */ }
+					try (File of = parent.createFile(outFile)) {
+						out = of.openWrite();
+					}
+					if (noExport) {
+						expOut = null;
+					} else {
+						try {
+							FSElement oldExpOut = parent.childElement(outName + SYMBOL_FILE_POSSIX);
+							if (force) {
+								oldExpOut.delete();
+							} else {
+								crash(args, -1, "out file already exists use --force to overwrite");
+							}
+						} catch (NoSuchFileException e) { /* ignore */ }
+						try (File eof = parent.createFile(outFile + SYMBOL_FILE_POSSIX)) {
+							expOut = eof.openWrite();
+						}
+					}
+				}
+			} else {
+				StreamOpenOptions opts = new StreamOpenOptions(false, true);
+				out = (WriteStream) outFS.stream(outFile, opts);
+				if (noExport) {
+					expOut = null;
+				} else {
+					expOut = (WriteStream) outFS.stream(outFile + SYMBOL_FILE_POSSIX, opts);
+				}
+			}
+			initAsm(charset, in.openRead(), out, expOut, suppressWarn);
+		}
+	}
+	
+	private static String pmfName(String name) {
+		if (name.endsWith(".psc")) {
+			return name.substring(0, name.length() - 4);
+		} else {
+			return name + ".pmf";
 		}
 	}
 	
@@ -169,75 +248,61 @@ public class PrimitiveCodeAssembleMain {
 	private static Charset argCharset(String[] args, Charset charset, int i) {
 		if (args.length <= i) { crash(args, i, "not enugh args for charset option"); }
 		if (charset != null) { crash(args, i, "charset already set"); }
-		charset = Charset.forName(args[i]);
-		return charset;
+		return Charset.forName(args[i]);
 	}
 	
 	private static String argInput(String[] args, String inFile, int i) {
 		if (args.length <= i) { crash(args, i, "not enugh args for input option"); }
 		if (inFile != null) { crash(args, i, "input already set"); }
-		inFile = args[i];
-		return inFile;
+		return args[i];
 	}
 	
 	private static String argOutput(String[] args, String outFile, int i) {
 		if (args.length <= i) { crash(args, i, "not enugh args for out option"); }
 		if (outFile != null) { crash(args, i, "out already set"); }
-		outFile = args[i];
-		return outFile;
+		return args[i];
 	}
 	
-	private static FileSystem argRfs(String[] args, FileSystem fileSys, int i) {
+	private static void argRfs(String[] args, int i) {
 		if (fileSys != null) { crash(args, i, "file system already set"); }
-		fileSys = FileSystems.getDefault();
-		return fileSys;
+		fileSys = null;
 	}
 	
-	private static FileSystem argPfs(String[] args, FileSystem fileSys, int i) throws URISyntaxException, IOException {
+	private static void argPfs(String[] args, int i) throws IOException {
 		if (args.length <= i) { crash(args, i, "not enugh args for pfs option"); }
 		if (fileSys != null) { crash(args, i, "file system already set"); }
-		URI uri = new URI(JavaPFSConsants.URI_SHEME, null, args[i], null, null);
-		fileSys = FileSystems.newFileSystem(uri, Collections.emptyMap());
-		c = fileSys;
-		return fileSys;
+		FSProvider patrProv = null;
+		try {
+			patrProv = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME);
+			fileSys = patrProv.loadFS(new PatrFSOptions(args[i]));
+		} catch (NoSuchElementException e) {
+			if (patrProv == null) {
+				e.printStackTrace();
+				LOG.severe(() -> "error: " + e);
+				System.exit(1);
+				throw new AssertionError();
+			}
+			fileSys = patrProv.loadFS(new PatrFSOptions(args[i], true, CREATE_BLOCK_COUNT, CREATE_BLOCK_SIZE));
+		} catch (NoSuchProviderException | IOException e) {
+			e.printStackTrace();
+			LOG.severe(() -> "error: " + e);
+			System.exit(1);
+			throw new AssertionError();
+		}
 	}
 	
-	private static void doSetup(FileSystem fileSys, Charset charset, String inFile, String outFile,
-			boolean suppressWarn, boolean noExport, boolean force) throws IOException, URISyntaxException {
-		Path inPath = Paths.get(inFile);
-		if (fileSys == null) {
-			Path path = inPath.resolveSibling("out.pfs").toAbsolutePath();
-			if (force && Files.exists(path)) { Files.delete(path); }
-			URI uri = new URI(JavaPFSConsants.URI_SHEME, null, "/" + path.toUri().toString(), null, null);
-			fileSys = FileSystems.newFileSystem(uri, Collections.emptyMap());
-		}
-		Path outPath;
-		if (outFile != null) {
-			outPath = fileSys.getPath(outFile);
-		} else if (fileSys instanceof PFSFileSystemImpl) {
-			outPath = fileSys.getPath("a.out");
-		} else {
-			outPath = fileSys.getPath(inFile).resolveSibling("a.out");
-		}
-		input = Files.newBufferedReader(inPath, charset);
-		OpenOption[] opts          = force
-				? new OpenOption[] { StandardOpenOption.CREATE, StandardOpenOption.WRITE,
-						StandardOpenOption.TRUNCATE_EXISTING }
-				: new OpenOption[] { StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE };
-		OutputStream outFileStream = Files.newOutputStream(outPath, opts);
-		if (noExport) {
-			asm = new PrimitiveAssembler(outFileStream, null, new Path[] { Paths.get(".") }, suppressWarn, true);
-		} else {
-			Path   exportPath;
-			String outPathName = outPath.getFileName().toString();
-			if (outPathName.endsWith(".pmc")) {
-				exportPath = outPath.resolveSibling(outPathName.substring(0, outPathName.length() - 3) + "psf");
+	private static void initAsm(Charset charset, ReadStream in, WriteStream out, WriteStream exportOut,
+			boolean suppressWarn) throws IOException {
+		input = new InputStreamReader(new BufferedInputStream(in.asInputStream()));
+		try (OutputStream outFileStream = new BufferedOutputStream(out.asOutputStream())) {
+			if (exportOut == null) {
+				asm = new PrimitiveAssembler(outFileStream, null, new Path[] { Paths.get(".") }, suppressWarn, true);
 			} else {
-				exportPath = outPath.resolveSibling(outPathName + ".psf");
+				try (OutputStream exportOutStream = new BufferedOutputStream(exportOut.asOutputStream())) {
+					asm = new PrimitiveAssembler(outFileStream, new PrintStream(exportOutStream, true, charset),
+							new Path[] { Paths.get(".") }, suppressWarn, true);
+				}
 			}
-			OutputStream exportOutStream = Files.newOutputStream(exportPath, opts);
-			asm = new PrimitiveAssembler(outFileStream, new PrintStream(exportOutStream, true, charset),
-					new Path[] { Paths.get(".") }, suppressWarn, true);
 		}
 	}
 	
@@ -266,7 +331,7 @@ public class PrimitiveCodeAssembleMain {
 						+ "        --in, --input [FILE]             to set the input file\n" //
 						+ "                                         this option is non optional\n" //
 						+ "        --out, --output [FILE]           to set the output file\n" //
-						+ "                                         default to /a.out\n" //
+						+ "                                         the default depends on the input\n" //
 						+ "                                         on rfs to {input-name}/../a.out\n" //
 						+ "        --rfs, --real-file-system        to use the default file system\n" //
 						+ "                                         instead of the patr-file-system\n" //

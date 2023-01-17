@@ -469,7 +469,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
 						$are = new AssembleRuntimeException($NAME.getLine(), $NAME.getCharPositionInLine(), $NAME.getStopIndex() - $NAME.getStartIndex() + 1, $NAME.getStartIndex(), "unknown constant: " + $NAME.getText());
 					}
 				}
-				$num = pc.value;
+				$num = pc.value();
 			}
 
  		)
