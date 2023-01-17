@@ -13,7 +13,6 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchProviderException;
-import java.util.NoSuchElementException;
 import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.InputMismatchException;
@@ -157,7 +156,7 @@ public class PrimitiveCodeAssembleMain {
 				case "--in", "--input" -> inFile = argInput(args, inFile, ++i);
 				case "--out", "--output" -> outFile = argOutput(args, outFile, ++i);
 				case "--rfs", "--real-file-system" -> argRfs(args, i);
-				case "--pfs", "--patr-file-system" -> argPfs(args, ++i);
+				case "--pfs", "--patr-file-system" -> argPfs(args, ++i, force);
 				case "-s", "--suppress-warn" -> suppressWarn = true;
 				case "-n", "--no-export" -> noExport = true;
 				case "-f", "--force" -> force = true;
@@ -268,22 +267,18 @@ public class PrimitiveCodeAssembleMain {
 		fileSys = null;
 	}
 	
-	private static void argPfs(String[] args, int i) throws IOException {
+	private static void argPfs(String[] args, int i, boolean force) throws IOException {
 		if (args.length <= i) { crash(args, i, "not enugh args for pfs option"); }
 		if (fileSys != null) { crash(args, i, "file system already set"); }
 		FSProvider patrProv = null;
 		try {
 			patrProv = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME);
 			fileSys = patrProv.loadFS(new PatrFSOptions(args[i]));
-		} catch (NoSuchElementException e) {
-			if (patrProv == null) {
-				e.printStackTrace();
-				LOG.severe(() -> "error: " + e);
-				System.exit(1);
-				throw new AssertionError();
+		} catch (IOException e) {
+			if (force) {
+				fileSys = patrProv.loadFS(new PatrFSOptions(args[i], true, CREATE_BLOCK_COUNT, CREATE_BLOCK_SIZE));
 			}
-			fileSys = patrProv.loadFS(new PatrFSOptions(args[i], true, CREATE_BLOCK_COUNT, CREATE_BLOCK_SIZE));
-		} catch (NoSuchProviderException | IOException e) {
+		} catch (NoSuchProviderException e) {
 			e.printStackTrace();
 			LOG.severe(() -> "error: " + e);
 			System.exit(1);
@@ -332,11 +327,8 @@ public class PrimitiveCodeAssembleMain {
 						+ "                                         this option is non optional\n" //
 						+ "        --out, --output [FILE]           to set the output file\n" //
 						+ "                                         the default depends on the input\n" //
-						+ "                                         on rfs to {input-name}/../a.out\n" //
-						+ "        --rfs, --real-file-system        to use the default file system\n" //
-						+ "                                         instead of the patr-file-system\n" //
+						+ "        --rfs, --real-file-system        to use the linux file system\n" //
 						+ "        --pfs, --patr-file-system [FILE] to set the patr-file-system file\n" //
-						+ "                                         default to ./out.pfs\n" //
 						+ "        --suppress-warn, -s              to suppresss warnings\n" //
 						+ "        --no-export, -n                  to suppress the generation of the export file\n" //
 						+ "        --force, -f                      to overwrite output files if they exist already\n" //
