@@ -30,7 +30,7 @@ enum perr {
 #include <pfs-err.h>
 _Static_assert(PE_NONE                  == PFS_ERRNO_NONE                  , "Error!");
 _Static_assert(PE_UNKNOWN_ERROR         == PFS_ERRNO_UNKNOWN_ERROR         , "Error!");
-_Static_assert(PE_NO_MORE_ELEMNETS      == PFS_ERRNO_NO_MORE_ELEMNETS      , "Error!");
+_Static_assert(PE_NO_MORE_ELEMNETS      == PFS_ERRNO_NO_MORE_ELEMENTS      , "Error!");
 _Static_assert(PE_ELEMENT_WRONG_TYPE    == PFS_ERRNO_ELEMENT_WRONG_TYPE    , "Error!");
 _Static_assert(PE_ELEMENT_NOT_EXIST     == PFS_ERRNO_ELEMENT_NOT_EXIST     , "Error!");
 _Static_assert(PE_ELEMENT_ALREADY_EXIST == PFS_ERRNO_ELEMENT_ALREADY_EXIST , "Error!");

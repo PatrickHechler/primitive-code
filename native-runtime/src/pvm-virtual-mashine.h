@@ -98,6 +98,8 @@ static struct hashset breakpoints = {
 static enum pvm_db_state {
 	pvm_ds_running,
 
+	pvm_ds_new_running,
+
 	pvm_ds_stepping,
 
 	pvm_ds_waiting,

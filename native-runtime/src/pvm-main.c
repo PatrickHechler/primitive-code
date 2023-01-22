@@ -24,9 +24,9 @@
 #include <stdint.h>
 #include <fcntl.h>
 
-static void setup(int argc, char **argv);
-
-static void print_help(void);
+static inline void setup(int argc, char **argv);
+static inline void print_help(void);
+static inline void print_version0(void);
 
 #ifdef PVM_DEBUG
 static _Bool wait;
@@ -34,7 +34,7 @@ static int input;
 static _Bool input_is_pipe;
 #endif
 
-static void setup(int argc, char **argv) {
+static inline void setup(int argc, char **argv) {
 #ifdef PVM_DEBUG
 	wait = 0;
 	input = -1;
@@ -42,12 +42,12 @@ static void setup(int argc, char **argv) {
 	_Bool pmf_in_lfs = 0;
 	_Bool pfs_set = 0;
 	char *cwd = NULL;
-	for (argv++; *argv; argv++, argc--) {
+	for (argv++, argc--; *argv; argv++, argc--) {
 		if (!strcmp("--help", *argv)) {
 			print_help();
 			exit(1);
 		} else if (!strcmp("--version", *argv)) {
-			print_version();
+			print_version0();
 			exit(1);
 #ifdef PVM_DEBUG
 		} else if (!strcmp("--wait", *argv)) {
@@ -121,6 +121,7 @@ static void setup(int argc, char **argv) {
 				fprintf(stderr, "pfs already set!\n", *argv);
 				exit(1);
 			}
+			pfs_set = 1;
 			int fd = open(*argv + 6, O_RDWR);
 			if (fd == -1) {
 				perror("open");
@@ -151,12 +152,17 @@ static void setup(int argc, char **argv) {
 			void *exe_data;
 			if (pmf_in_lfs) {
 				int fd = open(*argv, O_RDONLY);
+				if (fd == -1) {
+					fprintf(stderr,
+							"could not open primitive machine file: %s\n", strerror(errno));
+					exit(1);
+				}
 				exe_size = lseek(fd, 0, SEEK_END);
 				lseek(fd, 0, SEEK_SET);
 				exe_data = malloc(exe_size);
 				if (!exe_data) {
 					fprintf(stderr,
-							"could not load the primitive machine file file in memory\n");
+							"could not load the primitive machine file in memory\n");
 					exit(1);
 				}
 				for (num reat = exe_size; reat < exe_size;) {
@@ -179,11 +185,16 @@ static void setup(int argc, char **argv) {
 				}
 			} else {
 				int fh = pfs_handle_file(*argv);
+				if (fh == -1) {
+					fprintf(stderr,
+							"could not open the primitive machine file: %s\n", pfs_error());
+					exit(1);
+				}
 				exe_size = pfs_file_length(fh);
 				exe_data = malloc(exe_size);
 				if (!exe_data) {
 					fprintf(stderr,
-							"could not load the primitive machine file file in memory\n");
+							"could not load the primitive machine file in memory\n");
 					exit(1);
 				}
 				int sh = pfs_open_stream(fh, PFS_SO_READ);
@@ -205,6 +216,7 @@ static void setup(int argc, char **argv) {
 				pfs_stream_close(sh);
 			}
 			pvm_init(argv, argc, exe_data, exe_size);
+			return;
 		} else {
 			fprintf(stderr, "unknown argument: '%s'\n", *argv);
 			exit(1);
@@ -213,7 +225,7 @@ static void setup(int argc, char **argv) {
 #ifdef PVM_DEBUG
 	if (!wait || (input == -1)) {
 		fprintf(stderr,
-				"no binary set! only allowedn if wait and debug input is set!\n");
+				"no binary set! only allowed if wait and debug input is set!\n");
 		exit(1);
 	}
 	pvm_init(argv, 0, NULL, -1);
@@ -223,7 +235,7 @@ static void setup(int argc, char **argv) {
 #endif
 }
 
-static void print_help(void) {
+static inline void print_help(void) {
 	printf(
 #ifdef PVM_DEBUG
 			"Usage: db-pvm [Options] --pmf=[EXECUTE_FILE] [ARGUMENTS]\n"
@@ -279,7 +291,11 @@ static void print_help(void) {
 			"");
 }
 
-void print_version() {
+static inline void print_version0() {
+	print_version(stdout);
+}
+
+void print_version(FILE *file) {
 	printf(
 #ifdef PVM_DEBUG
 			"debug-"

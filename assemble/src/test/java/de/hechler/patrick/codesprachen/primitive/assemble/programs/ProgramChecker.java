@@ -32,6 +32,7 @@ import de.hechler.patrick.zeugs.pfs.opts.StreamOpenOptions;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 @CheckClass
+@SuppressWarnings("static-method")
 public class ProgramChecker {
 	
 	private static final byte[] EMPTY_BARR = new byte[0];
@@ -66,9 +67,11 @@ public class ProgramChecker {
 	@Check
 	private void checkHelloWorld() throws IOException, InterruptedException {
 		try (FS fs = patrFsProv.loadFS(new PatrFSOptions(HELLO_WORLD_PFS, true, 4096L, 1024))) {
+			System.out.println("opened fs, asm now");
 			asm(fs, HELLO_WORLD_RES, HELLO_WORLD_PMF);
+			System.out.println("finished asm, close now fs");
 		}
-		System.out.println("finished asm, execute now the program");
+		System.out.println("execute now the program");
 		execute(HELLO_WORLD_PFS, HELLO_WORLD_PMF, 0, EMPTY_BARR, "hello world\n".getBytes(StandardCharsets.UTF_8),
 				EMPTY_BARR);
 	}
