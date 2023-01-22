@@ -1,8 +1,10 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble;
 
-import java.io.BufferedWriter;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.NoSuchProviderException;
@@ -34,48 +36,49 @@ public class PrimitiveDisassemblerMain {
 		try {
 			disasm.deassemble(pos, binary);
 		} catch (IOException e) {
-			LOG.severe("an error occured during the diassinble of the binary:");
+			LOG.severe("an error occured during the diassembling of the binary:");
 			e.printStackTrace();
-			exitCode = 2;
+			exitCode |= 8;
+		}
+		try {
+			disasm.close();
+		} catch (IOException e) {
+			LOG.warning("an error occured during the close operation of the disassembler:");
+			e.printStackTrace();
+			exitCode |= 4;
 		}
 		try {
 			binary.close();
 		} catch (IOException e) {
-			LOG.warning("an error occured during the cloye operation of the binary:");
+			LOG.warning("an error occured during the close operation of the binary:");
 			e.printStackTrace();
-			if (exitCode == 2) {
-				exitCode = 3;
-			} else {
-				exitCode = 1;
-			}
+			exitCode |= 1;
 		}
 		try {
-			fs.close();
-		} catch (IOException e) {
-			LOG.warning("an error occured during the cloye operation of the file system:");
-			e.printStackTrace();
-			if (exitCode == 2) {
-				exitCode = 3;
-			} else {
-				exitCode = 1;
+			if (fs != null) {
+				fs.close();
 			}
+		} catch (IOException e) {
+			LOG.warning("an error occured during the close operation of the file system");
+			e.printStackTrace();
+			exitCode |= 2;
 		}
 		System.exit(exitCode);
 	}
 	
 	private static void setup(String[] args) {
-		fs = null;
+		fs     = null;
 		disasm = null;
 		binary = null;
-		pos = -1L;
+		pos    = -1L;
 		String     in    = null;
 		String     out   = null;
 		DisasmMode dmode = null;
 		for (int i = 0; i < args.length; i++) {
 			switch (args[i]) {
 			case "--help" -> argHelp();
-			case "--pos" -> i = argPos(args, ++i);
-			case "--in", "--bin", "--pmf" -> in = argBin(args, in, ++i);
+			case "--pos" -> argPos(args, ++i);
+			case "--in", "--bin", "--pmf" -> in = argPmf(args, in, ++i);
 			case "-a", "--analyse" -> dmode = argAnalyze(args, dmode, i);
 			case "-e", "--executable" -> dmode = argExecutable(args, dmode, i);
 			case "--rfs" -> argRFS(args, i);
@@ -84,22 +87,29 @@ public class PrimitiveDisassemblerMain {
 			default -> crash(i, args, "unknown argument: '" + args[i] + "'");
 			}
 		}
-		if (fs == null) { crash(-1, args, "no file system spezified!"); }
-		if (binary == null) { crash(-1, args, "no binary/input set"); }
-		pos = pos == -1L ? 0L : pos;
+		if (fs == null) {
+			if (in != null) { crash(-1, args, "no file system spezified!"); }
+			binary = System.in;
+		} else {
+			if (in == null) { crash(-1, args, "no binary/input set"); }
+			try {
+				binary = ((ReadStream) fs.stream(out, new StreamOpenOptions(true, false))).asInputStream();
+			} catch (IOException e1) {
+				crash(-1, args, "error open machine file: " + e1.toString());
+			}
+		}
+		pos   = pos == -1L ? 0L : pos;
 		dmode = dmode == null ? DisasmMode.executable : dmode;
 		try {
-			BufferedWriter writer = Files.newBufferedWriter(Paths.get(out));
+			Writer writer;
+			if (out != null) {
+				writer = Files.newBufferedWriter(Paths.get(out));
+			} else {
+				writer = new OutputStreamWriter(System.out, StandardCharsets.UTF_8);
+			}
 			disasm = new PrimitiveDisassembler(dmode, writer);
 		} catch (IOException e) {
-			crash(-1, args, "error on opening outputstream for '" + out + "': " + e.getClass().getSimpleName() + ": "
-					+ e.getMessage());
-		}
-		try {
-			binary = ((ReadStream) fs.stream(in, new StreamOpenOptions(true, false))).asInputStream();
-		} catch (IOException e) {
-			crash(-1, args, "error on opening inputstream for '" + in + "': " + e.getClass().getSimpleName() + ": "
-					+ e.getMessage());
+			crash(-1, args, "error on opening outputstream for '" + out + "': " + e.getClass().getSimpleName() + ": " + e.getMessage());
 		}
 	}
 	
@@ -142,14 +152,14 @@ public class PrimitiveDisassemblerMain {
 		return dmode;
 	}
 	
-	private static String argBin(String[] args, String in, int i) {
+	private static String argPmf(String[] args, String in, int i) {
 		if (in != null) { crash(i - 1, args, "input is already set"); }
 		if (args.length <= i) { crash(i, args, NOT_ENUGH_ARGS); }
 		in = args[i];
 		return in;
 	}
 	
-	private static int argPos(String[] args, int i) {
+	private static void argPos(String[] args, int i) {
 		if (pos != -1L) { crash(i - 1, args, "pos is already set"); }
 		if (args.length <= i) { crash(i, args, NOT_ENUGH_ARGS); }
 		if (args[i].startsWith("0x")) {
@@ -159,7 +169,6 @@ public class PrimitiveDisassemblerMain {
 		} else {
 			pos = Long.parseUnsignedLong(args[i]);
 		}
-		return i;
 	}
 	
 	private static void argHelp() {
@@ -176,12 +185,16 @@ public class PrimitiveDisassemblerMain {
 						+ "        to set the beginning position of the binary data\n" //
 						+ "        if the POS starts with '0x' or 'HEX-' it is read in a\n" //
 						+ "        hexadecimal format, if not the decimal format is used\n" //
-						+ "    --in <BINARY>\n" //
-						+ "    --bin <BINARY>\n" //
-						+ "    --pmf <BINARY>\n" //
+						+ "    --in <MACHINE_FILE>\n" //
+						+ "    --bin <MACHINE_FILE>\n" //
+						+ "    --pmf <MACHINE_FILE>\n" //
 						+ "        to set the input-machine-file\n" //
+						+ "        if not set stdin will be used instead\n" //
+						+ "            note that then pfs/ref is not allowed\n" //
+						+ "            to be used.\n" //
 						+ "    --out <OUTPUT>\n" //
 						+ "        to set the output-file\n" //
+						+ "            if not set stdout will be used\n" //
 						+ "    -a\n" //
 						+ "    --analyse\n" //
 						+ "        to set the analyse mode\n" //
@@ -194,9 +207,9 @@ public class PrimitiveDisassemblerMain {
 						+ "        then the output data can be assembled\n" //
 						+ "        without the need further change\n" //
 						+ "    --rfs\n" //
-						+ "        to use the 'real' file-system\n" //
+						+ "        to use the 'real' file-system for the machine-file\n" //
 						+ "    --pfs <PFS_PATH>\n" //
-						+ "        to specify where the patr-file-system file is\n" //
+						+ "        to specify the patr-file-system file for the machine-file\n" //
 		);
 	}
 	

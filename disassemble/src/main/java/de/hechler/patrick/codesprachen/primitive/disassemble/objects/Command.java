@@ -13,24 +13,30 @@ public class Command {
 	public final Commands            cmd;
 	public final Param               p1;
 	public final Param               p2;
+	public final Param               p3;
 	public final long                relativeLabel;
 	private final LabelNameGenerator lng;
 	
 	
 	
-	private Command(Commands cmd, Param p1, Param p2, long relativeLabel, LabelNameGenerator lng) {
-		this.cmd = cmd;
-		this.p1 = p1;
-		this.p2 = p2;
+	private Command(Commands cmd, Param p1, Param p2, Param p3, long relativeLabel, LabelNameGenerator lng) {
+		this.cmd           = cmd;
+		this.p1            = p1;
+		this.p2            = p2;
+		this.p3            = p3;
 		this.relativeLabel = relativeLabel;
-		this.lng = lng;
+		this.lng           = lng;
 	}
+	
+	private Command(Commands cmd, Param p1, Param p2, long relativeLabel, LabelNameGenerator lng) { this(cmd, p1, p2, null, relativeLabel, lng); }
 	
 	public Command(Commands cmd) { this(cmd, null, null, -1L, null); }
 	
 	public Command(Commands cmd, Param p1) { this(cmd, p1, null, -1L, null); }
 	
 	public Command(Commands cmd, Param p1, Param p2) { this(cmd, p1, p2, -1L, null); }
+	
+	public Command(Commands cmd, Param p1, Param p2, Param p3) { this(cmd, p1, p2, p3, -1L, null); }
 	
 	public Command(Commands cmd, long relativeLabel, LabelNameGenerator lng) {
 		this(cmd, null, null, relativeLabel, lng == null ? LabelNameGenerator.SIMPLE_GEN : lng);
@@ -85,6 +91,18 @@ public class Command {
 			final int oldlen = bytes.length;
 			bytes = Arrays.copyOf(bytes, oldlen + vals.length);
 			System.arraycopy(vals, 0, bytes, oldlen, vals.length);
+		}
+		
+		public void add(byte[] vals, int len) {
+			final int oldlen = bytes.length;
+			bytes = Arrays.copyOf(bytes, oldlen + len);
+			System.arraycopy(vals, 0, bytes, oldlen, len);
+		}
+		
+		public void add(ConstantPoolCmd cp) {
+			final int oldlen = bytes.length;
+			bytes = Arrays.copyOf(bytes, oldlen + cp.bytes.length);
+			System.arraycopy(cp.bytes, 0, bytes, oldlen, cp.bytes.length);
 		}
 		
 		@Override

@@ -38,6 +38,7 @@
 #include <sys/un.h>
 #include <linux/membarrier.h>
 #include <sys/syscall.h>
+#include <sys/wait.h>
 #endif // PVM_DEBUG
 
 static int param_param_type_index;
@@ -366,7 +367,7 @@ static void call_command_wrapper() {
 	if (pvm_next_state == pvm_ds_stepping) {
 		pvm_lock();
 		if (pvm_next_state == pvm_ds_stepping) {
-			pvm_depth ++;
+			pvm_depth++;
 		}
 		pvm_unlock();
 	}
@@ -377,7 +378,7 @@ static void return_command_wrapper() {
 	if (pvm_next_state == pvm_ds_stepping) {
 		pvm_lock();
 		if (pvm_next_state == pvm_ds_stepping) {
-			pvm_depth --;
+			pvm_depth--;
 		}
 		pvm_unlock();
 	}
@@ -626,7 +627,6 @@ struct p {
 		name = p.p; \
 	}
 
-
 static inline struct p param(int pntr, num size) {
 #define paramFail r.valid = 0; return r;
 	struct p r;
@@ -761,7 +761,7 @@ static inline struct p param(int pntr, num size) {
 #undef paramFail
 }
 
-static inline void exec() {
+static inline void exec_cmd() {
 	struct memory_check ipmem = chk(pvm.ip, 8);
 	if (!ipmem.mem) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
@@ -1024,6 +1024,7 @@ static void* pvm_debug_thread_func(void *_arg) {
 			fprintf(stderr, "could not scanf the debug input\n");
 			exit(1);
 		}
+		// TODO extract the commands to (static inline) functions
 		if (strcmp("help", buffer) == 0) {
 			fprintf(file, "db-pvm debug console\n"
 					"\n"
@@ -1123,10 +1124,12 @@ static void* pvm_debug_thread_func(void *_arg) {
 					"    commands are equally.\n"
 					"  mem <ADDRESS> <LENGTH>"
 					"    display the given memory block.\n"
+					"  disasm <ADDRESS> <LENGTH>"
+					"    disassemble the given memory block.\n"
 					"");
 			// TODO add command to execute new code
 		} else if (strcmp("version", buffer) == 0) {
-			fprintf(file, "db-pvm " PVM_VERSION_STR "\n");
+			print_version();
 		} else if (strcmp("detach", buffer) == 0) {
 			fprintf(file, "bye\n");
 			fclose(file);
@@ -1326,8 +1329,15 @@ static void* pvm_debug_thread_func(void *_arg) {
 						addr, len);
 				goto big_loop_start;
 			}
+			pvm_lock();
+			if (pvm_state != pvm_ds_waiting) {
+				pvm_unlock();
+				fprintf(file, "the pvm is not waiting\n");
+				goto big_loop_start;
+			}
 			struct memory_check mem_chk = chk0(addr, len, 1);
 			if (!mem_chk.valid) {
+				pvm_unlock();
 				fprintf(file,
 						"the given memory block is invalid (addr=HEX-%lX, len=HEX-%lX)\n",
 						addr, len);
@@ -1352,6 +1362,119 @@ static void* pvm_debug_thread_func(void *_arg) {
 					fprintf(file, "HEX-%lX : %s\n", addr, buf);
 					break;
 				}
+			}
+			pvm_unlock();
+		} else if (strcmp("disasm", buffer) == 0) {
+			num addr, len;
+			while (fscanf(file, "%li%li", &addr, &len) == -1) {
+				int e = errno;
+				errno = 0;
+				switch (e) {
+				case EAGAIN:
+					wait5ms();
+					continue;
+				case EINTR:
+					continue;
+				case EILSEQ:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "could not parse the address or length\n");
+					break;
+				case ERANGE:
+					fscanf(file, "%127s", buffer);
+					fprintf(file, "address or length is out of range\n");
+					break;
+				default:
+					fscanf(file, "%127s", buffer);
+					fprintf(file,
+							"could not scanf the address and length: %s\n",
+							strerror(e));
+					break;
+				}
+				goto big_loop_start;
+			}
+			if (len < 0) {
+				fprintf(file,
+						"the length of the memory block is negative (addr=HEX-%lX, len=HEX-%lX)\n",
+						addr, len);
+				goto big_loop_start;
+			}
+			pvm_lock();
+			if (pvm_state != pvm_ds_waiting) {
+				pvm_unlock();
+				fprintf(file, "the pvm is not waiting\n");
+				goto big_loop_start;
+			}
+			struct memory_check mem_chk = chk0(addr, len, 1);
+			if (!mem_chk.valid) {
+				fprintf(file,
+						"the given memory block is invalid (addr=HEX-%lX, len=HEX-%lX)\n",
+						addr, len);
+				goto big_loop_start;
+			}
+			int pipes[2];
+			if (pipe2(pipes, O_NONBLOCK) == -1) {
+				fprintf(file, "could not create the pipe\n");
+				goto big_loop_start;
+			}
+			pid_t cpid = fork();
+			if (cpid == -1) {
+				pvm_unlock();
+				fprintf(file, "could not fork: %s\n", strerror(errno));
+				errno = 0;
+			} else if (cpid) {
+				void *p = mem_chk.mem->offset + addr;
+				for (num remain = len; remain; ) {
+					num wrote = write(pipes[1], p, remain);
+					if (wrote == -1) {
+						int e = errno;
+						switch (e) {
+						case EAGAIN:
+						case EINTR:
+							continue;
+						default:
+							pvm_unlock();
+							fprintf(file, "write failed: %s", strerror(e));
+							goto big_loop_start;
+						}
+					}
+					remain -= wrote;
+					p += wrote;
+				}
+				pvm_unlock();
+				while (1) {
+					int wstatus;
+					if (waitpid(cpid, &wstatus, 0) == -1) {
+						int e = errno;
+						errno = 0;
+						switch (e) {
+						case EINTR:
+							continue;
+						default:
+							pvm_unlock();
+							fprintf(file, "could not wait: %s\n", strerror(e));
+							goto big_loop_start;
+						}
+					}
+					if (WIFEXITED(wstatus)) {
+						if (WEXITSTATUS(wstatus) != 0) {
+							fprintf(file, "child terminated with exit status %d\n", WEXITSTATUS(wstatus));
+						}
+						goto big_loop_start;
+					} else if (WIFSIGNALED(wstatus)) {
+						fprintf(file, "child was terminated by the signal %d\n", WTERMSIG(wstatus));
+						goto big_loop_start;
+					}
+				}
+			} else {
+				if (dup2(pipes[0], STDIN_FILENO) == -1) {
+					fprintf(file, "could not overwrite stdin\n");
+					exit(1);
+				}
+				char *const argv[3];
+				argv[0] = "/bin/prim-disasm";
+				argv[1] = "-a";
+				argv[1] = NULL;
+				execv("/bin/prim-disasm", argv);
 			}
 		} else {
 			fprintf(file, "unknown command: '%s'\n", buffer);
@@ -1394,7 +1517,7 @@ void execute() {
 #ifdef PVM_DEBUG
 		d_wait();
 #endif
-		exec();
+		exec_cmd();
 	}
 }
 

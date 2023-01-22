@@ -62,7 +62,7 @@ public class Convert {
 	
 	public static String convertLongToHexString(String postfix, long val, String suffix) {
 		String str = ZERO_16_TIMES;
-		String hex = Long.toHexString(val);
+		String hex = Long.toHexString(val).toUpperCase();
 		return postfix + str.substring(hex.length()) + hex + suffix;
 	}
 	
@@ -92,7 +92,7 @@ public class Convert {
 	
 	public static String convertLongToHexString(String postfix, long val) {
 		String str = ZERO_16_TIMES;
-		String hex = Long.toHexString(val);
+		String hex = Long.toHexString(val).toUpperCase();
 		return postfix + str.substring(hex.length()) + hex;
 	}
 	
@@ -110,7 +110,7 @@ public class Convert {
 	
 	public static String convertLongToHexString(long val) {
 		String str = ZERO_16_TIMES;
-		String hex = Long.toHexString(val);
+		String hex = Long.toHexString(val).toUpperCase();
 		return str.substring(hex.length()) + hex;
 	}
 	
@@ -127,7 +127,7 @@ public class Convert {
 	
 	public static String convertLongToHexString(long val, String suffix) {
 		String str = ZERO_16_TIMES;
-		String hex = Long.toHexString(val);
+		String hex = Long.toHexString(val).toUpperCase();
 		return str.substring(hex.length()) + hex + suffix;
 	}
 	

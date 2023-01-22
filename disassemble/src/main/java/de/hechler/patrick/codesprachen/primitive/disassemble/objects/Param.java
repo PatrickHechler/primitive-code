@@ -1,18 +1,17 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BNUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BREG;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BSR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BNUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BREG;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BSR;
 
 import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoCommandException;
 
 public class Param {
-	
-//	public static final int PARAM_BASE  = PARAM_PART_BASE;
-//	public static final int PARAM_A_NUM = PARAM_PART_A_NUM;
-//	public static final int PARAM_A_SR  = PARAM_PART_A_SR;
-//	public static final int PARAM_NO_B  = PARAM_PART_NO_B;
-//	public static final int PARAM_B_REG = PARAM_PART_B_REG;
-//	public static final int PARAM_B_NUM = PARAM_PART_B_NUM;
-//	public static final int PARAM_B_SR  = PARAM_PART_B_SR;
 	
 	public static final int ART_ANUM      = PARAM_ART_ANUM;
 	public static final int ART_ASR       = PARAM_ART_ASR;
@@ -45,7 +44,7 @@ public class Param {
 	}
 	
 	/**
-	 * can Build all {@link Param}s.
+	 * can be used to build {@link Param}s.
 	 */
 	public static class ParamBuilder {
 		
@@ -98,15 +97,11 @@ public class Param {
 	}
 	
 	public static void zeroCheck(long val) throws NoCommandException {
-		if (val != 0) {
-			throw new NoCommandException("value is not 0: " + val);
-		}
+		if (val != 0) { throw new NoCommandException("value is not 0: " + val); }
 	}
 	
 	public static void zeroCheck(byte val) throws NoCommandException {
-		if (val != 0) {
-			throw new NoCommandException("value is not 0: " + val);
-		}
+		if (val != 0) { throw new NoCommandException("value is not 0: " + val); }
 	}
 	
 	public static String artToString(int art) {
@@ -133,15 +128,11 @@ public class Param {
 	}
 	
 	public static void checkSR(long num) throws NoCommandException {
-		if ( (num & 0xFFFFFFFFFFFFFF00L) != 0) {
-			throw new NoCommandException("this num is no SR: num=" + num + " AX=0 BX=1 CX=2 DX=3");
-		}
+		if ((num & 0xFFFFFFFFFFFFFF00L) != 0) { throw new NoCommandException("this num is no SR: num=" + num + " AX=0 BX=1 CX=2 DX=3"); }
 	}
 	
 	public void checkNoConst() throws NoCommandException {
-		if (art == ART_ANUM) {
-			throw new NoCommandException("this is not allowed to be a constant!");
-		}
+		if (art == ART_ANUM) { throw new NoCommandException("this is not allowed to be a constant!"); }
 	}
 	
 	public int length() {
@@ -186,10 +177,8 @@ public class Param {
 		}
 	}
 	
-	private String getSR(long sr) {
-		if ( (sr & 0x00000000000000FFL) != sr) {
-			throw new InternalError("this is no register");
-		}
+	private static String getSR(long sr) {
+		if ((sr & 0x00000000000000FFL) != sr) { throw new InternalError("this is no register"); }
 		switch ((int) sr) {
 		case SR_IP:
 			return "IP";
@@ -203,9 +192,7 @@ public class Param {
 			return "INTP";
 		default:
 			String num = Integer.toHexString((int) sr - SR_X_SUB).toUpperCase();
-			if (num.length() == 1) {
-				return "X0" + num;
-			}
+			if (num.length() == 1) { return "X0" + num; }
 			return "X" + num;
 		}
 	}

@@ -3,16 +3,17 @@ package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertByteArrToHexString;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertByteArrToLong;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertLongToHexString;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_A_NUM;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_A_SR;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_B_NUM;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_B_SR;
 
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,9 +26,10 @@ import de.hechler.patrick.codesprachen.primitive.disassemble.objects.Command.Con
 import de.hechler.patrick.codesprachen.primitive.disassemble.objects.Param.ParamBuilder;
 import de.hechler.patrick.codesprachen.primitive.disassemble.utils.LongArrayInputStream;
 
-public class PrimitiveDisassembler {
+public class PrimitiveDisassembler implements Closeable {
 	
-	private static final String UNKNOWN_MODE = "unknown mode: ";
+	private static final String      NO_VALID_CMD_ART = "the command has no valid art";
+	private static final String      UNKNOWN_MODE     = "unknown mode: ";
 	private final Writer             out;
 	private final LabelNameGenerator lng;
 	private final DisasmMode         mode;
@@ -45,8 +47,8 @@ public class PrimitiveDisassembler {
 	}
 	
 	public PrimitiveDisassembler(DisasmMode mode, LabelNameGenerator lng, Writer out) {
-		this.out = out;
-		this.lng = lng;
+		this.out  = out;
+		this.lng  = lng;
 		this.mode = mode;
 	}
 	
@@ -61,13 +63,14 @@ public class PrimitiveDisassembler {
 	}
 	
 	public void deassemble(long pos, InputStream in) throws IOException {
-		List <Command> cmds = new ArrayList <>();
-		Set <Long> labels = new HashSet <>();
+		List<Command> cmds   = new ArrayList<>();
+		Set<Long>     labels = new HashSet<>();
 		read(pos, in, cmds, labels);
 		write(pos, cmds, labels);
+		out.flush();
 	}
 	
-	private void write(long pos, List <Command> cmds, Set <Long> labels) throws IOException {
+	private void write(long pos, List<Command> cmds, Set<Long> labels) throws IOException {
 		switch (mode) {
 		case analysable:
 			break;
@@ -77,69 +80,62 @@ public class PrimitiveDisassembler {
 		default:
 			throw new InternalError(UNKNOWN_MODE + mode.name());
 		}
-		for (int i = 0; i < cmds.size(); i ++ ) {
+		for (int i = 0; i < cmds.size(); i++) {
 			if (labels.contains(pos)) {
 				switch (mode) {
-				case analysable:
-					out.write("@L_");
-					break;
-				case executable:
+				case analysable -> out.write("@L_");
+				case executable -> {
 					out.write('@');
 					out.write(lng.generateName(pos));
 					out.write('\n');
-					break;
-				default:
-					throw new InternalError(UNKNOWN_MODE + mode.name());
+				}
+				default -> throw new InternalError(UNKNOWN_MODE + mode.name());
 				}
 			} else {
 				switch (mode) {
-				case analysable:
-					out.write("   ");
-					break;
-				case executable:
-					break;
-				default:
-					throw new InternalError(UNKNOWN_MODE + mode.name());
+				case analysable -> out.write("   ");
+				case executable -> {}
+				default -> throw new InternalError(UNKNOWN_MODE + mode.name());
 				}
 			}
 			Command cmd = cmds.get(i);
 			if (cmd instanceof ConstantPoolCmd cp) {
 				switch (mode) {
-				case analysable: {
-					boolean first = true;
-					String prefix = "";
-					byte[] bytes = new byte[8];
-					int off;
+				case analysable -> {
+					boolean first  = true;
+					String  prefix = "";
+					byte[]  bytes  = new byte[8];
+					int     off;
 					for (off = 0; off <= cp.length() - 8; off += 8) {
 						cp.get(bytes, 0, off, 8);
-						out.write(convertLongToHexString(prefix, pos, convertByteArrToHexString(" -> ", bytes, " = unknown")));
+						out.write(convertLongToHexString(prefix, pos, convertByteArrToHexString(" -> ", bytes, string(bytes, 0, 8))));
 						out.write('\n');
 						if (first) {
-							first = false;
+							first  = false;
 							prefix = "   ";
 						}
 						pos += 8;
 					}
 					if (off < cp.length()) {
 						int len = cp.length() - off;
+						cp.get(bytes, 0, off, len);
 						int strlen = (len * 2) + 4;
-						out.write(convertLongToHexString(prefix, pos, convertByteArrToHexString(" -> ----------------".substring(0, strlen), bytes, 0, len, " = unknown\n")));
+						out.write(convertLongToHexString(prefix, pos,
+								convertByteArrToHexString(" ->                 ".substring(0, strlen), bytes, 0, len, string(bytes, 0, len))));
+						out.write('\n');
 					}
-					break;
 				}
-				case executable: {
+				case executable -> {
 					out.write(cp.toString());
 					out.write('\n');
 					pos += cp.length();
-					break;
 				}
-				default:
-					throw new InternalError(UNKNOWN_MODE + mode.name());
+				default -> throw new InternalError(UNKNOWN_MODE + mode.name());
 				}
 				continue;
 			}
 			switch (mode) {
-			case analysable: {
+			case analysable -> {
 				byte[] bytes = new byte[8];
 				bytes[0] = (byte) cmd.cmd.num;
 				switch (cmd.cmd.art) {
@@ -156,59 +152,60 @@ public class PrimitiveDisassembler {
 					break;
 				}
 				case ONE_PARAM_ALLOW_CONST, ONE_PARAM_NO_CONST: {
-					bytes[1] = (byte) cmd.p1.art;
+					bytes[2] = (byte) cmd.p1.art;
 					int off = 7;
-					if ( (cmd.p1.art & PARAM_A_SR) != 0) {
-						bytes[off -- ] = (byte) cmd.p1.num;
+					if ((cmd.p1.art & PARAM_A_SR) == PARAM_A_SR) {
+						bytes[off--] = (byte) cmd.p1.num;
 					}
-					if ( (cmd.p1.art & PARAM_B_SR) == PARAM_B_SR) {
-						bytes[off -- ] = (byte) cmd.p1.off;
+					if ((cmd.p1.art & PARAM_B_SR) == PARAM_B_SR) {
+						bytes[off--] = (byte) cmd.p1.off;
 					}
 					out.write(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = ")));
 					out.write(cmd.toString());
 					out.write('\n');
 					long ipos = pos + 8;
-					if ( (cmd.p1.art & PARAM_A_SR) == 0) {
+					if ((cmd.p1.art & PARAM_A_SR) != PARAM_A_SR) {
 						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p-num]\n")));
 						ipos += 8;
 					}
-					if ( (cmd.p1.art & PARAM_B_SR) == PARAM_B_NUM) {
+					if ((cmd.p1.art & PARAM_B_SR) == PARAM_B_NUM) {
 						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p-offset]\n")));
 					}
 					break;
 				}
 				case TWO_PARAMS_ALLOW_CONSTS, TWO_PARAMS_NO_CONSTS, TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST: {
-					bytes[1] = (byte) cmd.p1.art;
+					bytes[2] = (byte) cmd.p1.art;
+					bytes[3] = (byte) cmd.p2.art;
 					int off = 7;
-					if ( (cmd.p1.art & PARAM_A_SR) != 0) {
-						bytes[off -- ] = (byte) cmd.p1.num;
+					if ((cmd.p1.art & PARAM_A_SR) == PARAM_A_SR) {
+						bytes[off--] = (byte) cmd.p1.num;
 					}
-					if ( (cmd.p1.art & PARAM_B_SR) == PARAM_B_SR) {
-						bytes[off -- ] = (byte) cmd.p1.off;
+					if ((cmd.p1.art & PARAM_B_SR) == PARAM_B_SR) {
+						bytes[off--] = (byte) cmd.p1.off;
 					}
-					if ( (cmd.p2.art & PARAM_A_SR) != 0) {
-						bytes[off -- ] = (byte) cmd.p2.num;
+					if ((cmd.p2.art & PARAM_A_SR) == PARAM_A_SR) {
+						bytes[off--] = (byte) cmd.p2.num;
 					}
-					if ( (cmd.p2.art & PARAM_B_SR) == PARAM_B_SR) {
-						bytes[off -- ] = (byte) cmd.p2.off;
+					if ((cmd.p2.art & PARAM_B_SR) == PARAM_B_SR) {
+						bytes[off--] = (byte) cmd.p2.off;
 					}
 					out.write(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = ")));
 					out.write(cmd.toString());
 					out.write('\n');
 					long ipos = pos;
-					if ( (cmd.p1.art & PARAM_A_SR) == 0) {
+					if ((cmd.p1.art & PARAM_A_SR) != PARAM_A_SR) {
 						ipos += 8;
 						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p1-num]\n")));
 					}
-					if ( (cmd.p1.art & PARAM_B_SR) == PARAM_B_NUM) {
+					if ((cmd.p1.art & PARAM_B_SR) == PARAM_B_NUM) {
 						ipos += 8;
 						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p1-offset]\n")));
 					}
-					if ( (cmd.p2.art & PARAM_A_SR) == 0) {
+					if ((cmd.p2.art & PARAM_A_SR) != PARAM_A_SR) {
 						ipos += 8;
 						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.num, "   | [p2-num]\n")));
 					}
-					if ( (cmd.p2.art & PARAM_B_SR) == PARAM_B_NUM) {
+					if ((cmd.p2.art & PARAM_B_SR) == PARAM_B_NUM) {
 						ipos += 8;
 						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.off, "   | [p2-offset]\n")));
 					}
@@ -217,152 +214,187 @@ public class PrimitiveDisassembler {
 				default:
 					throw new InternalError("unknown cmdart: " + cmd.cmd.art);
 				}
-				break;
 			}
-			case executable:
+			case executable -> {
 				out.write("    ");
 				out.write(cmd.toString(pos));
 				out.write('\n');
-				break;
-			default:
-				throw new InternalError("unknown DisasmMode: " + mode.name());
+			}
+			default -> throw new InternalError("unknown DisasmMode: " + mode.name());
 			}
 			pos += cmd.length();
 		}
 	}
 	
-	private void read(long pos, InputStream in, List <Command> cmds, Set <Long> labels) throws IOException, InternalError {
-		byte[] bytes = new byte[8];
-		ConstantPoolCmd cp = null;
+	private static String string(byte[] bytes, int off, int len) {
+		StringBuilder b = new StringBuilder(10).append('"');
+		for (int i = 0; i < len; i++) {
+			int val = bytes[off + i];
+			switch (val) {
+			case '\0' -> b.append("\\0");
+			case '\t' -> b.append("\\t");
+			case '\r' -> b.append("\\r");
+			case '\n' -> b.append("\\n");
+			default -> b.append((char) (0xFF & val));
+			}
+		}
+		return b.append('"').toString();
+	}
+	
+	private void read(long pos, InputStream in, List<Command> cmds, Set<Long> labels) throws IOException, InternalError {
+		byte[]          bytes = new byte[8];
+		ConstantPoolCmd cp    = new ConstantPoolCmd();
 		while (true) {
-			for (int read = 0, add; read < 8; read += add) {
-				add = in.read(bytes, read, 8 - read);
-				if (add != -1) continue;
-				if (read > 0) {
-					if (cp == null) {
-						cp = new ConstantPoolCmd();
-					}
-					bytes = Arrays.copyOf(bytes, read);
-					cp.add(bytes);
-					cmds.add(cp);
-				} else if (cp != null) {
+			try {
+				checkedReadBytes(in, bytes, cp);
+			} catch (NoCommandException nce) {
+				if (cp.length() != 0) {
 					cmds.add(cp);
 				}
 				return;
 			}
 			try {
 				Commands cmd = Commands.get(0xFF & bytes[0] | (0xFF & (bytes[1]) << 8));
-				Command command;
+				Command  command;
 				switch (cmd.art) {
 				case LABEL_OR_CONST:
-					if (cp != null) {
+					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp = null;
+						cp   = new ConstantPoolCmd();
 					}
-					checkedReadBytes(in, bytes);
-					long val = convertByteArrToLong(bytes);
-					command = new Command(cmd, val, lng);
-					labels.add((pos + command.relativeLabel));
+					long relativeLabel = 0x0000FFFFFFFFFFFFL & convertByteArrToLong(bytes);
+					command = new Command(cmd, relativeLabel, lng);
+					labels.add((pos + relativeLabel));
 					break;
 				case NO_PARAMS:
-					for (int ii = 1; ii < 8; ii ++ ) {
+					for (int ii = 2; ii < 8; ii++) {
 						Param.zeroCheck(bytes[ii]);
 					}
 					command = new Command(cmd);
-					if (cp != null) {
+					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp = null;
+						cp   = new ConstantPoolCmd();
 					}
 					break;
 				case ONE_PARAM_ALLOW_CONST:
 					command = buildOneParam(bytes, in, cmd);
-					if (cp != null) {
+					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp = null;
+						cp   = new ConstantPoolCmd();
 					}
 					break;
 				case ONE_PARAM_NO_CONST:
 					command = buildOneParam(bytes, in, cmd);
 					command.p1.checkNoConst();
-					if (cp != null) {
+					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp = null;
+						cp   = new ConstantPoolCmd();
 					}
 					break;
 				case TWO_PARAMS_ALLOW_CONSTS:
 					command = buildTwoParam(bytes, in, cmd);
-					if (cp != null) {
+					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp = null;
+						cp   = new ConstantPoolCmd();
 					}
 					break;
 				case TWO_PARAMS_NO_CONSTS:
 					command = buildTwoParam(bytes, in, cmd);
 					command.p1.checkNoConst();
 					command.p2.checkNoConst();
-					if (cp != null) {
+					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp = null;
+						cp   = new ConstantPoolCmd();
 					}
 					break;
 				case TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST:
 					command = buildTwoParam(bytes, in, cmd);
 					command.p1.checkNoConst();
-					if (cp != null) {
+					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp = null;
+						cp   = new ConstantPoolCmd();
 					}
 					break;
+				case TWO_PARAMS_P1_NO_CONST_P2_COMPILE_CONST: {
+					Command command0 = buildOneParam(bytes, in, cmd);
+					checkedReadBytes(in, bytes, cp);
+					ParamBuilder pb = new ParamBuilder();
+					pb.art  = PARAM_A_NUM;
+					pb.v1   = convertByteArrToLong(bytes);
+					command = new Command(cmd, command0.p1, pb.build());
+					if (cp.length() != 0) {
+						cmds.add(cp);
+						pos += cp.length();
+						cp   = new ConstantPoolCmd();
+					}
+					break;
+				}
+				case THREE_PARAMS_P1_NO_CONST_P2_ALLOW_CONST_P3_COMPILE_CONST: {
+					Command command0 = buildTwoParam(bytes, in, cmd);
+					command0.p1.checkNoConst();
+					ParamBuilder pb = new ParamBuilder();
+					pb.art  = PARAM_A_NUM;
+					pb.v1   = convertByteArrToLong(bytes);
+					command = new Command(cmd, command0.p1, command0.p2, pb.build());
+					if (cp.length() != 0) {
+						cmds.add(cp);
+						pos += cp.length();
+						cp   = new ConstantPoolCmd();
+					}
+					break;
+				}
 				default:
 					throw new InternalError("the command '" + cmd.name() + "' does not have a known 'art' value! art=" + cmd.art.name());
 				}
 				pos += command.length();
 				cmds.add(command);
-			} catch (NoCommandException nce) {
-				if (cp == null) {
-					cp = new ConstantPoolCmd();
-				}
-				cp.add(bytes);
+			} catch (NoCommandException nce) { /* the consumed bytes are already added to my constant pool */ }
+		}
+	}
+	
+	private static void checkedReadBytes(InputStream in, byte[] bytes, ConstantPoolCmd cp) throws IOException, NoCommandException {
+		for (int read = 0,
+				add = in.read(bytes, read, bytes.length - read); read < bytes.length; read += add, add = in.read(bytes, read, bytes.length - read)) {
+			if (add != -1) continue;
+			if (read > 0) {
+				cp.add(bytes, read);
 			}
+			throw new NoCommandException("reached EOF");
 		}
+		cp.add(bytes);
 	}
 	
-	private void checkedReadBytes(InputStream in, byte[] bytes) throws IOException, NoCommandException {
-		int r = in.read(bytes);
-		if (r != bytes.length) {
-			throw new NoCommandException("did not read enugh bytes: read=" + r + " wanted=" + bytes.length);
-		}
-	}
-	
-	private Command buildTwoParam(byte[] bytes, InputStream in, Commands cmd) throws NoCommandException, IOException {
+	private static Command buildTwoParam(byte[] bytes, InputStream in, Commands cmd) throws NoCommandException, IOException {
+		ConstantPoolCmd cp = new ConstantPoolCmd();
+		cp.add(bytes);
 		ParamBuilder pb = new ParamBuilder();
-		pb.art = 0xFF & bytes[1];
+		pb.art = 0xFF & bytes[3];
 		final byte[] orig = bytes.clone();
-		int index;
+		int          index;
 		switch (pb.art) {
 		case Param.ART_ANUM_BREG:
 		case Param.ART_ANUM:
-			checkedRead(bytes, in);
+			checkedReadBytes(in, bytes, cp);
 			pb.v1 = convertByteArrToLong(bytes);
 			index = 7;
 			break;
 		case Param.ART_ANUM_BNUM:
-			checkedRead(bytes, in);
+			checkedReadBytes(in, bytes, cp);
 			pb.v1 = convertByteArrToLong(bytes);
-			checkedRead(bytes, in);
+			checkedReadBytes(in, bytes, cp);
 			pb.v2 = convertByteArrToLong(bytes);
 			index = 7;
 			break;
 		case Param.ART_ANUM_BSR:
 			pb.v2 = bytes[7];
-			checkedRead(bytes, in);
+			checkedReadBytes(in, bytes, cp);
 			pb.v1 = convertByteArrToLong(bytes);
 			index = 6;
 			break;
@@ -373,7 +405,7 @@ public class PrimitiveDisassembler {
 			break;
 		case Param.ART_ASR_BNUM:
 			pb.v1 = bytes[7];
-			checkedRead(bytes, in);
+			checkedReadBytes(in, bytes, cp);
 			pb.v2 = convertByteArrToLong(bytes);
 			index = 6;
 			break;
@@ -383,134 +415,128 @@ public class PrimitiveDisassembler {
 			index = 5;
 			break;
 		default:
-			throw new NoCommandException("the command has no valid art");
+			throw new NoCommandException(NO_VALID_CMD_ART);
 		}
 		Param p1 = pb.build();
-		pb = new ParamBuilder();
-		pb.art = 0xFF & orig[2];
+		pb     = new ParamBuilder();
+		pb.art = 0xFF & orig[4];
 		switch (pb.art) {
 		case Param.ART_ANUM_BREG:
 		case Param.ART_ANUM:
-			for (int i = 3; i < index; i ++ ) {
+			for (int i = 4; i < index; i++) {
 				Param.zeroCheck(orig[i]);
 			}
-			checkedRead(bytes, in);
+			checkedReadBytes(in, bytes, cp);
 			pb.v1 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ANUM_BNUM:
-			for (int i = 3; i < index; i ++ ) {
+			for (int i = 4; i < index; i++) {
 				Param.zeroCheck(orig[i]);
 			}
-			checkedRead(bytes, in);
+			checkedReadBytes(in, bytes, cp);
 			pb.v1 = convertByteArrToLong(bytes);
-			checkedRead(bytes, in);
+			checkedReadBytes(in, bytes, cp);
 			pb.v2 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ANUM_BSR:
-			checkedRead(bytes, in);
+			checkedReadBytes(in, bytes, cp);
 			pb.v1 = convertByteArrToLong(bytes);
-			pb.v2 = orig[index -- ];
-			for (int i = 3; i < index; i ++ ) {
+			pb.v2 = orig[index--];
+			for (int i = 4; i < index; i++) {
 				Param.zeroCheck(orig[i]);
 			}
 			break;
 		case Param.ART_ASR:
 		case Param.ART_ASR_BREG:
-			pb.v1 = orig[index -- ];
-			for (int i = 3; i < index; i ++ ) {
+			pb.v1 = orig[index--];
+			for (int i = 4; i < index; i++) {
 				Param.zeroCheck(orig[i]);
 			}
 			break;
 		case Param.ART_ASR_BNUM:
-			pb.v1 = orig[index -- ];
-			checkedRead(bytes, in);
+			pb.v1 = orig[index--];
+			checkedReadBytes(in, bytes, cp);
 			pb.v2 = convertByteArrToLong(bytes);
-			for (int i = 3; i < index; i ++ ) {
+			for (int i = 4; i < index; i++) {
 				Param.zeroCheck(orig[i]);
 			}
 			break;
 		case Param.ART_ASR_BSR:
-			pb.v1 = orig[index -- ];
-			pb.v2 = orig[index -- ];
-			for (int i = 3; i < index; i ++ ) {
+			pb.v1 = orig[index--];
+			pb.v2 = orig[index--];
+			for (int i = 4; i < index; i++) {
 				Param.zeroCheck(orig[i]);
 			}
 			break;
 		default:
-			throw new NoCommandException("the command has no valid art");
+			throw new NoCommandException(NO_VALID_CMD_ART);
 		}
 		return new Command(cmd, p1, pb.build());
 	}
 	
-	private void checkedRead(byte[] bytes, InputStream in) throws IOException, NoCommandException {
-		int len = in.read(bytes);
-		if (len == -1) {
-			throw new NoCommandException("reached end of stream, but wanted to read the bytes (len=" + bytes.length + "), I could not read any bytes");
-		}
-		while (len < bytes.length) {
-			int addlen = in.read(bytes, len, bytes.length - len);
-			if (addlen == -1) {
-				throw new NoCommandException("reached end of stream, but wanted to read the bytes (len=" + bytes.length + "), I could read " + len + " bytes already");
-			}
-			len += addlen;
-		}
-	}
-	
-	private Command buildOneParam(byte[] bytes, InputStream in, Commands cmd) throws NoCommandException, IOException {
+	private static Command buildOneParam(byte[] bytes, InputStream in, Commands cmd) throws NoCommandException, IOException {
+		ConstantPoolCmd cp = new ConstantPoolCmd();
+		cp.add(bytes);
 		ParamBuilder pb = new ParamBuilder();
 		pb.art = 0xFF & bytes[1];
 		switch (pb.art) {
 		case Param.ART_ANUM_BREG:
 		case Param.ART_ANUM:
-			for (int i = 2; i < 8; i ++ ) {
+			for (int i = 3; i < 8; i++) {
 				Param.zeroCheck(bytes[i]);
 			}
-			checkedReadBytes(in, bytes);
+			checkedReadBytes(in, bytes, cp);
 			pb.v1 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ANUM_BNUM:
-			for (int i = 2; i < 8; i ++ ) {
+			for (int i = 3; i < 8; i++) {
 				Param.zeroCheck(bytes[i]);
 			}
-			checkedReadBytes(in, bytes);
+			checkedReadBytes(in, bytes, cp);
 			pb.v1 = convertByteArrToLong(bytes);
-			checkedReadBytes(in, bytes);
+			checkedReadBytes(in, bytes, cp);
 			pb.v2 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ANUM_BSR:
-			for (int i = 2; i < 7; i ++ ) {
+			for (int i = 3; i < 7; i++) {
 				Param.zeroCheck(bytes[i]);
 			}
 			pb.v2 = bytes[7];
-			checkedReadBytes(in, bytes);
+			checkedReadBytes(in, bytes, cp);
 			pb.v1 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ASR:
 		case Param.ART_ASR_BREG:
-			for (int i = 2; i < 7; i ++ ) {
+			for (int i = 3; i < 7; i++) {
 				Param.zeroCheck(bytes[i]);
 			}
 			pb.v1 = bytes[7];
 			break;
 		case Param.ART_ASR_BNUM:
-			for (int i = 2; i < 7; i ++ ) {
+			for (int i = 3; i < 7; i++) {
 				Param.zeroCheck(bytes[i]);
 			}
 			pb.v1 = bytes[7];
-			checkedReadBytes(in, bytes);
+			checkedReadBytes(in, bytes, cp);
 			pb.v2 = convertByteArrToLong(bytes);
 			break;
 		case Param.ART_ASR_BSR:
-			for (int i = 2; i < 6; i ++ ) {
+			for (int i = 3; i < 6; i++) {
 				Param.zeroCheck(bytes[i]);
 			}
 			pb.v1 = bytes[7];
 			pb.v2 = bytes[6];
 			break;
 		default:
-			throw new NoCommandException("the command has no valid art");
+			throw new NoCommandException(NO_VALID_CMD_ART);
 		}
-		return new Command(cmd, pb.build());
+		Param p1 = pb.build();
+		return new Command(cmd, p1);
+	}
+	
+	@Override
+	public void close() throws IOException {
+		out.close();
 	}
 	
 }

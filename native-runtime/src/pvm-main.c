@@ -27,7 +27,6 @@
 static void setup(int argc, char **argv);
 
 static void print_help(void);
-static void print_version(void);
 
 #ifdef PVM_DEBUG
 static _Bool wait;
@@ -280,7 +279,7 @@ static void print_help(void) {
 			"");
 }
 
-static void print_version(void) {
+void print_version() {
 	printf(
 #ifdef PVM_DEBUG
 			"debug-"
