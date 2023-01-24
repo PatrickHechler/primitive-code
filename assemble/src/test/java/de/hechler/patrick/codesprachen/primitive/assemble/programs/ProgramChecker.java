@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchProviderException;
@@ -47,6 +48,11 @@ public class ProgramChecker {
 	private FSProvider patrFsProv;
 	
 	@Start
+	private void init() throws IOException {
+		Files.createDirectories(Path.of("./testout/"));
+	}
+	
+	@Start
 	private void start(@MethodParam Method met) throws NoSuchProviderException {
 		System.out.println("check now " + met.getName());
 		patrFsProv = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME);
@@ -79,7 +85,9 @@ public class ProgramChecker {
 	private void execute(String pfsFile, String pmfFile, int exitCode, byte[] stdin, byte[] stdout, byte[] stderr)
 			throws IOException, InterruptedException {
 		Runtime r       = Runtime.getRuntime();
-		Process process = r.exec(new String[] { "pvm", "--pfs=" + pfsFile, "--pmf=" + pmfFile });
+		String[] args = new String[] { "pvm", "--pfs=" + pfsFile, "--pmf=" + pmfFile };
+		System.out.println("args: " + Arrays.toString(args));
+		Process process = r.exec(args);
 		System.out.println("started process pid: " + process.pid() + "   " + process);
 		if (stdin.length > 0) { process.getOutputStream().write(stdin); }
 		TwoBools b1 = new TwoBools(), b2 = new TwoBools();

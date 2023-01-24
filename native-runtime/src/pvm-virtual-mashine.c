@@ -33,6 +33,7 @@
 #ifdef PVM_DEBUG
 #include "pvm-version.h"
 #include <pthread.h>
+#include <signal.h>
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <sys/un.h>
@@ -230,16 +231,20 @@ static void* pvm_debug_thread_deamon(void *_arg) {
 		struct sockaddr sa;
 		struct sockaddr_in sa_in;
 	} my_sock_adr;
-	domain = AF_INET;
 	my_sock_adr.sa_in = (struct sockaddr_in ) { //
 			/*	  */.sin_family = AF_INET, //
 					.sin_port = htons(arg.val), //
 					.sin_addr.s_addr = INADDR_ANY, //
 			};
-	int my_sok = socket(domain, SOCK_STREAM, 0);
+	int my_sok = socket(AF_INET, SOCK_STREAM, 0);
 	if (my_sok == -1) {
 		perror("socket");
 		fprintf(stderr, "could not create my socket\n");
+		exit(1);
+	}
+	if (bind(my_sok, &my_sock_adr.sa, sizeof(struct sockaddr_in)) == -1) {
+		perror("bind");
+		fprintf(stderr, "could not bind my socket\n");
 		exit(1);
 	}
 	if (listen(my_sok, DEBUG_SOCKET_BACKLOG) == -1) {
@@ -273,7 +278,7 @@ static void* pvm_debug_thread_deamon(void *_arg) {
 
 struct debug_cmd {
 	const char *name;
-	void (*func)(FILE *file, char *buffer);
+	void (*func)(FILE *file_read, FILE *file_write, char *buffer);
 };
 
 static int debug_cmds_equal(const void *_a, const void *_b) {
@@ -310,22 +315,22 @@ static struct hashset debug_commands = { //
 				.entries = NULL, //
 		};
 
-static void pvm_dbcmd_help(FILE *file, char *buffer);
-static void pvm_dbcmd_version(FILE *file, char *buffer);
-static void pvm_dbcmd_detach(FILE *file, char *buffer);
-static void pvm_dbcmd_exit(FILE *file, char *buffer);
-static void pvm_dbcmd_state(FILE *file, char *buffer);
-static void pvm_dbcmd_wait(FILE *file, char *buffer);
-static void pvm_dbcmd_run(FILE *file, char *buffer);
-static void pvm_dbcmd_step_in(FILE *file, char *buffer);
-static void pvm_dbcmd_step(FILE *file, char *buffer);
-static void pvm_dbcmd_step_out(FILE *file, char *buffer);
-static void pvm_dbcmd_step_dep(FILE *file, char *buffer);
-static void pvm_dbcmd_break(FILE *file, char *buffer);
-static void pvm_dbcmd_pvm(FILE *file, char *buffer);
-static void pvm_dbcmd_regs(FILE *file, char *buffer);
-static void pvm_dbcmd_mem(FILE *file, char *buffer);
-static void pvm_dbcmd_disasm(FILE *file, char *buffer);
+static void pvm_dbcmd_help(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_version(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_detach(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_exit(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_state(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_wait(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_run(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_step_in(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_step(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_step_out(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_step_dep(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_break(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_pvm(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_regs(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_mem(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_disasm(FILE *file_read, FILE *file_write, char *buffer);
 
 static inline void init_debug_cmds_set() {
 	struct debug_cmd *dc;
@@ -518,6 +523,7 @@ void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 	overwrite_std(stdin_pipe, stdout_pipe, stderr_pipe);
 
 	init_syncronisation();
+	pvm_lock();
 
 	init_debug_cmds();
 
@@ -632,7 +638,7 @@ static inline struct memory_check chk0(num pntr, num size, _Bool use_valid) {
 #else
 static inline struct memory_check chk(num pntr, num size) {
 #endif //  PVM_DEBUG
-	for (struct memory *m = memory; m->start != -1; m++) {
+	for (struct memory *m = memory; m < memory + mem_size; m++) {
 		if (m->start > pntr) {
 #ifdef PVM_DEBUG
 			if (use_valid) {
@@ -644,6 +650,15 @@ static inline struct memory_check chk(num pntr, num size) {
 #endif // PVM_DEBUG
 			if (m != memory) {
 				m--;
+				while (m->start == -1) {
+					if (m == memory) {
+						interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+						struct memory_check result;
+						result.mem = NULL;
+						return result;
+					}
+					m--;
+				}
 				check_grow: if (m->flags & MEM_AUTO_GROW) {
 					num auto_grow_end = m->end
 							+ ((m->flags & MEM_AUTO_GROW_BITS)
@@ -878,16 +893,17 @@ static inline void exec_cmd() {
 }
 
 PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size, unsigned flags) {
-	if (mem_size) {
-		for (num index = mem_size - 1; index; index--) {
-			if (memory[index].start == -1) {
+	if (mem_size && memory[mem_size - 1].start == -1) {
+		for (num index = mem_size; index;) {
+			if (memory[--index].start == -1) {
 				continue;
 			}
+			index++;
 			memory[index].start = next_adress;
-			memory[index].end = memory->start + size;
-			memory[index].offset = adr - memory->start;
+			memory[index].end = memory[index].start + size;
+			memory[index].offset = adr - memory[index].start;
 			memory[index].flags = flags;
-			next_adress = memory->end + ADRESS_HOLE_DEFAULT_SIZE;
+			next_adress = memory[index].end + ADRESS_HOLE_DEFAULT_SIZE;
 			if (memory->end < 0) {
 				// overflow
 				abort();
@@ -1036,45 +1052,47 @@ static inline char to_hex(int val) {
 	}
 }
 
-static inline void print_pvm(FILE *file, int end) {
+static inline void print_pvm(FILE *file_write, int end) {
 	pvm_lock();
 	if (pvm_state != pvm_ds_waiting) {
-		fprintf(file, "I can not display the pvm, the pvm is not waiting!\n");
+		pvm_unlock();
+		fprintf(file_write,
+				"I can not display the pvm, the pvm is not waiting!\n");
 		return;
 	}
 	struct pvm pvm_copy = pvm;
 	pvm_unlock();
-	fprintf(file, "PVM:\n");
-	if (end == 0) {
+	fprintf(file_write, "PVM:\n");
+	if (end == 0)
 		return;
-	}
-	fprintf(file, "  IP:     UHEX-%lX : %ld\n", pvm_copy.ip, pvm_copy.ip);
-	if (end == 1) {
+	fprintf(file_write, "  IP:     UHEX-%lX : %ld\n", pvm_copy.ip, pvm_copy.ip);
+	if (end == 1)
 		return;
-	}
-	fprintf(file, "  SP:     UHEX-%lX : %ld\n", pvm_copy.sp, pvm_copy.sp);
-	if (end == 2) {
+	fprintf(file_write, "  SP:     UHEX-%lX : %ld\n", pvm_copy.sp, pvm_copy.sp);
+	if (end == 2)
 		return;
-	}
-	fprintf(file, "  INTP:   UHEX-%lX : %ld\n", pvm_copy.intp, pvm_copy.intp);
-	if (end == 3) {
+	fprintf(file_write, "  INTP:   UHEX-%lX : %ld\n", pvm_copy.intp,
+			pvm_copy.intp);
+	if (end == 3)
 		return;
-	}
-	fprintf(file, "  INTCNT: UHEX-%lX : %ld\n", pvm_copy.intcnt,
+	fprintf(file_write, "  INTCNT: UHEX-%lX : %ld\n", pvm_copy.intcnt,
 			pvm_copy.intcnt);
-	if (end == 4) {
+	if (end == 4)
 		return;
-	}
-	fprintf(file, "  STATUS: UHEX-%lX : %ld\n", pvm_copy.status,
+	fprintf(file_write, "  STATUS: UHEX-%lX : %ld\n", pvm_copy.status,
 			pvm_copy.status);
-	if (end == 5) {
+	if (end == 5)
 		return;
-	}
-	fprintf(file, "  ERRNO:  UHEX-%lX : %ld\n", pvm_copy.err, pvm_copy.err);
-	for (int i = 0; i < end - 6; i++) {
+	fprintf(file_write, "  ERRNO:  UHEX-%lX : %ld\n", pvm_copy.err,
+			pvm_copy.err);
+	int i = 0;
+	while (1) {
+		if (end <= (i + 6))
+			return;
 		int c0 = to_hex(0xF & (i >> 4)), c1 = to_hex(0xF & i);
-		fprintf(file, "  X%c%c:     UHEX-%lX : %ld\n", //
+		fprintf(file_write, "  X%c%c:     UHEX-%lX : %ld\n", //
 				c0, c1, pvm.x[i], pvm.x[i]);
+		i++;
 	}
 }
 
@@ -1085,9 +1103,9 @@ static inline void state_to_stepping(int dep) {
 	pvm_unlock();
 }
 
-static inline _Bool scahnf_help(FILE *file, char *buffer, const char *str,
-		const char *name, void *a, void *b) {
-	while (fscanf(file, str, a, b) == -1) {
+static inline _Bool scahnf_help(FILE *file_read, FILE *file_write, char *buffer,
+		const char *str, const char *name, void *a, void *b) {
+	while (fscanf(file_read, str, a, b) == -1) {
 		int e = errno;
 		errno = 0;
 		switch (e) {
@@ -1097,16 +1115,18 @@ static inline _Bool scahnf_help(FILE *file, char *buffer, const char *str,
 		case EINTR:
 			continue;
 		case EILSEQ:
-			fscanf(file, "%127s", buffer);
-			fprintf(file, "could not parse the %s ('%s')\n", name, buffer);
+			fscanf(file_read, "%127s", buffer);
+			fprintf(file_write, "could not parse the %s ('%s')\n", name,
+					buffer);
 			break;
 		case ERANGE:
-			fscanf(file, "%127s", buffer);
-			fprintf(file, "%s is out of range ('%s')\n", name, buffer);
+			fscanf(file_read, "%127s", buffer);
+			fprintf(file_write, "%s is out of range ('%s')\n", name, buffer);
 			break;
 		default:
-			fscanf(file, "%127s", buffer);
-			fprintf(file, "could not scanf the %s: %s\n", name, strerror(e));
+			fscanf(file_read, "%127s", buffer);
+			fprintf(file_write, "could not scanf the %s: %s\n", name,
+					strerror(e));
 			break;
 		}
 		return 0;
@@ -1114,8 +1134,8 @@ static inline _Bool scahnf_help(FILE *file, char *buffer, const char *str,
 	return 1;
 }
 
-static void pvm_dbcmd_help(FILE *file, char *buf) {
-	fprintf(file,
+static void pvm_dbcmd_help(FILE *file_read, FILE *file_write, char *buf) {
+	fprintf(file_write,
 	/*	  */"db-pvm debug console\n"
 			"\n"
 			"numbers:\n"
@@ -1181,9 +1201,6 @@ static void pvm_dbcmd_help(FILE *file, char *buf) {
 			"    so if depth is negative the command behaves\n"
 			"    like 'step-in' and if depth is zero the command\n"
 			"    behaves like 'step'.\n"
-			"the following commands can only be used when\n"
-			"the db-pvm is in a waiting state.\n"
-			"only on wait commands:\n"
 			"  break <ADDRESS>\n"
 			"    change the db-pvm state to waiting when the\n"
 			"    Instruction at the given address should be\n"
@@ -1195,6 +1212,9 @@ static void pvm_dbcmd_help(FILE *file, char *buf) {
 			"      In other words, when telling the db-pvm to\n"
 			"      execute, it will execute at least one command\n"
 			"      until a breakpoint can change the state.\n"
+			"the following commands can only be used when\n"
+			"the db-pvm is in a waiting state.\n"
+			"only on wait commands:\n"
 			"  pvm\n"
 			"    display the virtual machine\n"
 			"    this includes the instruction pointer\n"
@@ -1217,123 +1237,131 @@ static void pvm_dbcmd_help(FILE *file, char *buf) {
 			"    disassemble the given memory block.\n"
 			"");
 }
-static void pvm_dbcmd_version(FILE *file, char *buf) {
-	print_version(file);
+static void pvm_dbcmd_version(FILE *file_read, FILE *file_write, char *buf) {
+	print_version(file_write);
 }
-static void pvm_dbcmd_detach(FILE *file, char *buf) {
-	fprintf(file, "bye\n");
-	fclose(file);
+static void pvm_dbcmd_detach(FILE *file_read, FILE *file_write, char *buf) {
+	fprintf(file_write, "bye\n");
+	fclose(file_write);
+	fclose(file_read);
+	pthread_kill(pthread_self(), SIGKILL);
 }
-static void pvm_dbcmd_exit(FILE *file, char *buf) {
+static void pvm_dbcmd_exit(FILE *file_read, FILE *file_write, char *buf) {
 	int exit_num;
-	if (fscanf(file, "%i", &exit_num) == -1) {
+	if (fscanf(file_read, "%i", &exit_num) == -1) {
 		exit_num = 1;
 	}
-	fprintf(file, "bye, exit now with %d\n", exit_num);
+	fprintf(file_write, "bye, exit now with %d\n", exit_num);
 	exit(exit_num);
 }
-static void pvm_dbcmd_state(FILE *file, char *buf) {
+static void pvm_dbcmd_state(FILE *file_read, FILE *file_write, char *buf) {
 	pvm_lock();
 	enum pvm_db_state state = pvm_state, next_state = pvm_next_state;
 	pvm_unlock();
 	switch (state) {
 	case pvm_ds_running:
-		fprintf(file, "the db-pvm is currently running\n");
+		fprintf(file_write, "the db-pvm is currently running\n");
 		break;
 	case pvm_ds_stepping:
-		fprintf(file, "the db-pvm is currently stepping\n");
+		fprintf(file_write, "the db-pvm is currently stepping\n");
 		break;
 	case pvm_ds_waiting:
-		fprintf(file, "the db-pvm is currently waiting\n");
+		fprintf(file_write, "the db-pvm is currently waiting\n");
 		break;
 	case pvm_ds_new_stepping:
-		fprintf(file, "the db-pvm is currently starting to step\n");
+		fprintf(file_write, "the db-pvm is currently starting to step\n");
 		break;
 	default:
-		fprintf(file, "the db-pvm currently has an unknown state: %d\n",
+		fprintf(file_write, "the db-pvm currently has an unknown state: %d\n",
 				pvm_state);
 		break;
 	}
 	if (state != next_state) {
 		switch (next_state) {
 		case pvm_ds_running:
-			fprintf(file, "the db-pvm will soon run\n");
+			fprintf(file_write, "the db-pvm will soon run\n");
 			break;
 		case pvm_ds_stepping:
-			fprintf(file, "the db-pvm will soon step\n");
+			fprintf(file_write, "the db-pvm will soon step\n");
 			break;
 		case pvm_ds_waiting:
-			fprintf(file, "the db-pvm will soon wait\n");
+			fprintf(file_write, "the db-pvm will soon wait\n");
 			break;
 		case pvm_ds_new_stepping:
-			fprintf(file, "the db-pvm will soon start to step\n");
+			fprintf(file_write, "the db-pvm will soon start to step\n");
 			break;
 		default:
-			fprintf(file, "the db-pvm will soon has an unknown state: %d\n",
+			fprintf(file_write,
+					"the db-pvm will soon has an unknown state: %d\n",
 					pvm_state);
 			break;
 		}
 	}
 }
-static void pvm_dbcmd_wait(FILE *file, char *buf) {
+static void pvm_dbcmd_wait(FILE *file_read, FILE *file_write, char *buf) {
 	pvm_lock();
 	pvm_next_state = pvm_ds_waiting;
 	pvm_unlock();
-	fprintf(file, "the db-pvm will soon wait\n");
+	fprintf(file_write, "the db-pvm will soon wait\n");
 }
-static void pvm_dbcmd_run(FILE *file, char *buf) {
+static void pvm_dbcmd_run(FILE *file_read, FILE *file_write, char *buf) {
 	pvm_lock();
 	pvm_next_state = pvm_ds_running;
 	pvm_unlock();
-	fprintf(file, "the db-pvm will soon run\n");
+	fprintf(file_write, "the db-pvm will soon run\n");
 }
-static void pvm_dbcmd_step_in(FILE *file, char *buf) {
+static void pvm_dbcmd_step_in(FILE *file_read, FILE *file_write, char *buf) {
 	state_to_stepping(-1);
 }
-static void pvm_dbcmd_step(FILE *file, char *buf) {
+static void pvm_dbcmd_step(FILE *file_read, FILE *file_write, char *buf) {
 	state_to_stepping(0);
 }
-static void pvm_dbcmd_step_out(FILE *file, char *buf) {
+static void pvm_dbcmd_step_out(FILE *file_read, FILE *file_write, char *buf) {
 	state_to_stepping(1);
 }
-static void pvm_dbcmd_step_dep(FILE *file, char *buffer) {
+static void pvm_dbcmd_step_dep(FILE *file_read, FILE *file_write, char *buffer) {
 	int dep;
-	if (!scahnf_help(file, buffer, "%i", "depth", &dep, NULL)) {
+	if (!scahnf_help(file_read, file_write, buffer, "%i", "depth", &dep,
+	NULL)) {
 		return;
 	}
 	state_to_stepping(dep);
 }
-static void pvm_dbcmd_break(FILE *file, char *buffer) {
+static void pvm_dbcmd_break(FILE *file_read, FILE *file_write, char *buffer) {
 	num addr;
-	if (scahnf_help(file, buffer, "%li", "address", &addr, NULL)) {
+	if (scahnf_help(file_read, file_write, buffer, "%li", "address", &addr,
+	NULL)) {
 		return;
 	}
+	pvm_lock();
 	hashset_put(&breakpoints, (unsigned) addr, (void*) addr);
+	pvm_unlock();
 }
-static void pvm_dbcmd_pvm(FILE *file, char *buf) {
-	print_pvm(file, 256);
+static void pvm_dbcmd_pvm(FILE *file_read, FILE *file_write, char *buf) {
+	print_pvm(file_write, 256);
 }
-static void pvm_dbcmd_regs(FILE *file, char *buffer) {
+static void pvm_dbcmd_regs(FILE *file_read, FILE *file_write, char *buffer) {
 	int len;
-	if (!scahnf_help(file, buffer, "%i", "length", &len, NULL)) {
+	if (!scahnf_help(file_read, file_write, buffer, "%i", "length", &len,
+	NULL)) {
 		return;
 	}
 	if (len > 256) {
-		fprintf(file, "length is out of range (%d) (max=256)\n", len);
+		fprintf(file_write, "length is out of range (%d) (max=256)\n", len);
 	} else if (len < 0) {
-		fprintf(file, "length is out of range (%d) (min=0)\n", len);
+		fprintf(file_write, "length is out of range (%d) (min=0)\n", len);
 	} else {
-		print_pvm(file, 256);
+		print_pvm(file_write, len);
 	}
 }
-static void pvm_dbcmd_mem(FILE *file, char *buffer) {
+static void pvm_dbcmd_mem(FILE *file_read, FILE *file_write, char *buffer) {
 	num addr, len;
-	if (!scahnf_help(file, buffer, "%li%li", "address or length", &addr,
-			&len)) {
+	if (!scahnf_help(file_read, file_write, buffer, "%li%li",
+			"address or length", &addr, &len)) {
 		return;
 	}
 	if (len < 0) {
-		fprintf(file,
+		fprintf(file_write,
 				"the length of the memory block is negative (addr=HEX-%lX, len=HEX-%lX)\n",
 				addr, len);
 		return;
@@ -1341,13 +1369,13 @@ static void pvm_dbcmd_mem(FILE *file, char *buffer) {
 	pvm_lock();
 	if (pvm_state != pvm_ds_waiting) {
 		pvm_unlock();
-		fprintf(file, "the pvm is not waiting\n");
+		fprintf(file_write, "the pvm is not waiting\n");
 		return;
 	}
 	struct memory_check mem_chk = chk0(addr, len, 1);
 	if (!mem_chk.valid) {
 		pvm_unlock();
-		fprintf(file,
+		fprintf(file_write,
 				"the given memory block is invalid (addr=HEX-%lX, len=HEX-%lX)\n",
 				addr, len);
 		return;
@@ -1360,7 +1388,7 @@ static void pvm_dbcmd_mem(FILE *file, char *buffer) {
 			for (int i = 15; i; i--) {
 				buf[i] = to_hex(0xF & (n >> (60 - (4 * i))));
 			}
-			fprintf(file, "HEX-%lX : %s\n", addr, buf);
+			fprintf(file_write, "HEX-%lX : %s\n", addr, buf);
 		} else {
 			ui8 *p = mem_chk.mem->offset + addr;
 			buf[len << 1] = '\0';
@@ -1368,20 +1396,20 @@ static void pvm_dbcmd_mem(FILE *file, char *buffer) {
 				buf[i] = to_hex(0xF & (*p));
 				buf[++i] = to_hex(0xF & ((*p) >> 4));
 			}
-			fprintf(file, "HEX-%lX : %s\n", addr, buf);
+			fprintf(file_write, "HEX-%lX : %s\n", addr, buf);
 			break;
 		}
 	}
 	pvm_unlock();
 }
-static void pvm_dbcmd_disasm(FILE *file, char *buffer) {
+static void pvm_dbcmd_disasm(FILE *file_read, FILE *file_write, char *buffer) {
 	num addr, len;
-	if (!scahnf_help(file, buffer, "%li%li", "address or length", &addr,
-			&len)) {
+	if (!scahnf_help(file_read, file_write, buffer, "%li%li",
+			"address or length", &addr, &len)) {
 		return;
 	}
 	if (len < 0) {
-		fprintf(file,
+		fprintf(file_write,
 				"the length of the memory block is negative (addr=HEX-%lX, len=HEX-%lX)\n",
 				addr, len);
 		return;
@@ -1389,25 +1417,25 @@ static void pvm_dbcmd_disasm(FILE *file, char *buffer) {
 	pvm_lock();
 	if (pvm_state != pvm_ds_waiting) {
 		pvm_unlock();
-		fprintf(file, "the pvm is not waiting\n");
+		fprintf(file_write, "the pvm is not waiting\n");
 		return;
 	}
 	struct memory_check mem_chk = chk0(addr, len, 1);
 	if (!mem_chk.valid) {
-		fprintf(file,
+		fprintf(file_write,
 				"the given memory block is invalid (addr=HEX-%lX, len=HEX-%lX)\n",
 				addr, len);
 		return;
 	}
 	int pipes[2];
 	if (pipe2(pipes, O_NONBLOCK) == -1) {
-		fprintf(file, "could not create the pipe\n");
+		fprintf(file_write, "could not create the pipe\n");
 		return;
 	}
 	pid_t cpid = fork();
 	if (cpid == -1) {
 		pvm_unlock();
-		fprintf(file, "could not fork: %s\n", strerror(errno));
+		fprintf(file_write, "could not fork: %s\n", strerror(errno));
 		errno = 0;
 	} else if (cpid) {
 		void *p = mem_chk.mem->offset + addr;
@@ -1421,7 +1449,7 @@ static void pvm_dbcmd_disasm(FILE *file, char *buffer) {
 					continue;
 				default:
 					pvm_unlock();
-					fprintf(file, "write failed: %s", strerror(e));
+					fprintf(file_write, "write failed: %s", strerror(e));
 					return;
 				}
 			}
@@ -1439,25 +1467,26 @@ static void pvm_dbcmd_disasm(FILE *file, char *buffer) {
 					continue;
 				default:
 					pvm_unlock();
-					fprintf(file, "could not wait: %s\n", strerror(e));
+					fprintf(file_write, "could not wait: %s\n", strerror(e));
 					return;
 				}
 			}
 			if (WIFEXITED(wstatus)) {
 				if (WEXITSTATUS(wstatus) != 0) {
-					fprintf(file, "child terminated with exit status %d\n",
+					fprintf(file_write,
+							"child terminated with exit status %d\n",
 							WEXITSTATUS(wstatus));
 				}
 				return;
 			} else if (WIFSIGNALED(wstatus)) {
-				fprintf(file, "child was terminated by the signal %d\n",
+				fprintf(file_write, "child was terminated by the signal %d\n",
 						WTERMSIG(wstatus));
 				return;
 			}
 		}
 	} else {
 		if (dup2(pipes[0], STDIN_FILENO) == -1) {
-			fprintf(file, "could not overwrite stdin\n");
+			fprintf(file_write, "could not overwrite stdin\n");
 			exit(1);
 		}
 		char *const argv[3] = { "/bin/prim-disasm", "-a", NULL };
@@ -1475,8 +1504,20 @@ static void* pvm_debug_thread_func(void *_arg) {
 				"could not register a debug thread for the memory barrier syscall\n");
 		exit(1);
 	}
-	FILE *file = fdopen(arg.val, "rw");
-	if (!file) {
+	int write_fd = dup(arg.val);
+	if (write_fd == -1) {
+		perror("dup");
+		fprintf(stderr, "could not duplicate my socket file descriptor\n");
+		exit(1);
+	}
+	FILE *file_read = fdopen(arg.val, "r");
+	if (!file_read) {
+		perror("fdopen");
+		fprintf(stderr, "could not open a FILE* from my file descriptor\n");
+		exit(1);
+	}
+	FILE *file_write = fdopen(write_fd, "w");
+	if (!file_write) {
 		perror("fdopen");
 		fprintf(stderr, "could not open a FILE* from my file descriptor\n");
 		exit(1);
@@ -1489,7 +1530,7 @@ static void* pvm_debug_thread_func(void *_arg) {
 	while (1) {
 		big_loop_start: ;
 		char white;
-		if (fscanf(file, "%127s%1c", buffer, &white) == -1) {
+		if (fscanf(file_read, "%127s%1c", buffer, &white) == -1) {
 			switch (errno) {
 			case EAGAIN:
 				wait5ms();
@@ -1505,32 +1546,35 @@ static void* pvm_debug_thread_func(void *_arg) {
 		struct debug_cmd *debug_cmd = hashset_get(&debug_commands,
 				debug_cmds_hash(&buffer), &buffer);
 		if (debug_cmd) {
-			debug_cmd->func(file, buffer);
+			debug_cmd->func(file_read, file_write, buffer);
 		} else {
-			fprintf(file, "unknown command: '%s'\n", buffer);
+			fprintf(file_write, "unknown command: '%s'\n", buffer);
 		}
+		fflush(file_write);
 	}
 }
 
 static inline void d_wait() {
+	pvm_unlock();
 	while (1) {
 		pvm_lock();
 		pvm_state = pvm_next_state;
 		switch (pvm_state) {
 		case pvm_ds_running:
-			void *b = hashset_get(&breakpoints, (unsigned) pvm.ip, (void*) pvm.ip);
-			pvm_unlock();
+			void *b = hashset_get(&breakpoints, (unsigned) pvm.ip,
+					(void*) pvm.ip);
 			if (b) {
 				pvm_state = pvm_next_state = pvm_ds_waiting;
+				pvm_unlock();
 				break;
 			}
 			return;
 		case pvm_ds_new_running:
 			pvm_next_state = pvm_ds_running;
-			pvm_unlock();
 			return;
 		case pvm_ds_waiting:
-			state_wait: pvm_unlock();
+			pvm_unlock();
+			state_wait: ;
 			wait5ms();
 			break;
 		case pvm_ds_stepping:
@@ -1539,11 +1583,9 @@ static inline void d_wait() {
 				pvm_unlock();
 				break;
 			}
-			pvm_unlock();
 			return;
 		case pvm_ds_new_stepping:
 			pvm_next_state = pvm_ds_stepping;
-			pvm_unlock();
 			return;
 		default:
 			abort();

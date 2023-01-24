@@ -296,7 +296,7 @@ static inline void print_version0() {
 }
 
 void print_version(FILE *file) {
-	printf(
+	fprintf(file,
 #ifdef PVM_DEBUG
 			"debug-"
 #endif

@@ -315,7 +315,7 @@ static void int_handle_open_stream( INT_PARAMS) /* 41 */{
 static void int_pipe_length( INT_PARAMS) /* 42 */{
 	pvm.x[1] = pfs_pipe_length(pvm.x[0]);
 }
-static void int_time_get( INT_PARAMS) /* 45 */{
+static void int_time_get( INT_PARAMS) /* 43 */{
 	struct timespec spec;
 	if (clock_gettime(CLOCK_REALTIME, &spec) == -1) {
 		pvm.x[0] = 0;
@@ -325,7 +325,7 @@ static void int_time_get( INT_PARAMS) /* 45 */{
 		pvm.x[2] = spec.tv_nsec;
 	}
 }
-static void int_time_res( INT_PARAMS) /* 45 */{
+static void int_time_res( INT_PARAMS) /* 44 */{
 	struct timespec spec;
 	if (clock_getres(CLOCK_REALTIME, &spec) == -1) {
 		pvm.x[0] = 0;
@@ -335,7 +335,7 @@ static void int_time_res( INT_PARAMS) /* 45 */{
 		pvm.x[2] = spec.tv_nsec;
 	}
 }
-static void int_time_sleep( INT_PARAMS) /* 46 */{
+static void int_time_sleep( INT_PARAMS) /* 45 */{
 	struct timespec want, remain;
 	want.tv_nsec = pvm.x[0];
 	want.tv_sec = pvm.x[1];
@@ -382,7 +382,7 @@ static void int_rnd_open( INT_PARAMS) /* 47 */{
 	}
 	pvm.x[0] = sh;
 }
-static void int_rnd_num( INT_PARAMS) /* 47 */{
+static void int_rnd_num( INT_PARAMS) /* 48 */{
 	long int r = random();
 	if (r < 0) {
 		r = -1;
@@ -390,7 +390,7 @@ static void int_rnd_num( INT_PARAMS) /* 47 */{
 	}
 	pvm.x[0] = r;
 }
-static void int_mem_cpy( INT_PARAMS) /* 48 */{
+static void int_mem_cpy( INT_PARAMS) /* 49 */{
 	if (pvm.x[2] < 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -408,7 +408,7 @@ static void int_mem_cpy( INT_PARAMS) /* 48 */{
 	}
 	memcpy(dst.mem->offset + pvm.x[1], src->offset + pvm.x[0], pvm.x[2]);
 }
-static void int_mem_mov( INT_PARAMS) /* 49 */{
+static void int_mem_mov( INT_PARAMS) /* 50 */{
 	if (pvm.x[2] < 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -426,7 +426,7 @@ static void int_mem_mov( INT_PARAMS) /* 49 */{
 	}
 	memmove(dst.mem->offset + pvm.x[1], src->offset + pvm.x[0], pvm.x[2]);
 }
-static void int_mem_set( INT_PARAMS) /* 50 */{
+static void int_mem_set( INT_PARAMS) /* 51 */{
 	if (pvm.x[2] < 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -1113,7 +1113,7 @@ static void int_load_lib( INT_PARAMS) /* 64 */{
 	pvm.x[1] = eof;
 	pvm.x[2] = 1;
 }
-static void int_unload_lib( INT_PARAMS) /* 64 */{
+static void int_unload_lib( INT_PARAMS) /* 65 */{
 	struct memory *mem = chk(pvm.x[0], 0).mem;
 	if ((mem->flags & MEM_LIB) == 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
