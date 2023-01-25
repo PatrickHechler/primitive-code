@@ -45,7 +45,11 @@ public class PrimitiveCodeAssembleMain {
 	private static Reader             input;
 	private static FS                 fileSys;
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
+		System.out.println("test");
+		System.err.println("error test");
+		System.out.println("read: " + System.in.read());
+		System.exit(0);
 		setup(args);
 		try {
 			asm.assemble(null, input);

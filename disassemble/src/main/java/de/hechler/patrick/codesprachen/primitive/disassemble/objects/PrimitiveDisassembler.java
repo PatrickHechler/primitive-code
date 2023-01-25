@@ -18,6 +18,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import de.hechler.patrick.codesprachen.primitive.disassemble.PrimitiveDisassemblerMain;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.DisasmMode;
 import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoCommandException;
@@ -43,12 +44,13 @@ public class PrimitiveDisassembler implements Closeable {
 	}
 	
 	public PrimitiveDisassembler(DisasmMode mode, Writer out) {
-		this(mode, mode == DisasmMode.analysable ? t -> convertLongToHexString("L_", t) : LabelNameGenerator.SIMPLE_GEN, out);
+		this(mode, mode == DisasmMode.analysable ? t -> convertLongToHexString("L_", t) : LabelNameGenerator.SIMPLE_GEN,
+				out);
 	}
 	
 	public PrimitiveDisassembler(DisasmMode mode, LabelNameGenerator lng, Writer out) {
-		this.out  = out;
-		this.lng  = lng;
+		this.out = out;
+		this.lng = lng;
 		this.mode = mode;
 	}
 	
@@ -65,7 +67,9 @@ public class PrimitiveDisassembler implements Closeable {
 	public void deassemble(long pos, InputStream in) throws IOException {
 		List<Command> cmds   = new ArrayList<>();
 		Set<Long>     labels = new HashSet<>();
+		PrimitiveDisassemblerMain.LOG.fine("read now");
 		read(pos, in, cmds, labels);
+		PrimitiveDisassemblerMain.LOG.fine("write now");
 		write(pos, cmds, labels);
 		out.flush();
 	}
@@ -108,10 +112,11 @@ public class PrimitiveDisassembler implements Closeable {
 					int     off;
 					for (off = 0; off <= cp.length() - 8; off += 8) {
 						cp.get(bytes, 0, off, 8);
-						out.write(convertLongToHexString(prefix, pos, convertByteArrToHexString(" -> ", bytes, string(bytes, 0, 8))));
+						out.write(convertLongToHexString(prefix, pos,
+								convertByteArrToHexString(" -> ", bytes, string(" ", bytes, 0, 8))));
 						out.write('\n');
 						if (first) {
-							first  = false;
+							first = false;
 							prefix = "   ";
 						}
 						pos += 8;
@@ -119,9 +124,10 @@ public class PrimitiveDisassembler implements Closeable {
 					if (off < cp.length()) {
 						int len = cp.length() - off;
 						cp.get(bytes, 0, off, len);
-						int strlen = (len * 2) + 4;
+						int strlen = 16 + 4 - (len * 2);
 						out.write(convertLongToHexString(prefix, pos,
-								convertByteArrToHexString(" ->                 ".substring(0, strlen), bytes, 0, len, string(bytes, 0, len))));
+								convertByteArrToHexString(" ->                 ".substring(0, strlen), bytes, 0, len,
+										string(" ", bytes, 0, len))));
 						out.write('\n');
 					}
 				}
@@ -142,7 +148,8 @@ public class PrimitiveDisassembler implements Closeable {
 				case LABEL_OR_CONST: {
 					out.write(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = ")));
 					out.write(cmd.toString(pos));
-					out.write(convertLongToHexString("\n   ", pos + 8, convertLongToHexString(" -> ", cmd.relativeLabel, "   | [relative-label]\n")));
+					out.write(convertLongToHexString("\n   ", pos + 8,
+							convertLongToHexString(" -> ", cmd.relativeLabel, "   | [relative-label]\n")));
 					break;
 				}
 				case NO_PARAMS: {
@@ -165,11 +172,13 @@ public class PrimitiveDisassembler implements Closeable {
 					out.write('\n');
 					long ipos = pos + 8;
 					if ((cmd.p1.art & PARAM_A_SR) != PARAM_A_SR) {
-						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p-num]\n")));
+						out.write(convertLongToHexString("   ", ipos,
+								convertLongToHexString(" -> ", cmd.p1.num, "   | [p-num]\n")));
 						ipos += 8;
 					}
 					if ((cmd.p1.art & PARAM_B_SR) == PARAM_B_NUM) {
-						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p-offset]\n")));
+						out.write(convertLongToHexString("   ", ipos,
+								convertLongToHexString(" -> ", cmd.p1.off, "   | [p-offset]\n")));
 					}
 					break;
 				}
@@ -195,19 +204,23 @@ public class PrimitiveDisassembler implements Closeable {
 					long ipos = pos;
 					if ((cmd.p1.art & PARAM_A_SR) != PARAM_A_SR) {
 						ipos += 8;
-						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p1-num]\n")));
+						out.write(convertLongToHexString("   ", ipos,
+								convertLongToHexString(" -> ", cmd.p1.num, "   | [p1-num]\n")));
 					}
 					if ((cmd.p1.art & PARAM_B_SR) == PARAM_B_NUM) {
 						ipos += 8;
-						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p1-offset]\n")));
+						out.write(convertLongToHexString("   ", ipos,
+								convertLongToHexString(" -> ", cmd.p1.off, "   | [p1-offset]\n")));
 					}
 					if ((cmd.p2.art & PARAM_A_SR) != PARAM_A_SR) {
 						ipos += 8;
-						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.num, "   | [p2-num]\n")));
+						out.write(convertLongToHexString("   ", ipos,
+								convertLongToHexString(" -> ", cmd.p2.num, "   | [p2-num]\n")));
 					}
 					if ((cmd.p2.art & PARAM_B_SR) == PARAM_B_NUM) {
 						ipos += 8;
-						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.off, "   | [p2-offset]\n")));
+						out.write(convertLongToHexString("   ", ipos,
+								convertLongToHexString(" -> ", cmd.p2.off, "   | [p2-offset]\n")));
 					}
 					break;
 				}
@@ -226,8 +239,8 @@ public class PrimitiveDisassembler implements Closeable {
 		}
 	}
 	
-	private static String string(byte[] bytes, int off, int len) {
-		StringBuilder b = new StringBuilder(10).append('"');
+	private static String string(String prefix, byte[] bytes, int off, int len) {
+		StringBuilder b = new StringBuilder(10 + prefix.length()).append(prefix).append('"');
 		for (int i = 0; i < len; i++) {
 			int val = bytes[off + i];
 			switch (val) {
@@ -235,13 +248,20 @@ public class PrimitiveDisassembler implements Closeable {
 			case '\t' -> b.append("\\t");
 			case '\r' -> b.append("\\r");
 			case '\n' -> b.append("\\n");
-			default -> b.append((char) (0xFF & val));
+			default -> {
+				if (val < 0x20 || (val & 0x7F) != val) {
+					b.append('?');
+				} else {
+					b.append((char) val);
+				}
+			}
 			}
 		}
 		return b.append('"').toString();
 	}
 	
-	private void read(long pos, InputStream in, List<Command> cmds, Set<Long> labels) throws IOException, InternalError {
+	private void read(long pos, InputStream in, List<Command> cmds, Set<Long> labels)
+			throws IOException, InternalError {
 		byte[]          bytes = new byte[8];
 		ConstantPoolCmd cp    = new ConstantPoolCmd();
 		while (true) {
@@ -261,7 +281,7 @@ public class PrimitiveDisassembler implements Closeable {
 					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp   = new ConstantPoolCmd();
+						cp = new ConstantPoolCmd();
 					}
 					long relativeLabel = 0x0000FFFFFFFFFFFFL & convertByteArrToLong(bytes);
 					command = new Command(cmd, relativeLabel, lng);
@@ -275,7 +295,7 @@ public class PrimitiveDisassembler implements Closeable {
 					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp   = new ConstantPoolCmd();
+						cp = new ConstantPoolCmd();
 					}
 					break;
 				case ONE_PARAM_ALLOW_CONST:
@@ -283,7 +303,7 @@ public class PrimitiveDisassembler implements Closeable {
 					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp   = new ConstantPoolCmd();
+						cp = new ConstantPoolCmd();
 					}
 					break;
 				case ONE_PARAM_NO_CONST:
@@ -292,7 +312,7 @@ public class PrimitiveDisassembler implements Closeable {
 					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp   = new ConstantPoolCmd();
+						cp = new ConstantPoolCmd();
 					}
 					break;
 				case TWO_PARAMS_ALLOW_CONSTS:
@@ -300,7 +320,7 @@ public class PrimitiveDisassembler implements Closeable {
 					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp   = new ConstantPoolCmd();
+						cp = new ConstantPoolCmd();
 					}
 					break;
 				case TWO_PARAMS_NO_CONSTS:
@@ -310,7 +330,7 @@ public class PrimitiveDisassembler implements Closeable {
 					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp   = new ConstantPoolCmd();
+						cp = new ConstantPoolCmd();
 					}
 					break;
 				case TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST:
@@ -319,20 +339,20 @@ public class PrimitiveDisassembler implements Closeable {
 					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp   = new ConstantPoolCmd();
+						cp = new ConstantPoolCmd();
 					}
 					break;
 				case TWO_PARAMS_P1_NO_CONST_P2_COMPILE_CONST: {
 					Command command0 = buildOneParam(bytes, in, cmd);
 					checkedReadBytes(in, bytes, cp);
 					ParamBuilder pb = new ParamBuilder();
-					pb.art  = PARAM_A_NUM;
-					pb.v1   = convertByteArrToLong(bytes);
+					pb.art = PARAM_A_NUM;
+					pb.v1 = convertByteArrToLong(bytes);
 					command = new Command(cmd, command0.p1, pb.build());
 					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp   = new ConstantPoolCmd();
+						cp = new ConstantPoolCmd();
 					}
 					break;
 				}
@@ -340,18 +360,19 @@ public class PrimitiveDisassembler implements Closeable {
 					Command command0 = buildTwoParam(bytes, in, cmd);
 					command0.p1.checkNoConst();
 					ParamBuilder pb = new ParamBuilder();
-					pb.art  = PARAM_A_NUM;
-					pb.v1   = convertByteArrToLong(bytes);
+					pb.art = PARAM_A_NUM;
+					pb.v1 = convertByteArrToLong(bytes);
 					command = new Command(cmd, command0.p1, command0.p2, pb.build());
 					if (cp.length() != 0) {
 						cmds.add(cp);
 						pos += cp.length();
-						cp   = new ConstantPoolCmd();
+						cp = new ConstantPoolCmd();
 					}
 					break;
 				}
 				default:
-					throw new InternalError("the command '" + cmd.name() + "' does not have a known 'art' value! art=" + cmd.art.name());
+					throw new InternalError("the command '" + cmd.name() + "' does not have a known 'art' value! art="
+							+ cmd.art.name());
 				}
 				pos += command.length();
 				cmds.add(command);
@@ -359,9 +380,11 @@ public class PrimitiveDisassembler implements Closeable {
 		}
 	}
 	
-	private static void checkedReadBytes(InputStream in, byte[] bytes, ConstantPoolCmd cp) throws IOException, NoCommandException {
-		for (int read = 0,
-				add = in.read(bytes, read, bytes.length - read); read < bytes.length; read += add, add = in.read(bytes, read, bytes.length - read)) {
+	private static void checkedReadBytes(InputStream in, byte[] bytes, ConstantPoolCmd cp)
+			throws IOException, NoCommandException {
+		PrimitiveDisassemblerMain.LOG.finer(() -> "read now " + bytes.length + " bytes ");
+		for (int read = 0, add = in.read(bytes, read, bytes.length - read); read < bytes.length; read += add, add = in
+				.read(bytes, read, bytes.length - read)) {
 			if (add != -1) continue;
 			if (read > 0) {
 				cp.add(bytes, read);
@@ -371,7 +394,8 @@ public class PrimitiveDisassembler implements Closeable {
 		cp.add(bytes);
 	}
 	
-	private static Command buildTwoParam(byte[] bytes, InputStream in, Commands cmd) throws NoCommandException, IOException {
+	private static Command buildTwoParam(byte[] bytes, InputStream in, Commands cmd)
+			throws NoCommandException, IOException {
 		ConstantPoolCmd cp = new ConstantPoolCmd();
 		cp.add(bytes);
 		ParamBuilder pb = new ParamBuilder();
@@ -418,7 +442,7 @@ public class PrimitiveDisassembler implements Closeable {
 			throw new NoCommandException(NO_VALID_CMD_ART);
 		}
 		Param p1 = pb.build();
-		pb     = new ParamBuilder();
+		pb = new ParamBuilder();
 		pb.art = 0xFF & orig[4];
 		switch (pb.art) {
 		case Param.ART_ANUM_BREG:
@@ -474,7 +498,8 @@ public class PrimitiveDisassembler implements Closeable {
 		return new Command(cmd, p1, pb.build());
 	}
 	
-	private static Command buildOneParam(byte[] bytes, InputStream in, Commands cmd) throws NoCommandException, IOException {
+	private static Command buildOneParam(byte[] bytes, InputStream in, Commands cmd)
+			throws NoCommandException, IOException {
 		ConstantPoolCmd cp = new ConstantPoolCmd();
 		cp.add(bytes);
 		ParamBuilder pb = new ParamBuilder();

@@ -32,6 +32,7 @@
 #include <iconv.h>
 #ifdef PVM_DEBUG
 #include "pvm-version.h"
+// not realy usable here #include <readline/readline.h>
 #include <pthread.h>
 #include <signal.h>
 #include <sys/socket.h>
@@ -41,6 +42,10 @@
 #include <sys/syscall.h>
 #include <sys/wait.h>
 #endif // PVM_DEBUG
+
+#ifdef PVM_DEBUG
+static FILE *old_stderr;
+#endif
 
 static int param_param_type_index;
 static int param_byte_value_index;
@@ -103,7 +108,8 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 		pvm.ip = exe_mem->start;
 	}
 
-	struct memory *args_mem = alloc_memory2(argv, argc * sizeof(char*), 0U);
+	struct memory *args_mem = alloc_memory2(argv, (argc + 1) * sizeof(char*),
+			0U);
 	if (!args_mem) {
 		abort();
 	}
@@ -124,24 +130,25 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 
 static pthread_mutex_t debug_mutex;
 
+static int server_sok;
+
 static inline void pvm_lock() {
 	if (pthread_mutex_lock(&debug_mutex) == -1) {
-		perror("pthread_mutex_lock");
-		fprintf(stderr, "could not lock the debug mutex\n");
+		fprintf(old_stderr, "could not lock the debug mutex: %s\n",
+				strerror(errno));
 		exit(1);
 	}
 	if (syscall(SYS_membarrier, MEMBARRIER_CMD_PRIVATE_EXPEDITED, 0U, 0)
 			== -1) {
-		perror("membarrier");
-		fprintf(stderr, "membarrier failed\n");
+		fprintf(old_stderr, "membarrier failed: %s\n", strerror(errno));
 		exit(1);
 	}
 }
 
 static inline void pvm_unlock() {
 	if (pthread_mutex_unlock(&debug_mutex) == -1) {
-		perror("pthread_mutex_unlock");
-		fprintf(stderr, "could not unlock the debug mutex\n");
+		fprintf(old_stderr, "could not unlock the debug mutex: %s\n",
+				strerror(errno));
 		exit(1);
 	}
 }
@@ -153,10 +160,6 @@ static inline void wait5ms() {
 			};
 	nanosleep(&wait_time, NULL);
 }
-
-struct pvm_thread_arg {
-	int val;
-};
 
 static int pvm_same_address(const void *a, const void *b) {
 	return a == b;
@@ -170,16 +173,32 @@ struct pvm_delegate_arg {
 	struct hashset *dst_fds;
 };
 
+static struct hashset delegate_set_stdout = { //
+		/*	  */.entries = NULL, //
+				.entrycount = 0, //
+				.setsize = 0, //
+				.equalizer = pvm_same_address, //
+				.hashmaker = pvm_address_hash, //
+		};
+
+static struct hashset delegate_set_stderr = { //
+		/*	  */.entries = NULL, //
+				.entrycount = 0, //
+				.setsize = 0, //
+				.equalizer = pvm_same_address, //
+				.hashmaker = pvm_address_hash, //
+		};
+
 static void* pvm_delegate_func(void *_arg) {
 	struct pvm_delegate_arg arg = *(struct pvm_delegate_arg*) _arg;
 	free(_arg);
-	void *buffer = malloc(1024);
+	void *buffer = malloc(128);
 	if (!buffer) {
-		fprintf(stderr, "could not allocate delegate buffer\n");
+		fprintf(old_stderr, "could not allocate delegate buffer\n");
 		exit(1);
 	}
 	while (1) {
-		ssize_t reat = read(arg.srcfd, buffer, 1024);
+		ssize_t reat = read(arg.srcfd, buffer, 128);
 		if (reat == -1) {
 			switch (errno) {
 			case EAGAIN:
@@ -189,14 +208,15 @@ static void* pvm_delegate_func(void *_arg) {
 				errno = 0;
 				continue;
 			}
-			perror("read");
-			fprintf(stderr, "error on read\n");
+			fprintf(old_stderr, "error on read: %s\n", strerror(errno));
 			exit(1);
 		} else if (read == 0) {
 			return NULL;
 		}
+		pvm_lock();
 		for (int i = arg.dst_fds->setsize; i;) {
-			if (!arg.dst_fds->entries[i]) {
+			if (!arg.dst_fds->entries[i]
+					|| arg.dst_fds->entries[i] == &illegal) {
 				continue;
 			}
 			int dstfd = ((int) (arg.dst_fds->entries[i] - NULL)) - 1;
@@ -209,12 +229,36 @@ static void* pvm_delegate_func(void *_arg) {
 						errno = 0;
 						continue;
 					}
-					perror("write");
-					fprintf(stderr, "error on write\n");
-					exit(1);
+					fprintf(old_stderr, "error on write: %s\n",
+							strerror(errno));
+					goto big_break;
 				}
 				wrote += w;
 			}
+			big_break: ;
+		}
+		pvm_unlock();
+	}
+}
+
+static inline void set_fd_flag(int fd, char *name, int flags, _Bool set_flag) {
+	int cur_flags = fcntl(fd, F_GETFD);
+	if (cur_flags == -1) {
+		fprintf(old_stderr, "could not get the fd flags: %s\n",
+				strerror(errno));
+		exit(1);
+	}
+	if (set_flag && (cur_flags & flags) != flags) {
+		if (fcntl(fd, F_SETFD, cur_flags | flags) == -1) {
+			fprintf(old_stderr, "could not set the %s fd flag: %s\n", name,
+					strerror(errno));
+			exit(1);
+		}
+	} else if (!set_flag && (cur_flags & flags) != 0) {
+		if (fcntl(fd, F_SETFD, cur_flags & ~flags) == -1) {
+			fprintf(old_stderr, "could not clear the %s flag: %s\n", name,
+					strerror(errno));
+			exit(1);
 		}
 	}
 }
@@ -223,8 +267,34 @@ static void* pvm_debug_thread_func(void *_arg);
 
 #define DEBUG_SOCKET_BACKLOG 1
 
+struct sok_data {
+	FILE *read;
+	FILE *write;
+	pthread_t thread;
+	int fd;
+};
+
+static void close_sock_data_on_exit(int status, void *arg) {
+	struct sok_data *sd = arg;
+	if (sd->thread != -1) {
+		pthread_kill(sd->thread, SIGKILL);
+	}
+	close(sd->fd);
+	if (sd->read) {
+		fclose(sd->read);
+	}
+	if (sd->write) {
+		fclose(sd->write);
+	}
+}
+
+static void close_server_sok_on_exit(int status, void *arg) {
+	int server_sok = *(int*) arg;
+	close(server_sok);
+}
+
 static void* pvm_debug_thread_deamon(void *_arg) {
-	struct pvm_thread_arg arg = *(struct pvm_thread_arg*) _arg;
+	int arg = *(int*) _arg;
 	free(_arg);
 	int domain;
 	union {
@@ -233,52 +303,56 @@ static void* pvm_debug_thread_deamon(void *_arg) {
 	} my_sock_adr;
 	my_sock_adr.sa_in = (struct sockaddr_in ) { //
 			/*	  */.sin_family = AF_INET, //
-					.sin_port = htons(arg.val), //
+					.sin_port = htons(arg), //
 					.sin_addr.s_addr = INADDR_ANY, //
 			};
-	int my_sok = socket(AF_INET, SOCK_STREAM, 0);
-	if (my_sok == -1) {
-		perror("socket");
-		fprintf(stderr, "could not create my socket\n");
+	int server_sok = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
+	if (server_sok == -1) {
+		fprintf(old_stderr, "could not create my socket: %s\n",
+				strerror(errno));
 		exit(1);
 	}
-	if (bind(my_sok, &my_sock_adr.sa, sizeof(struct sockaddr_in)) == -1) {
-		perror("bind");
-		fprintf(stderr, "could not bind my socket\n");
+	if (bind(server_sok, &my_sock_adr.sa, sizeof(struct sockaddr_in)) == -1) {
+		fprintf(old_stderr, "could not bind my socket: %s\n", strerror(errno));
 		exit(1);
 	}
-	if (listen(my_sok, DEBUG_SOCKET_BACKLOG) == -1) {
-		perror("listen");
-		fprintf(stderr, "could not open my socket for listening\n");
+	if (listen(server_sok, DEBUG_SOCKET_BACKLOG) == -1) {
+		fprintf(old_stderr, "could not open my socket for listening: %s\n",
+				strerror(errno));
 		exit(1);
 	}
+	on_exit(close_server_sok_on_exit, &server_sok);
 	while (1) {
-		int sok = accept(my_sok, NULL, NULL);
+		int sok = accept4(server_sok, NULL, NULL, SOCK_CLOEXEC);
 		if (sok == -1) {
-			perror("accept");
-			fprintf(stderr, "could not accept a debug connection\n");
+			fprintf(old_stderr, "could not accept a debug connection: %s\n",
+					strerror(errno));
 			exit(1);
 		}
 
-		struct pvm_thread_arg *child_arg = malloc(
-				sizeof(struct pvm_thread_arg));
+		struct sok_data *child_arg = malloc(sizeof(struct sok_data));
 		if (!child_arg) {
-			fprintf(stderr, "could not allocate the argument for the thread\n");
+			fprintf(old_stderr,
+					"could not allocate the argument for the thread\n");
+			close(sok);
 			exit(1);
 		}
-		child_arg->val = sok;
-		pthread_t debug_thread;
-		pthread_attr_t debug_attrs;
-		pthread_attr_init(&debug_attrs);
-		pthread_create(&debug_thread, &debug_attrs, pvm_debug_thread_func,
+
+		child_arg->fd = sok;
+		child_arg->read = NULL;
+		child_arg->write = NULL;
+		child_arg->thread = -1;
+
+		on_exit(close_sock_data_on_exit, child_arg);
+
+		pthread_create(&child_arg->thread, NULL, pvm_debug_thread_func,
 				child_arg);
-		pthread_attr_destroy(&debug_attrs);
 	}
 }
 
 struct debug_cmd {
 	const char *name;
-	void (*func)(FILE *file_read, FILE *file_write, char *buffer);
+	void (*func)(struct sok_data *sd, char *buffer);
 };
 
 static int debug_cmds_equal(const void *_a, const void *_b) {
@@ -315,22 +389,22 @@ static struct hashset debug_commands = { //
 				.entries = NULL, //
 		};
 
-static void pvm_dbcmd_help(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_version(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_detach(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_exit(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_state(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_wait(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_run(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_step_in(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_step(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_step_out(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_step_dep(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_break(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_pvm(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_regs(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_mem(FILE *file_read, FILE *file_write, char *buffer);
-static void pvm_dbcmd_disasm(FILE *file_read, FILE *file_write, char *buffer);
+static void pvm_dbcmd_help(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_version(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_detach(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_exit(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_state(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_wait(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_run(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_step_in(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_step(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_step_out(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_step_dep(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_break(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_pvm(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_regs(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_mem(struct sok_data *sd, char *buffer);
+static void pvm_dbcmd_disasm(struct sok_data *sd, char *buffer);
 
 static inline void init_debug_cmds_set() {
 	struct debug_cmd *dc;
@@ -347,7 +421,6 @@ static inline void init_debug_cmds_set() {
 
 	set_debug_cmd(help)
 	set_debug_cmd(version)
-	set_debug_cmd(detach)
 	set_debug_cmd(detach)
 	set_debug_cmd(exit)
 	set_debug_cmd(state)
@@ -366,97 +439,60 @@ static inline void init_debug_cmds_set() {
 #undef set_debug_cmd
 }
 
-static inline void make_std_noblock() {
-	int flags = fcntl(STDIN_FILENO, F_GETFD);
-	if (flags == -1) {
-		perror("fcntl");
-		fprintf(stderr, "could not get the flags of stdin\n");
-		exit(1);
-	}
-	if ((flags & O_NONBLOCK) == 0) {
-		if (fcntl(STDIN_FILENO, F_SETFD, flags | O_NONBLOCK) == -1) {
-			perror("fcntl");
-			fprintf(stderr, "could not set the NOBLOCK flag for stdin\n");
-			exit(1);
-		}
-	}
-	flags = fcntl(STDOUT_FILENO, F_GETFD);
-	if (flags == -1) {
-		perror("fcntl");
-		fprintf(stderr, "could not get the flags of stdout\n");
-		exit(1);
-	}
-	if ((flags & O_NONBLOCK) == 0) {
-		if (fcntl(STDOUT_FILENO, F_SETFD, flags | O_NONBLOCK) == -1) {
-			perror("fcntl");
-			fprintf(stderr, "could not set the NOBLOCK flag for stdout\n");
-			exit(1);
-		}
-	}
-	flags = fcntl(STDERR_FILENO, F_GETFD);
-	if (flags == -1) {
-		perror("fcntl");
-		fprintf(stderr, "could not get the flags of stderr\n");
-		exit(1);
-	}
-	if ((flags & O_NONBLOCK) == 0) {
-		if (fcntl(STDERR_FILENO, F_SETFD, flags | O_NONBLOCK) == -1) {
-			perror("fcntl");
-			fprintf(stderr, "could not set the NOBLOCK flag for stderr\n");
-			exit(1);
-		}
-	}
-}
-
 static inline void create_pipes(int stdin_pipe[2], int stdout_pipe[2],
 		int stderr_pipe[2]) {
-	if (pipe2(stdin_pipe, O_NONBLOCK) == -1) {
-		perror("pipe");
-		fprintf(stderr, "could not open a debug pipe!\n");
+	if (pipe2(stdin_pipe, O_NONBLOCK | O_CLOEXEC) == -1) {
+		fprintf(old_stderr, "could not open a debug pipe!: %s\n",
+				strerror(errno));
 		exit(1);
 	}
-	if (pipe2(stdout_pipe, O_NONBLOCK) == -1) {
-		perror("pipe");
-		fprintf(stderr, "could not open a debug pipe!\n");
+	if (pipe2(stdout_pipe, O_NONBLOCK | O_CLOEXEC) == -1) {
+		fprintf(old_stderr, "could not open a debug pipe!: %s\n",
+				strerror(errno));
 		exit(1);
 	}
-	if (pipe2(stderr_pipe, O_NONBLOCK) == -1) {
-		perror("pipe");
-		fprintf(stderr, "could not open a debug pipe!\n");
+	if (pipe2(stderr_pipe, O_NONBLOCK | O_CLOEXEC) == -1) {
+		fprintf(old_stderr, "could not open a debug pipe!: %s\n",
+				strerror(errno));
 		exit(1);
 	}
 }
 
-static inline void overwrite_std(int stdin_pipe[2], int stdout_pipe[2],
-		int stderr_pipe[2]) {
-	if (dup2(stdin_pipe[0], STDIN_FILENO) == -1) {
-		perror("pipe");
-		fprintf(stderr, "could not set stdin!\n");
+static inline void overwrite_std(int new_stdin, int new_stdout, int new_stderr) {
+	// std streams are overwritten between fork and exec
+	if (dup2(new_stdin, STDIN_FILENO) == -1) {
+		fprintf(old_stderr, "could not set stdin!: %s\n", strerror(errno));
 		exit(1);
 	}
-	if (dup2(stdout_pipe[1], STDOUT_FILENO) == -1) {
-		perror("pipe");
-		fprintf(stderr, "could not set stdout!\n");
+	if (dup2(new_stdout, STDOUT_FILENO) == -1) {
+		fprintf(old_stderr, "could not set stdout!: %s\n", strerror(errno));
 		exit(1);
 	}
-	if (dup2(stderr_pipe[1], STDERR_FILENO) == -1) {
-		perror("pipe");
-		fprintf(stderr, "could not set stderr!\n");
+	if (dup2(new_stderr, STDERR_FILENO) == -1) {
+		fprintf(old_stderr, "could not set stderr!: %s\n", strerror(errno));
 		exit(1);
 	}
+	set_fd_flag(STDIN_FILENO, "NONBLOCK", O_NONBLOCK, 1);
+	set_fd_flag(STDOUT_FILENO, "NONBLOCK", O_NONBLOCK, 1);
+	set_fd_flag(STDERR_FILENO, "NONBLOCK", O_NONBLOCK, 1);
 }
+
+//static void at_fork_child(void) {
+//	pthread_mutex_destroy(&debug_mutex);
+//}
 
 static inline void init_syncronisation() {
 	pthread_mutexattr_t attr;
 	pthread_mutexattr_init(&attr);
 	pthread_mutex_init(&debug_mutex, &attr);
 	pthread_mutexattr_destroy(&attr);
+//	pthread_atfork(NULL, NULL, at_fork_child);
 
 	if (syscall(SYS_membarrier, MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED, 0U,
 			0) == -1) {
-		perror("membarrier");
-		fprintf(stderr,
-				"could not register myself for the memory barrier syscall\n");
+		fprintf(old_stderr,
+				"could not register myself for the memory barrier syscall: %s\n",
+				strerror(errno));
 		exit(1);
 	}
 }
@@ -498,6 +534,7 @@ static inline void init_debug_cmds() {
 }
 
 void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
+	old_stderr = stderr;
 	int stdin_dup = dup(STDIN_FILENO);
 	int stdout_dup = dup(STDOUT_FILENO);
 	int stderr_dup = dup(STDERR_FILENO);
@@ -512,15 +549,20 @@ void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 		input = stderr_dup;
 		break;
 	}
-
-	make_std_noblock();
+	// save to do this not atomic, because here the programm is still single threaded
+	set_fd_flag(stdin_dup, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
+	set_fd_flag(stdout_dup, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
+	set_fd_flag(stderr_dup, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
+	int stderr_dup2 = dup(STDERR_FILENO);
+	set_fd_flag(stderr_dup2, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
+	old_stderr = fdopen(stderr_dup2, "w");
 
 	int stdin_pipe[2];
 	int stdout_pipe[2];
 	int stderr_pipe[2];
 	create_pipes(stdin_pipe, stdout_pipe, stderr_pipe);
 
-	overwrite_std(stdin_pipe, stdout_pipe, stderr_pipe);
+	overwrite_std(stdin_pipe[0], stdout_pipe[1], stderr_pipe[1]);
 
 	init_syncronisation();
 	pvm_lock();
@@ -536,19 +578,33 @@ void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 		pvm_next_state = pvm_ds_running;
 	}
 
-	struct pvm_thread_arg *arg = malloc(sizeof(struct pvm_thread_arg));
-	if (!arg) {
-		fprintf(stderr, "could not allocate the argument for the thread\n");
+	pthread_t some_other_thread;
+	int *deamon_arg = malloc(sizeof(int));
+	if (!deamon_arg) {
+		fprintf(old_stderr, "could not allocate the argument for the thread\n");
 		exit(1);
 	}
-	arg->val = input;
-	pthread_t deamon_thread;
-	pthread_attr_t deamon_attrs;
-	pthread_attr_init(&deamon_attrs);
-	pthread_create(&deamon_thread, &deamon_attrs,
+	*deamon_arg = input; // debug deamon/thread
+	pthread_create(&some_other_thread, NULL,
 			input_is_pipe ? pvm_debug_thread_func : pvm_debug_thread_deamon,
-			arg);
-	pthread_attr_destroy(&deamon_attrs);
+			deamon_arg);
+
+	struct pvm_delegate_arg *delegate_arg = malloc(
+			sizeof(struct pvm_delegate_arg));
+	if (!delegate_arg) {
+		fprintf(old_stderr, "could not allocate the argument for the thread\n");
+		exit(1);
+	}
+	delegate_arg->srcfd = stdout_dup; // stdout delegate
+	pthread_create(&some_other_thread, NULL, pvm_delegate_func, delegate_arg);
+
+	delegate_arg = malloc(sizeof(struct pvm_delegate_arg));
+	if (!delegate_arg) {
+		fprintf(old_stderr, "could not allocate the argument for the thread\n");
+		exit(1);
+	}
+	delegate_arg->srcfd = stderr_dup; // stderr delegate
+	pthread_create(&some_other_thread, NULL, pvm_delegate_func, delegate_arg);
 }
 #endif // PVM_DEBUG
 
@@ -676,6 +732,9 @@ static inline struct memory_check chk(num pntr, num size) {
 							struct memory_check result;
 							result.changed = new_mem->start != old_start;
 							result.mem = new_mem;
+#ifdef PVM_DEBUG
+							result.valid = 1;
+#endif
 							return result;
 						}
 					}
@@ -684,15 +743,29 @@ static inline struct memory_check chk(num pntr, num size) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 			struct memory_check result;
 			result.mem = NULL;
+#ifdef PVM_DEBUG
+			result.valid = 0;
+#endif
 			return result;
 		} else if (m->end <= pntr) {
 			continue;
-		} else if (m->end <= pntr - size) {
+		} else if (m->end - size < pntr) {
+#ifdef PVM_DEBUG
+			if (use_valid) {
+				struct memory_check result;
+				result.mem = NULL;
+				result.valid = 0;
+				return result;
+			}
+#endif
 			goto check_grow;
 		}
 		struct memory_check result;
 		result.mem = m;
 		result.changed = 0;
+#ifdef PVM_DEBUG
+		result.valid = 1;
+#endif
 		return result;
 	}
 #ifdef PVM_DEBUG
@@ -1063,34 +1136,41 @@ static inline void print_pvm(FILE *file_write, int end) {
 	struct pvm pvm_copy = pvm;
 	pvm_unlock();
 	fprintf(file_write, "PVM:\n");
-	if (end == 0)
+	if (end <= 0) {
 		return;
+	}
 	fprintf(file_write, "  IP:     UHEX-%lX : %ld\n", pvm_copy.ip, pvm_copy.ip);
-	if (end == 1)
+	if (end == 1) {
 		return;
+	}
 	fprintf(file_write, "  SP:     UHEX-%lX : %ld\n", pvm_copy.sp, pvm_copy.sp);
-	if (end == 2)
+	if (end == 2) {
 		return;
+	}
 	fprintf(file_write, "  INTP:   UHEX-%lX : %ld\n", pvm_copy.intp,
 			pvm_copy.intp);
-	if (end == 3)
+	if (end == 3) {
 		return;
+	}
 	fprintf(file_write, "  INTCNT: UHEX-%lX : %ld\n", pvm_copy.intcnt,
 			pvm_copy.intcnt);
-	if (end == 4)
+	if (end == 4) {
 		return;
+	}
 	fprintf(file_write, "  STATUS: UHEX-%lX : %ld\n", pvm_copy.status,
 			pvm_copy.status);
-	if (end == 5)
+	if (end == 5) {
 		return;
+	}
 	fprintf(file_write, "  ERRNO:  UHEX-%lX : %ld\n", pvm_copy.err,
 			pvm_copy.err);
 	int i = 0;
 	while (1) {
-		if (end <= (i + 6))
+		if (end == (i + 6)) {
 			return;
+		}
 		int c0 = to_hex(0xF & (i >> 4)), c1 = to_hex(0xF & i);
-		fprintf(file_write, "  X%c%c:     UHEX-%lX : %ld\n", //
+		fprintf(file_write, "  X%c%c:    UHEX-%lX : %ld\n", //
 				c0, c1, pvm.x[i], pvm.x[i]);
 		i++;
 	}
@@ -1103,9 +1183,9 @@ static inline void state_to_stepping(int dep) {
 	pvm_unlock();
 }
 
-static inline _Bool scahnf_help(FILE *file_read, FILE *file_write, char *buffer,
+static inline _Bool scahnf_help(struct sok_data *sd, char *buffer,
 		const char *str, const char *name, void *a, void *b) {
-	while (fscanf(file_read, str, a, b) == -1) {
+	while (fscanf(sd->read, str, a, b) == -1) {
 		int e = errno;
 		errno = 0;
 		switch (e) {
@@ -1115,17 +1195,16 @@ static inline _Bool scahnf_help(FILE *file_read, FILE *file_write, char *buffer,
 		case EINTR:
 			continue;
 		case EILSEQ:
-			fscanf(file_read, "%127s", buffer);
-			fprintf(file_write, "could not parse the %s ('%s')\n", name,
-					buffer);
+			fscanf(sd->read, "%127s", buffer);
+			fprintf(sd->write, "could not parse the %s ('%s')\n", name, buffer);
 			break;
 		case ERANGE:
-			fscanf(file_read, "%127s", buffer);
-			fprintf(file_write, "%s is out of range ('%s')\n", name, buffer);
+			fscanf(sd->read, "%127s", buffer);
+			fprintf(sd->write, "%s is out of range ('%s')\n", name, buffer);
 			break;
 		default:
-			fscanf(file_read, "%127s", buffer);
-			fprintf(file_write, "could not scanf the %s: %s\n", name,
+			fscanf(sd->read, "%127s", buffer);
+			fprintf(sd->write, "could not scanf the %s: %s\n", name,
 					strerror(e));
 			break;
 		}
@@ -1134,8 +1213,8 @@ static inline _Bool scahnf_help(FILE *file_read, FILE *file_write, char *buffer,
 	return 1;
 }
 
-static void pvm_dbcmd_help(FILE *file_read, FILE *file_write, char *buf) {
-	fprintf(file_write,
+static void pvm_dbcmd_help(struct sok_data *sd, char *buf) {
+	fprintf(sd->write,
 	/*	  */"db-pvm debug console\n"
 			"\n"
 			"numbers:\n"
@@ -1237,99 +1316,100 @@ static void pvm_dbcmd_help(FILE *file_read, FILE *file_write, char *buf) {
 			"    disassemble the given memory block.\n"
 			"");
 }
-static void pvm_dbcmd_version(FILE *file_read, FILE *file_write, char *buf) {
-	print_version(file_write);
+static void pvm_dbcmd_version(struct sok_data *sd, char *buf) {
+	print_version(sd->write);
 }
-static void pvm_dbcmd_detach(FILE *file_read, FILE *file_write, char *buf) {
-	fprintf(file_write, "bye\n");
-	fclose(file_write);
-	fclose(file_read);
-	pthread_kill(pthread_self(), SIGKILL);
+static void pvm_dbcmd_detach(struct sok_data *sd, char *buf) {
+	fprintf(sd->write, "bye\n");
+	fclose(sd->write);
+	fclose(sd->read);
+	close(sd->fd);
+	pthread_exit(NULL);
 }
-static void pvm_dbcmd_exit(FILE *file_read, FILE *file_write, char *buf) {
+static void pvm_dbcmd_exit(struct sok_data *sd, char *buf) {
 	int exit_num;
-	if (fscanf(file_read, "%i", &exit_num) == -1) {
+	if (fscanf(sd->read, "%i", &exit_num) == -1) {
 		exit_num = 1;
 	}
-	fprintf(file_write, "bye, exit now with %d\n", exit_num);
+	fprintf(sd->write, "bye, exit now with %d\n", exit_num);
 	exit(exit_num);
 }
-static void pvm_dbcmd_state(FILE *file_read, FILE *file_write, char *buf) {
+static void pvm_dbcmd_state(struct sok_data *sd, char *buf) {
 	pvm_lock();
 	enum pvm_db_state state = pvm_state, next_state = pvm_next_state;
 	pvm_unlock();
 	switch (state) {
 	case pvm_ds_running:
-		fprintf(file_write, "the db-pvm is currently running\n");
+		fprintf(sd->write, "the db-pvm is currently running\n");
 		break;
 	case pvm_ds_stepping:
-		fprintf(file_write, "the db-pvm is currently stepping\n");
+		fprintf(sd->write, "the db-pvm is currently stepping\n");
 		break;
 	case pvm_ds_waiting:
-		fprintf(file_write, "the db-pvm is currently waiting\n");
+		fprintf(sd->write, "the db-pvm is currently waiting\n");
 		break;
 	case pvm_ds_new_stepping:
-		fprintf(file_write, "the db-pvm is currently starting to step\n");
+		fprintf(sd->write, "the db-pvm is currently starting to step\n");
 		break;
 	default:
-		fprintf(file_write, "the db-pvm currently has an unknown state: %d\n",
+		fprintf(sd->write, "the db-pvm currently has an unknown state: %d\n",
 				pvm_state);
 		break;
 	}
 	if (state != next_state) {
 		switch (next_state) {
 		case pvm_ds_running:
-			fprintf(file_write, "the db-pvm will soon run\n");
+			fprintf(sd->write, "the db-pvm will soon run\n");
 			break;
 		case pvm_ds_stepping:
-			fprintf(file_write, "the db-pvm will soon step\n");
+			fprintf(sd->write, "the db-pvm will soon step\n");
 			break;
 		case pvm_ds_waiting:
-			fprintf(file_write, "the db-pvm will soon wait\n");
+			fprintf(sd->write, "the db-pvm will soon wait\n");
 			break;
 		case pvm_ds_new_stepping:
-			fprintf(file_write, "the db-pvm will soon start to step\n");
+			fprintf(sd->write, "the db-pvm will soon start to step\n");
 			break;
 		default:
-			fprintf(file_write,
+			fprintf(sd->write,
 					"the db-pvm will soon has an unknown state: %d\n",
 					pvm_state);
 			break;
 		}
 	}
 }
-static void pvm_dbcmd_wait(FILE *file_read, FILE *file_write, char *buf) {
+static void pvm_dbcmd_wait(struct sok_data *sd, char *buf) {
 	pvm_lock();
 	pvm_next_state = pvm_ds_waiting;
 	pvm_unlock();
-	fprintf(file_write, "the db-pvm will soon wait\n");
+	fprintf(sd->write, "the db-pvm will soon wait\n");
 }
-static void pvm_dbcmd_run(FILE *file_read, FILE *file_write, char *buf) {
+static void pvm_dbcmd_run(struct sok_data *sd, char *buf) {
 	pvm_lock();
 	pvm_next_state = pvm_ds_running;
 	pvm_unlock();
-	fprintf(file_write, "the db-pvm will soon run\n");
+	fprintf(sd->write, "the db-pvm will soon run\n");
 }
-static void pvm_dbcmd_step_in(FILE *file_read, FILE *file_write, char *buf) {
+static void pvm_dbcmd_step_in(struct sok_data *sd, char *buf) {
 	state_to_stepping(-1);
 }
-static void pvm_dbcmd_step(FILE *file_read, FILE *file_write, char *buf) {
+static void pvm_dbcmd_step(struct sok_data *sd, char *buf) {
 	state_to_stepping(0);
 }
-static void pvm_dbcmd_step_out(FILE *file_read, FILE *file_write, char *buf) {
+static void pvm_dbcmd_step_out(struct sok_data *sd, char *buf) {
 	state_to_stepping(1);
 }
-static void pvm_dbcmd_step_dep(FILE *file_read, FILE *file_write, char *buffer) {
+static void pvm_dbcmd_step_dep(struct sok_data *sd, char *buffer) {
 	int dep;
-	if (!scahnf_help(file_read, file_write, buffer, "%i", "depth", &dep,
+	if (!scahnf_help(sd, buffer, "%i", "depth", &dep,
 	NULL)) {
 		return;
 	}
 	state_to_stepping(dep);
 }
-static void pvm_dbcmd_break(FILE *file_read, FILE *file_write, char *buffer) {
+static void pvm_dbcmd_break(struct sok_data *sd, char *buffer) {
 	num addr;
-	if (scahnf_help(file_read, file_write, buffer, "%li", "address", &addr,
+	if (scahnf_help(sd, buffer, "%li", "address", &addr,
 	NULL)) {
 		return;
 	}
@@ -1337,31 +1417,30 @@ static void pvm_dbcmd_break(FILE *file_read, FILE *file_write, char *buffer) {
 	hashset_put(&breakpoints, (unsigned) addr, (void*) addr);
 	pvm_unlock();
 }
-static void pvm_dbcmd_pvm(FILE *file_read, FILE *file_write, char *buf) {
-	print_pvm(file_write, 256);
+static void pvm_dbcmd_pvm(struct sok_data *sd, char *buf) {
+	print_pvm(sd->write, 256);
 }
-static void pvm_dbcmd_regs(FILE *file_read, FILE *file_write, char *buffer) {
+static void pvm_dbcmd_regs(struct sok_data *sd, char *buffer) {
 	int len;
-	if (!scahnf_help(file_read, file_write, buffer, "%i", "length", &len,
+	if (!scahnf_help(sd, buffer, "%i", "length", &len,
 	NULL)) {
 		return;
 	}
 	if (len > 256) {
-		fprintf(file_write, "length is out of range (%d) (max=256)\n", len);
+		fprintf(sd->write, "length is out of range (%d) (max=256)\n", len);
 	} else if (len < 0) {
-		fprintf(file_write, "length is out of range (%d) (min=0)\n", len);
+		fprintf(sd->write, "length is out of range (%d) (min=0)\n", len);
 	} else {
-		print_pvm(file_write, len);
+		print_pvm(sd->write, len);
 	}
 }
-static void pvm_dbcmd_mem(FILE *file_read, FILE *file_write, char *buffer) {
+static void pvm_dbcmd_mem(struct sok_data *sd, char *buffer) {
 	num addr, len;
-	if (!scahnf_help(file_read, file_write, buffer, "%li%li",
-			"address or length", &addr, &len)) {
+	if (!scahnf_help(sd, buffer, "%li%li", "address or length", &addr, &len)) {
 		return;
 	}
 	if (len < 0) {
-		fprintf(file_write,
+		fprintf(sd->write,
 				"the length of the memory block is negative (addr=HEX-%lX, len=HEX-%lX)\n",
 				addr, len);
 		return;
@@ -1369,13 +1448,13 @@ static void pvm_dbcmd_mem(FILE *file_read, FILE *file_write, char *buffer) {
 	pvm_lock();
 	if (pvm_state != pvm_ds_waiting) {
 		pvm_unlock();
-		fprintf(file_write, "the pvm is not waiting\n");
+		fprintf(sd->write, "the pvm is not waiting\n");
 		return;
 	}
 	struct memory_check mem_chk = chk0(addr, len, 1);
 	if (!mem_chk.valid) {
 		pvm_unlock();
-		fprintf(file_write,
+		fprintf(sd->write,
 				"the given memory block is invalid (addr=HEX-%lX, len=HEX-%lX)\n",
 				addr, len);
 		return;
@@ -1385,31 +1464,33 @@ static void pvm_dbcmd_mem(FILE *file_read, FILE *file_write, char *buffer) {
 	for (; len; len -= 8, addr += 8) {
 		if (len > 8) {
 			num n = *(num*) (mem_chk.mem->offset + addr);
-			for (int i = 15; i; i--) {
+			for (int i = 16; i--;) {
 				buf[i] = to_hex(0xF & (n >> (60 - (4 * i))));
 			}
-			fprintf(file_write, "HEX-%lX : %s\n", addr, buf);
+			fprintf(sd->write, "p-%lX : %s\n", addr, buf);
 		} else {
 			ui8 *p = mem_chk.mem->offset + addr;
-			buf[len << 1] = '\0';
-			for (int i = 0; len; len--, p++, i++) {
-				buf[i] = to_hex(0xF & (*p));
-				buf[++i] = to_hex(0xF & ((*p) >> 4));
+			for (int i = 0; i < (8 - len); i++) {
+				buf[(i << 1)] = ' ';
+				buf[(i << 1) + 1] = ' ';
 			}
-			fprintf(file_write, "HEX-%lX : %s\n", addr, buf);
+			for (int i = 0; len > 0; len--, p++, i += 2) {
+				buf[15 - i] = to_hex(0xF & (*p >> 4));
+				buf[14 - i] = to_hex(0xF & *p);
+			}
+			fprintf(sd->write, "p-%lX : %s\n", addr, buf);
 			break;
 		}
 	}
 	pvm_unlock();
 }
-static void pvm_dbcmd_disasm(FILE *file_read, FILE *file_write, char *buffer) {
+static void pvm_dbcmd_disasm(struct sok_data *sd, char *buffer) {
 	num addr, len;
-	if (!scahnf_help(file_read, file_write, buffer, "%li%li",
-			"address or length", &addr, &len)) {
+	if (!scahnf_help(sd, buffer, "%li%li", "address or length", &addr, &len)) {
 		return;
 	}
 	if (len < 0) {
-		fprintf(file_write,
+		fprintf(sd->write,
 				"the length of the memory block is negative (addr=HEX-%lX, len=HEX-%lX)\n",
 				addr, len);
 		return;
@@ -1417,25 +1498,28 @@ static void pvm_dbcmd_disasm(FILE *file_read, FILE *file_write, char *buffer) {
 	pvm_lock();
 	if (pvm_state != pvm_ds_waiting) {
 		pvm_unlock();
-		fprintf(file_write, "the pvm is not waiting\n");
+		fprintf(sd->write, "the pvm is not waiting\n");
 		return;
 	}
 	struct memory_check mem_chk = chk0(addr, len, 1);
 	if (!mem_chk.valid) {
-		fprintf(file_write,
+		pvm_unlock();
+		fprintf(sd->write,
 				"the given memory block is invalid (addr=HEX-%lX, len=HEX-%lX)\n",
 				addr, len);
 		return;
 	}
 	int pipes[2];
-	if (pipe2(pipes, O_NONBLOCK) == -1) {
-		fprintf(file_write, "could not create the pipe\n");
+	if (pipe2(pipes, O_CLOEXEC) == -1) {
+		pvm_unlock();
+		fprintf(sd->write, "could not create the pipe: %s\n", strerror(errno));
 		return;
 	}
+	fflush(sd->write);
 	pid_t cpid = fork();
 	if (cpid == -1) {
 		pvm_unlock();
-		fprintf(file_write, "could not fork: %s\n", strerror(errno));
+		fprintf(sd->write, "could not fork: %s\n", strerror(errno));
 		errno = 0;
 	} else if (cpid) {
 		void *p = mem_chk.mem->offset + addr;
@@ -1449,13 +1533,14 @@ static void pvm_dbcmd_disasm(FILE *file_read, FILE *file_write, char *buffer) {
 					continue;
 				default:
 					pvm_unlock();
-					fprintf(file_write, "write failed: %s", strerror(e));
+					fprintf(sd->write, "write failed: %s", strerror(e));
 					return;
 				}
 			}
 			remain -= wrote;
 			p += wrote;
 		}
+		close(pipes[1]);
 		pvm_unlock();
 		while (1) {
 			int wstatus;
@@ -1467,70 +1552,128 @@ static void pvm_dbcmd_disasm(FILE *file_read, FILE *file_write, char *buffer) {
 					continue;
 				default:
 					pvm_unlock();
-					fprintf(file_write, "could not wait: %s\n", strerror(e));
+					fprintf(sd->write, "could not wait: %s\n", strerror(e));
 					return;
 				}
 			}
 			if (WIFEXITED(wstatus)) {
 				if (WEXITSTATUS(wstatus) != 0) {
-					fprintf(file_write,
-							"child terminated with exit status %d\n",
+					fprintf(sd->write,
+							"disasm child terminated with exit status %d\n",
 							WEXITSTATUS(wstatus));
 				}
 				return;
 			} else if (WIFSIGNALED(wstatus)) {
-				fprintf(file_write, "child was terminated by the signal %d\n",
+				fprintf(sd->write, "child was terminated by the signal %d\n",
 						WTERMSIG(wstatus));
 				return;
 			}
 		}
 	} else {
 		if (dup2(pipes[0], STDIN_FILENO) == -1) {
-			fprintf(file_write, "could not overwrite stdin\n");
+			fprintf(sd->write, "could not overwrite stdin\n");
 			exit(1);
 		}
-		char *const argv[3] = { "/bin/prim-disasm", "-a", NULL };
+		if (dup2(sd->fd, STDOUT_FILENO) == -1) {
+			fprintf(sd->write, "could not overwrite stdout\n");
+			exit(1);
+		}
+		if (dup2(sd->fd, STDERR_FILENO) == -1) {
+			fprintf(sd->write, "could not overwrite stderr\n");
+			exit(1);
+		}
+		set_fd_flag(STDIN_FILENO, "CLOEXEC | NONBLOCK", O_CLOEXEC | O_NONBLOCK,
+				0);
+		set_fd_flag(STDOUT_FILENO, "CLOEXEC | NONBLOCK", O_CLOEXEC | O_NONBLOCK,
+				0);
+		set_fd_flag(STDERR_FILENO, "CLOEXEC | NONBLOCK", O_CLOEXEC | O_NONBLOCK,
+				0);
+		close(pipes[1]);
+		char *arg3, *arg4;
+		char *arg5, *arg6;
+		int val = snprintf(buffer, 128, "HEX-%lX", len);
+		if (val == -1 || val >= 128) {
+			arg3 = NULL;
+			fprintf(old_stderr, "could not convert the length to a string.\n");
+			fflush(stderr);
+			exit(1);
+		} else {
+			arg3 = "--len";
+			arg4 = buffer;
+			if (val < 64) {
+				val = snprintf(buffer + 64, 64, "HEX-%lX", addr);
+				if (val == -1 || val >= 64) {
+					arg5 = NULL;
+					fprintf(old_stderr,
+							"could not convert the address to a string, discard --pos argument\n");
+					fflush(stderr);
+				} else {
+					arg5 = "--pos";
+					arg6 = buffer + 64;
+				}
+			}
+		}
+		char *const argv[7] = { "/bin/prim-disasm", "--analyse", arg3, arg4,
+				arg5, arg6, NULL };
 		execv("/bin/prim-disasm", argv);
 	}
 }
 
 static void* pvm_debug_thread_func(void *_arg) {
-	struct pvm_thread_arg arg = *(struct pvm_thread_arg*) _arg;
-	free(_arg);
+	struct sok_data *sd = _arg;
 	if (syscall(SYS_membarrier, MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED, 0U,
 			0) == -1) {
-		perror("membarrier");
-		fprintf(stderr,
-				"could not register a debug thread for the memory barrier syscall\n");
+		fprintf(old_stderr,
+				"could not register a debug thread for the memory barrier syscall: %s\n",
+				strerror(errno));
 		exit(1);
 	}
-	int write_fd = dup(arg.val);
+	set_fd_flag(sd->fd, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
+	int read_fd = dup(sd->fd);
+	if (read_fd == -1) {
+		fprintf(old_stderr,
+				"could not duplicate my socket file descriptor: %s\n",
+				strerror(errno));
+		exit(1);
+	}
+	set_fd_flag(read_fd, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
+	int write_fd = dup(sd->fd);
 	if (write_fd == -1) {
-		perror("dup");
-		fprintf(stderr, "could not duplicate my socket file descriptor\n");
+		fprintf(old_stderr,
+				"could not duplicate my socket file descriptor: %s\n",
+				strerror(errno));
 		exit(1);
 	}
-	FILE *file_read = fdopen(arg.val, "r");
-	if (!file_read) {
-		perror("fdopen");
-		fprintf(stderr, "could not open a FILE* from my file descriptor\n");
+	set_fd_flag(write_fd, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
+	sd->read = fdopen(read_fd, "r");
+	if (!sd->read) {
+		fprintf(old_stderr,
+				"could not open a FILE* from my file descriptor: %s\n",
+				strerror(errno));
 		exit(1);
 	}
-	FILE *file_write = fdopen(write_fd, "w");
-	if (!file_write) {
-		perror("fdopen");
-		fprintf(stderr, "could not open a FILE* from my file descriptor\n");
+	sd->write = fdopen(write_fd, "w");
+	if (!sd->write) {
+		fprintf(old_stderr,
+				"could not open a FILE* from my file descriptor: %s\n",
+				strerror(errno));
 		exit(1);
 	}
+	pvm_lock();
+	hashset_put(&delegate_set_stdout, (unsigned) sd->fd, (void*) (long) sd->fd);
+	hashset_put(&delegate_set_stderr, (unsigned) sd->fd, (void*) (long) sd->fd);
+	pvm_unlock();
 	char *buffer = malloc(128);
 	if (!buffer) {
-		fprintf(stderr, "could not allocate my debug string buffer\n");
+		fprintf(old_stderr, "could not allocate my debug string buffer\n");
 		exit(1);
 	}
 	while (1) {
 		big_loop_start: ;
 		char white;
-		if (fscanf(file_read, "%127s%1c", buffer, &white) == -1) {
+		fputs("debug-shell> ", sd->write);
+		fflush(sd->write);
+		if (fscanf(sd->read, "%127s%1c", buffer, &white) == -1) {
 			switch (errno) {
 			case EAGAIN:
 				wait5ms();
@@ -1539,18 +1682,17 @@ static void* pvm_debug_thread_func(void *_arg) {
 				errno = 0;
 				continue;
 			}
-			perror("fscanf");
-			fprintf(stderr, "could not scanf the debug input\n");
+			fprintf(old_stderr, "could not scanf the debug input: %s\n",
+					strerror(errno));
 			exit(1);
 		}
 		struct debug_cmd *debug_cmd = hashset_get(&debug_commands,
 				debug_cmds_hash(&buffer), &buffer);
 		if (debug_cmd) {
-			debug_cmd->func(file_read, file_write, buffer);
+			debug_cmd->func(sd, buffer);
 		} else {
-			fprintf(file_write, "unknown command: '%s'\n", buffer);
+			fprintf(sd->write, "unknown command: '%s'\n", buffer);
 		}
-		fflush(file_write);
 	}
 }
 

@@ -71,7 +71,7 @@ public class Convert {
 		build.append(postfix);
 		String str;
 		for (int i = len - 1; i >= 0; i--) {
-			str = Integer.toHexString(bytes[off + i] & 0xFF);
+			str = Integer.toHexString(bytes[off + i] & 0xFF).toUpperCase();
 			if (str.length() == 1) { build.append('0'); }
 			build.append(str);
 		}
@@ -83,7 +83,7 @@ public class Convert {
 		build.append(postfix);
 		String str;
 		for (int i = bytes.length - 1; i >= 0; i--) {
-			str = Integer.toHexString(bytes[i] & 0xFF);
+			str = Integer.toHexString(bytes[i] & 0xFF).toUpperCase();
 			if (str.length() == 1) { build.append('0'); }
 			build.append(str);
 		}
@@ -101,7 +101,7 @@ public class Convert {
 		build.append(postfix);
 		String str;
 		for (int i = bytes.length - 1; i >= 0; i--) {
-			str = Integer.toHexString(bytes[i] & 0xFF);
+			str = Integer.toHexString(bytes[i] & 0xFF).toUpperCase();
 			if (str.length() == 1) { build.append('0'); }
 			build.append(str);
 		}
@@ -118,7 +118,7 @@ public class Convert {
 		StringBuilder build = new StringBuilder(16);
 		String        str;
 		for (int i = bytes.length - 1; i >= 0; i--) {
-			str = Integer.toHexString(bytes[i] & 0xFF);
+			str = Integer.toHexString(bytes[i] & 0xFF).toUpperCase();
 			if (str.length() == 1) { build.append('0'); }
 			build.append(str);
 		}
@@ -135,7 +135,7 @@ public class Convert {
 		StringBuilder build = new StringBuilder(16 + suffix.length());
 		String        str;
 		for (int i = bytes.length - 1; i >= 0; i--) {
-			str = Integer.toHexString(bytes[i] & 0xFF);
+			str = Integer.toHexString(bytes[i] & 0xFF).toUpperCase();
 			if (str.length() == 1) { build.append('0'); }
 			build.append(str);
 		}
@@ -145,12 +145,11 @@ public class Convert {
 	public static String convertByteArrToHexString(byte[] bytes, int offset, int len) {
 		StringBuilder res = new StringBuilder(len * 2);
 		for (int i = len - 1; i >= 0; i--) {
-			String str = Integer.toHexString(0xFF & bytes[offset + i]);
+			String str = Integer.toHexString(0xFF & bytes[offset + i]).toUpperCase();
 			if (str.length() == 1) { res.append('0'); }
 			res.append(str);
 		}
 		return res.toString();
 	}
-	
 	
 }

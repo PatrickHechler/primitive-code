@@ -11,6 +11,7 @@ import java.security.NoSuchProviderException;
 import java.util.logging.Logger;
 
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.DisasmMode;
+import de.hechler.patrick.codesprachen.primitive.disassemble.objects.LimitInputStream;
 import de.hechler.patrick.codesprachen.primitive.disassemble.objects.PrimitiveDisassembler;
 import de.hechler.patrick.zeugs.pfs.FSProvider;
 import de.hechler.patrick.zeugs.pfs.interfaces.FS;
@@ -67,16 +68,18 @@ public class PrimitiveDisassemblerMain {
 	}
 	
 	private static void setup(String[] args) {
-		fs     = null;
+		fs = null;
 		disasm = null;
 		binary = null;
-		pos    = -1L;
+		pos = -1L;
+		long       len   = -1L;
 		String     in    = null;
 		String     out   = null;
 		DisasmMode dmode = null;
 		for (int i = 0; i < args.length; i++) {
 			switch (args[i]) {
 			case "--help" -> argHelp();
+			case "--len" -> len = argLen(args, len, ++i);
 			case "--pos" -> argPos(args, ++i);
 			case "--in", "--bin", "--pmf" -> in = argPmf(args, in, ++i);
 			case "-a", "--analyse" -> dmode = argAnalyze(args, dmode, i);
@@ -98,7 +101,10 @@ public class PrimitiveDisassemblerMain {
 				crash(-1, args, "error open machine file: " + e1.toString());
 			}
 		}
-		pos   = pos == -1L ? 0L : pos;
+		if (len != -1L) {
+			binary = new LimitInputStream(binary, len);
+		}
+		pos = pos == -1L ? 0L : pos;
 		dmode = dmode == null ? DisasmMode.executable : dmode;
 		try {
 			Writer writer;
@@ -109,7 +115,8 @@ public class PrimitiveDisassemblerMain {
 			}
 			disasm = new PrimitiveDisassembler(dmode, writer);
 		} catch (IOException e) {
-			crash(-1, args, "error on opening outputstream for '" + out + "': " + e.getClass().getSimpleName() + ": " + e.getMessage());
+			crash(-1, args, "error on opening outputstream for '" + out + "': " + e.getClass().getSimpleName() + ": "
+					+ e.getMessage());
 		}
 	}
 	
@@ -159,6 +166,20 @@ public class PrimitiveDisassemblerMain {
 		return in;
 	}
 	
+	private static long argLen(String[] args, long len, int i) {
+		if (len != -1L) { crash(i - 1, args, "length is already set"); }
+		if (args.length <= i) { crash(i, args, NOT_ENUGH_ARGS); }
+		if (args[i].startsWith("0x")) {
+			len = Long.parseUnsignedLong(args[i].substring(2), 16);
+		} else if (args[i].startsWith("HEX-")) {
+			len = Long.parseUnsignedLong(args[i].substring(4), 16);
+		} else {
+			len = Long.parseUnsignedLong(args[i]);
+		}
+		if (len < 0) { crash(i, args, "negative length"); }
+		return len;
+	}
+	
 	private static void argPos(String[] args, int i) {
 		if (pos != -1L) { crash(i - 1, args, "pos is already set"); }
 		if (args.length <= i) { crash(i, args, NOT_ENUGH_ARGS); }
@@ -181,6 +202,10 @@ public class PrimitiveDisassemblerMain {
 				/*	    */"Usage: prim-asm [OPTIONS]\n" //
 						+ "    --help\n" //
 						+ "        to print this message and exit\n" //
+						+ "    --len <LENGTH>\n" //
+						+ "        to disassemble at most LENGTH bytes\n" //
+						+ "        if the POS starts with '0x' or 'HEX-' it is read in a\n" //
+						+ "        hexadecimal format, if not the decimal format is used\n" //
 						+ "    --pos <POS>\n" //
 						+ "        to set the beginning position of the binary data\n" //
 						+ "        if the POS starts with '0x' or 'HEX-' it is read in a\n" //

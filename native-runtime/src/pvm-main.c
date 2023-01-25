@@ -199,19 +199,19 @@ static inline void setup(int argc, char **argv) {
 				}
 				int sh = pfs_open_stream(fh, PFS_SO_READ);
 				pfs_element_close(fh);
-				for (num reat = exe_size; reat < exe_size;) {
-					num reat_ = pfs_stream_read(sh, exe_data + reat,
-							exe_size - reat);
-					if (reat_ == -1) {
+				for (num total_reat = 0; total_reat < exe_size;) {
+					num reat = pfs_stream_read(sh, exe_data + total_reat,
+							exe_size - total_reat);
+					if (reat == -1) {
 						fprintf(stderr,
 								"failed to read the machine file (%s)\n",
 								pfs_error());
 						exit(1);
-					} else if (!reat_) {
+					} else if (!reat) {
 						fprintf(stderr, "the machine file has been modified\n");
 						exit(1);
 					}
-					reat += reat_;
+					total_reat += reat;
 				}
 				pfs_stream_close(sh);
 			}

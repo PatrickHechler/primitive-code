@@ -46,7 +46,7 @@ EXT struct pvm {
 	num intcnt; // regs[3]
 	unum status; // regs[5]
 	num err; // regs[6]
-	fpnum fpx[0]; // reg[7..255] // array size set to zero, because this is no union
+	fpnum fpx[0]; // reg[7..255]
 	num x[256 - 6]; // reg[7..255]
 } pvm;
 
