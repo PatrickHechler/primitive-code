@@ -2,25 +2,25 @@ package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BNUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BADR;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BREG;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BSR;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BNUM;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BREG;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ASR_BSR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_AREG;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_AREG_BNUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_AREG_BADR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_AREG_BREG;
 
 import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoCommandException;
 
 public class Param {
 	
 	public static final int ART_ANUM      = PARAM_ART_ANUM;
-	public static final int ART_ASR       = PARAM_ART_ASR;
-	public static final int ART_ANUM_BREG = PARAM_ART_ANUM_BREG;
-	public static final int ART_ASR_BREG  = PARAM_ART_ASR_BREG;
+	public static final int ART_ASR       = PARAM_ART_AREG;
+	public static final int ART_ANUM_BREG = PARAM_ART_ANUM_BADR;
+	public static final int ART_ASR_BREG  = PARAM_ART_AREG_BADR;
 	public static final int ART_ANUM_BNUM = PARAM_ART_ANUM_BNUM;
-	public static final int ART_ASR_BNUM  = PARAM_ART_ASR_BNUM;
-	public static final int ART_ANUM_BSR  = PARAM_ART_ANUM_BSR;
-	public static final int ART_ASR_BSR   = PARAM_ART_ASR_BSR;
+	public static final int ART_ASR_BNUM  = PARAM_ART_AREG_BNUM;
+	public static final int ART_ANUM_BSR  = PARAM_ART_ANUM_BREG;
+	public static final int ART_ASR_BSR   = PARAM_ART_AREG_BREG;
 	
 	
 	public static final int SR_IP     = 0;

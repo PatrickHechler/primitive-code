@@ -80,7 +80,7 @@ static void int_streams_write( INT_PARAMS) /* 9 */{
 		pvm.err = PFS_ERRNO_ILLEGAL_ARG;
 		return;
 	}
-	struct memory *mem = chk(pvm.x[0], pvm.x[1]).mem;
+	struct memory *mem = chk(pvm.x[2], pvm.x[1]).mem;
 	if (!mem) {
 		return;
 	}
@@ -92,7 +92,7 @@ static void int_streams_read( INT_PARAMS) /* 10 */{
 		pvm.err = PFS_ERRNO_ILLEGAL_ARG;
 		return;
 	}
-	struct memory *mem = chk(pvm.x[0], pvm.x[1]).mem;
+	struct memory *mem = chk(pvm.x[2], pvm.x[1]).mem;
 	if (!mem) {
 		return;
 	}

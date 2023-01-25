@@ -8,12 +8,12 @@
 MOV X00, STD_OUT
 MOV X01, STR_LEN
 #REL_POS ( STR_POS - --POS-- )
-MOV X02, REL_POS
+LEA X02, REL_POS
 #REL_POS ~DEL
 INT INT_STREAMS_WRITE
 XOR X00, X00
 INT INT_EXIT
 
 #EXP~STR_POS --POS--
-: CHARS 'UTF-8' "hello world\n" >
+: CHARS 'UTF-8' "hello primitive world\n" >
 #EXP~STR_LEN ( --POS-- - STR_POS )

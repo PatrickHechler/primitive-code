@@ -84,20 +84,22 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	}
 	memset(&pvm, 0, sizeof(pvm));
 
-	void *stack_pntr = malloc(256);
-	if (!stack_pntr) {
+	struct memory2 stack_mem = alloc_memory(256,
+	/*		*/MEM_AUTO_GROW | (8 << MEM_AUTO_GROW_SHIFT));
+	if (!stack_mem.adr) {
 		abort();
 	}
-	struct memory *stack_mem = alloc_memory2(stack_pntr, 256,
-	/*		*/MEM_AUTO_GROW | (8 << MEM_AUTO_GROW_SHIFT));
-	stack_mem->grow_size = 256;
-	stack_mem->change_pntr = &pvm.sp;
+	stack_mem.mem->grow_size = 256;
+	stack_mem.mem->change_pntr = &pvm.sp;
+	pvm.sp = stack_mem.mem->start;
 
 	struct memory2 int_mem = alloc_memory(INTERRUPT_COUNT << 3, 0U);
 	if (!int_mem.mem) {
 		abort();
 	}
-	memset(int_mem.adr, -1, INTERRUPT_COUNT << 3);
+	memset(int_mem.adr, 0xFF, INTERRUPT_COUNT << 3);
+	pvm.intp = int_mem.mem->start;
+	pvm.intcnt = INTERRUPT_COUNT;
 
 	if (exe) {
 		// use different flags in future version?
@@ -641,6 +643,15 @@ static inline void interrupt(num intnum, num incIPVal) {
 #else // PVM_DEBUG
 #	define callInt ints[intnum]();
 #endif // PVM_DEBUG
+	static _Bool in_illegal_mem = 0;
+	if (intnum != INT_ERRORS_ILLEGAL_MEMORY) {
+		in_illegal_mem = 0;
+	} else {
+		if (in_illegal_mem) {
+			exit(127);
+		}
+		in_illegal_mem = 1;
+	}
 	if (pvm.intcnt < intnum || intnum < 0) {
 		if (pvm.intcnt <= INT_ERRORS_ILLEGAL_INTERRUPT) {
 			exit(128);
@@ -652,9 +663,10 @@ static inline void interrupt(num intnum, num incIPVal) {
 			num adr = pvm.intp + (INT_ERRORS_ILLEGAL_INTERRUPT << 3);
 			struct memory *mem = chk(adr, 8).mem;
 			if (!mem) {
+				in_illegal_mem = 0;
 				return;
 			}
-			num deref = *(num*) mem->offset + adr;
+			num deref = *(num*) (mem->offset + adr);
 			if (-1 == deref) {
 				callInt;
 			} else {
@@ -674,10 +686,11 @@ static inline void interrupt(num intnum, num incIPVal) {
 		num adr = pvm.intp + (intnum << 3);
 		struct memory *mem = chk(adr, 8).mem;
 		if (!mem) {
+			in_illegal_mem = 0;
 			return;
 		}
 		if (incIPVal) {pvm.ip += incIPVal;}
-		num deref = *(num*) mem->offset + adr;
+		num deref = *(num*) (mem->offset + adr);
 		if (-1 == deref) {
 			callInt;
 		} else {
@@ -685,6 +698,7 @@ static inline void interrupt(num intnum, num incIPVal) {
 			pvm.ip = deref;
 		}
 	}
+	in_illegal_mem = 0;
 #undef callInt
 }
 
@@ -803,15 +817,15 @@ struct p {
 	_Bool changed;
 };
 
-#define get_param(name, pntr) \
-	union param name; \
-	{ \
-		struct p _p = param(pntr); \
-		if (!p.valid) { \
-			return; \
-		} \
-		name = p.p; \
-	}
+//#define get_param(name, pntr) \
+//	union param name; \
+//	{ \
+//		struct p _p = param(pntr); \
+//		if (!p.valid) { \
+//			return; \
+//		} \
+//		name = p.p; \
+//	}
 
 static inline struct p param(int pntr, num size) {
 #define paramFail r.valid = 0; return r;
@@ -911,13 +925,58 @@ static inline struct p param(int pntr, num size) {
 		break;
 	}
 	case P_REG_REG: {
+		num adr = pvm.regs[ia.bp[param_byte_value_index]]
+				+ pvm.regs[ia.bp[param_byte_value_index - 1]];
+		struct memory_check mem = chk(adr, size);
+		if (!mem.mem) {
+			paramFail
+		}
+		param_byte_value_index -= 1;
+		if (pntr) {
+			r.p.np = mem.mem->offset + adr;
+			r.changed = 1;
+		} else if (size == 8) {
+			r.p.n = *(num*) (mem.mem->offset + adr);
+		} else if (size == 4) {
+			r.p.dw = *(double_word*) (mem.mem->offset + adr);
+		} else if (size == 2) {
+			r.p.w = *(word*) (mem.mem->offset + adr);
+		} else if (size == 1) {
+			r.p.b = *(byte*) (mem.mem->offset + adr);
+		} else {
+			abort();
+		}
+		break;
+	}
+	case P_NUM_ADR: {
 		if (remain_instruct_space
 				<= size + ((param_num_value_index - 1) << 3)) {
 			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 			paramFail
 		}
-		num adr = pvm.regs[ia.bp[param_byte_value_index]]
-				+ pvm.regs[ia.bp[param_byte_value_index - 1]];
+		num adr = ia.np[param_num_value_index++];
+		struct memory_check mem = chk(adr, size);
+		if (!mem.mem) {
+			paramFail
+		}
+		if (pntr) {
+			r.p.pntr = mem.mem->offset + adr;
+			r.changed = 1;
+		} else if (size == 8) {
+			r.p.n = *(num*) (mem.mem->offset + adr);
+		} else if (size == 4) {
+			r.p.dw = *(double_word*) (mem.mem->offset + adr);
+		} else if (size == 2) {
+			r.p.w = *(word*) (mem.mem->offset + adr);
+		} else if (size == 1) {
+			r.p.b = *(byte*) (mem.mem->offset + adr);
+		} else {
+			abort();
+		}
+		break;
+	}
+	case P_REG_ADR: {
+		num adr = pvm.regs[ia.bp[param_byte_value_index]];
 		struct memory_check mem = chk(adr, size);
 		if (!mem.mem) {
 			paramFail

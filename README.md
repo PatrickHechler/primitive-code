@@ -939,6 +939,10 @@ the assembler language for the Primitive-Virtual-Machine
     * `[ZW + 120] <- X09`
     * `X09        <- ZW`
     * `IP         <- [INTP + (p1 * 8)]`
+        * if the address `INTP + (p1 * 8)` is invalid the pvm will termiatw with 127
+        * note that if the address `[INTP + (p1 * 8)]` the illegal memory interrupt will be executed.
+            * note that if is the illgeal memory interrupt entry is invalid (and not `-1`) a loop will occur
+                * note that in this loop the programm whould allocate memory, until there is no longer enugh memory
 * an interrupt can be overwritten:
     * the interrupt-table is saved in the `INTP` register
     * to overwrite the interrupt `N`, write to `(INTP + (N * 8))` the absolute position of the address

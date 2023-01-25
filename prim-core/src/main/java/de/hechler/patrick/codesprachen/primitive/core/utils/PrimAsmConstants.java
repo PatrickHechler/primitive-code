@@ -19,15 +19,16 @@ import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
 
 public class PrimAsmConstants {
 	
-	private PrimAsmConstants() { }
+	private PrimAsmConstants() {}
 	
 	public static final Path START_CONSTANTS_PATH = Paths.get("[START_CONSTANTS]");
 	
-	public static final Map <String, PrimitiveConstant> START_CONSTANTS;
+	public static final Map<String, PrimitiveConstant> START_CONSTANTS;
 	
 	static {
-		Map <String, PrimitiveConstant> startConsts = new LinkedHashMap<>();
-		try (InputStream in = PrimAsmConstants.class.getResourceAsStream("/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf")) {
+		Map<String, PrimitiveConstant> startConsts = new LinkedHashMap<>();
+		try (InputStream in = PrimAsmConstants.class
+				.getResourceAsStream("/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf")) {
 			try (Scanner sc = new Scanner(in, StandardCharsets.UTF_8)) {
 				readSymbols(null, startConsts, sc, START_CONSTANTS_PATH);
 			}
@@ -42,13 +43,15 @@ public class PrimAsmConstants {
 	static {
 		for (Field field : PrimAsmPreDefines.class.getFields()) {
 			try {
-				long val = field.getLong(null);
+				long              val       = field.getLong(null);
 				PrimitiveConstant primConst = START_CONSTANTS.get(field.getName());
 				if (primConst == null) {
-					throw new AssertionError("validation error: primConst=null field: " + field.getName() + " (" + val + ")");
+					throw new AssertionError(
+							"validation error: primConst=null field: " + field.getName() + " (" + val + ")");
 				}
 				if (primConst.value() != val) {
-					throw new AssertionError("validation error: field: " + field.getName() + "=" + val + " primConst.val=" + primConst.value() + " (comment):\n" + primConst.comment());
+					throw new AssertionError("validation error: field: " + field.getName() + "=" + val
+							+ " primConst.val=" + primConst.value() + " (comment):\n" + primConst.comment());
 				}
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				throw new InternalError(e);
@@ -56,37 +59,37 @@ public class PrimAsmConstants {
 		}
 	}
 	
-	public static final int IP      = 0;
-	public static final int SP      = 1;
-	public static final int STATUS  = 2;
-	public static final int INTCNT  = 3;
-	public static final int INTP    = 4;
-	public static final int ERRNO   = 5;
-	public static final int X_ADD   = 6;
+	public static final int IP     = 0;
+	public static final int SP     = 1;
+	public static final int STATUS = 2;
+	public static final int INTCNT = 3;
+	public static final int INTP   = 4;
+	public static final int ERRNO  = 5;
+	public static final int X_ADD  = 6;
 	
 	public static final int PARAM_BASE  = 0x01;
-	public static final int PARAM_A_NUM = 0x00;
-	public static final int PARAM_A_SR  = 0x02;
-	public static final int PARAM_NO_B  = 0x00;
-	public static final int PARAM_B_REG = 0x04;
-	public static final int PARAM_B_NUM = 0x08;
-	public static final int PARAM_B_SR  = 0x0C;
+	public static final int PARAM_A_NUM = 0x02;
+	public static final int PARAM_A_REG = 0x04;
+	public static final int PARAM_NO_B  = 0x10;
+	public static final int PARAM_B_REG = 0x20;
+	public static final int PARAM_B_NUM = 0x40;
+	public static final int PARAM_B_ADR = 0x80;
 	
 	public static final int PARAM_ART_ANUM      = PARAM_BASE | PARAM_A_NUM | PARAM_NO_B;
-	public static final int PARAM_ART_ASR       = PARAM_BASE | PARAM_A_SR | PARAM_NO_B;
-	public static final int PARAM_ART_ANUM_BREG = PARAM_BASE | PARAM_A_NUM | PARAM_B_REG;
-	public static final int PARAM_ART_ASR_BREG  = PARAM_BASE | PARAM_A_SR | PARAM_B_REG;
+	public static final int PARAM_ART_AREG      = PARAM_BASE | PARAM_A_REG | PARAM_NO_B;
+	public static final int PARAM_ART_ANUM_BADR = PARAM_BASE | PARAM_A_NUM | PARAM_B_ADR;
+	public static final int PARAM_ART_AREG_BADR = PARAM_BASE | PARAM_A_REG | PARAM_B_ADR;
 	public static final int PARAM_ART_ANUM_BNUM = PARAM_BASE | PARAM_A_NUM | PARAM_B_NUM;
-	public static final int PARAM_ART_ASR_BNUM  = PARAM_BASE | PARAM_A_SR | PARAM_B_NUM;
-	public static final int PARAM_ART_ANUM_BSR  = PARAM_BASE | PARAM_A_NUM | PARAM_B_SR;
-	public static final int PARAM_ART_ASR_BSR   = PARAM_BASE | PARAM_A_SR | PARAM_B_SR;
+	public static final int PARAM_ART_AREG_BNUM = PARAM_BASE | PARAM_A_REG | PARAM_B_NUM;
+	public static final int PARAM_ART_ANUM_BREG = PARAM_BASE | PARAM_A_NUM | PARAM_B_REG;
+	public static final int PARAM_ART_AREG_BREG = PARAM_BASE | PARAM_A_REG | PARAM_B_REG;
 	
-	public static void export(Map <String, PrimitiveConstant> exports, PrintStream out) {
+	public static void export(Map<String, PrimitiveConstant> exports, PrintStream out) {
 		exports.forEach((symbol, pc) -> {
 			assert symbol.equals(pc.name());
 			if (pc.comment() != null) {
 				for (String line : pc.comment().split("\r\n?|\n")) {
-					if ( !line.matches("\\s*\\|.*")) {
+					if (!line.matches("\\s*\\|.*")) {
 						line = "|" + line;
 					}
 					line = line.trim();
@@ -99,10 +102,10 @@ public class PrimAsmConstants {
 	
 	private static final String REGEX = "^\\#?(\\w+)\\s*\\=\\s*(([UN]?(HEX\\-|BIN\\-|OCT\\-|DEC\\-)|\\-)?[0-9a-fA-F]+)$";
 	
-	public static void readSymbols(String prefix, Map <String, PrimitiveConstant> addSymbols, Scanner sc, Path path) {
-		final Pattern pattern = Pattern.compile(REGEX);
-		StringBuilder comment = new StringBuilder();
-		int lineNumber = 1;
+	public static void readSymbols(String prefix, Map<String, PrimitiveConstant> addSymbols, Scanner sc, Path path) {
+		final Pattern pattern    = Pattern.compile(REGEX);
+		StringBuilder comment    = new StringBuilder();
+		int           lineNumber = 1;
 		while (sc.hasNextLine()) {
 			String line = sc.nextLine().trim();
 			if (line.isEmpty()) {
@@ -113,12 +116,13 @@ public class PrimAsmConstants {
 				continue;
 			}
 			Matcher matcher = pattern.matcher(line);
-			if ( !matcher.matches()) {
-				throw new IllegalStateException("line does not match regex: line='" + line + "', regex='" + REGEX + "'");
+			if (!matcher.matches()) {
+				throw new IllegalStateException(
+						"line does not match regex: line='" + line + "', regex='" + REGEX + "'");
 			}
-			String constName = matcher.group(1);
-			String strVal = matcher.group(2);
-			long val = parseNum(strVal);
+			String            constName = matcher.group(1);
+			String            strVal    = matcher.group(2);
+			long              val       = parseNum(strVal);
 			PrimitiveConstant value;
 			if (comment.length() == 0) {
 				value = new PrimitiveConstant(constName, null, val, path, lineNumber);
@@ -131,10 +135,10 @@ public class PrimAsmConstants {
 			} else {
 				addSymbols.put(prefix + constName, value);
 			}
-			lineNumber ++ ;
+			lineNumber++;
 		}
 	}
-
+	
 	private static long parseNum(String strVal) {
 		long val;
 		if (strVal.startsWith("UHEX-")) {

@@ -62,12 +62,13 @@ _Static_assert((sizeof(num) * 256) == sizeof(struct pvm), "Error!");
 #define S_SOME_BITS 0x0000000000000080UL
 #define S_NONE_BITS 0x0000000000000100UL
 
-#define __P_BASE  0x01
-#define __P_A_NUM 0x02
-#define __P_A_REG 0x04
-#define __P_B_NO  0x10
-#define __P_B_NUM 0x20
-#define __P_B_REG 0x40
+#define __P_BASE   0x01
+#define __P_A_NUM  0x02
+#define __P_A_REG  0x04
+#define __P_B_NO   0x10
+#define __P_B_NUM  0x20
+#define __P_B_REG  0x40
+#define __P_B_ADR  0x80
 
 enum param_type {
 	P_NUM = __P_BASE | __P_A_NUM | __P_B_NO,
@@ -76,6 +77,8 @@ enum param_type {
 	P_REG_NUM = __P_BASE | __P_A_REG | __P_B_NUM,
 	P_NUM_REG = __P_BASE | __P_A_NUM | __P_B_REG,
 	P_REG_REG = __P_BASE | __P_A_REG | __P_B_REG,
+	P_NUM_ADR = __P_BASE | __P_A_NUM | __P_B_ADR,
+	P_REG_ADR = __P_BASE | __P_A_REG | __P_B_ADR,
 };
 
 #define NUM_MAX_VALUE 0x7FFFFFFFFFFFFFFF
@@ -115,8 +118,8 @@ static int pvm_depth;
 
 #endif // PVM
 
-#define MEM_NO_RESIZE       0x00000001u
-#define MEM_NO_FREE         0x00000002u
+#define MEM_NO_RESIZE       0x00000001U
+#define MEM_NO_FREE         0x00000002U
 #define MEM_AUTO_GROW       0x00000004U
 #define MEM_AUTO_GROW_BITS  0xFF000000U
 #define MEM_AUTO_GROW_SHIFT 24

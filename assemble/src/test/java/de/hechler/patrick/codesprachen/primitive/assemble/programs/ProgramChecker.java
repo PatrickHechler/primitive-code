@@ -84,7 +84,7 @@ public class ProgramChecker {
 	
 	private void execute(String pfsFile, String pmfFile, int exitCode, byte[] stdin, byte[] stdout, byte[] stderr)
 			throws IOException, InterruptedException {
-		Runtime r       = Runtime.getRuntime();
+		Runtime  r    = Runtime.getRuntime();
 		String[] args = new String[] { "pvm", "--pfs=" + pfsFile, "--pmf=" + pmfFile };
 		System.out.println("args: " + Arrays.toString(args));
 		Process process = r.exec(args);
@@ -109,25 +109,40 @@ public class ProgramChecker {
 	}
 	
 	private void check(InputStream stream, byte[] value, TwoBools b) {
-		byte[] other = new byte[value.length];
-		for (int i = 0; i < value.length;) {
-			try {
-				int reat = stream.read(value, i, other.length - i);
-				if (reat == -1) { throw new IOException("reached EOF too early"); }
-				i += reat;
-			} catch (IOException e) {
-				b.finish = true;
-				b.result = false;
-				synchronized (b) {
-					b.notifyAll();
+		try {
+			b.result = false;
+			byte[] other = new byte[value.length];
+			for (int i = 0; i < value.length;) {
+				try {
+					int reat = stream.read(value, i, other.length - i);
+					if (reat == -1) { throw new IOException("reached EOF too early"); }
+					i += reat;
+				} catch (IOException e) {
+					b.finish = true;
+					throw new IOError(e);
 				}
+			}
+			try {
+				Thread.sleep(1000L);
+			} catch (InterruptedException e) {}
+			if (other.length != 0) {
+				System.err.println("read: " + new String(other));
+			}
+			try {
+				if (stream.available() > 0) {
+					other = new byte[stream.available()];
+					int r = stream.read(other, 0, other.length);
+					System.err.println("additioannly read: " + new String(other, 0, r));
+				}
+			} catch (IOException e) {
 				throw new IOError(e);
 			}
-		}
-		b.finish = true;
-		b.result = Arrays.equals(value, other);
-		synchronized (b) {
-			b.notifyAll();
+			b.result = Arrays.equals(value, other);
+		} finally {
+			b.finish = true;
+			synchronized (b) {
+				b.notifyAll();
+			}
 		}
 	}
 	

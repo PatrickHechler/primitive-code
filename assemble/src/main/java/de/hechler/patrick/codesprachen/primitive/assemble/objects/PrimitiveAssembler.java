@@ -197,24 +197,24 @@ public class PrimitiveAssembler {
 	 * 
 	 * they either throw an error or call System.exit(1)
 	 */
-	private void handleUnknwon(Throwable t) {
+	private static void handleUnknwon(Throwable t) {
 		if (t instanceof Error e) { throw e; }
 		throw new InternalError("unknwon error: " + t, t);
 	}
 	
-	private void handle(InputMismatchException ime) {
+	private static void handle(InputMismatchException ime) {
 		IntervalSet ets = ime.getExpectedTokens();
 		Token       ot  = ime.getOffendingToken();
 		handleIllegalInput(ime, ot, ets);
 	}
 	
-	private void handle(NoViableAltException nvae) {
+	private static void handle(NoViableAltException nvae) {
 		IntervalSet ets = nvae.getExpectedTokens();
 		Token       ot  = nvae.getOffendingToken();
 		handleIllegalInput(nvae, ot, ets);
 	}
 	
-	private void handleIllegalInput(Throwable t, Token ot, IntervalSet ets) throws AssembleError {
+	private static void handleIllegalInput(Throwable t, Token ot, IntervalSet ets) throws AssembleError {
 		StringBuilder build = new StringBuilder("error: ").append(t).append("at line ").append(ot.getLine()).append(':')
 				.append(ot.getCharPositionInLine()).append(" token.text='").append(ot.getText());
 		build.append("' token.id=").append(tokenToString(ot.getType(), PrimitiveFileGrammarLexer.ruleNames))
@@ -227,7 +227,7 @@ public class PrimitiveAssembler {
 				ot.getStartIndex(), build.toString(), t);
 	}
 	
-	private String tokenToString(int tok, String[] names) {
+	private static String tokenToString(int tok, String[] names) {
 		String token;
 		if (tok > 0) {
 			token = "<" + names[tok] + '>';
@@ -239,11 +239,15 @@ public class PrimitiveAssembler {
 		return token;
 	}
 	
-	private void handle(AssembleRuntimeException ae) { handle(ae.line, ae.posInLine, ae.charPos, ae.length, ae); }
+	private static void handle(AssembleRuntimeException ae) {
+		handle(ae.line, ae.posInLine, ae.charPos, ae.length, ae);
+	}
 	
-	private void handle(AssembleError ae) { handle(ae.line, ae.posInLine, ae.charPos, ae.length, ae); }
+	private static void handle(AssembleError ae) {
+		handle(ae.line, ae.posInLine, ae.charPos, ae.length, ae);
+	}
 	
-	private void handle(int line, int posInLine, int len, int charPos, Throwable t) {
+	private static void handle(int line, int posInLine, int len, int charPos, Throwable t) {
 		throw new AssembleError(line, posInLine, len, charPos, t.getClass().getName() + ": " + t.getMessage(), t);
 	}
 	
@@ -347,7 +351,7 @@ public class PrimitiveAssembler {
 		return null;
 	}
 	
-	private List<Map<String, Long>> detectLoop(Map<String, PrimitiveConstant> startConsts, boolean be, Token tok,
+	private static List<Map<String, Long>> detectLoop(Map<String, PrimitiveConstant> startConsts, boolean be, Token tok,
 			String thisFile, int startIndex, final String rf, List<Map<String, Long>> oldValue) throws AssembleError {
 		List<Map<String, Long>> newValue;
 		if (oldValue == null) {
@@ -374,7 +378,7 @@ public class PrimitiveAssembler {
 		return newValue;
 	}
 	
-	private Map<String, Long> convertPrimConstMapToLongMap(Map<String, PrimitiveConstant> startConsts) {
+	private static Map<String, Long> convertPrimConstMapToLongMap(Map<String, PrimitiveConstant> startConsts) {
 		Map<String, Long> nv = new LinkedHashMap<>();
 		startConsts.forEach((n, pc) -> nv.put(n, pc.value()));
 		return nv;
@@ -457,7 +461,7 @@ public class PrimitiveAssembler {
 		}
 	}
 	
-	private void asm0Params(Command cmd) {
+	private static void asm0Params(Command cmd) {
 		nullCheck(cmd.p3, cmd);
 		nullCheck(cmd.p2, cmd);
 		nullCheck(cmd.p1, cmd);
@@ -538,13 +542,13 @@ public class PrimitiveAssembler {
 		out.write(bytes, 0, bytes.length);
 	}
 	
-	private void nullCheck(Param nullParam, Command cmd) {
+	private static void nullCheck(Param nullParam, Command cmd) {
 		if (nullParam != null) {
 			throw new IllegalStateException("this param should be null: '" + nullParam + "' cmd: '" + cmd + '\'');
 		}
 	}
 	
-	private void noConstCheck(Param param, Command cmd) {
+	private static void noConstCheck(Param param, Command cmd) {
 		if (param.art == Param.ART_ANUM) { throw new IllegalStateException("no constants allowed: '" + cmd + '\''); }
 	}
 	
@@ -614,22 +618,22 @@ public class PrimitiveAssembler {
 			out.write(bytes, 0, 8);
 			convertLongToByteArr(bytes, poff);
 		}
-		case Param.ART_ANUM_BREG -> {
+		case Param.ART_ANUM_BADR -> {
 			if (!supressWarn) { LOG.warning(CONSTANT_MEMORY_POINTER_WARN); }
 			out.write(bytes, 0, 8);
 			convertLongToByteArr(bytes, pnum);
 		}
-		case Param.ART_ANUM_BSR -> {
+		case Param.ART_ANUM_BREG -> {
 			out.write(bytes, 0, 8);
 			convertLongToByteArr(bytes, pnum);
 		}
-		case Param.ART_ASR -> {/**/}
-		case Param.ART_ASR_BNUM -> {
+		case Param.ART_AREG -> {/**/}
+		case Param.ART_AREG_BNUM -> {
 			out.write(bytes, 0, 8);
 			convertLongToByteArr(bytes, poff);
 		}
-		case Param.ART_ASR_BREG -> {/**/}
-		case Param.ART_ASR_BSR -> {/**/}
+		case Param.ART_AREG_BADR -> {/**/}
+		case Param.ART_AREG_BREG -> {/**/}
 		default -> throw new InternalError(UNKNOWN_ART + part);
 		}
 	}
@@ -639,24 +643,24 @@ public class PrimitiveAssembler {
 		switch (part) {
 		case Param.ART_ANUM -> { /**/ }
 		case Param.ART_ANUM_BNUM -> { if (!supressWarn) { LOG.warning(ADD_CONSTANTS_RUNTIME_WARN); } }
-		case Param.ART_ANUM_BREG -> { if (!supressWarn) { LOG.warning(CONSTANT_MEMORY_POINTER_WARN); } }
-		case Param.ART_ANUM_BSR -> {
+		case Param.ART_ANUM_BADR -> { if (!supressWarn) { LOG.warning(CONSTANT_MEMORY_POINTER_WARN); } }
+		case Param.ART_ANUM_BREG -> {
 			Param.checkSR(poff);
 			bytes[index--] = (byte) poff;
 		}
-		case Param.ART_ASR -> {
+		case Param.ART_AREG -> {
 			Param.checkSR(pnum);
 			bytes[index--] = (byte) pnum;
 		}
-		case Param.ART_ASR_BNUM -> {
+		case Param.ART_AREG_BNUM -> {
 			Param.checkSR(pnum);
 			bytes[index--] = (byte) pnum;
 		}
-		case Param.ART_ASR_BREG -> {
+		case Param.ART_AREG_BADR -> {
 			Param.checkSR(pnum);
 			bytes[index--] = (byte) pnum;
 		}
-		case Param.ART_ASR_BSR -> {
+		case Param.ART_AREG_BREG -> {
 			Param.checkSR(pnum);
 			Param.checkSR(poff);
 			bytes[index--] = (byte) pnum;

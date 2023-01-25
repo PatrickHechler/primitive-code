@@ -4,9 +4,9 @@ import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.conve
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertByteArrToLong;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertLongToHexString;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_A_NUM;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_A_SR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_A_REG;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_B_NUM;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_B_SR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_B_REG;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -161,22 +161,22 @@ public class PrimitiveDisassembler implements Closeable {
 				case ONE_PARAM_ALLOW_CONST, ONE_PARAM_NO_CONST: {
 					bytes[2] = (byte) cmd.p1.art;
 					int off = 7;
-					if ((cmd.p1.art & PARAM_A_SR) == PARAM_A_SR) {
+					if ((cmd.p1.art & PARAM_A_REG) == PARAM_A_REG) {
 						bytes[off--] = (byte) cmd.p1.num;
 					}
-					if ((cmd.p1.art & PARAM_B_SR) == PARAM_B_SR) {
+					if ((cmd.p1.art & PARAM_B_REG) == PARAM_B_REG) {
 						bytes[off--] = (byte) cmd.p1.off;
 					}
 					out.write(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = ")));
 					out.write(cmd.toString());
 					out.write('\n');
 					long ipos = pos + 8;
-					if ((cmd.p1.art & PARAM_A_SR) != PARAM_A_SR) {
+					if ((cmd.p1.art & PARAM_A_REG) != PARAM_A_REG) {
 						out.write(convertLongToHexString("   ", ipos,
 								convertLongToHexString(" -> ", cmd.p1.num, "   | [p-num]\n")));
 						ipos += 8;
 					}
-					if ((cmd.p1.art & PARAM_B_SR) == PARAM_B_NUM) {
+					if ((cmd.p1.art & PARAM_B_REG) == PARAM_B_NUM) {
 						out.write(convertLongToHexString("   ", ipos,
 								convertLongToHexString(" -> ", cmd.p1.off, "   | [p-offset]\n")));
 					}
@@ -186,38 +186,38 @@ public class PrimitiveDisassembler implements Closeable {
 					bytes[2] = (byte) cmd.p1.art;
 					bytes[3] = (byte) cmd.p2.art;
 					int off = 7;
-					if ((cmd.p1.art & PARAM_A_SR) == PARAM_A_SR) {
+					if ((cmd.p1.art & PARAM_A_REG) == PARAM_A_REG) {
 						bytes[off--] = (byte) cmd.p1.num;
 					}
-					if ((cmd.p1.art & PARAM_B_SR) == PARAM_B_SR) {
+					if ((cmd.p1.art & PARAM_B_REG) == PARAM_B_REG) {
 						bytes[off--] = (byte) cmd.p1.off;
 					}
-					if ((cmd.p2.art & PARAM_A_SR) == PARAM_A_SR) {
+					if ((cmd.p2.art & PARAM_A_REG) == PARAM_A_REG) {
 						bytes[off--] = (byte) cmd.p2.num;
 					}
-					if ((cmd.p2.art & PARAM_B_SR) == PARAM_B_SR) {
+					if ((cmd.p2.art & PARAM_B_REG) == PARAM_B_REG) {
 						bytes[off--] = (byte) cmd.p2.off;
 					}
 					out.write(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = ")));
 					out.write(cmd.toString());
 					out.write('\n');
 					long ipos = pos;
-					if ((cmd.p1.art & PARAM_A_SR) != PARAM_A_SR) {
+					if ((cmd.p1.art & PARAM_A_REG) != PARAM_A_REG) {
 						ipos += 8;
 						out.write(convertLongToHexString("   ", ipos,
 								convertLongToHexString(" -> ", cmd.p1.num, "   | [p1-num]\n")));
 					}
-					if ((cmd.p1.art & PARAM_B_SR) == PARAM_B_NUM) {
+					if ((cmd.p1.art & PARAM_B_REG) == PARAM_B_NUM) {
 						ipos += 8;
 						out.write(convertLongToHexString("   ", ipos,
 								convertLongToHexString(" -> ", cmd.p1.off, "   | [p1-offset]\n")));
 					}
-					if ((cmd.p2.art & PARAM_A_SR) != PARAM_A_SR) {
+					if ((cmd.p2.art & PARAM_A_REG) != PARAM_A_REG) {
 						ipos += 8;
 						out.write(convertLongToHexString("   ", ipos,
 								convertLongToHexString(" -> ", cmd.p2.num, "   | [p2-num]\n")));
 					}
-					if ((cmd.p2.art & PARAM_B_SR) == PARAM_B_NUM) {
+					if ((cmd.p2.art & PARAM_B_REG) == PARAM_B_NUM) {
 						ipos += 8;
 						out.write(convertLongToHexString("   ", ipos,
 								convertLongToHexString(" -> ", cmd.p2.off, "   | [p2-offset]\n")));

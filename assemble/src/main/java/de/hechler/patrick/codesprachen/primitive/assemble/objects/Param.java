@@ -7,13 +7,13 @@ public class Param {
 	public static final int ART_LABEL = -1;
 	
 	public static final int ART_ANUM      = PARAM_ART_ANUM;
-	public static final int ART_ASR       = PARAM_ART_ASR;
-	public static final int ART_ANUM_BREG = PARAM_ART_ANUM_BREG;
-	public static final int ART_ASR_BREG  = PARAM_ART_ASR_BREG;
+	public static final int ART_AREG      = PARAM_ART_AREG;
+	public static final int ART_ANUM_BADR = PARAM_ART_ANUM_BADR;
+	public static final int ART_AREG_BADR = PARAM_ART_AREG_BADR;
 	public static final int ART_ANUM_BNUM = PARAM_ART_ANUM_BNUM;
-	public static final int ART_ASR_BNUM  = PARAM_ART_ASR_BNUM;
-	public static final int ART_ANUM_BSR  = PARAM_ART_ANUM_BSR;
-	public static final int ART_ASR_BSR   = PARAM_ART_ASR_BSR;
+	public static final int ART_AREG_BNUM = PARAM_ART_AREG_BNUM;
+	public static final int ART_ANUM_BREG = PARAM_ART_ANUM_BREG;
+	public static final int ART_AREG_BREG = PARAM_ART_AREG_BREG;
 	
 	public final String label;
 	public final long   num;
@@ -36,13 +36,13 @@ public class Param {
 	 */
 	public static class ParamBuilder {
 		
-		public static final int SR_IP      = IP;
-		public static final int SR_SP      = SP;
-		public static final int SR_STATUS  = STATUS;
-		public static final int SR_INTCNT  = INTCNT;
-		public static final int SR_INTP    = INTP;
-		public static final int SR_ERRNO = ERRNO;
-		public static final int SR_X_ADD   = X_ADD;
+		public static final int SR_IP     = IP;
+		public static final int SR_SP     = SP;
+		public static final int SR_STATUS = STATUS;
+		public static final int SR_INTCNT = INTCNT;
+		public static final int SR_INTP   = INTP;
+		public static final int SR_ERRNO  = ERRNO;
+		public static final int SR_X_ADD  = X_ADD;
 		
 		public static final int A_NUM = 0x00000001;
 		public static final int A_SR  = 0x00000002;
@@ -63,7 +63,7 @@ public class Param {
 		public long v1  = 0L;
 		public long v2  = 0L;
 		
-		public ParamBuilder() { /* nothing to be done*/ }
+		public ParamBuilder() { /* nothing to be done */ }
 		
 		public boolean isValid() {
 			try {
@@ -79,7 +79,7 @@ public class Param {
 		}
 		
 		public static Param build(int art, long v1) {
-			if ( (art & (B_NUM | B_SR)) != 0) {
+			if ((art & (B_NUM | B_SR)) != 0) {
 				throw new IllegalArgumentException("type specifies the use of v2, but i do not have a v2 value!");
 			}
 			return build(art, v1, 0L);
@@ -92,27 +92,27 @@ public class Param {
 				return new Param(null, v1, 0, Param.ART_ANUM);
 			case BUILD_ANUM_BREG:
 				Param.checkZero(v2);
-				return new Param(null, v1, 0, Param.ART_ANUM_BREG);
+				return new Param(null, v1, 0, Param.ART_ANUM_BADR);
 			case BUILD_ASR:
 				Param.checkSR(v1);
 				Param.checkZero(v2);
-				return new Param(null, v1, 0, Param.ART_ASR);
+				return new Param(null, v1, 0, Param.ART_AREG);
 			case BUILD_ASR_BREG:
 				Param.checkSR(v1);
 				Param.checkZero(v2);
-				return new Param(null, v1, 0, Param.ART_ASR_BREG);
+				return new Param(null, v1, 0, Param.ART_AREG_BADR);
 			case BUILD_ANUM_BNUM:
 				return new Param(null, v1, v2, Param.ART_ANUM_BNUM);
 			case BUILD_ASR_BNUM:
 				Param.checkSR(v1);
-				return new Param(null, v1, v2, Param.ART_ASR_BNUM);
+				return new Param(null, v1, v2, Param.ART_AREG_BNUM);
 			case BUILD_ANUM_BAX:
 				Param.checkSR(v2);
-				return new Param(null, v1, v2, Param.ART_ANUM_BSR);
+				return new Param(null, v1, v2, Param.ART_ANUM_BREG);
 			case BUILD_AAX_BAX:
 				Param.checkSR(v1);
 				Param.checkSR(v2);
-				return new Param(null, v1, v2, Param.ART_ASR_BSR);
+				return new Param(null, v1, v2, Param.ART_AREG_BREG);
 			default:
 				throw new IllegalStateException("art=" + Integer.toHexString(art));
 			}
@@ -124,19 +124,19 @@ public class Param {
 		switch (art) {
 		case ART_ANUM:
 			return "[ANUM]";
-		case ART_ASR:
+		case ART_AREG:
 			return "[ASR]";
-		case ART_ANUM_BREG:
+		case ART_ANUM_BADR:
 			return "[ANUM_BREG]";
-		case ART_ASR_BREG:
+		case ART_AREG_BADR:
 			return "[ASR_BREG]";
 		case ART_ANUM_BNUM:
 			return "[ANUM_BNUM]";
-		case ART_ASR_BNUM:
+		case ART_AREG_BNUM:
 			return "[ASR_BNUM]";
-		case ART_ANUM_BSR:
+		case ART_ANUM_BREG:
 			return "[ANUM_BSR]";
-		case ART_ASR_BSR:
+		case ART_AREG_BREG:
 			return "[ASR_BSR]";
 		default:
 			return "<INVALID[" + art + "]>";
@@ -170,8 +170,8 @@ public class Param {
 		case ParamBuilder.SR_INTP:
 			return "INTP";
 		default:
-			return "X" + ( (sr < 0x10) ? ("0" + Integer.toHexString(reg - ParamBuilder.SR_X_ADD).toUpperCase())
-				: Integer.toHexString(reg - ParamBuilder.SR_X_ADD).toUpperCase());
+			return "X" + ((sr < 0x10) ? ("0" + Integer.toHexString(reg - ParamBuilder.SR_X_ADD).toUpperCase())
+					: Integer.toHexString(reg - ParamBuilder.SR_X_ADD).toUpperCase());
 		}
 	}
 	
@@ -183,19 +183,19 @@ public class Param {
 		switch (art) {
 		case ART_ANUM:
 			return Long.toString(this.num);
-		case ART_ASR:
+		case ART_AREG:
 			return toSRString(this.num);
-		case ART_ANUM_BREG:
+		case ART_ANUM_BADR:
 			return "[" + Long.toString(this.num) + "]";
-		case ART_ASR_BREG:
+		case ART_AREG_BADR:
 			return "[" + toSRString(this.num) + "]";
 		case ART_ANUM_BNUM:
 			return "[" + Long.toString(this.num) + "+" + Long.toString(this.off) + "]";
-		case ART_ASR_BNUM:
+		case ART_AREG_BNUM:
 			return "[" + toSRString(this.num) + "+" + Long.toString(this.off) + "]";
-		case ART_ANUM_BSR:
+		case ART_ANUM_BREG:
 			return "[" + Long.toString(this.num) + "+" + toSRString(this.off) + "]";
-		case ART_ASR_BSR:
+		case ART_AREG_BREG:
 			return "[" + toSRString(this.num) + "+" + toSRString(this.off) + "]";
 		default:
 			throw new InternalError("unknown param art: " + art);

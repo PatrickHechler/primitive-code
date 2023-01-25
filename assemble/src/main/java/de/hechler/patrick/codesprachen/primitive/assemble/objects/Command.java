@@ -118,14 +118,14 @@ public class Command {
 				len = 24;
 				break;
 			case Param.ART_ANUM:
-			case Param.ART_ASR_BNUM:
+			case Param.ART_AREG_BNUM:
+			case Param.ART_ANUM_BADR:
 			case Param.ART_ANUM_BREG:
-			case Param.ART_ANUM_BSR:
 				len = 16;
 				break;
-			case Param.ART_ASR:
-			case Param.ART_ASR_BREG:
-			case Param.ART_ASR_BSR:
+			case Param.ART_AREG:
+			case Param.ART_AREG_BADR:
+			case Param.ART_AREG_BREG:
 				len = 8;
 				break;
 			default:
@@ -138,14 +138,14 @@ public class Command {
 				case Param.ART_ANUM_BNUM:
 					len += 16;
 				case Param.ART_ANUM:
-				case Param.ART_ASR_BNUM:
+				case Param.ART_AREG_BNUM:
+				case Param.ART_ANUM_BADR:
 				case Param.ART_ANUM_BREG:
-				case Param.ART_ANUM_BSR:
 					len += 8;
 					break;
-				case Param.ART_ASR:
-				case Param.ART_ASR_BREG:
-				case Param.ART_ASR_BSR:
+				case Param.ART_AREG:
+				case Param.ART_AREG_BADR:
+				case Param.ART_AREG_BREG:
 					break;
 				default:
 					throw new IllegalStateException("unknown art: " + Param.artToString(p2.art) + " " + this);
@@ -160,13 +160,13 @@ public class Command {
 				case Param.ART_ANUM_BNUM:
 					return 24;
 				case Param.ART_ANUM:
-				case Param.ART_ASR_BNUM:
+				case Param.ART_AREG_BNUM:
+				case Param.ART_ANUM_BADR:
 				case Param.ART_ANUM_BREG:
-				case Param.ART_ANUM_BSR:
 					return 16;
-				case Param.ART_ASR:
-				case Param.ART_ASR_BREG:
-				case Param.ART_ASR_BSR:
+				case Param.ART_AREG:
+				case Param.ART_AREG_BADR:
+				case Param.ART_AREG_BREG:
 					return 8;
 				default:
 					throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
@@ -183,14 +183,14 @@ public class Command {
 				len = 32;
 				break;
 			case Param.ART_ANUM:
-			case Param.ART_ASR_BNUM:
+			case Param.ART_AREG_BNUM:
+			case Param.ART_ANUM_BADR:
 			case Param.ART_ANUM_BREG:
-			case Param.ART_ANUM_BSR:
 				len = 24;
 				break;
-			case Param.ART_ASR:
-			case Param.ART_ASR_BREG:
-			case Param.ART_ASR_BSR:
+			case Param.ART_AREG:
+			case Param.ART_AREG_BADR:
+			case Param.ART_AREG_BREG:
 				len = 16;
 				break;
 			default:
@@ -200,13 +200,13 @@ public class Command {
 			case Param.ART_ANUM_BNUM:
 				return len + 16;
 			case Param.ART_ANUM:
-			case Param.ART_ASR_BNUM:
+			case Param.ART_AREG_BNUM:
+			case Param.ART_ANUM_BADR:
 			case Param.ART_ANUM_BREG:
-			case Param.ART_ANUM_BSR:
 				return len + 8;
-			case Param.ART_ASR:
-			case Param.ART_ASR_BREG:
-			case Param.ART_ASR_BSR:
+			case Param.ART_AREG:
+			case Param.ART_AREG_BADR:
+			case Param.ART_AREG_BREG:
 				return len;
 			default:
 				throw new IllegalStateException("unknown art: " + Param.artToString(p1.art));
