@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchProviderException;
+import java.util.function.BooleanSupplier;
 
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
 import de.hechler.patrick.codesprachen.primitive.assemble.objects.PrimitiveAssembler;
@@ -39,7 +40,7 @@ public class ProgramChecker {
 	private static final byte[] EMPTY_BARR = new byte[0];
 	
 	private static final StreamOpenOptions CREATE_FILE_OPTS = new StreamOpenOptions(false, true, false,
-			ElementType.file, false, true);
+			ElementType.FILE, false, true);
 	
 	private static final String HELLO_WORLD_PMF = "/hello-world";
 	private static final String HELLO_WORLD_PFS = "./testout/hello-world.pfs";
@@ -78,8 +79,8 @@ public class ProgramChecker {
 			System.out.println("finished asm, close now fs");
 		}
 		System.out.println("execute now the program");
-		execute(HELLO_WORLD_PFS, HELLO_WORLD_PMF, 0, EMPTY_BARR, "hello world\n".getBytes(StandardCharsets.UTF_8),
-				EMPTY_BARR);
+		execute(HELLO_WORLD_PFS, HELLO_WORLD_PMF, 0, EMPTY_BARR,
+				"hello primitive world\n".getBytes(StandardCharsets.UTF_8), EMPTY_BARR);
 	}
 	
 	private void execute(String pfsFile, String pmfFile, int exitCode, byte[] stdin, byte[] stdout, byte[] stderr)
@@ -91,8 +92,13 @@ public class ProgramChecker {
 		System.out.println("started process pid: " + process.pid() + "   " + process);
 		if (stdin.length > 0) { process.getOutputStream().write(stdin); }
 		TwoBools b1 = new TwoBools(), b2 = new TwoBools();
-		Thread.startVirtualThread(() -> check(process.getErrorStream(), stderr, b1));
-		Thread.startVirtualThread(() -> check(process.getInputStream(), stdout, b2));
+		Thread   t  = Thread.ofVirtual()
+				.unstarted(() -> check(() -> process.isAlive(), process.getErrorStream(), stderr, b1));
+		t.setName("check stderr");
+		t.start();
+		t = Thread.ofVirtual().unstarted(() -> check(() -> process.isAlive(), process.getInputStream(), stdout, b2));
+		t.setName("check stdout");
+		t.start();
 		assertEquals(exitCode, process.waitFor());
 		checkResult(b1);
 		checkResult(b2);
@@ -108,42 +114,71 @@ public class ProgramChecker {
 		assertTrue(res.result);
 	}
 	
-	private void check(InputStream stream, byte[] value, TwoBools b) {
+	private void check(BooleanSupplier cond, InputStream stream, byte[] value, TwoBools b) {
+		System.err.println(logStart() + "start");
 		try {
 			b.result = false;
 			byte[] other = new byte[value.length];
 			for (int i = 0; i < value.length;) {
 				try {
-					int reat = stream.read(value, i, other.length - i);
-					if (reat == -1) { throw new IOException("reached EOF too early"); }
+					int reat = stream.read(other, i, other.length - i);
+					if (reat == -1) {
+						if (cond.getAsBoolean()) {
+							sleep();
+							continue;
+						}
+						throw new IOException("reached EOF too early");
+					}
+					System.err.print(logStart() + "little read: ");
+					System.err.write(other, i, reat);
+					System.err.println("\nreat: " + reat);
 					i += reat;
 				} catch (IOException e) {
 					b.finish = true;
 					throw new IOError(e);
 				}
 			}
-			try {
-				Thread.sleep(1000L);
-			} catch (InterruptedException e) {}
 			if (other.length != 0) {
-				System.err.println("read: " + new String(other));
+				System.err.print(logStart() + "read: ");
+				try {
+					System.err.write(other);
+				} catch (IOException e) {}
+				System.err.println();
 			}
+			b.result = Arrays.equals(value, other);
 			try {
-				if (stream.available() > 0) {
+				while (stream.available() > 0 || cond.getAsBoolean()) {
+					if (stream.available() == 0) {
+						sleep();
+						continue;
+					}
+					b.result = false;
 					other = new byte[stream.available()];
 					int r = stream.read(other, 0, other.length);
-					System.err.println("additioannly read: " + new String(other, 0, r));
+					System.err.println(logStart() + "additioannly read: " + new String(other, 0, r));
 				}
 			} catch (IOException e) {
 				throw new IOError(e);
 			}
-			b.result = Arrays.equals(value, other);
 		} finally {
 			b.finish = true;
 			synchronized (b) {
 				b.notifyAll();
 			}
+			System.err.println(logStart() + "finish");
 		}
+	}
+	
+	private void sleep() {
+		try {
+			Thread.sleep(0L);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private String logStart() {
+		return "[" + Thread.currentThread().getName() + "]: ";
 	}
 	
 	private static final class TwoBools {

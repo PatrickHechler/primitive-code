@@ -96,7 +96,7 @@ public class PrimitiveDisassemblerMain {
 		} else {
 			if (in == null) { crash(-1, args, "no binary/input set"); }
 			try {
-				binary = ((ReadStream) fs.stream(out, new StreamOpenOptions(true, false))).asInputStream();
+				binary = ((ReadStream) fs.stream(in, new StreamOpenOptions(true, false))).asInputStream();
 			} catch (IOException e1) {
 				crash(-1, args, "error open machine file: " + e1.toString());
 			}

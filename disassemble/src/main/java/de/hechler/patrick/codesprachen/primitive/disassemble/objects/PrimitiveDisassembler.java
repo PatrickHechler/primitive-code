@@ -274,109 +274,75 @@ public class PrimitiveDisassembler implements Closeable {
 				return;
 			}
 			try {
-				Commands cmd = Commands.get(0xFF & bytes[0] | (0xFF & (bytes[1]) << 8));
+				Commands cmd = Commands.get(0xFF & bytes[0] | ((0xFF & (bytes[1])) << 8));
 				Command  command;
 				switch (cmd.art) {
 				case LABEL_OR_CONST:
-					if (cp.length() != 0) {
-						cmds.add(cp);
-						pos += cp.length();
-						cp = new ConstantPoolCmd();
-					}
 					long relativeLabel = 0x0000FFFFFFFFFFFFL & convertByteArrToLong(bytes);
 					command = new Command(cmd, relativeLabel, lng);
 					labels.add((pos + relativeLabel));
+					if (cp.length() != 0) {
+						cmds.add(cp);
+						cp = new ConstantPoolCmd();
+					}
 					break;
 				case NO_PARAMS:
 					for (int ii = 2; ii < 8; ii++) {
 						Param.zeroCheck(bytes[ii]);
 					}
 					command = new Command(cmd);
-					if (cp.length() != 0) {
-						cmds.add(cp);
-						pos += cp.length();
-						cp = new ConstantPoolCmd();
-					}
 					break;
 				case ONE_PARAM_ALLOW_CONST:
-					command = buildOneParam(bytes, in, cmd);
-					if (cp.length() != 0) {
-						cmds.add(cp);
-						pos += cp.length();
-						cp = new ConstantPoolCmd();
-					}
+					command = buildOneParam(cp, bytes, in, cmd);
 					break;
 				case ONE_PARAM_NO_CONST:
-					command = buildOneParam(bytes, in, cmd);
+					command = buildOneParam(cp, bytes, in, cmd);
 					command.p1.checkNoConst();
-					if (cp.length() != 0) {
-						cmds.add(cp);
-						pos += cp.length();
-						cp = new ConstantPoolCmd();
-					}
 					break;
 				case TWO_PARAMS_ALLOW_CONSTS:
-					command = buildTwoParam(bytes, in, cmd);
-					if (cp.length() != 0) {
-						cmds.add(cp);
-						pos += cp.length();
-						cp = new ConstantPoolCmd();
-					}
+					command = buildTwoParam(cp, bytes, in, cmd);
 					break;
 				case TWO_PARAMS_NO_CONSTS:
-					command = buildTwoParam(bytes, in, cmd);
+					command = buildTwoParam(cp, bytes, in, cmd);
 					command.p1.checkNoConst();
 					command.p2.checkNoConst();
-					if (cp.length() != 0) {
-						cmds.add(cp);
-						pos += cp.length();
-						cp = new ConstantPoolCmd();
-					}
 					break;
 				case TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST:
-					command = buildTwoParam(bytes, in, cmd);
+					command = buildTwoParam(cp, bytes, in, cmd);
 					command.p1.checkNoConst();
-					if (cp.length() != 0) {
-						cmds.add(cp);
-						pos += cp.length();
-						cp = new ConstantPoolCmd();
-					}
 					break;
 				case TWO_PARAMS_P1_NO_CONST_P2_COMPILE_CONST: {
-					Command command0 = buildOneParam(bytes, in, cmd);
+					Command command0 = buildOneParam(cp, bytes, in, cmd);
 					checkedReadBytes(in, bytes, cp);
 					ParamBuilder pb = new ParamBuilder();
 					pb.art = PARAM_A_NUM;
 					pb.v1 = convertByteArrToLong(bytes);
 					command = new Command(cmd, command0.p1, pb.build());
-					if (cp.length() != 0) {
-						cmds.add(cp);
-						pos += cp.length();
-						cp = new ConstantPoolCmd();
-					}
 					break;
 				}
 				case THREE_PARAMS_P1_NO_CONST_P2_ALLOW_CONST_P3_COMPILE_CONST: {
-					Command command0 = buildTwoParam(bytes, in, cmd);
+					Command command0 = buildTwoParam(cp, bytes, in, cmd);
 					command0.p1.checkNoConst();
 					ParamBuilder pb = new ParamBuilder();
 					pb.art = PARAM_A_NUM;
 					pb.v1 = convertByteArrToLong(bytes);
 					command = new Command(cmd, command0.p1, command0.p2, pb.build());
-					if (cp.length() != 0) {
-						cmds.add(cp);
-						pos += cp.length();
-						cp = new ConstantPoolCmd();
-					}
 					break;
 				}
 				default:
 					throw new InternalError("the command '" + cmd.name() + "' does not have a known 'art' value! art="
 							+ cmd.art.name());
 				}
+				if (cp.length() > command.length()) {
+					cp.truncate(cp.length() - command.length());
+					cmds.add(cp);
+				}
+				cp = new ConstantPoolCmd();
 				pos += command.length();
 				cmds.add(command);
-			} catch (NoCommandException nce) { /* the consumed bytes are already added to my constant pool */ }
+			} catch (NoCommandException nce) {
+				
+			}
 		}
 	}
 	
@@ -394,12 +360,10 @@ public class PrimitiveDisassembler implements Closeable {
 		cp.add(bytes);
 	}
 	
-	private static Command buildTwoParam(byte[] bytes, InputStream in, Commands cmd)
+	private static Command buildTwoParam(ConstantPoolCmd cp, byte[] bytes, InputStream in, Commands cmd)
 			throws NoCommandException, IOException {
-		ConstantPoolCmd cp = new ConstantPoolCmd();
-		cp.add(bytes);
 		ParamBuilder pb = new ParamBuilder();
-		pb.art = 0xFF & bytes[3];
+		pb.art = 0xFF & bytes[2];
 		final byte[] orig = bytes.clone();
 		int          index;
 		switch (pb.art) {
@@ -443,7 +407,7 @@ public class PrimitiveDisassembler implements Closeable {
 		}
 		Param p1 = pb.build();
 		pb = new ParamBuilder();
-		pb.art = 0xFF & orig[4];
+		pb.art = 0xFF & orig[3];
 		switch (pb.art) {
 		case Param.ART_ANUM_BREG:
 		case Param.ART_ANUM:
@@ -498,12 +462,10 @@ public class PrimitiveDisassembler implements Closeable {
 		return new Command(cmd, p1, pb.build());
 	}
 	
-	private static Command buildOneParam(byte[] bytes, InputStream in, Commands cmd)
+	private static Command buildOneParam(ConstantPoolCmd cp, byte[] bytes, InputStream in, Commands cmd)
 			throws NoCommandException, IOException {
-		ConstantPoolCmd cp = new ConstantPoolCmd();
-		cp.add(bytes);
 		ParamBuilder pb = new ParamBuilder();
-		pb.art = 0xFF & bytes[1];
+		pb.art = 0xFF & bytes[2];
 		switch (pb.art) {
 		case Param.ART_ANUM_BREG:
 		case Param.ART_ANUM:

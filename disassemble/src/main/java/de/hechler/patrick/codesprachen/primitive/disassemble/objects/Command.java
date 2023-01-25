@@ -20,15 +20,17 @@ public class Command {
 	
 	
 	private Command(Commands cmd, Param p1, Param p2, Param p3, long relativeLabel, LabelNameGenerator lng) {
-		this.cmd           = cmd;
-		this.p1            = p1;
-		this.p2            = p2;
-		this.p3            = p3;
+		this.cmd = cmd;
+		this.p1 = p1;
+		this.p2 = p2;
+		this.p3 = p3;
 		this.relativeLabel = relativeLabel;
-		this.lng           = lng;
+		this.lng = lng;
 	}
 	
-	private Command(Commands cmd, Param p1, Param p2, long relativeLabel, LabelNameGenerator lng) { this(cmd, p1, p2, null, relativeLabel, lng); }
+	private Command(Commands cmd, Param p1, Param p2, long relativeLabel, LabelNameGenerator lng) {
+		this(cmd, p1, p2, null, relativeLabel, lng);
+	}
 	
 	public Command(Commands cmd) { this(cmd, null, null, -1L, null); }
 	
@@ -133,6 +135,13 @@ public class Command {
 		
 		public void get(byte[] bytes, int boff, int off, int len) {
 			System.arraycopy(this.bytes, off, bytes, boff, len);
+		}
+		
+		public void truncate(int newLen) {
+			if (newLen >= bytes.length) {
+				throw new IllegalArgumentException();
+			}
+			this.bytes = Arrays.copyOf(bytes, newLen);
 		}
 		
 	}
