@@ -65,31 +65,31 @@ static void int_time_sleep( INT_PARAMS); /* 45 */
 static void int_time_wait( INT_PARAMS); /* 46 */
 static void int_rnd_open( INT_PARAMS); /* 47 */
 static void int_rnd_num( INT_PARAMS); /* 48 */
-static void int_mem_cpy( INT_PARAMS); /* 49 */
-static void int_mem_mov( INT_PARAMS); /* 50 */
-static void int_mem_set( INT_PARAMS); /* 51 */
-static void int_str_len( INT_PARAMS); /* 52 */
-static void int_str_cmp( INT_PARAMS); /* 53 */
-static void int_str_from_num( INT_PARAMS); /* 54 */
-static void int_str_from_fpnum( INT_PARAMS); /* 55 */
-static void int_str_to_num( INT_PARAMS); /* 56 */
-static void int_str_to_fpnum( INT_PARAMS); /* 57 */
-static void int_str_to_u16str( INT_PARAMS); /* 58 */
-static void int_str_to_u32str( INT_PARAMS); /* 59 */
-static void int_str_from_u16str( INT_PARAMS); /* 60 */
-static void int_str_from_u32str( INT_PARAMS); /* 61 */
-static void int_str_format( INT_PARAMS); /* 62 */
-static void int_load_file( INT_PARAMS); /* 63 */
-static void int_load_lib( INT_PARAMS); /* 64 */
-static void int_unload_lib( INT_PARAMS); /* 65 */
+static void int_mem_cmp( INT_PARAMS); /* 49 */
+static void int_mem_cpy( INT_PARAMS); /* 50 */
+static void int_mem_mov( INT_PARAMS); /* 51 */
+static void int_mem_set( INT_PARAMS); /* 52 */
+static void int_str_len( INT_PARAMS); /* 53 */
+static void int_str_cmp( INT_PARAMS); /* 54 */
+static void int_str_from_num( INT_PARAMS); /* 55 */
+static void int_str_from_fpnum( INT_PARAMS); /* 56 */
+static void int_str_to_num( INT_PARAMS); /* 57 */
+static void int_str_to_fpnum( INT_PARAMS); /* 58 */
+static void int_str_to_u16str( INT_PARAMS); /* 59 */
+static void int_str_to_u32str( INT_PARAMS); /* 60 */
+static void int_str_from_u16str( INT_PARAMS); /* 61 */
+static void int_str_from_u32str( INT_PARAMS); /* 62 */
+static void int_str_format( INT_PARAMS); /* 63 */
+static void int_load_file( INT_PARAMS); /* 64 */
+static void int_load_lib( INT_PARAMS); /* 65 */
+static void int_unload_lib( INT_PARAMS); /* 66 */
 
 #define INT_ERRORS_ILLEGAL_INTERRUPT                  0
 #define INT_ERRORS_UNKNOWN_COMMAND                    1
 #define INT_ERRORS_ILLEGAL_MEMORY                     2
 #define INT_ERRORS_ARITHMETIC_ERROR                   3
-#define INT_EXIT                                      4
 // ...
-#define INTERRUPT_COUNT                               66
+#define INTERRUPT_COUNT                               67
 
 static void (*(ints[]))(INT_PARAMS) = {
 	int_errors_illegal_interrupt, /* 0 */
@@ -141,23 +141,24 @@ static void (*(ints[]))(INT_PARAMS) = {
 	int_time_wait, /* 46 */
 	int_rnd_open, /* 47 */
 	int_rnd_num, /* 48 */
-	int_mem_cpy, /* 49 */
-	int_mem_mov, /* 50 */
-	int_mem_set, /* 51 */
-	int_str_len, /* 52 */
-	int_str_cmp, /* 53 */
-	int_str_from_num, /* 54 */
-	int_str_from_fpnum, /* 55 */
-	int_str_to_num, /* 56 */
-	int_str_to_fpnum, /* 57 */
-	int_str_to_u16str, /* 58 */
-	int_str_to_u32str, /* 59 */
-	int_str_from_u16str, /* 60 */
-	int_str_from_u32str, /* 61 */
-	int_str_format, /* 62 */
-	int_load_file, /* 63 */
-	int_load_lib, /* 64 */
-	int_unload_lib, /* 65 */
+	int_mem_cmp, /* 49 */
+	int_mem_cpy, /* 50 */
+	int_mem_mov, /* 51 */
+	int_mem_set, /* 52 */
+	int_str_len, /* 53 */
+	int_str_cmp, /* 54 */
+	int_str_from_num, /* 55 */
+	int_str_from_fpnum, /* 56 */
+	int_str_to_num, /* 57 */
+	int_str_to_fpnum, /* 58 */
+	int_str_to_u16str, /* 59 */
+	int_str_to_u32str, /* 60 */
+	int_str_from_u16str, /* 61 */
+	int_str_from_u32str, /* 62 */
+	int_str_format, /* 63 */
+	int_load_file, /* 64 */
+	int_load_lib, /* 65 */
+	int_unload_lib, /* 66 */
 };
 
 _Static_assert((sizeof(void (*)(INT_PARAMS)) * INTERRUPT_COUNT) == sizeof(ints), "Error!");

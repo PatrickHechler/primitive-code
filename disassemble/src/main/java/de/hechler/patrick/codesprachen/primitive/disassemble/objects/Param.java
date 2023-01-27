@@ -1,6 +1,6 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BNUM;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BADR;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM_BREG;
@@ -14,28 +14,26 @@ import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoComman
 public class Param {
 	
 	public static final int ART_ANUM      = PARAM_ART_ANUM;
-	public static final int ART_ASR       = PARAM_ART_AREG;
-	public static final int ART_ANUM_BREG = PARAM_ART_ANUM_BADR;
-	public static final int ART_ASR_BREG  = PARAM_ART_AREG_BADR;
+	public static final int ART_AREG      = PARAM_ART_AREG;
+	public static final int ART_ANUM_BADR = PARAM_ART_ANUM_BADR;
+	public static final int ART_AREG_BADR = PARAM_ART_AREG_BADR;
 	public static final int ART_ANUM_BNUM = PARAM_ART_ANUM_BNUM;
-	public static final int ART_ASR_BNUM  = PARAM_ART_AREG_BNUM;
-	public static final int ART_ANUM_BSR  = PARAM_ART_ANUM_BREG;
-	public static final int ART_ASR_BSR   = PARAM_ART_AREG_BREG;
+	public static final int ART_AREG_BNUM = PARAM_ART_AREG_BNUM;
+	public static final int ART_ANUM_BREG = PARAM_ART_ANUM_BREG;
+	public static final int ART_AREG_BREG = PARAM_ART_AREG_BREG;
 	
 	
-	public static final int SR_IP     = 0;
-	public static final int SR_SP     = 1;
-	public static final int SR_STATUS = 2;
-	public static final int SR_INTCNT = 3;
-	public static final int SR_INTP   = 4;
-	public static final int SR_X_SUB  = 5;
-	
+	public static final int REG_IP     = IP;
+	public static final int REG_SP     = SP;
+	public static final int REG_STATUS = STATUS;
+	public static final int REG_INTCNT = INTCNT;
+	public static final int REG_INTP   = INTP;
+	public static final int REG_ERRNO  = ERRNO;
+	public static final int REG_X_SUB  = X_ADD;
 	
 	public final long num;
 	public final long off;
 	public final int  art;
-	
-	
 	
 	private Param(long num, long off, int art) {
 		this.num = num;
@@ -63,29 +61,22 @@ public class Param {
 		
 		public Param build() throws NoCommandException {
 			switch (art) {
-			case ART_ANUM:
+			case ART_ANUM, ART_ANUM_BADR:
 				zeroCheck(v2);
 				return new Param(v1, 0, art);
 			case ART_ANUM_BNUM:
 				return new Param(v1, v2, art);
 			case ART_ANUM_BREG:
-				zeroCheck(v2);
-				return new Param(v1, 0, art);
-			case ART_ANUM_BSR:
 				checkSR(v2);
 				return new Param(v1, v2, art);
-			case ART_ASR:
+			case ART_AREG, ART_AREG_BADR:
 				checkSR(v1);
 				zeroCheck(v2);
 				return new Param(v1, 0, art);
-			case ART_ASR_BNUM:
+			case ART_AREG_BNUM:
 				checkSR(v1);
 				return new Param(v1, v2, art);
-			case ART_ASR_BREG:
-				checkSR(v1);
-				zeroCheck(v2);
-				return new Param(v1, 0, art);
-			case ART_ASR_BSR:
+			case ART_AREG_BREG:
 				checkSR(v1);
 				checkSR(v2);
 				return new Param(v1, v2, art);
@@ -105,26 +96,17 @@ public class Param {
 	}
 	
 	public static String artToString(int art) {
-		switch (art) {
-		case ART_ANUM:
-			return "[ANUM]";
-		case ART_ASR:
-			return "[ASR]";
-		case ART_ANUM_BREG:
-			return "[ANUM_BREG]";
-		case ART_ASR_BREG:
-			return "[ASR_BREG]";
-		case ART_ANUM_BNUM:
-			return "[ANUM_BNUM]";
-		case ART_ASR_BNUM:
-			return "[ASR_BNUM]";
-		case ART_ANUM_BSR:
-			return "[ANUM_BSR]";
-		case ART_ASR_BSR:
-			return "[ASR_BSR]";
-		default:
-			return "<INVALID[" + art + "]>";
-		}
+		return switch (art) {
+		case ART_ANUM -> "[ANUM]";
+		case ART_AREG -> "[ASR]";
+		case ART_ANUM_BADR -> "[ANUM_BREG]";
+		case ART_AREG_BADR -> "[ASR_BREG]";
+		case ART_ANUM_BNUM -> "[ANUM_BNUM]";
+		case ART_AREG_BNUM -> "[ASR_BNUM]";
+		case ART_ANUM_BREG -> "[ANUM_BSR]";
+		case ART_AREG_BREG -> "[ASR_BSR]";
+		default -> "<INVALID[" + art + "]>";
+		};
 	}
 	
 	public static void checkSR(long num) throws NoCommandException {
@@ -136,65 +118,44 @@ public class Param {
 	}
 	
 	public int length() {
-		switch (art) {
-		case ART_ASR:
-		case ART_ASR_BREG:
-		case ART_ASR_BSR:
-			return 0;
-		case ART_ANUM:
-		case ART_ANUM_BREG:
-		case ART_ANUM_BSR:
-		case ART_ASR_BNUM:
-			return 8;
-		case ART_ANUM_BNUM:
-			return 16;
-		default:
-			throw new InternalError("unknown art: " + art);
-		}
+		return switch (art) {
+		case ART_AREG, ART_AREG_BADR, ART_AREG_BREG -> 0;
+		case ART_ANUM, ART_ANUM_BADR, ART_ANUM_BREG, ART_AREG_BNUM -> 8;
+		case ART_ANUM_BNUM -> 16;
+		default -> throw new InternalError("unknown art: " + art);
+		};
 	}
 	
 	@Override
 	public String toString() {
-		switch (art) {
-		case ART_ASR:
-			return getSR(num);
-		case ART_ASR_BREG:
-			return "[" + getSR(num) + "]";
-		case ART_ASR_BSR:
-			return "[" + getSR(num) + " + " + getSR(off) + "]";
-		case ART_ANUM:
-			return "" + num;
-		case ART_ANUM_BREG:
-			return "[" + num + "]";
-		case ART_ANUM_BSR:
-			return "[" + num + " + " + getSR(off) + "]";
-		case ART_ASR_BNUM:
-			return "[" + getSR(num) + " + " + off + "]";
-		case ART_ANUM_BNUM:
-			return "[" + num + " + " + off + "]";
-		default:
-			throw new InternalError("unknown art: " + art);
-		}
+		return switch (art) {
+		case ART_AREG -> getReg(num);
+		case ART_AREG_BADR -> "[" + getReg(num) + "]";
+		case ART_AREG_BREG -> "[" + getReg(num) + " + " + getReg(off) + "]";
+		case ART_ANUM -> Long.toString(num);
+		case ART_ANUM_BADR -> "[" + num + "]";
+		case ART_ANUM_BREG -> "[" + num + " + " + getReg(off) + "]";
+		case ART_AREG_BNUM -> "[" + getReg(num) + " + " + off + "]";
+		case ART_ANUM_BNUM -> "[" + num + " + " + off + "]";
+		default -> throw new InternalError("unknown art: " + art);
+		};
 	}
 	
-	private static String getSR(long sr) {
-		if ((sr & 0x00000000000000FFL) != sr) { throw new InternalError("this is no register"); }
-		switch ((int) sr) {
-		case SR_IP:
-			return "IP";
-		case SR_SP:
-			return "SP";
-		case SR_STATUS:
-			return "STATUS";
-		case SR_INTCNT:
-			return "INTCNT";
-		case SR_INTP:
-			return "INTP";
-		default:
-			String num = Integer.toHexString((int) sr - SR_X_SUB).toUpperCase();
-			if (num.length() == 1) { return "X0" + num; }
-			return "X" + num;
+	private static String getReg(long reg) {
+		if ((reg & 0x00000000000000FFL) != reg) { throw new InternalError("this is no register"); }
+		return switch ((int) reg) {
+		case REG_IP -> "IP";
+		case REG_SP -> "SP";
+		case REG_STATUS -> "STATUS";
+		case REG_INTCNT -> "INTCNT";
+		case REG_INTP -> "INTP";
+		case REG_ERRNO -> "ERRNO";
+		default -> {
+			String num = Integer.toHexString((int) reg - REG_X_SUB).toUpperCase();
+			if (num.length() == 1) yield "X0" + num;
+			else yield "X" + num;
 		}
+		};
 	}
 	
 }

@@ -220,11 +220,12 @@ static void int_element_get_name( INT_PARAMS) /* 27 */{
 			}
 			num maxsize = mem->end - pvm.x[1];
 			if (maxsize > size) {
-				num off = pvm.x[1] - mem->start;
-				mem = realloc_memory(mem->start, off + size, 0);
-				pvm.x[1] = mem->start + off;
+				free(buf);
+				interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+				return;
 			}
 			memcpy(mem->offset + pvm.x[1], buf, size);
+			free(buf);
 		}
 	}
 }
@@ -390,7 +391,35 @@ static void int_rnd_num( INT_PARAMS) /* 48 */{
 	}
 	pvm.x[0] = r;
 }
-static void int_mem_cpy( INT_PARAMS) /* 49 */{
+static void int_mem_cmp( INT_PARAMS) /* 49 */{
+	if (pvm.x[2] < 0) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	struct memory *mem_a = chk(pvm.x[0], pvm.x[2]).mem;
+	if (!mem_a) {
+		return;
+	}
+	struct memory_check mem_b = chk(pvm.x[1], pvm.x[2]);
+	if (!mem_b.mem) {
+		return;
+	}
+	if (!mem_b.changed) {
+		mem_a = chk(pvm.x[0], pvm.x[2]).mem;
+		if (!mem_a) {
+			return;
+		}
+	}
+	num max_a_len = mem_a->end - pvm.x[0];
+	num max_b_len = mem_b.mem->end - pvm.x[1];
+	if (max_a_len < pvm.x[2] || max_b_len < pvm.x[2]) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	pvm.x[2] = memcmp(mem_a->offset + pvm.x[0], mem_b.mem->offset + pvm.x[1],
+			pvm.x[2]);
+}
+static void int_mem_cpy( INT_PARAMS) /* 50 */{
 	if (pvm.x[2] < 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -406,9 +435,17 @@ static void int_mem_cpy( INT_PARAMS) /* 49 */{
 	if (dst.changed) {
 		src = chk(pvm.x[0], pvm.x[2]).mem;
 	}
-	memcpy(dst.mem->offset + pvm.x[1], src->offset + pvm.x[0], pvm.x[2]);
+	int cmp = memcmp(dst.mem->offset + pvm.x[1], src->offset + pvm.x[0],
+			pvm.x[2]);
+	if (cmp > 0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER)) | S_GREATHER;
+	} else if (cmp < 0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_GREATHER)) | S_LOWER;
+	} else {
+		pvm.status = (pvm.status & ~(S_GREATHER | S_LOWER)) | S_EQUAL;
+	}
 }
-static void int_mem_mov( INT_PARAMS) /* 50 */{
+static void int_mem_mov( INT_PARAMS) /* 51 */{
 	if (pvm.x[2] < 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -426,7 +463,7 @@ static void int_mem_mov( INT_PARAMS) /* 50 */{
 	}
 	memmove(dst.mem->offset + pvm.x[1], src->offset + pvm.x[0], pvm.x[2]);
 }
-static void int_mem_set( INT_PARAMS) /* 51 */{
+static void int_mem_set( INT_PARAMS) /* 52 */{
 	if (pvm.x[2] < 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
@@ -437,7 +474,7 @@ static void int_mem_set( INT_PARAMS) /* 51 */{
 	}
 	memset(src->offset + pvm.x[0], pvm.x[1], pvm.x[2]);
 }
-static void int_str_len( INT_PARAMS) /* 52 */{
+static void int_str_len( INT_PARAMS) /* 53 */{
 	struct memory *str = chk(pvm.x[0], 1).mem;
 	if (!str) {
 		return;
@@ -450,7 +487,7 @@ static void int_str_len( INT_PARAMS) /* 52 */{
 		pvm.x[0] = len;
 	}
 }
-static void int_str_cmp( INT_PARAMS) /* 53 */{
+static void int_str_cmp( INT_PARAMS) /* 54 */{
 	struct memory *str_a = chk(pvm.x[0], 1).mem;
 	if (!str_a) {
 		return;
@@ -467,9 +504,19 @@ static void int_str_cmp( INT_PARAMS) /* 53 */{
 	}
 	num max_a_len = str_a->end - pvm.x[0];
 	num max_b_len = str_b.mem->end - pvm.x[1];
-	num max_len = max_a_len < max_b_len ? max_a_len : max_b_len;
-	pvm.x[0] = strncmp(str_a->offset + pvm.x[0], str_b.mem->offset + pvm.x[1],
-			max_len);
+	if (strnlen(str_a->offset + pvm.x[0], max_a_len) == max_a_len
+			|| strnlen(str_b.mem->offset + pvm.x[1], max_b_len) == max_b_len) {
+		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	int cmp = strcmp(str_a->offset + pvm.x[0], str_b.mem->offset + pvm.x[1]);
+	if (cmp > 0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER)) | S_GREATHER;
+	} else if (cmp < 0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_GREATHER)) | S_LOWER;
+	} else {
+		pvm.status = (pvm.status & ~(S_GREATHER | S_LOWER)) | S_EQUAL;
+	}
 }
 static inline num num_to_str(char *dest, num maxlen, num number, int base) {
 #define nts_add0(c) \
@@ -510,7 +557,7 @@ static inline num num_to_str(char *dest, num maxlen, num number, int base) {
 #undef nts_add
 #undef nts_add0
 }
-static void int_str_from_num( INT_PARAMS) /* 54 */{
+static void int_str_from_num( INT_PARAMS) /* 55 */{
 	num len = pvm.x[3];
 	if (len < 0) {
 		pvm.x[1] = -1;
@@ -557,7 +604,7 @@ static void int_str_from_num( INT_PARAMS) /* 54 */{
 		pvm.x[3] = strlen + 1;
 	}
 }
-static void int_str_from_fpnum( INT_PARAMS) /* 55 */{
+static void int_str_from_fpnum( INT_PARAMS) /* 56 */{
 	num len = pvm.x[3];
 	if (len < 0) {
 		pvm.x[1] = -1;
@@ -599,7 +646,7 @@ static void int_str_from_fpnum( INT_PARAMS) /* 55 */{
 		pvm.x[3] = strlen + 1;
 	}
 }
-static void int_str_to_num( INT_PARAMS) /* 56 */{
+static void int_str_to_num( INT_PARAMS) /* 57 */{
 	if (pvm.x[2] < 2 || pvm.x[2] > 23) {
 		pvm.err = PE_ILLEGAL_ARG;
 		pvm.x[1] = 0;
@@ -641,7 +688,7 @@ static void int_str_to_num( INT_PARAMS) /* 56 */{
 	}
 	pvm.x[0] = val;
 }
-static void int_str_to_fpnum( INT_PARAMS) /* 57 */{
+static void int_str_to_fpnum( INT_PARAMS) /* 58 */{
 	struct memory *mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
 		return;
@@ -742,22 +789,22 @@ static inline void conv_unicode_strings(const char *to_identy,
 #define identy_str_std "UTF-8"
 #define identy_str_u16 "UTF-16"
 #define identy_str_u32 "UTF-32"
-static void int_str_to_u16str( INT_PARAMS) /* 58 */{
+static void int_str_to_u16str( INT_PARAMS) /* 59 */{
 	conv_unicode_strings(identy_str_u16, identy_str_std, 1);
 }
-static void int_str_to_u32str( INT_PARAMS) /* 59 */{
+static void int_str_to_u32str( INT_PARAMS) /* 60 */{
 	conv_unicode_strings(identy_str_u32, identy_str_std, 1);
 }
-static void int_str_from_u16str( INT_PARAMS) /* 60 */{
+static void int_str_from_u16str( INT_PARAMS) /* 61 */{
 	conv_unicode_strings(identy_str_std, identy_str_u16, 2);
 }
-static void int_str_from_u32str( INT_PARAMS) /* 61 */{
+static void int_str_from_u32str( INT_PARAMS) /* 62 */{
 	conv_unicode_strings(identy_str_std, identy_str_u32, 4);
 }
 #undef identy_str_std
 #undef identy_str_u16
 #undef identy_str_u32
-static void int_str_format( INT_PARAMS) /* 62 */{
+static void int_str_format( INT_PARAMS) /* 63 */{
 	struct memory *input_mem = chk(pvm.x[0], 1).mem;
 	if (!input_mem) {
 		return;
@@ -981,7 +1028,7 @@ static void int_str_format( INT_PARAMS) /* 62 */{
 #undef add
 #undef add0
 }
-static void int_load_file( INT_PARAMS) /* 63 */{
+static void int_load_file( INT_PARAMS) /* 64 */{
 	struct memory *name_mem = chk(pvm.x[0], 1).mem;
 	if (!name_mem) {
 		return;
@@ -1047,7 +1094,7 @@ static struct hashset loaded_libs = { //
 				.entries = NULL, //
 		};
 
-static void int_load_lib( INT_PARAMS) /* 64 */{
+static void int_load_lib( INT_PARAMS) /* 65 */{
 	struct memory *name_mem = chk(pvm.x[0], 1).mem;
 	if (!name_mem) {
 		return;
@@ -1061,7 +1108,8 @@ static void int_load_lib( INT_PARAMS) /* 64 */{
 	}
 	struct loaded_libs_entry tmp_entry;
 	tmp_entry.name = name;
-	void *old = hashset_get(&loaded_libs, loaded_libs_hash(&tmp_entry), &tmp_entry);
+	void *old = hashset_get(&loaded_libs, loaded_libs_hash(&tmp_entry),
+			&tmp_entry);
 	if (old) {
 		struct loaded_libs_entry *entry = old;
 		struct memory *old_mem = chk(entry->pntr, 0).mem;
@@ -1113,7 +1161,7 @@ static void int_load_lib( INT_PARAMS) /* 64 */{
 	pvm.x[1] = eof;
 	pvm.x[2] = 1;
 }
-static void int_unload_lib( INT_PARAMS) /* 65 */{
+static void int_unload_lib( INT_PARAMS) /* 66 */{
 	struct memory *mem = chk(pvm.x[0], 0).mem;
 	if ((mem->flags & MEM_LIB) == 0) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);

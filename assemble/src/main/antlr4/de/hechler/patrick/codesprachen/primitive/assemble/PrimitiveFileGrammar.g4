@@ -266,6 +266,7 @@ returns
 			{
 				String readFile = null;
 				Boolean isSource = null;
+				boolean isSimpleSymbol = false;
 				String prefix = null;
 				boolean useMyConsts = false;
 				Map <String, PrimitiveConstant> addConsts = new LinkedHashMap<>();
@@ -331,6 +332,7 @@ returns
 				|
 				(
 					{boolean iss = false;}
+					{boolean isss = false;}
 
 					(
 						(
@@ -344,10 +346,18 @@ returns
 							{iss = false;}
 
 						)
+						|
+						(
+							sourceOrSymbol = SIMPLE_SYMBOL
+							{iss = false;}
+							{isss = true;}
+
+						)
 					)
 					{
  						if (isSource == null) {
  							isSource = iss;
+ 							isSimpleSymbol = isss;
  						} else if ($enabled) {
 							if (be) {
 								throw new AssembleError($sourceOrSymbol.getLine(), $sourceOrSymbol.getCharPositionInLine(), $sourceOrSymbol.getStopIndex() - $sourceOrSymbol.getStartIndex() + 1, $sourceOrSymbol.getStartIndex(), "Source/Symbol already set old=" + (isSource ? "Source" : "Symbol") + " new="+ (iss ? "Source" : "Symbol"));
@@ -365,7 +375,7 @@ returns
  				if ($enabled) {
 	 				addConsts.putAll(useMyConsts ? $constants : PrimAsmConstants.START_CONSTANTS);
 	 				try {
-		 				AssembleRuntimeException sare = asm.readSymbols(readFile, isSource, prefix, addConsts, $constants, antlrin, be && $enabled, $READ_SYM, $thisFile, $readFiles);
+		 				AssembleRuntimeException sare = asm.readSymbols(readFile, isSource, isSimpleSymbol, prefix, addConsts, $constants, antlrin, be && $enabled, $READ_SYM, $thisFile, $readFiles);
 		 				if (sare != null) {
 							if ($are != null) {
 								$are.addSuppressed(sare);
@@ -2175,6 +2185,10 @@ SYMBOL
 	'--SYMBOL--'
 ;
 
+SIMPLE_SYMBOL
+:
+	'--SIMPLE-SYMBOL--'
+;
 ADD_CONSTANT
 :
 	'#ADD~' NAME

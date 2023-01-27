@@ -168,7 +168,7 @@ public class Command {
 			int retI;
 			bytes[2] = (byte) p1.art;
 			switch (p1.art) {
-			case Param.ART_ANUM, Param.ART_ANUM_BREG:
+			case Param.ART_ANUM, Param.ART_ANUM_BADR:
 				convertLongToByteArr(bytes, 8, p1.num);
 				firstI = 7;
 				retI = 16;
@@ -179,24 +179,24 @@ public class Command {
 				firstI = 7;
 				retI = 24;
 				break;
-			case Param.ART_ANUM_BSR:
+			case Param.ART_ANUM_BREG:
 				convertLongToByteArr(bytes, 8, p1.num);
 				bytes[7] = (byte) p1.off;
 				firstI = 6;
 				retI = 16;
 				break;
-			case Param.ART_ASR, Param.ART_ASR_BREG:
+			case Param.ART_AREG, Param.ART_AREG_BADR:
 				bytes[7] = (byte) p1.off;
 				firstI = 6;
 				retI = 8;
 				break;
-			case Param.ART_ASR_BNUM:
+			case Param.ART_AREG_BNUM:
 				bytes[7] = (byte) p1.num;
 				convertLongToByteArr(bytes, 8, p1.off);
 				firstI = 6;
 				retI = 2;
 				break;
-			case Param.ART_ASR_BSR:
+			case Param.ART_AREG_BREG:
 				bytes[7] = (byte) p1.num;
 				bytes[6] = (byte) p1.off;
 				firstI = 5;
@@ -208,25 +208,25 @@ public class Command {
 			if (p2 != null) {
 				bytes[1] = (byte) p2.art;
 				switch (p2.art) {
-				case Param.ART_ANUM, Param.ART_ANUM_BREG:
+				case Param.ART_ANUM, Param.ART_ANUM_BADR:
 					convertLongToByteArr(bytes, retI, p2.num);
 					break;
 				case Param.ART_ANUM_BNUM:
 					convertLongToByteArr(bytes, retI, p2.num);
 					convertLongToByteArr(bytes, retI + 8, p2.off);
 					break;
-				case Param.ART_ANUM_BSR:
+				case Param.ART_ANUM_BREG:
 					convertLongToByteArr(bytes, retI, p2.num);
 					bytes[firstI] = (byte) p2.off;
 					break;
-				case Param.ART_ASR, Param.ART_ASR_BREG:
+				case Param.ART_AREG, Param.ART_AREG_BADR:
 					bytes[firstI] = (byte) p2.off;
 					break;
-				case Param.ART_ASR_BNUM:
+				case Param.ART_AREG_BNUM:
 					bytes[firstI] = (byte) p2.num;
 					convertLongToByteArr(bytes, retI, p2.off);
 					break;
-				case Param.ART_ASR_BSR:
+				case Param.ART_AREG_BREG:
 					bytes[firstI] = (byte) p2.num;
 					bytes[firstI] = (byte) p2.off;
 					break;

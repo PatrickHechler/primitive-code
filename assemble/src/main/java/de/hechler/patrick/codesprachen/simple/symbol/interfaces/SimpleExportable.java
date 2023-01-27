@@ -1,0 +1,244 @@
+package de.hechler.patrick.codesprachen.simple.symbol.interfaces;
+
+import java.io.IOError;
+import java.io.IOException;
+import java.io.Reader;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
+
+import org.antlr.v4.runtime.ANTLRInputStream;
+import org.antlr.v4.runtime.BailErrorStrategy;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Lexer;
+
+import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
+import de.hechler.patrick.codesprachen.simple.symbol.SimpleExportGrammarLexer;
+import de.hechler.patrick.codesprachen.simple.symbol.SimpleExportGrammarParser;
+import de.hechler.patrick.codesprachen.simple.symbol.SimpleExportGrammarParser.SimpleExportsContext;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleConstant;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleFunction;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleFuncType;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleStructType;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleType;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleTypeArray;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleTypePointer;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleTypePrimitive;
+
+public interface SimpleExportable {
+	
+	static final char UNKNOWN_SIZE_ARRAY = ']';
+	static final char ARRAY              = '[';
+	static final char POINTER            = '#';
+	
+	static final String PRIM_FPNUM  = ".fp";
+	static final String PRIM_NUM    = ".n";
+	static final String PRIM_UNUM   = ".un";
+	static final String PRIM_DWORD  = ".dw";
+	static final String PRIM_UDWORD = ".udw";
+	static final String PRIM_WORD   = ".w";
+	static final String PRIM_UWORD  = ".uw";
+	static final String PRIM_BYTE   = ".b";
+	static final String PRIM_UBYTE  = ".ub";
+	
+	static final String FUNC   = "~f";
+	static final String VAR    = "~v";
+	static final String STRUCT = "~s";
+	static final String CONST  = "~c";
+	
+	static final char NAME_TYPE_SEP = ':';
+	static final char VAR_SEP       = ',';
+	
+	boolean isExport();
+	
+	String toExportString();
+	
+	String name();
+	
+	static SimpleExportable[] correctImports(Map<String, SimpleStructType> structs, List<SimpleExportable> imps) {
+		int                impcnt = imps.size();
+		SimpleExportable[] result = new SimpleExportable[structs.size() + impcnt];
+		for (int i = 0; i < impcnt; i++) {
+			SimpleExportable se = imps.get(i);
+			if (se instanceof SimpleConstant) {
+				// nothing to do
+			} else if (se instanceof SimpleFunction sf) {
+				correctArray(structs, sf.type.arguments);
+				correctArray(structs, sf.type.results);
+			} else if (se instanceof SimpleVariable sv) {
+				SimpleType corrected = correctType(structs, sv.type);
+				if (corrected != sv.type) {
+					se = new SimpleVariable(sv.addr, corrected, sv.name);
+				}
+			} else {
+				throw new InternalError("unknown exportable class: " + se.getClass().getName());
+			}
+			result[i] = se;
+		}
+		Iterator<SimpleStructType> iter = structs.values().iterator();
+		for (int i = impcnt; i < result.length; i++) {
+			result[i] = iter.next();
+		}
+		assert !iter.hasNext();
+		return result;
+	}
+	
+	static SimpleType correctType(Map<String, SimpleStructType> structs, SimpleType type) {
+		if (type instanceof SimpleFuncType sft) {
+			correctArray(structs, sft.arguments);
+			correctArray(structs, sft.results);
+		} else if (type instanceof SimpleTypePointer p) {
+			SimpleType corrected = correctType(structs, p.target);
+			if (corrected != p.target) {
+				if (p instanceof SimpleTypeArray arr) {
+					return new SimpleTypeArray(corrected, arr.elementCount);
+				} else {
+					return new SimpleTypePointer(corrected);
+				}
+			}
+		} else if (type instanceof SimpleFutureStructType sfst) {
+			SimpleStructType res = structs.get(sfst.name);
+			if (res == null) {
+				throw new NoSuchElementException("the needed structure was not exported! (name='" + ((SimpleFutureStructType) type).name
+						+ "') (exported structs: " + structs + ")");
+			}
+			return res;
+		} else if (type instanceof SimpleStructType) {
+			throw new InternalError("simple struct type is not allowed here (should possibly be a SimpleFutureStructType)");
+		} else if (!(type instanceof SimpleTypePrimitive)) { throw new InternalError("unknown type class: " + type.getClass().getName()); }
+		return type;
+	}
+	
+	static void correctArray(Map<String, SimpleStructType> structs, SimpleVariable[] results) {
+		for (int i = 0; i < results.length; i++) {
+			SimpleVariable sv        = results[i];
+			SimpleType     corrected = correctType(structs, sv.type);
+			if (corrected != sv.type) {
+				results[i] = new SimpleVariable(sv.addr, corrected, sv.name);
+			}
+		}
+	}
+	
+	class SimpleFutureStructType implements SimpleType {
+		
+		public final String name;
+		
+		public SimpleFutureStructType(String name) {
+			this.name = name;
+		}
+		
+		//@formatter:off
+		@Override public boolean isPrimitive() { return false; }
+		@Override public boolean isPointerOrArray() { return false; }
+		@Override public boolean isPointer() { return false; }
+		@Override public boolean isArray() { return false; }
+		@Override public boolean isStruct() { return true; }
+		@Override public boolean isFunc() { return false; }
+		@Override public int byteCount() { throw new UnsupportedOperationException(); }
+		@Override public void appendToExportStr(StringBuilder build) { throw new UnsupportedOperationException(); }
+		//@formatter:on
+		
+		@Override
+		public String toString() {
+			return "struct " + name;
+		}
+		
+	}
+	
+	static void exportVars(StringBuilder build, SimpleVariable[] arr) {
+		boolean first = true;
+		for (SimpleVariable sv : arr) {
+			if (!first) {
+				build.append(VAR_SEP);
+			}
+			first = false;
+			build.append(sv.name);
+			build.append(NAME_TYPE_SEP);
+			sv.type.appendToExportStr(build);
+		}
+	}
+	
+	static Map<String, SimpleExportable> readExports(Reader r) {
+		try {
+			ANTLRInputStream in = new ANTLRInputStream();
+			in.load(r, 1024, 1024);
+			Lexer                     lexer  = new SimpleExportGrammarLexer(in);
+			CommonTokenStream         toks   = new CommonTokenStream(lexer);
+			SimpleExportGrammarParser parser = new SimpleExportGrammarParser(toks);
+			parser.setErrorHandler(new BailErrorStrategy());
+			SimpleExportsContext          sec    = parser.simpleExports();
+			SimpleExportable[]            se     = sec.imported;
+			Map<String, SimpleExportable> result = new HashMap<>(se.length);
+			for (int i = 0; i < se.length; i++) {
+				result.put(se[i].name(), se[i]);
+			}
+			return result;
+		} catch (IOException e) {
+			throw new IOError(e);
+		}
+	}
+	
+	static Map<String, PrimitiveConstant> toPrimConsts(Map<String, SimpleExportable> imps, Path path) {
+		Map<String, PrimitiveConstant> result = new HashMap<>(imps.size());
+		for (SimpleExportable imp : imps.values()) {
+			if (imp instanceof SimpleConstant sc) {
+				convertConst(result, sc, path);
+			} else if (imp instanceof SimpleFunction sf) {
+				convertFunc(result, sf, path);
+			} else if (imp instanceof SimpleStructType ss) {
+				convertStrut(result, ss, path);
+			} else if (imp instanceof SimpleVariable sv) {
+				convertVar(result, sv, path);
+			}
+		}
+		return result;
+	}
+	
+	static void convertConst(Map<String, PrimitiveConstant> result, SimpleConstant sc, Path path) {
+		PrimitiveConstant pc = new PrimitiveConstant("CONST_" + sc.name(), sc.toString(), sc.value(), path, -1);
+		checkedPut(result, pc);
+	}
+	
+	static void convertFunc(Map<String, PrimitiveConstant> result, SimpleFunction sf, Path path) {
+		String            start = "FUNC_" + sf.name;
+		PrimitiveConstant pc    = new PrimitiveConstant(start, sf.toString(), sf.address, path, -1);
+		checkedPut(result, pc);
+		String argStart = start + "_ARG_";
+		for (SimpleVariable sv : sf.type.arguments) {
+			pc = new PrimitiveConstant(argStart + sv.name, sv.toString(), sv.addr, path, -1);
+			checkedPut(result, pc);
+		}
+		String resStart = start + "_RES_";
+		for (SimpleVariable sv : sf.type.results) {
+			pc = new PrimitiveConstant(resStart + sv.name, sv.toString(), sv.addr, path, -1);
+			checkedPut(result, pc);
+		}
+	}
+	
+	static void convertStrut(Map<String, PrimitiveConstant> result, SimpleStructType ss, Path path) {
+		String            start = "STRUCT_" + ss.name;
+		PrimitiveConstant pc    = new PrimitiveConstant(start + "_SIZE", ss.toString(), ss.byteCount(), path, -1);
+		checkedPut(result, pc);
+		start += "_OFFSET_";
+		for (SimpleVariable sv : ss.members) {
+			pc = new PrimitiveConstant(start + sv.name, sv.toString(), sv.addr, null, -1);
+			checkedPut(result, pc);
+		}
+	}
+	
+	static void convertVar(Map<String, PrimitiveConstant> result, SimpleVariable sv, Path path) {
+		PrimitiveConstant pc = new PrimitiveConstant("VAR_" + sv.name, sv.type.toString(), sv.addr, path, -1);
+		checkedPut(result, pc);
+	}
+	
+	static void checkedPut(Map<String, PrimitiveConstant> result, PrimitiveConstant pc) {
+		if (result.put(pc.name(), pc) != null) {
+			throw new IllegalStateException("multiple exports whould get the same name when converting to primitive constants");
+		}
+	}
+	
+}

@@ -32,7 +32,7 @@ the assembler language for the Primitive-Virtual-Machine
                 * `[[X01] + 12]  <-- 'r'`
                 * `[[X01] + 13]  <-- 'a'`
                 * `[[X01] + 14]  <-- 'm'`
-                * `[[X01] + 15] <-- '\0'`
+                * `[[X01] + 15]  <-- '\0'`
             * `[X01 + 8]    <-- ADDRESS_OF "--example\0"`
             * `[X01 + 16]   <-- ADDRESS_OF "value\0"`
             * `[X01 + 24]   <-- ADDRESS_OF "--other=val\0"`
@@ -76,51 +76,53 @@ the assembler language for the Primitive-Virtual-Machine
 
 ## Register
 
-* the primitive virtual machine has the following 64-bit registers:
-    * `IP`
-        * the instruction pointer points to the command to be executed
-        * initialized with the begin of the loaded machine code file
-    * `SP`
-        * the stack pointer points to the command to be executed
-        * initialized with the begin of an automatic growing memory block
-    * `INTP`
-        * points to the interrupt-table
-        * initialized with the interrupt table
-            * this table has by default a memory size of  `#INTERRUPT_COUNT * 8` bytes
-            * all entries of the table are initialized with `-1`
-    * `INTCNT`
-        * saves the number of allowed interrupts (`0..(INTCNT-1)` are allowed)
-            * all other will call the `INT-ERRORS_ILLEGAL_INTERRUPT` interrupt
-            * when the value stored in this register is negative or zero no interrupts will be allowed
-        * initialized with the interrupt count which can be used as default interrupts (`#INTERRUPT_COUNT`)
-    * `STATUS`
-        * saves some results of operations
-        * `UHEX-0000000000000001` : `LOWER`: if on the last `CMP A, B` `A` was lower than `B`
-        * `UHEX-0000000000000002` : `GREATHER`: if on the last `CMP A, B` `A` was greater than `B`
-        * `UHEX-0000000000000004` : `EQUAL`: if on the last `CMP A, B` `A` was greater than `B`
-        * `UHEX-0000000000000008` : `OVERFLOW`: if an overflow was detected
-        * `UHEX-0000000000000010` : `ZERO`: if the last arithmetic or logical operation leaded to zero (`0`)
-        * `UHEX-0000000000000020` : `NAN`: if the last floating point operation leaded to a NaN value
-        * `UHEX-0000000000000040` : `ALL_BITS`: if on the last `BCP A, B` was `A & B = B`
-        * `UHEX-0000000000000080` : `SOME_BITS`: if on the last `BCP A, B` was `A & B != 0`
-        * `UHEX-0000000000000100` : `NONE_BITS`: if on the last `BCP A, B` was `A & B = 0`
-        * initialized with `0`
-    * `X[00..F9]`
-        * `250 registers`
-        * number registers, for free use
-        * `X00` is initialized with a pointer to the program arguments
-            * the `X00` register will point to an array pointers
-            * these pointers will point to an (by default `UTF-8` encoded) string
-            * these strings will be terminated by a zero byte
-        * `X01` is initialized with the count of program arguments
-        * the other `XNN` registers are initilized with 0
-    * `ERRNO`
-        * number registers, used to indicate what went wrong
-        * the `ERRNO` register is initilized with 0
-        * the `ERRNO` register has always the same value as the last `XNN` register
-            * currently the last `XNN` register is `XFA`
-            * `ERRNO` is just an other name for the last `XNN` register
-* every register can also be addressed:
+the primitive virtual machine has the following 64-bit registers:
+
+* `IP`
+    * the instruction pointer points to the command to be executed
+    * initialized with the begin of the loaded machine code file
+* `SP`
+    * the stack pointer points to the command to be executed
+    * initialized with the begin of an automatic growing memory block
+* `INTP`
+    * points to the interrupt-table
+    * initialized with the interrupt table
+        * this table has by default a memory size of  `#INTERRUPT_COUNT * 8` bytes
+        * all entries of the table are initialized with `-1`
+* `INTCNT`
+    * saves the number of allowed interrupts (`0..(INTCNT-1)` are allowed)
+        * all other will call the `INT-ERRORS_ILLEGAL_INTERRUPT` interrupt
+        * when the value stored in this register is negative or zero no interrupts will be allowed
+    * initialized with the interrupt count which can be used as default interrupts (`#INTERRUPT_COUNT`)
+* `STATUS`
+    * saves some results of operations
+    * `UHEX-0000000000000001` : `LOWER`: if on the last `CMP A, B` `A` was lower than `B`
+    * `UHEX-0000000000000002` : `GREATHER`: if on the last `CMP A, B` `A` was greater than `B`
+    * `UHEX-0000000000000004` : `EQUAL`: if on the last `CMP A, B` `A` was greater than `B`
+    * `UHEX-0000000000000008` : `OVERFLOW`: if an overflow was detected
+    * `UHEX-0000000000000010` : `ZERO`: if the last arithmetic or logical operation leaded to zero (`0`)
+    * `UHEX-0000000000000020` : `NAN`: if the last floating point operation leaded to a NaN value
+    * `UHEX-0000000000000040` : `ALL_BITS`: if on the last `BCP A, B` was `A & B = B`
+    * `UHEX-0000000000000080` : `SOME_BITS`: if on the last `BCP A, B` was `A & B != 0`
+    * `UHEX-0000000000000100` : `NONE_BITS`: if on the last `BCP A, B` was `A & B = 0`
+    * initialized with `0`
+* `X[00..F9]`
+    * `250 registers`
+    * number registers, for free use
+    * `X00` is initialized with a pointer to the program arguments
+        * the `X00` register will point to an array pointers
+        * these pointers will point to an (by default `UTF-8` encoded) string
+        * these strings will be terminated by a zero byte
+    * `X01` is initialized with the count of program arguments
+    * the other `XNN` registers are initilized with 0
+* `ERRNO`
+    * number registers, used to indicate what went wrong
+    * the `ERRNO` register is initilized with 0
+    * the `ERRNO` register has always the same value as the last `XNN` register
+        * currently the last `XNN` register is `XFA`
+        * `ERRNO` is just an other name for the last `XNN` register
+
+every register can also be addressed:
     * each register has a constant memory address
     * the registers are at the memory addresses `4096..6144` (`HEX-1000..HEX-1800`)
     * the `IP` register has the address `4096` : `HEX-1000`
@@ -142,7 +144,6 @@ the assembler language for the Primitive-Virtual-Machine
             * `X7F` : `[5160]` : `[HEX-1428]`
             * `XF8` : `[6128]` : `[HEX-17F0]`
             * `XF9` : `[6136]` : `[HEX-17F8]`
-    * the `ERRNO` registers has the address space `6136` (`HEX-17F8`)
 
 ## NUMBERS
 
@@ -176,12 +177,39 @@ the assembler language for the Primitive-Virtual-Machine
                 * to set the type of the file to a primitive source code file
             * `--SYMBOL--`
                 * to set the type of the file to a primitive symbol file
+            * `--SIMPLE-SYMBOL--`
+                * to set the type of the file to a simple symbol file
         * if the file type has not been set, the file must end with one of these:
             * `*.psf`: is assumed to be a primitive symbol file
             * `*.psc`: is assumed to be a primitive source code file
+            * `*.ssf`: is assumed to be a simple symbol file
             * `[THIS]` is assumed to be a primitive source code file
             * any other name will cause an error
         * if `<FILE>` is `[THIS]` the file, which is now parsed is used.
+            * `--SYMBOL--` is not allowd to be mixed with the spcial `[THIS]` path
+        * if the file is a simple symbol file:
+            * functions:
+                * the `FUNC_` prefix will be added before the function name
+                * the value of the function constant will be the offset of the function entry point
+                    * the value will be relative from the file start
+                * args/results:
+                    * args will have the `FUNC_<func-name>_ARG_` prefix before the argument name
+                    * results will have the `FUNC_<func-name>_RES_` prefix before the result name
+                    * the values will be the offset in the function structure
+                * to see how to call functions look at the simple-code ducumentation
+                    * https://github.com/PatrickHechler/simple-code/blob/main/README.md#function-call
+            * variables:
+                * the `VAR_` prefix will be added before the variable name
+                * the value will be the offset of the variable
+                    * the value will be relative from the file start
+            * structures:
+                * the structure size will be saved in the constant `STRUCT_<struct-name>_SIZE`
+                * all members of the structure will get a constant:
+                    * the name will be `STRUCT_<struct-name>_OFFSET_<member-name>`
+                    * the value will be the offset of the member inside of the structure
+            * constants:
+                * constants get the prefix `CONST_`
+                * the value will be the value of the constant
 * to set define an export constant
     * `#EXP~<NAME> <VALUE>`
     * an export constant can be used like a normal constant
@@ -240,24 +268,25 @@ the assembler language for the Primitive-Virtual-Machine
     INT_TIME_WAIT                             46
     INT_RND_OPEN                              47
     INT_RND_NUM                               48
-    INT_MEM_CPY                               49
-    INT_MEM_MOV                               50
-    INT_MEM_BSET                              51
-    INT_STR_LEN                               52
-    INT_STR_CMP                               53
-    INT_STR_FROM_NUM                          54
-    INT_STR_FROM_FPNUM                        55
-    INT_STR_TO_NUM                            56
-    INT_STR_TO_FPNUM                          57
-    INT_STR_TO_U16STR                         58
-    INT_STR_TO_U32STR                         59
-    INT_STR_FROM_U16STR                       60
-    INT_STR_FROM_U32STR                       61
-    INT_STR_FORMAT                            62
-    INT_LOAD_FILE                             63
-    INT_LOAD_LIB                              64
-    INT_UNLOAD_LIB                            65
-    INTERRUPT_COUNT                           76
+    INT_MEM_CMP                               49
+    INT_MEM_CPY                               50
+    INT_MEM_MOV                               51
+    INT_MEM_BSET                              52
+    INT_STR_LEN                               53
+    INT_STR_CMP                               54
+    INT_STR_FROM_NUM                          55
+    INT_STR_FROM_FPNUM                        56
+    INT_STR_TO_NUM                            57
+    INT_STR_TO_FPNUM                          58
+    INT_STR_TO_U16STR                         59
+    INT_STR_TO_U32STR                         60
+    INT_STR_FROM_U16STR                       61
+    INT_STR_FROM_U32STR                       62
+    INT_STR_FORMAT                            63
+    INT_LOAD_FILE                             64
+    INT_LOAD_LIB                              65
+    INT_UNLOAD_LIB                            66
+    INTERRUPT_COUNT                           67
     FP_NAN                               UHEX-7FFE000000000000
     FP_MAX_VALUE                         UHEX-7FEFFFFFFFFFFFFF
     FP_MIN_VALUE                         UHEX-0000000000000001
@@ -1189,6 +1218,12 @@ the assembler language for the Primitive-Virtual-Machine
                 * not write/append or seek/setpos operations
     * `48 : INT_RND_NUM`: sets `X00` to a random number
         * `X00` will be set to a random non negative number or `-1` on error
+    * `49 : INT_MEM_CMP`: memory compare
+        * compares two blocks of memory
+        * `X00` points to the target memory block
+        * `X01` points to the source memory block
+        * `X02` has the length in bytes of both memory blocks
+        * the `STATUS` register `LOWER` `GREATHER` and `EQUAL` flags will be set after this interrupt
     * `49 : INT_MEM_CPY`: memory copy
         * copies a block of memory
         * this function has undefined behavior if the two blocks overlap
@@ -1212,8 +1247,7 @@ the assembler language for the Primitive-Virtual-Machine
     * `53 : INT_STR_CMP`: string compare
         * `X00` points to the first STRING
         * `X01` points to the second STRING
-        * `X00` will be set to zero if both are equal STRINGs, a value greather zero if the first is greather and below zero if the second is greather
-            * a STRING is greather if the first missmatching char has numeric greather value
+        * the `STATUS` register `LOWER` `GREATHER` and `EQUAL` flags will be set after this interrupt
     * `54 : INT_STR_FROM_NUM`: number to string
         * `X00` is set to the number to convert
         * `X01` is points to the buffer to be filled with the number in a STRING format

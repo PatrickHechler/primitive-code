@@ -59,6 +59,12 @@ static union instruction_adres {
 } ia;
 static num remain_instruct_space;
 
+static void close_pfs_on_exit(int status, void *arg) {
+	if (!pfs_close()) {
+		exit(126);
+	}
+}
+
 void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	if (next_adress != REGISTER_START) {
 		abort();
@@ -126,13 +132,13 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 		*(num*) argv = arg_mem->start;
 	}
 	*(num*) argv = -1;
+
+	on_exit(close_pfs_on_exit, NULL);
 }
 
 #ifdef PVM_DEBUG
 
 static pthread_mutex_t debug_mutex;
-
-static int server_sok;
 
 static inline void pvm_lock() {
 	if (pthread_mutex_lock(&debug_mutex) == -1) {
