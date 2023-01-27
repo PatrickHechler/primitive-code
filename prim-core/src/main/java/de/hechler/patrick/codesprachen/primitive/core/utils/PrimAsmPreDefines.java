@@ -4,6 +4,8 @@ public class PrimAsmPreDefines {
 	
 	private PrimAsmPreDefines() {}
 	
+	// GENERATED-CODE-START
+	
 	/**
 	 * illegal interrupt
 	 * <ul>
@@ -930,5 +932,7 @@ public class PrimAsmPreDefines {
 	 * set the position initially to the end of the file not the start
 	 */
 	public static final long STREAM_FILE_EOF                      = 0x00020000L;
+	
+	// GENERATED-CODE-END
 	
 }

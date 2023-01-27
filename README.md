@@ -62,7 +62,7 @@ the assembler language for the Primitive-Virtual-Machine
                 6. `|> note that the call also stores the current address in the stack and thus the X00 address stored previously may get corrupt/invalid`
                 7. `|> also note that the sub may also use the stack before using the stored address its last time`
         * also note that this means that the `SP` register can not be used to store other information, because it will get corruopted whwn the stack grows
-        * this is an example of letting the stack grow, until there is no longer enugh memory to let the stack grow, which will cause an INT_ERRORS_ILLEGAL_MEMORY
+        * this is an example of letting the stack grow, until there is no longer enough memory to let the stack grow, which will cause an INT_ERRORS_ILLEGAL_MEMORY
             1. `LOOP:`
             2. `  PUSH X00`
             3. `  JMP LOOP`
@@ -219,121 +219,119 @@ every register can also be addressed:
         * then it will be deleted as normal and as export constant
     * to change a normal constant to an export constant, just redefine it: `#EXP~<NAME> <NAME>`
 * predefined constants:
-<pre><code>
-    --POS--                                   the current length of the binary code in bytes (note that this is not aligned)
-    INT_ERRORS_ILLEGAL_INTERRUPT              0
-    INT_ERRORS_UNKNOWN_COMMAND                1
-    INT_ERRORS_ILLEGAL_MEMORY                 2
-    INT_ERRORS_ARITHMETIC_ERROR               3
-    INT_EXIT                                  4
-    INT_MEMORY_ALLOC                          5
-    INT_MEMORY_REALLOC                        6
-    INT_MEMORY_FREE                           7
-    INT_OPEN_STREAM                           8
-    INT_STREAMS_WRITE                         9
-    INT_STREAMS_READ                          10
-    INT_STREAMS_CLOSE                         11
-    INT_STREAMS_FILE_GET_POS                  12
-    INT_STREAMS_FILE_SET_POS                  13
-    INT_STREAMS_FILE_ADD_POS                  14
-    INT_STREAMS_FILE_SEEK_EOF                 15
-    INT_OPEN_FILE                             16
-    INT_OPEN_FOLDER                           17
-    INT_OPEN_PIPE                             18
-    INT_OPEN_ELEMENT                          19
-    INT_ELEMENT_OPEN_PARENT                   20
-    INT_ELEMENT_GET_CREATE                    21
-    INT_ELEMENT_GET_LAST_MOD                  22
-    INT_ELEMENT_SET_CREATE                    23
-    INT_ELEMENT_SET_LAST_MOD                  24
-    INT_ELEMENT_DELETE                        25
-    INT_ELEMENT_MOVE                          26
-    INT_ELEMENT_GET_NAME                      27
-    INT_ELEMENT_GET_FLAGS                     28
-    INT_ELEMENT_MODIFY_FLAGS                  29
-    INT_FOLDER_CHILD_COUNT                    30
-    INT_FOLDER_OPEN_CHILD_OF_NAME             31
-    INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME      32
-    INT_FOLDER_OPEN_CHILD_FILE_OF_NAME        33
-    INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME        34
-    INT_FOLDER_CREATE_CHILD_FOLDER            35
-    INT_FOLDER_CREATE_CHILD_PIPE              37
-    INT_FOLDER_OPEN_ITER                      38
-    INT_FILE_LENGTH                           39
-    INT_FILE_TRUNCATE                         40
-    INT_HANDLE_OPEN_STREAM                    41
-    INT_PIPE_LENGTH                           42
-    INT_TIME_GET                              43
-    INT_TIME_RES                              44
-    INT_TIME_SLEEP                            45
-    INT_TIME_WAIT                             46
-    INT_RND_OPEN                              47
-    INT_RND_NUM                               48
-    INT_MEM_CMP                               49
-    INT_MEM_CPY                               50
-    INT_MEM_MOV                               51
-    INT_MEM_BSET                              52
-    INT_STR_LEN                               53
-    INT_STR_CMP                               54
-    INT_STR_FROM_NUM                          55
-    INT_STR_FROM_FPNUM                        56
-    INT_STR_TO_NUM                            57
-    INT_STR_TO_FPNUM                          58
-    INT_STR_TO_U16STR                         59
-    INT_STR_TO_U32STR                         60
-    INT_STR_FROM_U16STR                       61
-    INT_STR_FROM_U32STR                       62
-    INT_STR_FORMAT                            63
-    INT_LOAD_FILE                             64
-    INT_LOAD_LIB                              65
-    INT_UNLOAD_LIB                            66
-    INTERRUPT_COUNT                           67
-    FP_NAN                               UHEX-7FFE000000000000
-    FP_MAX_VALUE                         UHEX-7FEFFFFFFFFFFFFF
-    FP_MIN_VALUE                         UHEX-0000000000000001
-    FP_POS_INFINITY                      UHEX-7FF0000000000000
-    FP_NEG_INFINITY                      UHEX-FFF0000000000000
-    REGISTER_MEMORY_START                 HEX-0000000000001000
-    REGISTER_MEMORY_START_XNN             HEX-0000000000001028
-    REGISTER_MEMORY_LAST_ADDRESS          HEX-00000000000017F8
-    REGISTER_MEMORY_END_ADDRESS_SPACE     HEX-0000000000001800
-    MAX_VALUE                             HEX-7FFFFFFFFFFFFFFF
-    MIN_VALUE                            NHEX-8000000000000000
-    STD_IN                                    0
-    STD_OUT                                   1
-    STD_LOG                                   2
-    ERR_NONE                                  0
-    ERR_UNKNOWN_ERROR                         1
-    ERR_NO_MORE_ELEMNETS                      2
-    ERR_ELEMENT_WRONG_TYPE                    3
-    ERR_ELEMENT_NOT_EXIST                     4
-    ERR_ELEMENT_ALREADY_EXIST                 5
-    ERR_OUT_OF_SPACE                          6
-    ERR_IO_ERR                                7
-    ERR_ILLEGAL_ARG                           8
-    ERR_ILLEGAL_MAGIC                         9
-    ERR_OUT_OF_MEMORY                         10
-    ERR_ROOT_FOLDER                           11
-    ERR_PARENT_IS_CHILD                       12
-    ERR_ELEMENT_USED                          13
-    ERR_OUT_OF_RANGE                          14
-    UNMODIFIABLE_FLAGS                   UHEX-000000FF
-    FLAG_FOLDER                          UHEX-00000001
-    FLAG_FILE                            UHEX-00000002
-    FLAG_PIPE                            UHEX-00000004
-    FLAG_EXECUTABLE                      UHEX-00000100
-    FLAG_USER_ENCRYPTED                  UHEX-00000200
-    FLAG_HIDDEN                          UHEX-01000000
-    STREAM_ONLY_CREATE                   UHEX-00000001
-    STREAM_ALSO_CREATE                   UHEX-00000002
-    STREAM_FILE                          UHEX-00000004
-    STREAM_PIPE                          UHEX-00000008
-    STREAM_READ                          UHEX-00000100
-    STREAM_WRITE                         UHEX-00000200
-    STREAM_APPEND                        UHEX-00000400
-    STREAM_FILE_TRUNC                    UHEX-00010000
-    STREAM_FILE_EOF                      UHEX-00020000
-</code></pre>
+    * --POS--                                   the current length of the binary code in bytes (note that this is not aligned)
+    * INT_ERRORS_ILLEGAL_INTERRUPT              0
+    * INT_ERRORS_UNKNOWN_COMMAND                1
+    * INT_ERRORS_ILLEGAL_MEMORY                 2
+    * INT_ERRORS_ARITHMETIC_ERROR               3
+    * INT_EXIT                                  4
+    * INT_MEMORY_ALLOC                          5
+    * INT_MEMORY_REALLOC                        6
+    * INT_MEMORY_FREE                           7
+    * INT_OPEN_STREAM                           8
+    * INT_STREAMS_WRITE                         9
+    * INT_STREAMS_READ                          10
+    * INT_STREAMS_CLOSE                         11
+    * INT_STREAMS_FILE_GET_POS                  12
+    * INT_STREAMS_FILE_SET_POS                  13
+    * INT_STREAMS_FILE_ADD_POS                  14
+    * INT_STREAMS_FILE_SEEK_EOF                 15
+    * INT_OPEN_FILE                             16
+    * INT_OPEN_FOLDER                           17
+    * INT_OPEN_PIPE                             18
+    * INT_OPEN_ELEMENT                          19
+    * INT_ELEMENT_OPEN_PARENT                   20
+    * INT_ELEMENT_GET_CREATE                    21
+    * INT_ELEMENT_GET_LAST_MOD                  22
+    * INT_ELEMENT_SET_CREATE                    23
+    * INT_ELEMENT_SET_LAST_MOD                  24
+    * INT_ELEMENT_DELETE                        25
+    * INT_ELEMENT_MOVE                          26
+    * INT_ELEMENT_GET_NAME                      27
+    * INT_ELEMENT_GET_FLAGS                     28
+    * INT_ELEMENT_MODIFY_FLAGS                  29
+    * INT_FOLDER_CHILD_COUNT                    30
+    * INT_FOLDER_OPEN_CHILD_OF_NAME             31
+    * INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME      32
+    * INT_FOLDER_OPEN_CHILD_FILE_OF_NAME        33
+    * INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME        34
+    * INT_FOLDER_CREATE_CHILD_FOLDER            35
+    * INT_FOLDER_CREATE_CHILD_PIPE              37
+    * INT_FOLDER_OPEN_ITER                      38
+    * INT_FILE_LENGTH                           39
+    * INT_FILE_TRUNCATE                         40
+    * INT_HANDLE_OPEN_STREAM                    41
+    * INT_PIPE_LENGTH                           42
+    * INT_TIME_GET                              43
+    * INT_TIME_RES                              44
+    * INT_TIME_SLEEP                            45
+    * INT_TIME_WAIT                             46
+    * INT_RND_OPEN                              47
+    * INT_RND_NUM                               48
+    * INT_MEM_CMP                               49
+    * INT_MEM_CPY                               50
+    * INT_MEM_MOV                               51
+    * INT_MEM_BSET                              52
+    * INT_STR_LEN                               53
+    * INT_STR_CMP                               54
+    * INT_STR_FROM_NUM                          55
+    * INT_STR_FROM_FPNUM                        56
+    * INT_STR_TO_NUM                            57
+    * INT_STR_TO_FPNUM                          58
+    * INT_STR_TO_U16STR                         59
+    * INT_STR_TO_U32STR                         60
+    * INT_STR_FROM_U16STR                       61
+    * INT_STR_FROM_U32STR                       62
+    * INT_STR_FORMAT                            63
+    * INT_LOAD_FILE                             64
+    * INT_LOAD_LIB                              65
+    * INT_UNLOAD_LIB                            66
+    * INTERRUPT_COUNT                           67
+    * FP_NAN                               UHEX-7FFE000000000000
+    * FP_MAX_VALUE                         UHEX-7FEFFFFFFFFFFFFF
+    * FP_MIN_VALUE                         UHEX-0000000000000001
+    * FP_POS_INFINITY                      UHEX-7FF0000000000000
+    * FP_NEG_INFINITY                      UHEX-FFF0000000000000
+    * REGISTER_MEMORY_START                 HEX-0000000000001000
+    * REGISTER_MEMORY_START_XNN             HEX-0000000000001028
+    * REGISTER_MEMORY_LAST_ADDRESS          HEX-00000000000017F8
+    * REGISTER_MEMORY_END_ADDRESS_SPACE     HEX-0000000000001800
+    * MAX_VALUE                             HEX-7FFFFFFFFFFFFFFF
+    * MIN_VALUE                            NHEX-8000000000000000
+    * STD_IN                                    0
+    * STD_OUT                                   1
+    * STD_LOG                                   2
+    * ERR_NONE                                  0
+    * ERR_UNKNOWN_ERROR                         1
+    * ERR_NO_MORE_ELEMNETS                      2
+    * ERR_ELEMENT_WRONG_TYPE                    3
+    * ERR_ELEMENT_NOT_EXIST                     4
+    * ERR_ELEMENT_ALREADY_EXIST                 5
+    * ERR_OUT_OF_SPACE                          6
+    * ERR_IO_ERR                                7
+    * ERR_ILLEGAL_ARG                           8
+    * ERR_ILLEGAL_MAGIC                         9
+    * ERR_OUT_OF_MEMORY                         10
+    * ERR_ROOT_FOLDER                           11
+    * ERR_PARENT_IS_CHILD                       12
+    * ERR_ELEMENT_USED                          13
+    * ERR_OUT_OF_RANGE                          14
+    * UNMODIFIABLE_FLAGS                   UHEX-000000FF
+    * FLAG_FOLDER                          UHEX-00000001
+    * FLAG_FILE                            UHEX-00000002
+    * FLAG_PIPE                            UHEX-00000004
+    * FLAG_EXECUTABLE                      UHEX-00000100
+    * FLAG_USER_ENCRYPTED                  UHEX-00000200
+    * FLAG_HIDDEN                          UHEX-01000000
+    * STREAM_ONLY_CREATE                   UHEX-00000001
+    * STREAM_ALSO_CREATE                   UHEX-00000002
+    * STREAM_FILE                          UHEX-00000004
+    * STREAM_PIPE                          UHEX-00000008
+    * STREAM_READ                          UHEX-00000100
+    * STREAM_WRITE                         UHEX-00000200
+    * STREAM_APPEND                        UHEX-00000400
+    * STREAM_FILE_TRUNC                    UHEX-00010000
+    * STREAM_FILE_EOF                      UHEX-00020000
 
 ## STRINGS
 * a string is an array of multiple characters of the `UTF-8` encoding
@@ -1329,12 +1327,9 @@ the pre-commands ar executed at assemble time, not runtime
 * an interrupt can be overwritten:
     * the interrupt-table is saved in the `INTP` register
     * to overwrite the interrupt `N`, write to `(INTP + (N * 8))` the absolute position of the address
+        * `|> example to overwrite a interrupt`
+        * `LEA [INTP + OVERWRITE_INT_NUM_MULTIPLIED_WITH_8], RELATIVE_POS_FROM_GET_TO_INTERRUPT`
     * on failure the default interrupts use the `ERRNO` register to store information about the error which caused the interrupt to fail
-    * example:
-        * `PUSH X00`
-        * `LEA X00, #RELATIVE-POS-FROM-GET-TO-INTERRUPT`
-        * `MOV [INTP + #OVERWRITE_INT_NUM_MULTIPLIED_WITH_8], X00`
-        * `POP X00`
 * negative interrupts will always cause the illegal interrup to be called instead
 * when `INTCNT` is greather then the number of default interrupts and the called interrupt is not overwritten, the illegal interrupt will be called instead
 * default interrupts:
@@ -1479,7 +1474,7 @@ the pre-commands ar executed at assemble time, not runtime
         * `X01` points the the a memory block, which should be used to store the name as a STRING
             * when `X01` is set to `-1` a new memory block will be allocated
         * on success `X01` will point to the name as STRING representation
-            * when the memory block is not large enugh, it will be resized
+            * when the memory block is not large enough, it will be resized
             * note that when `X01` does not point to the start of the memory block the start of the memory block can still be moved during the reallocation
         * on error `X01` will be set to `-1`
     * `28 : INT_ELEMENT_GET_FLAGS`: element get flags
@@ -1723,7 +1718,7 @@ the pre-commands ar executed at assemble time, not runtime
         * `X00` points to the (start of the) memory block
 * definition:
     * `IP         <- IP + CMD_LEN`
-    * note that default interrupts get called with a diffrent routine
+    * note that default interrupts get called with a different routine
     * `ZW         <- MEM-ALLOC{size=128}`
         * if the memory allocation fails, the program will terminate with 127
         * the allocated memory block will not be resizable, but can be freed normally with the free interrupt or with the `IRET` command
@@ -1745,10 +1740,11 @@ the pre-commands ar executed at assemble time, not runtime
     * `[ZW + 120] <- X09`
     * `X09        <- ZW`
     * `IP         <- [INTP + (p1 * 8)]`
-        * if the address `INTP + (p1 * 8)` is invalid the pvm will termiatw with 127
+        * if the address `INTP + (p1 * 8)` is invalid the pvm will execute the illegal memory interrupt
+            * the pvm will terminate with 127 instead if the address `INTP + (INT_ERRORS_ILLEGAL_MEMORY * 8)` is also invalid
         * note that if the address `[INTP + (p1 * 8)]` the illegal memory interrupt will be executed.
-            * note that if is the illgeal memory interrupt entry is invalid (and not `-1`) a loop will occur
-                * note that in this loop the programm whould allocate memory, until there is no longer enugh memory
+            * note that if is the illegal memory interrupt entry is invalid (and not `-1`) a loop will occur
+                * note that in this loop the program would allocate memory, until there is no longer enough memory
 * binary:
     * `02 30 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`

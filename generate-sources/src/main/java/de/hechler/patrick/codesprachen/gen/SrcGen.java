@@ -140,7 +140,7 @@ public interface SrcGen {
 							if (matcher.matches()) {
 								num = -2;
 							} else {
-								general.add(line);
+								definition.add(line);
 							}
 						} else if (num == -2) {
 							Matcher matcher = NUM_PATTERN.matcher(line);
@@ -151,7 +151,6 @@ public interface SrcGen {
 							PrimAsmReadmeCommand parc = new PrimAsmReadmeCommand(cmdName, p1, p2, p3, num, Collections.unmodifiableList(general),
 									Collections.unmodifiableList(definition));
 							result.add(parc);
-							System.err.println("ReadmeCmd: " + parc);
 							reset();
 						}
 					}

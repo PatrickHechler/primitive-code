@@ -15,10 +15,12 @@ public class GenSourceMain {
 	private static final String GEN_START = "GENERATED-CODE-START";
 	private static final String GEN_END   = "GENERATED-CODE-END";
 	
-	private static final String PRIMITIVE_ASSEMBLE_COMMANDS_ENUMS = "/home/pat/git/primitive-code/assemble/src/main/java/de/hechler/patrick/codesprachen/primitive/assemble/enums/Commands.java";
+	private static final String ASM_COMMANDS_ENUMS = "/home/pat/git/primitive-code/assemble/src/main/java/de/hechler/patrick/codesprachen/primitive/assemble/enums/Commands.java";
+	private static final String CORE_COMMANDS      = "/home/pat/git/primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmCommands.java";
 	
 	public static void main(String[] args) throws IOException, IOError {
-		generate(Path.of(PRIMITIVE_ASSEMBLE_COMMANDS_ENUMS), "\t", new GenAsmEnumCommands());
+		generate(Path.of(ASM_COMMANDS_ENUMS), "\t", new GenAsmEnumCommands());
+		generate(Path.of(CORE_COMMANDS), "\t", new GenCorePrimAsmCmds());
 	}
 	
 	private static void generate(Path file, String indent, SrcGen gen) throws IOException, IOError {
@@ -44,7 +46,7 @@ public class GenSourceMain {
 	}
 	
 	private static String genEndLines(String indent) {
-		return indent + "// here is the end of the automatic generated code-block\n" + indent + "// " + GEN_END + "\n";
+		return indent + '\n' + indent + "// here is the end of the automatic generated code-block\n" + indent + "// " + GEN_END + "\n";
 	}
 	
 	private static String genStartLines(String indent) {
