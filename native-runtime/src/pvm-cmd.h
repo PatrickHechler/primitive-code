@@ -87,14 +87,14 @@ static void c_ill();
 	/* 021D */ static void c_jmpab();
 	/* 021E */ static void c_jmpsb();
 	/* 021F */ static void c_jmpnb();
-/* 022. : jump */
+/* 022. : unconditional jump */
 	/* 0220 */ static void c_jmp();
 /* 023. : interrupt */
 	/* 0230 */ static void c_int();
 	/* 0231 */ static void c_iret();
 
 /* 03.. : stack */
-/* 030. : call*/
+/* 030. : call */
 #define CALL_COMMANDS_START 0x0300
 	/* 0300 */ static void c_call();
 	/* 0301 */ static void c_calo();

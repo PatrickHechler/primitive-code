@@ -37,6 +37,7 @@ the assembler language for the Primitive-Virtual-Machine
             * `[X01 + 16]   <-- ADDRESS_OF "value\0"`
             * `[X01 + 24]   <-- ADDRESS_OF "--other=val\0"`
             * `[X01 + 32]   <-- -1`
+        * the memory blocks for the program arguments and the memory block for the argument array is not resizable and not freeable
     * the `INTCNT` register will be set to `#INTERRUPT_COUNT`
     * the interrupt-table of `INTP` will be initialized with every entry set to `-1`
         * the default interrupt-table will be an `#INTERRUPT_COUNT * 8` sized memory block
@@ -338,7 +339,9 @@ every register can also be addressed:
 * a string is an array of multiple characters of the `UTF-8` encoding
 * a string ends with a `'\0'` character
 
-## COMMANDS
+## PRE-COMMANDS
+
+the pre-commands ar executed at assemble time, not runtime
 
 `$align` or `$ALIGN`
 * to align code when possible and needed
@@ -406,13 +409,19 @@ every register can also be addressed:
         * values outside of this range will cause an error
     * only before and after a constant pool the code may be aligned
 
+## COMMANDS
+
+### 00.. : data
+
+#### 000. : move data
+
 `MVB <NO_CONST_PARAM> , <PARAM>`
 * copies the byte value of the second parameter to the first byte parameter
 * definition:
     * `p1 <-8-bit- p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    *  `01 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `00 01 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -424,7 +433,7 @@ every register can also be addressed:
     * `p1 <-16-bit- p2 `
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `02 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `00 02 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -433,10 +442,10 @@ every register can also be addressed:
 `MVDW <NO_CONST_PARAM> , <PARAM>`
 * copies the double-word value of the second parameter to the first double-word parameter
 * definition:
-    * `p1 <-32-bit- p2 `
+    * `p1 <-32-bit- p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `03 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `00 03 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -448,7 +457,7 @@ every register can also be addressed:
     * `p1 <- p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `04 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `00 04 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -460,7 +469,7 @@ every register can also be addressed:
     * `p1 <- p2 + IP`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `05 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `00 05 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -472,7 +481,7 @@ every register can also be addressed:
     * `p1 <- p2 + p3`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `06 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `00 06 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -487,11 +496,128 @@ every register can also be addressed:
     * `p2 <- ZW`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `07 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `00 07 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
+
+### 01.. : math
+
+#### 010. : logic
+
+`OR <NO_CONST_PARAM> , <PARAM>`
+* uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
+* definition:
+    * `if (p1 | p2) = 0`
+        * `ZERO <- 1`
+    * `else`
+        * `ZERO <- 0`
+    * `p1 <- p1 | p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 00 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`AND <NO_CONST_PARAM> , <PARAM>`
+* uses the logical AND operator with the first and the second parameter and stores the result in the first parameter
+* definition:
+    * `if (p1 & p2) = 0`
+        * `ZERO <- 1`
+    * `else`
+        * `ZERO <- 0`
+    * `p1 <- p1 & p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 01 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`XOR <NO_CONST_PARAM> , <PARAM>`
+* uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
+* definition:
+    * `if (p1 ^ p2) = 0`
+        * `ZERO <- 1`
+    * `else`
+        * `ZERO <- 0`
+    * `p1 <- p1 ^ p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 02 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`NOT <NO_CONST_PARAM>`
+* uses the logical NOT operator with every bit of the parameter and stores the result in the parameter
+* this instruction works like `XOR p1, -1` 
+* definition:
+    * `if p1 = -1`
+        * `ZERO <- 1`
+    * `else`
+        * `ZERO <- 0`
+    * `p1 <- ~ p1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 03 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`LSH <NO_CONST_PARAM>, <PARAM>`
+* shifts bits of the parameter logically left
+* definition:
+    * `if ((p1 << p2) >> p2) = p1`
+        * `OVERFLOW <- 0`
+    * `else`
+        * `OVERFLOW <- 1`
+    * `p1 <- p1 << p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 04 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`RASH <NO_CONST_PARAM>, <PARAM>`
+* shifts bits of the parameter arithmetic right
+* definition:
+    * `if ((p1 >> p2) << p2) = p1`
+        * `OVERFLOW <- 1`
+    * `else`
+        * `OVERFLOW <- 0`
+    * `p1 <- p1 >> 2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 05 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`RLSH <NO_CONST_PARAM>, <PARAM>`
+* shifts bits of the parameter logically right
+* definition:
+    * `if ((p1 >>> p2) << p2) = p1`
+        * `OVERFLOW <- 1`
+    * `else`
+        * `OVERFLOW <- 0`
+    * `p1 <- p1 >>> 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 06 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+#### 011. : simple arithmetic
 
 `ADD <NO_CONST_PARAM> , <PARAM>`
 * adds the values of both parameters and stores the sum in the first parameter
@@ -511,7 +637,7 @@ every register can also be addressed:
         * `ZERO <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `10 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 10 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -535,7 +661,7 @@ every register can also be addressed:
         * `ZERO <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `11 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 11 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -551,7 +677,7 @@ every register can also be addressed:
         * `ZERO <- 0`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `12 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 12 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -564,7 +690,7 @@ every register can also be addressed:
     * `p2 <- p1 mod p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `13 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 13 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -581,7 +707,7 @@ every register can also be addressed:
     * `p1 <- 0 - p1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `14 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `01 14 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
@@ -596,7 +722,7 @@ every register can also be addressed:
     * `p1 <- ZW`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `15 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 15 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -613,7 +739,7 @@ every register can also be addressed:
     * `p1 <- ZW`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `16 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 16 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -634,7 +760,7 @@ every register can also be addressed:
     * `p1 <- p1 + 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `17 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `01 17 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
@@ -653,128 +779,388 @@ every register can also be addressed:
     * `p1 <- p1 - 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `18 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `01 18 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
-`OR <NO_CONST_PARAM> , <PARAM>`
-* uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
+#### 012. : floating-point arithmetic
+
+`ADDFP <NO_CONST_PARAM> , <PARAM>`
+* adds the floating point values of both parameters and stores the floating point sum in the first parameter
 * definition:
-    * `if (p1 | p2) = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `p1 <- p1 | p2`
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
+    * `p1 <- p1 fp-add p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `19 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 20 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`AND <NO_CONST_PARAM> , <PARAM>`
-* uses the logical AND operator with the first and the second parameter and stores the result in the first parameter
+`SUBFP <NO_CONST_PARAM> , <PARAM>`
+* subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
 * definition:
-    * `if (p1 & p2) = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `p1 <- p1 & p2`
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
+    * `p1 <- p1 fp-sub p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `1A <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 21 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`XOR <NO_CONST_PARAM> , <PARAM>`
-* uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
+`MULFP <NO_CONST_PARAM> , <PARAM>`
+* multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
 * definition:
-    * `if (p1 ^ p2) = 0`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `p1 <- p1 ^ p2`
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
+    * `p1 <- p1 fp-mul p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `1B <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 22 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`NOT <NO_CONST_PARAM>`
-* uses the logical NOT operator with every bit of the parameter and stores the result in the parameter
-* this instruction works like `XOR p1, -1` 
+`DIVFP <NO_CONST_PARAM> , <PARAM>`
+* divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
 * definition:
-    * `if p1 = -1`
-        * `ZERO <- 1`
-    * `else`
-        * `ZERO <- 0`
-    * `p1 <- ~ p1`
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
+    * `p1 <- p1 fp-div p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `1C <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`LSH <NO_CONST_PARAM>, <PARAM>`
-* shifts bits of the parameter logically left
-* definition:
-    * `if ((p1 << p2) >> p2) = p1`
-        * `OVERFLOW <- 0`
-    * `else`
-        * `OVERFLOW <- 1`
-    * `p1 <- p1 << p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `1D <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 23 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`RASH <NO_CONST_PARAM>, <PARAM>`
-* shifts bits of the parameter arithmetic right
+`NEGFP <NO_CONST_PARAM>`
+* multiplies the fp parameter with -1.0
 * definition:
-    * `if ((p1 >> p2) << p2) = p1`
-        * `OVERFLOW <- 1`
-    * `else`
-        * `OVERFLOW <- 0`
-    * `p1 <- p1 >> 2`
+    * note that the aritmetic error interrupt is executed instead if p1 is NAN
+    * `p1 <- p1 fp-mul -1.0`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `1E <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 24 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+#### 013. : unsigned arithmetic
+
+`UADD <NO_CONST_PARAM> , <PARAM>`
+* like ADD, but uses the parameters as unsigned parameters
+* definition:
+    * `p1 <- p1 uadd p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 30 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`RLSH <NO_CONST_PARAM>, <PARAM>`
-* shifts bits of the parameter logically right
+`USUB <NO_CONST_PARAM> , <PARAM>`
+* like SUB, but uses the parameters as unsigned parameters
 * definition:
-    * `if ((p1 >>> p2) << p2) = p1`
-        * `OVERFLOW <- 1`
-    * `else`
-        * `OVERFLOW <- 0`
-    * `p1 <- p1 >>> 1`
+    * `p1 <- p1 usub p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `1F <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 31 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`JMP <LABEL>`
-* sets the instruction pointer to position of the command after the label
+`UMUL <NO_CONST_PARAM> , <PARAM>`
+* like MUL, but uses the parameters as unsigned parameters
 * definition:
-    * `IP <- IP + RELATIVE_LABEL`
+    * `p1 <- p1 umul p2`
+    * `IP <- IP + CMD_LEN`
 * binary:
-    * `20 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `01 32 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`UDIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* like DIV, but uses the parameters as unsigned parameters
+* definition:
+    * `p1 <- oldp1 udiv oldp2`
+    * `p2 <- oldp1 umod oldp2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 33 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+#### 014. : big arithmetic
+
+`BADD <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* like ADD, but uses the parameters as 128 bit value parameters
+    * if registers are used the next register is also used
+    * the last register will cause the illegal memory interrupt
+* definition:
+    * `p1 <- p1 big-add p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 40 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`BSUB <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* like SUB, but uses the parameters as 128 bit value parameters
+    * if registers are used the next register is also used
+    * the last register will cause the illegal memory interrupt
+* definition:
+    * `p1 <- p1 big-sub p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 41 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`BMUL <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* like MUL, but uses the parameters as 128 bit value parameters
+    * if registers are used the next register is also used
+    * the last register will cause the illegal memory interrupt
+* definition:
+    * `p1 <- p1 big-mul p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 42 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`BDIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* like DIV, but uses the parameters as 128 bit value parameters
+    * if registers are used the next register is also used
+    * the last register will cause the illegal memory interrupt
+* definition:
+    * `p1 <- oldp1 big-div oldp2`
+    * `p2 <- oldp1 big-mod oldp2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 43 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`BNEG <NO_CONST_PARAM>`
+* like NEG, but uses the parameters as 128 bit value parameters
+    * if registers are used the next register is also used
+    * the last register will cause the illegal memory interrupt
+* definition:
+    * `p1 <- big-neg p1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 44 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+#### 015. : convert number types
+
+`FPTN <NO_CONST_PARAM>`
+* converts the value of the floating point param to a number
+* the value after the 
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 is no normal value
+    * `p1 <- as_num(p1)`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 50 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`NTFP <NO_CONST_PARAM>`
+* converts the value of the number param to a floating point
+* the value after the 
+* definition:
+    * `p1 <- as_fp(p1)`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 51 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+### 02.. : program control
+
+#### 020. : compare/check
+
+`CMP <PARAM> , <PARAM>`
+* compares the two values and stores the result in the status register
+* definition:
+    * `if p1 > p2`
+        * `GREATHER <- 1`
+        * `LOWER <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < p2`
+        * `GREATHER <- 0`
+        * `LOWER <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `GREATHER <- 0`
+        * `LOWER <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 00 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`CMPL <PARAM> , <PARAM>`
+* compares the two values on logical/bit level
+* definition:
+    * `if (p1 & p2) = p2`
+        * `ALL_BITS <- 1`
+        * `SOME_BITS <- 1`
+        * `NONE_BITS <- 0`
+    * `else if (p1 & p2) != 0`
+        * `ALL_BITS <- 0`
+        * `SOME_BITS <- 1`
+        * `NONE_BITS <- 0`
+    * `else`
+        * `ALL_BITS <- 0`
+        * `SOME_BITS <- 0`
+        * `NONE_BITS <- 1`
+* binary:
+    * `02 01 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`CMPFP <PARAM> , <PARAM>`
+* compares the two floating point values and stores the result in the status register
+* definition:
+    * `if p1 > p2`
+        * `GREATHER <- 1`
+        * `LOWER <- 0`
+        * `NaN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < p2`
+        * `GREATHER <- 0`
+        * `LOWER <- 1`
+        * `NaN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 is NaN | p2 is NaN`
+        * `LOWER <- 0`
+        * `GREATHER <- 0`
+        * `NaN <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `LOWER <- 0`
+        * `GREATHER <- 0`
+        * `NaN <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 02 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`CHKFP <PARAM>`
+* checks if the floating point param is a positive, negative infinity, NaN or normal value
+* definition:
+    * `if p1 is positive-infinity`
+        * `GREATHER <- 1`
+        * `LOWER <- 0`
+        * `NAN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 is negative-infinity`
+        * `GREATHER <- 0`
+        * `LOWER <- 1`
+        * `NAN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 is NaN`
+        * `LOWER <- 0`
+        * `GREATHER <- 0`
+        * `NAN <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `LOWER <- 0`
+        * `GREATHER <- 0`
+        * `NAN <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 03 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`CMPU <PARAM> , <PARAM>`
+* compares the two unsigned values and stores the result in the status register
+* definition:
+    * `if p1 > p2`
+        * `GREATHER <- 1`
+        * `LOWER <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < p2`
+        * `GREATHER <- 0`
+        * `LOWER <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `GREATHER <- 0`
+        * `LOWER <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 04 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`CMPB <NO_CONST_PARAM> , <NO_CONST_PARAM>`
+* compares the two 128 bit values and stores the result in the status register
+* definition:
+    * `if p1 > p2`
+        * `GREATHER <- 1`
+        * `LOWER <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < p2`
+        * `GREATHER <- 0`
+        * `LOWER <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `GREATHER <- 0`
+        * `LOWER <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 05 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+#### 021. : conditional jump
+
+`JMPERR <LABEL>`
+* sets the instruction pointer to position of the command after the label if the `ERRNO` register stores a value other than `0`
+* definition:
+    * `if ERRNO != 0`
+        * `IP <- IP + RELATIVE_LABEL`
+    * `else`
+        * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 10 <RELATIVE_LABEL (48-bit)>`
 
 `JMPEQ <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare operation compared two equal values
@@ -784,8 +1170,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `21 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 11 <RELATIVE_LABEL (48-bit)>`
 
 `JMPNE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare operation compared two different values
@@ -795,8 +1180,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + RELATIVE_LABEL`
 * binary:
-    * `22 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 12 <RELATIVE_LABEL (48-bit)>`
 
 `JMPGT <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was greater
@@ -806,8 +1190,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `23 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 13 <RELATIVE_LABEL (48-bit)>`
 
 `JMPGE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not lower
@@ -817,8 +1200,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `24 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 14 <RELATIVE_LABEL (48-bit)>`
 
 `JMPLT <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was lower
@@ -828,8 +1210,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `25 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 15 <RELATIVE_LABEL (48-bit)>`
 
 `JMPLE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
@@ -839,8 +1220,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `26 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 16 <RELATIVE_LABEL (48-bit)>`
 
 `JMPCS <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is set
@@ -850,8 +1230,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `27 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 17 <RELATIVE_LABEL (48-bit)>`
 
 `JMPCC <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is cleared
@@ -861,8 +1240,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + RELATIVE_LABEL`
 * binary:
-    * `28 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 18 <RELATIVE_LABEL (48-bit)>`
 
 `JMPZS <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last zero flag is set
@@ -872,8 +1250,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `29 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 19 <RELATIVE_LABEL (48-bit)>`
 
 `JMPZC <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last zero flag is cleared
@@ -883,8 +1260,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `2A 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 1A <RELATIVE_LABEL (48-bit)>`
 
 `JMPNAN <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last NaN flag is set
@@ -894,8 +1270,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `2B 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 1B <RELATIVE_LABEL (48-bit)>`
 
 `JMPAN <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last NaN flag is cleared
@@ -905,8 +1280,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `2C 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 1C <RELATIVE_LABEL (48-bit)>`
 
 
 `JMPAB <LABEL>`
@@ -917,8 +1291,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `2D 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 1D <RELATIVE_LABEL (48-bit)>`
 
 `JMPSB <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last SomeBits flag is set
@@ -928,8 +1301,7 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `2D 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 1E <RELATIVE_LABEL (48-bit)>`
 
 `JMPNB <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last NoneBits flag is set
@@ -939,39 +1311,21 @@ every register can also be addressed:
     * `else`
         * `IP <- IP + CMD_LEN`
 * binary:
-    * `2D 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `02 1F <RELATIVE_LABEL (48-bit)>`
+
+#### 022. : unconditional jump
+
+`JMP <LABEL>`
+* sets the instruction pointer to position of the command after the label
+* definition:
+    * `IP <- IP + RELATIVE_LABEL`
+* binary:
+    * `02 20 <RELATIVE_LABEL (48-bit)>`
+
+#### 023. : interrupt
 
 `INT <PARAM>`
 * calls the interrupt specified by the parameter
-* definition:
-    * `IP         <- IP + CMD_LEN`
-    * note that default interrupts get called with a diffrent routine
-    * `ZW         <- MEM-ALLOC{size=128}`
-        * if the memory allocation fails, the program will terminate with 127
-        * the allocated memory block will not be resizable, but can be freed normally with the free interrupt or with the `IRET` command
-    * `[ZW]       <- IP`
-    * `[ZW + 8]   <- SP`
-    * `[ZW + 16]  <- STATUS`
-    * `[ZW + 24]  <- INTCNT`
-    * `[ZW + 32]  <- INTP`
-    * `[ZW + 40]  <- ERRNO`
-    * `[ZW + 48]  <- X00`
-    * `[ZW + 56]  <- X01`
-    * `[ZW + 64]  <- X02`
-    * `[ZW + 72]  <- X03`
-    * `[ZW + 80]  <- X04`
-    * `[ZW + 88]  <- X05`
-    * `[ZW + 96]  <- X06`
-    * `[ZW + 104] <- X07`
-    * `[ZW + 112] <- X08`
-    * `[ZW + 120] <- X09`
-    * `X09        <- ZW`
-    * `IP         <- [INTP + (p1 * 8)]`
-        * if the address `INTP + (p1 * 8)` is invalid the pvm will termiatw with 127
-        * note that if the address `[INTP + (p1 * 8)]` the illegal memory interrupt will be executed.
-            * note that if is the illgeal memory interrupt entry is invalid (and not `-1`) a loop will occur
-                * note that in this loop the programm whould allocate memory, until there is no longer enugh memory
 * an interrupt can be overwritten:
     * the interrupt-table is saved in the `INTP` register
     * to overwrite the interrupt `N`, write to `(INTP + (N * 8))` the absolute position of the address
@@ -1367,8 +1721,36 @@ every register can also be addressed:
         * unloads a library previously loaded with the load lib interrupt
         * this interrupt will ensure that the given memory block will be freed and never again be returned from the load lib interrupt
         * `X00` points to the (start of the) memory block
+* definition:
+    * `IP         <- IP + CMD_LEN`
+    * note that default interrupts get called with a diffrent routine
+    * `ZW         <- MEM-ALLOC{size=128}`
+        * if the memory allocation fails, the program will terminate with 127
+        * the allocated memory block will not be resizable, but can be freed normally with the free interrupt or with the `IRET` command
+    * `[ZW]       <- IP`
+    * `[ZW + 8]   <- SP`
+    * `[ZW + 16]  <- STATUS`
+    * `[ZW + 24]  <- INTCNT`
+    * `[ZW + 32]  <- INTP`
+    * `[ZW + 40]  <- ERRNO`
+    * `[ZW + 48]  <- X00`
+    * `[ZW + 56]  <- X01`
+    * `[ZW + 64]  <- X02`
+    * `[ZW + 72]  <- X03`
+    * `[ZW + 80]  <- X04`
+    * `[ZW + 88]  <- X05`
+    * `[ZW + 96]  <- X06`
+    * `[ZW + 104] <- X07`
+    * `[ZW + 112] <- X08`
+    * `[ZW + 120] <- X09`
+    * `X09        <- ZW`
+    * `IP         <- [INTP + (p1 * 8)]`
+        * if the address `INTP + (p1 * 8)` is invalid the pvm will termiatw with 127
+        * note that if the address `[INTP + (p1 * 8)]` the illegal memory interrupt will be executed.
+            * note that if is the illgeal memory interrupt entry is invalid (and not `-1`) a loop will occur
+                * note that in this loop the programm whould allocate memory, until there is no longer enugh memory
 * binary:
-    * `30 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `02 30 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
@@ -1382,7 +1764,7 @@ every register can also be addressed:
     * `STATUS  <- [X09 + 16]`
     * `INTCNT  <- [X09 + 24]`
     * `INTP    <- [X09 + 32]`
-    * `ERRNO <- [X09 + 40]`
+    * `ERRNO   <- [X09 + 40]`
     * `X00     <- [X09 + 48]`
     * `X01     <- [X09 + 56]`
     * `X02     <- [X09 + 64]`
@@ -1396,7 +1778,10 @@ every register can also be addressed:
     * `FREE ZW`
         * this does not use the free interrupt, but works like the default free interrupt (without calling the interrupt (what could cause an infinite recursion))
 * binary:
-    * `31 00 00 00 00 00 00 00
+    * `02 31 00 00 00 00 00 00
+
+### 03.. : stack
+#### 030. : call
 
 `CALL <LABEL>`
 * sets the instruction pointer to position of the label
@@ -1406,21 +1791,23 @@ every register can also be addressed:
     * `SP <- SP + 8`
     * `IP <- IP + RELATIVE_LABEL`
 * binary:
-    * `32 00 00 00 00 00 00 00`
-    * `<RELATIVE_LABEL>`
+    * `03 00 <RELATIVE_LABEL (48-bit)>`
 
 `CALO <PARAM>, <CONST_PARAM>`
 * sets the instruction pointer to position of the label
 * and pushes the current instruction pointer to the stack
+* definition:
     * `[SP] <- IP`
     * `SP <- SP + 8`
     * `IP <- p1 + p2`
         * note that this call is not relative from the current position
 * binary:
-    * `33 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `03 01 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `<P2.NUM_NUM>`
+
+#### 031. : return
 
 `RET`
 * sets the instruction pointer to the position which was secured in the stack
@@ -1428,7 +1815,9 @@ every register can also be addressed:
     * `IP <- [SP + -8]`
     * `SP <- SP - 8`
 * binary:
-    * `34 00 00 00 00 00 00 00`
+    * `03 10 00 00 00 00 00 00`
+
+#### 032. : push/pop
 
 `PUSH <PARAM>`
 * pushes the parameter to the stack
@@ -1437,7 +1826,7 @@ every register can also be addressed:
     * `SP <- SP + 8`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `35 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `03 20 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
@@ -1448,386 +1837,31 @@ every register can also be addressed:
     * `SP <- SP - 8`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `36 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `03 21 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
-`PUSHBLK <PARAM> <NO_CONST_PARAM>`
-* pushes the memory block, which is refered by p2 and p1 large to the stack
+`PUSHBLK <PARAM> , <PARAM>`
+* pushes the memory block, which is refered by p1 and p2 large to the stack
 * definition:
     * `note that p1 is not allowed to be negative`
-    * `MEMORY_COPY{TARGET=SP,SOURCE=p2,BYTES=p1}`
+    * `MEMORY_COPY{TARGET=SP,SOURCE=p1,BYTE_COUNT=p2}`
     * `SP <- SP + p1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `37 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `03 22 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
-`POPBLK <PARAM> , <NO_CONST_PARAM>`
-* pops the memory block, which will be saved to p2 and is p1 large from the stack
+`POPBLK <PARAM> , <PARAM>`
+* pops the memory block, which will be saved to p1 and is p2 large from the stack
 * definition:
-    * `note that p1 is not allowed to be negative`
-    * `MEMORY_COPY{TARGET=p2,SOURCE=SP-p1,BYTES=p1}`
+    * `note that p2 is not allowed to be negative`
+    * `MEMORY_COPY{TARGET=p1,SOURCE=SP-p2,BYTE_COUNT=p2}`
     * `SP <- SP - p1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `38 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`CMP <PARAM> , <PARAM>`
-* compares the two values and stores the result in the status register
-* definition:
-    * `if p1 > p2`
-        * `GREATHER <- 1`
-        * `LOWER <- 0`
-        * `EQUAL <- 0`
-    * `else if p1 < p2`
-        * `GREATHER <- 0`
-        * `LOWER <- 1`
-        * `EQUAL <- 0`
-    * `else`
-        * `GREATHER <- 0`
-        * `LOWER <- 0`
-        * `EQUAL <- 1`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `40 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`CMPL <PARAM> , <PARAM>`
-* compares the two values on logical/bit level
-* definition
-    * `if (p1 & p2) = p2`
-        * `ALL_BITS <- 1`
-        * `SOME_BITS <- 1`
-        * `NONE_BITS <- 0`
-    * `else if (p1 & p2) != 0`
-        * `ALL_BITS <- 0`
-        * `SOME_BITS <- 1`
-        * `NONE_BITS <- 0`
-    * `else`
-        * `ALL_BITS <- 0`
-        * `SOME_BITS <- 0`
-        * `NONE_BITS <- 1`
-* binary:
-    * `41 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`CMPFP <PARAM> , <PARAM>`
-* compares the two floating point values and stores the result in the status register
-* definition:
-    * `if p1 > p2`
-        * `GREATHER <- 1`
-        * `LOWER <- 0`
-        * `NaN <- 0`
-        * `EQUAL <- 0`
-    * `else if p1 < p2`
-        * `GREATHER <- 0`
-        * `LOWER <- 1`
-        * `NaN <- 0`
-        * `EQUAL <- 0`
-    * `else if p1 = NaN | p2 = NaN`
-        * `LOWER <- 0`
-        * `GREATHER <- 0`
-        * `NaN <- 1`
-        * `EQUAL <- 0`
-    * `else`
-        * `LOWER <- 0`
-        * `GREATHER <- 0`
-        * `NaN <- 0`
-        * `EQUAL <- 1`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `42 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`CHKFP <PARAM>`
-* checks if the floating point param is a positive, negative infinity, NaN or normal value
-* definition:
-    * `if p1 is positive-infinity`
-        * `GREATHER <- 1`
-        * `LOWER <- 0`
-        * `NAN <- 0`
-        * `EQUAL <- 0`
-    * `else if p1 is negative-infinity`
-        * `GREATHER <- 0`
-        * `LOWER <- 1`
-        * `NAN <- 0`
-        * `EQUAL <- 0`
-    * `else if p1 is NaN`
-        * `LOWER <- 0`
-        * `GREATHER <- 0`
-        * `NAN <- 1`
-        * `EQUAL <- 0`
-    * `else`
-        * `LOWER <- 0`
-        * `GREATHER <- 0`
-        * `NAN <- 0`
-        * `EQUAL <- 1`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `43 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`CMPU <PARAM> , <PARAM>`
-* compares the two unsigned values and stores the result in the status register
-* definition:
-    * `if p1 > p2`
-        * `GREATHER <- 1`
-        * `LOWER <- 0`
-        * `EQUAL <- 0`
-    * `else if p1 < p2`
-        * `GREATHER <- 0`
-        * `LOWER <- 1`
-        * `EQUAL <- 0`
-    * `else`
-        * `GREATHER <- 0`
-        * `LOWER <- 0`
-        * `EQUAL <- 1`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `44 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`CMPB <PARAM> , <PARAM>`
-* compares the two 128 bit values and stores the result in the status register
-* definition:
-    * `if p1 > p2`
-        * `GREATHER <- 1`
-        * `LOWER <- 0`
-        * `EQUAL <- 0`
-    * `else if p1 < p2`
-        * `GREATHER <- 0`
-        * `LOWER <- 1`
-        * `EQUAL <- 0`
-    * `else`
-        * `GREATHER <- 0`
-        * `LOWER <- 0`
-        * `EQUAL <- 1`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `45 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`FPTN <NO_CONST_PARAM>`
-* converts the value of the floating point param to a number
-* the value after the 
-* definition:
-    * note that the aritmetic error interrupt is executed instead if p1 is no normal value
-    * `p1 <- as_num(p1)`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `46 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`NTFP <NO_CONST_PARAM>`
-* converts the value of the number param to a floating point
-* the value after the 
-* definition:
-    * `p1 <- as_fp(p1)`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `47 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`ADDFP <NO_CONST_PARAM> , <PARAM>`
-* adds the floating point values of both parameters and stores the floating point sum in the first parameter
-* definition:
-    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
-    * `p1 <- p1 fp-add p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `50 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`SUBFP <NO_CONST_PARAM> , <PARAM>`
-* subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
-* definition:
-    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
-    * `p1 <- p1 fp-sub p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `51 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`MULFP <NO_CONST_PARAM> , <PARAM>`
-* multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
-* definition:
-    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
-    * `p1 <- p1 fp-mul p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `52 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`DIVFP <NO_CONST_PARAM> , <PARAM>`
-* divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
-* definition:
-    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
-    * `p1 <- p1 fp-div p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `53 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`NEGFP <NO_CONST_PARAM>`
-* multiplies the fp parameter with -1.0
-* definition:
-    * note that the aritmetic error interrupt is executed instead if p1 is NAN
-    * `p1 <- p1 fp-mul -1.0`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `54 <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-
-`UADD <NO_CONST_PARAM> , <PARAM>`
-* like ADD, but uses the parameters as unsigned parameters
-* definition:
-    * `p1 <- p1 uadd p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `55 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`USUB <NO_CONST_PARAM> , <PARAM>`
-* like SUB, but uses the parameters as unsigned parameters
-* definition:
-    * `p1 <- p1 usub p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `56 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`UMUL <NO_CONST_PARAM> , <PARAM>`
-* like MUL, but uses the parameters as unsigned parameters
-* definition:
-    * `p1 <- p1 umul p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `57 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`UDIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
-* like DIV, but uses the parameters as unsigned parameters
-* definition:
-    * `p1 <- oldp1 udiv oldp2`
-    * `p2 <- oldp1 umod oldp2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `58 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`BADD <NO_CONST_PARAM> , <NO_CONST_PARAM>`
-* like ADD, but uses the parameters as 128 bit value parameters
-    * if registers are used the next register is also used
-    * the last register will cause the illegal memory interrupt
-* definition:
-    * `p1 <- p1 big-add p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `59 <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`BSUB <NO_CONST_PARAM> , <NO_CONST_PARAM>`
-* like SUB, but uses the parameters as 128 bit value parameters
-    * if registers are used the next register is also used
-    * the last register will cause the illegal memory interrupt
-* definition:
-    * `p1 <- p1 big-sub p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `5A <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`BMUL <NO_CONST_PARAM> , <NO_CONST_PARAM>`
-* like MUL, but uses the parameters as 128 bit value parameters
-    * if registers are used the next register is also used
-    * the last register will cause the illegal memory interrupt
-* definition:
-    * `p1 <- p1 big-mul p2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `5B <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`BDIV <NO_CONST_PARAM> , <NO_CONST_PARAM>`
-* like DIV, but uses the parameters as 128 bit value parameters
-    * if registers are used the next register is also used
-    * the last register will cause the illegal memory interrupt
-* definition:
-    * `p1 <- oldp1 big-div oldp2`
-    * `p2 <- oldp1 big-mod oldp2`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `5C <B-P1.TYPE> <B-P2.TYPE> 00 <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
-    * `[P1.NUM_NUM]`
-    * `[P1.OFF_NUM]`
-    * `[P2.NUM_NUM]`
-    * `[P2.OFF_NUM]`
-
-`BNEG <NO_CONST_PARAM>
-* like NEG, but uses the parameters as 128 bit value parameters
-    * if registers are used the next register is also used
-    * the last register will cause the illegal memory interrupt
-* definition:
-    * `p1 <- big-neg p1`
-    * `IP <- IP + CMD_LEN`
-* binary:
-    * `5D <B-P1.TYPE> 00 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `03 22 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 

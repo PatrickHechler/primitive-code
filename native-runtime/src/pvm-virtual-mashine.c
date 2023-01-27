@@ -117,7 +117,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	}
 
 	struct memory *args_mem = alloc_memory2(argv, (argc + 1) * sizeof(char*),
-			0U);
+			MEM_NO_FREE | MEM_NO_RESIZE);
 	if (!args_mem) {
 		abort();
 	}
@@ -125,7 +125,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	pvm.x[1] = args_mem->start;
 	for (; argc; argv++, argc--) {
 		num len = strlen(*argv) + 1;
-		struct memory *arg_mem = alloc_memory2(*argv, len, 0);
+		struct memory *arg_mem = alloc_memory2(*argv, len, MEM_NO_FREE | MEM_NO_RESIZE);
 		if (!arg_mem) {
 			abort();
 		}
