@@ -329,8 +329,7 @@ public class PrimitiveAssembler {
 		if (isSimpleSymbol) {
 			try (Reader in = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
 				Map<String, SimpleExportable>  imps       = SimpleExportable.readExports(in);
-				Map<String, PrimitiveConstant> primConsts = SimpleExportable.toPrimConsts(imps, path);
-				addSymbols.putAll(primConsts);
+				SimpleExportable.toPrimConsts(addSymbols, prefix, imps, path);
 			}
 			return null;
 		}

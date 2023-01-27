@@ -182,29 +182,34 @@ public interface SimpleExportable {
 		}
 	}
 	
-	static Map<String, PrimitiveConstant> toPrimConsts(Map<String, SimpleExportable> imps, Path path) {
-		Map<String, PrimitiveConstant> result = new HashMap<>(imps.size());
+	static void toPrimConsts(Map<String, PrimitiveConstant> addSymbols, String prefix, Map<String, SimpleExportable> imps, Path path) {
 		for (SimpleExportable imp : imps.values()) {
 			if (imp instanceof SimpleConstant sc) {
-				convertConst(result, sc, path);
+				convertConst(addSymbols, prefix, sc, path);
 			} else if (imp instanceof SimpleFunction sf) {
-				convertFunc(result, sf, path);
+				convertFunc(addSymbols, prefix, sf, path);
 			} else if (imp instanceof SimpleStructType ss) {
-				convertStrut(result, ss, path);
+				convertStrut(addSymbols, prefix, ss, path);
 			} else if (imp instanceof SimpleVariable sv) {
-				convertVar(result, sv, path);
+				convertVar(addSymbols, prefix, sv, path);
 			}
 		}
-		return result;
 	}
 	
-	static void convertConst(Map<String, PrimitiveConstant> result, SimpleConstant sc, Path path) {
-		PrimitiveConstant pc = new PrimitiveConstant("CONST_" + sc.name(), sc.toString(), sc.value(), path, -1);
+	static void convertConst(Map<String, PrimitiveConstant> result, String prefix, SimpleConstant sc, Path path) {
+		String start = "CONST_";
+		if (prefix != null) {
+			start = prefix + start;
+		}
+		PrimitiveConstant pc = new PrimitiveConstant(start + sc.name(), sc.toString(), sc.value(), path, -1);
 		checkedPut(result, pc);
 	}
 	
-	static void convertFunc(Map<String, PrimitiveConstant> result, SimpleFunction sf, Path path) {
+	static void convertFunc(Map<String, PrimitiveConstant> result, String prefix, SimpleFunction sf, Path path) {
 		String            start = "FUNC_" + sf.name;
+		if (prefix != null) {
+			start = prefix + start;
+		}
 		PrimitiveConstant pc    = new PrimitiveConstant(start, sf.toString(), sf.address, path, -1);
 		checkedPut(result, pc);
 		String argStart = start + "_ARG_";
@@ -219,8 +224,11 @@ public interface SimpleExportable {
 		}
 	}
 	
-	static void convertStrut(Map<String, PrimitiveConstant> result, SimpleStructType ss, Path path) {
+	static void convertStrut(Map<String, PrimitiveConstant> result, String prefix, SimpleStructType ss, Path path) {
 		String            start = "STRUCT_" + ss.name;
+		if (prefix != null) {
+			start = prefix + start;
+		}
 		PrimitiveConstant pc    = new PrimitiveConstant(start + "_SIZE", ss.toString(), ss.byteCount(), path, -1);
 		checkedPut(result, pc);
 		start += "_OFFSET_";
@@ -230,8 +238,12 @@ public interface SimpleExportable {
 		}
 	}
 	
-	static void convertVar(Map<String, PrimitiveConstant> result, SimpleVariable sv, Path path) {
-		PrimitiveConstant pc = new PrimitiveConstant("VAR_" + sv.name, sv.type.toString(), sv.addr, path, -1);
+	static void convertVar(Map<String, PrimitiveConstant> result, String prefix, SimpleVariable sv, Path path) {
+		String start = "VAR_";
+		if (prefix != null) {
+			start = prefix + start;
+		}
+		PrimitiveConstant pc = new PrimitiveConstant(start + sv.name, sv.type.toString(), sv.addr, path, -1);
 		checkedPut(result, pc);
 	}
 	
