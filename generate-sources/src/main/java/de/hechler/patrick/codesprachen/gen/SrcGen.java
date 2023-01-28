@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 
 public interface SrcGen {
 	
-	static final String PRIM_CODE_README = "/home/pat/git/primitive-code/README.md";
+	static final String PRIM_CODE_README = "/users/feri/git/primitive-code/README.md";
 	
 	void generate(Writer out) throws IOException;
 	

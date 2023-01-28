@@ -15,8 +15,8 @@ public class GenSourceMain {
 	private static final String GEN_START = "GENERATED-CODE-START";
 	private static final String GEN_END   = "GENERATED-CODE-END";
 	
-	private static final String ASM_COMMANDS_ENUMS = "/home/pat/git/primitive-code/assemble/src/main/java/de/hechler/patrick/codesprachen/primitive/assemble/enums/Commands.java";
-	private static final String CORE_COMMANDS      = "/home/pat/git/primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmCommands.java";
+	private static final String ASM_COMMANDS_ENUMS = "/users/feri/git/primitive-code/assemble/src/main/java/de/hechler/patrick/codesprachen/primitive/assemble/enums/Commands.java";
+	private static final String CORE_COMMANDS      = "/users/feri/git/primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmCommands.java";
 	
 	public static void main(String[] args) throws IOException, IOError {
 		generate(Path.of(ASM_COMMANDS_ENUMS), "\t", new GenAsmEnumCommands());

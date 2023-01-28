@@ -113,7 +113,7 @@ public enum Commands {
 	
 	// here is the end of the automatic generated code-block
 	// GENERATED-CODE-END
-	
+
 	;//@formatter:on
 	
 	public final int num;

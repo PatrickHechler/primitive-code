@@ -11,11 +11,11 @@ public class GenCorePrimAsmCmds implements SrcGen {
 	public void generate(Writer out) throws IOException {
 		for (PrimAsmReadmeCommand cmd : SrcGen.PrimAsmReadmeCommand.ALL_CMDS) {
 			out.write("\t/**\n");
-			out.write("\t * <h>" + cmd.name() + "</h> <code>(" + word(cmd.num(), ' ') + ")</code><br>\n");
+			out.write("\t * <b>" + cmd.name() + "</b> <code>(" + word(cmd.num(), ' ') + ")</code><br>\n");
 			writeParams(out, cmd);
 			out.write("\t * ");
 			writeLines(out, "<p>", cmd.general());
-			out.write("\t * </p><p>\n");
+			out.write("\t * <p>\n");
 			out.write("\t * <b>definition:</b>");
 			writeLines(out, "<br>", cmd.definition());
 			out.write("\t */\n");
@@ -58,7 +58,7 @@ public class GenCorePrimAsmCmds implements SrcGen {
 						if (leadingWhite.length() < start.length() - 1) {
 							if (missingEntryEnd) {
 								missingEntryEnd = false;
-								out.write("</ul>\n");
+								out.write("</li>\n");
 							}
 							do {
 								out.write("\t * </ul></li>\n");
@@ -111,7 +111,8 @@ public class GenCorePrimAsmCmds implements SrcGen {
 	}
 	
 	private static String mdToJavadoc(String md) {
-		String javadoc = md.replace(">", "&gt;").replace("<", "&lt;");
+		String javadoc = md.replace("&", "&amp;");
+		javadoc = javadoc.replace(">", "&gt;").replace("<", "&lt;");
 		javadoc = javadoc.replaceAll("`([^`]*)`", "<code>$1</code>");
 		javadoc = javadoc.replaceAll("(\\s)___([^_]*)___(\\s)", "$1<b><i>$2</i></b>$3");
 		javadoc = javadoc.replaceAll("(\\s)__([^_]*)__(\\s)", "$1<b>$2</b>$3");
@@ -120,11 +121,11 @@ public class GenCorePrimAsmCmds implements SrcGen {
 	}
 	
 	private static String word(int word, char between) {
-		return byteHex(word) + between + byteHex(word >>> 8);
+		return byteHex(word >>> 8) + between + byteHex(word);
 	}
 	
 	private static String word(int word) {
-		return byteHex(word) + byteHex(word >>> 8);
+		return byteHex(word >>> 8) + byteHex(word);
 	}
 	
 	private static String byteHex(int val) {
