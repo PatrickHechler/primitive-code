@@ -2,6 +2,8 @@ package de.hechler.patrick.codesprachen.gen;
 
 import java.io.IOError;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -11,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import de.hechler.patrick.codesprachen.gen.impl.GenAsmEnumCommands;
+import de.hechler.patrick.codesprachen.gen.impl.GenCorePredefinedClass;
 import de.hechler.patrick.codesprachen.gen.impl.GenCorePrimAsmCmds;
 
 public class GenSourceMain {
@@ -22,10 +25,24 @@ public class GenSourceMain {
 			+ "primitive-code/assemble/src/main/java/de/hechler/patrick/codesprachen/primitive/assemble/enums/Commands.java";
 	private static final String CORE_COMMANDS      = SrcGen.BASE_DIR
 			+ "primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmCommands.java";
+	private static final String CORE_PRE_DEFS_CLS  = SrcGen.BASE_DIR
+			+ "primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmPreDefines.java";
 	
 	public static void main(String[] args) throws IOException, IOError {
 		generate(Path.of(ASM_COMMANDS_ENUMS), "\t", new GenAsmEnumCommands());
 		generate(Path.of(CORE_COMMANDS), "\t", new GenCorePrimAsmCmds());
+		generate(Path.of(CORE_PRE_DEFS_CLS), "\t", new GenCorePredefinedClass());
+	}
+	
+	private static void generate(Path file, SrcGen gen) throws IOException, IOError {
+		try (OutputStream out = Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
+				StandardOpenOption.WRITE)) {
+			Files.copy(file.resolveSibling("start-" + file.getFileName()), out);
+			try (Writer w = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
+				gen.generate(w);
+			}
+			Files.copy(file.resolveSibling("end-" + file.getFileName()), out);
+		}
 	}
 	
 	private static void generate(Path file, String indent, SrcGen gen) throws IOException, IOError {

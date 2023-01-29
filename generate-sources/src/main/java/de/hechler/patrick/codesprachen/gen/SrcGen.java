@@ -8,6 +8,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
@@ -21,6 +22,117 @@ public interface SrcGen {
 	static final String PRIM_CODE_README = BASE_DIR + "primitive-code/README.md";
 	
 	void generate(Writer out) throws IOException;
+	
+	static String mdToJavadoc(String md) {
+		String javadoc = md.replace("&", "&amp;");
+		javadoc = javadoc.replace(">", "&gt;").replace("<", "&lt;");
+		javadoc = javadoc.replaceAll("`([^`]*)`", "<code>$1</code>");
+		javadoc = javadoc.replaceAll("(\\s)___([^_]*)___(\\s)", "$1<b><i>$2</i></b>$3");
+		javadoc = javadoc.replaceAll("(\\s)__([^_]*)__(\\s)", "$1<b>$2</b>$3");
+		javadoc = javadoc.replaceAll("(\\s)_([^_]*)_(\\s)", "$1<i>$2</i>$3");
+		javadoc = javadoc.replace("[predefined constant](#predefined-constants)", "{@link PrimAsmPreDefines predefined constant}");
+		return javadoc;
+	}
+	
+	static final Pattern MD_LIST_LINE = Pattern.compile("^( {4})+(\\*|[0-9]+.)\\s*(.*)$");
+	
+	static void writeJavadocLines(Writer out, String firstBreak, List<String> lines) throws IOException {
+		String br = firstBreak;
+		for (Iterator<String> iter = lines.iterator(); iter.hasNext();) {
+			String line = iter.next();
+			if (line.charAt(0) == '*') {
+				out.write(br + "\n\t " + SrcGen.mdToJavadoc(line));
+				br = "<br>";
+			} else {
+				List<Boolean> stack = new ArrayList<>();
+				out.write("\n\t * " + listStart(line.charAt(4), stack) + '\n');
+				int     deep            = 1;
+				String  start           = "    *";
+				boolean missingEntryEnd = false;
+				while (true) {
+					if (line.startsWith(start)) {/**/
+					} else {
+						String leadingWhite = line.substring(0, line.length() - line.stripLeading().length());
+						if (leadingWhite.length() < start.length() - 1) {
+							if (missingEntryEnd) {
+								missingEntryEnd = false;
+								out.write("</li>\n");
+							}
+							do {
+								out.write("\t * " + listEnd(stack) + "</li>\n");
+								deep--;
+								start = start.substring(4);
+							} while (leadingWhite.length() < start.length() - 1);
+						} else if (leadingWhite.length() > start.length() - 1) {
+							if (!missingEntryEnd) { throw new IllegalStateException(); }
+							out.write("\n\t * " + listStart(line.charAt(leadingWhite.length()), stack) + '\n');
+							missingEntryEnd = false;
+							deep++;
+							start = "    " + start;
+						} else {
+							throw new IllegalStateException("'" + line + "'");
+						}
+						if (leadingWhite.length() != start.length() - 1 || !leadingWhite.matches("^ *$")) {
+							throw new IllegalStateException("'" + line + "' start='" + start + "'");
+						}
+					}
+					if (missingEntryEnd) {
+						out.write("</li>\n");
+					}
+					out.write("\t * <li>" + mdToJavadoc(mdListEntryText(line).trim()));
+					missingEntryEnd = true;
+					if (!iter.hasNext()) {
+						line = null;
+						break;
+					}
+					line = iter.next();
+					if (line.charAt(0) == '*') {
+						break;
+					}
+				}
+				if (missingEntryEnd) {
+					out.write("</li>\n");
+				}
+				while (--deep > 0) {
+					out.write("\t * " + listEnd(stack) + "</li>\n");
+				}
+				out.write("\t * " + listEnd(stack) + '\n');
+				if (line != null) {
+					out.write("\t * " + mdToJavadoc(line.substring(1).trim()));
+				}
+				br = "<br>";
+				if (!stack.isEmpty()) { throw new IllegalStateException("stack is not empty"); }
+			}
+		}
+		out.write(br + "\n");
+		
+	}
+	
+	static String mdListEntryText(String line) {
+		Matcher matcher = MD_LIST_LINE.matcher(line);
+		if (!matcher.matches()) { throw new IllegalStateException("'" + line + "'"); }
+		return matcher.group(matcher.groupCount());
+	}
+	
+	static String listEnd(List<Boolean> stack) {
+		if (stack.remove(stack.size() - 1).booleanValue()) {
+			return "</ol>";
+		} else {
+			return "</ul>";
+		}
+	}
+	
+	static String listStart(char c, List<Boolean> stack) {
+		if (c == '*') {
+			stack.add(Boolean.FALSE);
+			return "<ul>";
+		} else if (c >= '0' && c <= '9') {
+			stack.add(Boolean.TRUE);
+			return "<ol>";
+		} else {
+			throw new IllegalStateException("'" + c + "'");
+		}
+	}
 	
 	enum ParamType {
 		
@@ -179,16 +291,16 @@ public interface SrcGen {
 	
 	enum ValueType {
 		
-		DECIMAL, HEX, UHEX, UHEX_DWORD
+		DECIMAL, HEX, UHEX, NHEX, UHEX_DWORD
 	
 	}
 	
 	static record PrimAsmConstant(String name, long value, ValueType valType, String header, List<String> docu) {
 		
 		private static final Pattern ACTIVATION_PATTERN = Pattern.compile("^###\\s*Predefined\\s*Constants\\s*$");
-		private static final Pattern CONST_START_PATTERN = Pattern.compile("^\\*\\s*`([A-Z_]+)`\\s*:\\s*([^\\s].*[^\\s])\\s*$");
-		private static final Pattern CONST_VAL_PATTERN = Pattern.compile("^ {4}\\*\\s*value\\s*:\\s*(U?HEX-[0-9A-F]+|-?[0-9]+)\\s*$");
-		private static final Pattern CONST_CONT_PATTERN = Pattern.compile("^ {4}\\*\\s*([^\\s].*[^\\s])\\s*$");
+		private static final Pattern CONST_START_PATTERN = Pattern.compile("^\\*\\s*`([A-Z_0-9]+)`\\s*:\\s*([^\\s].*[^\\s])\\s*$");
+		private static final Pattern CONST_VAL_PATTERN = Pattern.compile("^ {4}\\*\\s*value\\s*:\\s*`([NU]?HEX-[0-9A-F]+|-?[0-9]+)`\\s*$");
+		private static final Pattern CONST_CONT_PATTERN = Pattern.compile("^( {4})+[*0-9].*$");
 		
 		public static final List<PrimAsmConstant> ALL_CONSTANTS = primAsmConstants();
 		
@@ -216,7 +328,7 @@ public interface SrcGen {
 						} else if (name == null) {
 							Matcher matcher = CONST_START_PATTERN.matcher(line);
 							if (!matcher.matches()) {
-								throw new IllegalStateException(line);
+								throw new IllegalStateException("'" + line + "'");
 							} else {
 								name   = matcher.group(1);
 								header = matcher.group(2);
@@ -236,6 +348,9 @@ public interface SrcGen {
 							} else if (val.startsWith("HEX-")) {
 								value   = Long.parseLong(val.substring(4), 16);
 								valType = ValueType.HEX;
+							} else if (val.startsWith("NHEX-")) {
+								value   = Long.parseLong(val.substring(4), 16);
+								valType = ValueType.NHEX;
 							} else {
 								value   = Long.parseLong(val);
 								valType = ValueType.DECIMAL;
@@ -256,7 +371,7 @@ public interface SrcGen {
 									accept(line);
 								}
 							} else {
-								docu.add(line);
+								docu.add(line.substring(4));
 							}
 						}
 					}
