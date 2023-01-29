@@ -1394,7 +1394,7 @@ the pre-commands ar executed at assemble time, not runtime
     * on failure the default interrupts use the `ERRNO` register to store information about the error which caused the interrupt to fail
 * negative interrupts will always cause the illegal interrup to be called instead
 * when `INTCNT` is greather then the number of default interrupts and the called interrupt is not overwritten, the illegal interrupt will be called instead
-* for the list of default interrupts see the [predefined constant](/README.md#predefined-constants) documentation
+* for the list of default interrupts see the [predefined constant](#predefined-constants) documentation
     * `0 : INT_ERRORS_ILLEGAL_INTERRUPT`: illegal interrupt
         * `X00` contains the number of the illegal interrupt
         * exits with `(128 + illegal_interrup_number)` (without calling the exit interrupt)
