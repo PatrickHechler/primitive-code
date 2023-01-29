@@ -33,11 +33,11 @@ public interface SrcGen {
 		return javadoc;
 	}
 	
-	static void writeJavadocLines(Writer out, String firstBreak, List<String> lines) throws IOException {
-		writeJavadocLines(out, "\t * ", firstBreak, lines);
+	static String writeJavadocLines(Writer out, String firstBreak, List<String> lines) throws IOException {
+		return writeJavadocLines(out, "\t * ", firstBreak, lines);
 	}
 	
-	static void writeJavadocLines(Writer out, String lineStart, String firstBreak, List<String> lines) throws IOException {
+	static String writeJavadocLines(Writer out, String lineStart, String firstBreak, List<String> lines) throws IOException {
 		String br = firstBreak;
 		for (Iterator<String> iter = lines.iterator(); iter.hasNext();) {
 			String line = iter.next();
@@ -101,13 +101,11 @@ public interface SrcGen {
 				if (line != null) {
 					out.write(lineStart + mdToJavadoc(line.substring(1).trim()));
 				}
-				br = "";
+				br = "<br>";
 				if (!stack.isEmpty()) { throw new IllegalStateException("stack is not empty"); }
 			}
 		}
-		if (!br.isEmpty()) {
-			out.write(br + "\n");
-		}
+		return br;
 	}
 	
 	static final Pattern MD_LIST_LINE = Pattern.compile("^( {4})+(\\*|[0-9]+.)\\s*(.*)$");
