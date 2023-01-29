@@ -893,7 +893,7 @@ public class PrimAsmPreDefines {
 	 * <b>FP_MAX_VALUE</b>: floating point maximum finite<br>
 	 * value: <code>0x7fefffffffffffff</code>
 	 * <p>
-	 * the maximum not infinite floating point value <br>
+	 * the maximum not infinite floating point value<br>
 	 */
 	public static final long FP_MAX_VALUE = 0x7fefffffffffffffL;
 	/**

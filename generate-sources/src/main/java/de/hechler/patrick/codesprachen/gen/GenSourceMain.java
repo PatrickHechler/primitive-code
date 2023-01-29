@@ -8,12 +8,11 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.util.Iterator;
 import java.util.List;
 
 import de.hechler.patrick.codesprachen.gen.impl.GenAsmEnumCommands;
-import de.hechler.patrick.codesprachen.gen.impl.GenCorePredefinedClass;
+import de.hechler.patrick.codesprachen.gen.impl.GenCorePredefined;
 import de.hechler.patrick.codesprachen.gen.impl.GenCorePrimAsmCmds;
 
 public class GenSourceMain {
@@ -27,16 +26,24 @@ public class GenSourceMain {
 			+ "primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmCommands.java";
 	private static final String CORE_PRE_DEFS_CLS  = SrcGen.BASE_DIR
 			+ "primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmPreDefines.java";
+	private static final String CORE_PRE_DEFS_RES  = SrcGen.BASE_DIR
+			+ "primitive-code/prim-core/src/main/resources/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf";
 	
 	public static void main(String[] args) throws IOException, IOError {
 		generate(Path.of(ASM_COMMANDS_ENUMS), "\t", new GenAsmEnumCommands());
 		generate(Path.of(CORE_COMMANDS), "\t", new GenCorePrimAsmCmds());
-		generate(Path.of(CORE_PRE_DEFS_CLS), "\t", new GenCorePredefinedClass());
+		generate(Path.of(CORE_PRE_DEFS_CLS), "\t", new GenCorePredefined(true));
+		generate0(Path.of(CORE_PRE_DEFS_RES), new GenCorePredefined(false));
+	}
+	
+	private static void generate0(Path file, SrcGen gen) throws IOException, IOError {
+		try (Writer out = Files.newBufferedWriter(file)) {
+			gen.generate(out);
+		}
 	}
 	
 	private static void generate(Path file, SrcGen gen) throws IOException, IOError {
-		try (OutputStream out = Files.newOutputStream(file, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING,
-				StandardOpenOption.WRITE)) {
+		try (OutputStream out = Files.newOutputStream(file)) {
 			Files.copy(file.resolveSibling("start-" + file.getFileName()), out);
 			try (Writer w = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
 				gen.generate(w);
@@ -47,7 +54,7 @@ public class GenSourceMain {
 	
 	private static void generate(Path file, String indent, SrcGen gen) throws IOException, IOError {
 		List<String> list = Files.readAllLines(file, StandardCharsets.UTF_8);
-		try (Writer out = Files.newBufferedWriter(file, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)) {
+		try (Writer out = Files.newBufferedWriter(file)) {
 			for (Iterator<String> iter = list.iterator(); iter.hasNext();) {
 				String line = iter.next();
 				if (!line.contains(GEN_START)) {

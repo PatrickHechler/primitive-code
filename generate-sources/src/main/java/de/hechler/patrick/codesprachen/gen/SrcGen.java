@@ -18,7 +18,6 @@ import java.util.stream.Stream;
 public interface SrcGen {
 	
 	static final String BASE_DIR = "/home/pat/git/";
-	
 	static final String PRIM_CODE_README = BASE_DIR + "primitive-code/README.md";
 	
 	void generate(Writer out) throws IOException;
@@ -34,18 +33,20 @@ public interface SrcGen {
 		return javadoc;
 	}
 	
-	static final Pattern MD_LIST_LINE = Pattern.compile("^( {4})+(\\*|[0-9]+.)\\s*(.*)$");
-	
 	static void writeJavadocLines(Writer out, String firstBreak, List<String> lines) throws IOException {
+		writeJavadocLines(out, "\t * ", firstBreak, lines);
+	}
+	
+	static void writeJavadocLines(Writer out, String lineStart, String firstBreak, List<String> lines) throws IOException {
 		String br = firstBreak;
 		for (Iterator<String> iter = lines.iterator(); iter.hasNext();) {
 			String line = iter.next();
 			if (line.charAt(0) == '*') {
-				out.write(br + "\n\t " + SrcGen.mdToJavadoc(line));
+				out.write(br + "\n" + lineStart + SrcGen.mdToJavadoc(line.substring(1).trim()));
 				br = "<br>";
 			} else {
 				List<Boolean> stack = new ArrayList<>();
-				out.write("\n\t * " + listStart(line.charAt(4), stack) + '\n');
+				out.write("\n" + lineStart + listStart(line.charAt(4), stack) + '\n');
 				int     deep            = 1;
 				String  start           = "    *";
 				boolean missingEntryEnd = false;
@@ -59,13 +60,13 @@ public interface SrcGen {
 								out.write("</li>\n");
 							}
 							do {
-								out.write("\t * " + listEnd(stack) + "</li>\n");
+								out.write(lineStart + listEnd(stack) + "</li>\n");
 								deep--;
 								start = start.substring(4);
 							} while (leadingWhite.length() < start.length() - 1);
 						} else if (leadingWhite.length() > start.length() - 1) {
 							if (!missingEntryEnd) { throw new IllegalStateException(); }
-							out.write("\n\t * " + listStart(line.charAt(leadingWhite.length()), stack) + '\n');
+							out.write("\n" + lineStart + listStart(line.charAt(leadingWhite.length()), stack) + '\n');
 							missingEntryEnd = false;
 							deep++;
 							start = "    " + start;
@@ -79,7 +80,7 @@ public interface SrcGen {
 					if (missingEntryEnd) {
 						out.write("</li>\n");
 					}
-					out.write("\t * <li>" + mdToJavadoc(mdListEntryText(line).trim()));
+					out.write(lineStart + "<li>" + mdToJavadoc(mdListEntryText(line).trim()));
 					missingEntryEnd = true;
 					if (!iter.hasNext()) {
 						line = null;
@@ -94,11 +95,11 @@ public interface SrcGen {
 					out.write("</li>\n");
 				}
 				while (--deep > 0) {
-					out.write("\t * " + listEnd(stack) + "</li>\n");
+					out.write(lineStart + listEnd(stack) + "</li>\n");
 				}
-				out.write("\t * " + listEnd(stack) + '\n');
+				out.write(lineStart + listEnd(stack) + '\n');
 				if (line != null) {
-					out.write("\t * " + mdToJavadoc(line.substring(1).trim()));
+					out.write(lineStart + mdToJavadoc(line.substring(1).trim()));
 				}
 				br = "<br>";
 				if (!stack.isEmpty()) { throw new IllegalStateException("stack is not empty"); }
@@ -107,6 +108,8 @@ public interface SrcGen {
 		out.write(br + "\n");
 		
 	}
+	
+	static final Pattern MD_LIST_LINE = Pattern.compile("^( {4})+(\\*|[0-9]+.)\\s*(.*)$");
 	
 	static String mdListEntryText(String line) {
 		Matcher matcher = MD_LIST_LINE.matcher(line);
