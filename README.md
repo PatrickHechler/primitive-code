@@ -482,7 +482,8 @@ every register can also be addressed:
     * `X01` points to the STRING name of the new child element
     * `X01` will be set to a newly opened/created ELEMENT/PIPE-ID for the child or `-1` on error
     * the value can be used by the `INT` command to indicate that this interrupt should be called
-* `38`: INT_FOLDER_OPEN_ITER`: open child iterator of folder
+* `INT_FOLDER_OPEN_ITER`: open child iterator of folder
+    * value: `38`
     * `X00` contains the ELEMENT/FOLDER-ID
     * `X01` is set to `0` if hidden files should be skipped and any other value if not
     * `X01` will be set to the FOLDER-ITER-ID or `-1` on error
@@ -518,7 +519,7 @@ every register can also be addressed:
     * `X01` will be set to the curent system time in seconds since the epoch
     * `X02` will be set to the additional curent system time in nanoseconds
     * the value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_TIME_GET` :  get the system time resolution
+* `INT_TIME_RES` :  get the system time resolution
     * value: `44`
     * `X00` will be set to `1` on success and `0` on error
     * `X01` will be set to the resolution in seconds
@@ -696,9 +697,9 @@ every register can also be addressed:
         * `%c`: the next argument starts with a byte, which should be inserted here
             * note that UTF-8 characters are not always represented by one byte, but there will always be only one byte used
         * `%n`: consumes two arguments
-                1. the next argument contains a number in the range of `2..36`.
+            1. the next argument contains a number in the range of `2..36`.
                 * if the first argument is less than `2` or larger than `36` the interrupt will fail
-                2. which should be converted to a STRING using the number system with the basoe of the first argument and than be inserted here
+            2. which should be converted to a STRING using the number system with the basoe of the first argument and than be inserted here
         * `%d`: the next argument contains a number, which should be converted to a STRING using the decimal number system and than be inserted here
         * `%f`: the next argument contains a floating point number, which should be converted to a STRING and than be inserted here
         * `%p`: the next argument contains a pointer, which should be converted to a STRING
@@ -789,7 +790,7 @@ every register can also be addressed:
     * value: `HEX-7FFFFFFFFFFFFFFF`
     * this constant holds the maximum number value
 * `MIN_VALUE` : the minimum number value
-    * value: NHEX-8000000000000000
+    * value: `NHEX-8000000000000000`
     * this constant holds the minimum number value
 * `STD_IN` : the _ID_ of the _STDIN_ stream
     * value: `0`
