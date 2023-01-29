@@ -1,7 +1,11 @@
-package de.hechler.patrick.codesprachen.gen;
+package de.hechler.patrick.codesprachen.gen.impl;
 
 import java.io.IOException;
 import java.io.Writer;
+
+import de.hechler.patrick.codesprachen.gen.SrcGen;
+import de.hechler.patrick.codesprachen.gen.SrcGen.ParamType;
+import de.hechler.patrick.codesprachen.gen.SrcGen.PrimAsmReadmeCommand;
 
 public class GenAsmEnumCommands implements SrcGen {
 	

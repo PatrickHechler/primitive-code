@@ -107,6 +107,9 @@ the primitive virtual machine has the following 64-bit registers:
     * `UHEX-0000000000000080` : `SOME_BITS`: if on the last `BCP A, B` was `A & B != 0`
     * `UHEX-0000000000000100` : `NONE_BITS`: if on the last `BCP A, B` was `A & B = 0`
     * initialized with `0`
+* `ERRNO`
+    * number registers, used to indicate what went wrong
+    * initialized with `0`
 * `X[00..F9]`
     * `250 registers`
     * number registers, for free use
@@ -116,12 +119,6 @@ the primitive virtual machine has the following 64-bit registers:
         * these strings will be terminated by a zero byte
     * `X01` is initialized with the count of program arguments
     * the other `XNN` registers are initilized with 0
-* `ERRNO`
-    * number registers, used to indicate what went wrong
-    * the `ERRNO` register is initilized with 0
-    * the `ERRNO` register has always the same value as the last `XNN` register
-        * currently the last `XNN` register is `XFA`
-        * `ERRNO` is just an other name for the last `XNN` register
 
 every register can also be addressed:
     * each register has a constant memory address
@@ -218,120 +215,185 @@ every register can also be addressed:
     * to delete an export constant, write `#EXP~<NAME> ~DEL`
         * then it will be deleted as normal and as export constant
     * to change a normal constant to an export constant, just redefine it: `#EXP~<NAME> <NAME>`
-* predefined constants:
-    * --POS--                                   the current length of the binary code in bytes (note that this is not aligned)
-    * INT_ERRORS_ILLEGAL_INTERRUPT              0
-    * INT_ERRORS_UNKNOWN_COMMAND                1
-    * INT_ERRORS_ILLEGAL_MEMORY                 2
-    * INT_ERRORS_ARITHMETIC_ERROR               3
-    * INT_EXIT                                  4
-    * INT_MEMORY_ALLOC                          5
-    * INT_MEMORY_REALLOC                        6
-    * INT_MEMORY_FREE                           7
-    * INT_OPEN_STREAM                           8
-    * INT_STREAMS_WRITE                         9
-    * INT_STREAMS_READ                          10
-    * INT_STREAMS_CLOSE                         11
-    * INT_STREAMS_FILE_GET_POS                  12
-    * INT_STREAMS_FILE_SET_POS                  13
-    * INT_STREAMS_FILE_ADD_POS                  14
-    * INT_STREAMS_FILE_SEEK_EOF                 15
-    * INT_OPEN_FILE                             16
-    * INT_OPEN_FOLDER                           17
-    * INT_OPEN_PIPE                             18
-    * INT_OPEN_ELEMENT                          19
-    * INT_ELEMENT_OPEN_PARENT                   20
-    * INT_ELEMENT_GET_CREATE                    21
-    * INT_ELEMENT_GET_LAST_MOD                  22
-    * INT_ELEMENT_SET_CREATE                    23
-    * INT_ELEMENT_SET_LAST_MOD                  24
-    * INT_ELEMENT_DELETE                        25
-    * INT_ELEMENT_MOVE                          26
-    * INT_ELEMENT_GET_NAME                      27
-    * INT_ELEMENT_GET_FLAGS                     28
-    * INT_ELEMENT_MODIFY_FLAGS                  29
-    * INT_FOLDER_CHILD_COUNT                    30
-    * INT_FOLDER_OPEN_CHILD_OF_NAME             31
-    * INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME      32
-    * INT_FOLDER_OPEN_CHILD_FILE_OF_NAME        33
-    * INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME        34
-    * INT_FOLDER_CREATE_CHILD_FOLDER            35
-    * INT_FOLDER_CREATE_CHILD_PIPE              37
-    * INT_FOLDER_OPEN_ITER                      38
-    * INT_FILE_LENGTH                           39
-    * INT_FILE_TRUNCATE                         40
-    * INT_HANDLE_OPEN_STREAM                    41
-    * INT_PIPE_LENGTH                           42
-    * INT_TIME_GET                              43
-    * INT_TIME_RES                              44
-    * INT_TIME_SLEEP                            45
-    * INT_TIME_WAIT                             46
-    * INT_RND_OPEN                              47
-    * INT_RND_NUM                               48
-    * INT_MEM_CMP                               49
-    * INT_MEM_CPY                               50
-    * INT_MEM_MOV                               51
-    * INT_MEM_BSET                              52
-    * INT_STR_LEN                               53
-    * INT_STR_CMP                               54
-    * INT_STR_FROM_NUM                          55
-    * INT_STR_FROM_FPNUM                        56
-    * INT_STR_TO_NUM                            57
-    * INT_STR_TO_FPNUM                          58
-    * INT_STR_TO_U16STR                         59
-    * INT_STR_TO_U32STR                         60
-    * INT_STR_FROM_U16STR                       61
-    * INT_STR_FROM_U32STR                       62
-    * INT_STR_FORMAT                            63
-    * INT_LOAD_FILE                             64
-    * INT_LOAD_LIB                              65
-    * INT_UNLOAD_LIB                            66
-    * INTERRUPT_COUNT                           67
-    * FP_NAN                               UHEX-7FFE000000000000
-    * FP_MAX_VALUE                         UHEX-7FEFFFFFFFFFFFFF
-    * FP_MIN_VALUE                         UHEX-0000000000000001
-    * FP_POS_INFINITY                      UHEX-7FF0000000000000
-    * FP_NEG_INFINITY                      UHEX-FFF0000000000000
-    * REGISTER_MEMORY_START                 HEX-0000000000001000
-    * REGISTER_MEMORY_START_XNN             HEX-0000000000001028
-    * REGISTER_MEMORY_LAST_ADDRESS          HEX-00000000000017F8
-    * REGISTER_MEMORY_END_ADDRESS_SPACE     HEX-0000000000001800
-    * MAX_VALUE                             HEX-7FFFFFFFFFFFFFFF
-    * MIN_VALUE                            NHEX-8000000000000000
-    * STD_IN                                    0
-    * STD_OUT                                   1
-    * STD_LOG                                   2
-    * ERR_NONE                                  0
-    * ERR_UNKNOWN_ERROR                         1
-    * ERR_NO_MORE_ELEMNETS                      2
-    * ERR_ELEMENT_WRONG_TYPE                    3
-    * ERR_ELEMENT_NOT_EXIST                     4
-    * ERR_ELEMENT_ALREADY_EXIST                 5
-    * ERR_OUT_OF_SPACE                          6
-    * ERR_IO_ERR                                7
-    * ERR_ILLEGAL_ARG                           8
-    * ERR_ILLEGAL_MAGIC                         9
-    * ERR_OUT_OF_MEMORY                         10
-    * ERR_ROOT_FOLDER                           11
-    * ERR_PARENT_IS_CHILD                       12
-    * ERR_ELEMENT_USED                          13
-    * ERR_OUT_OF_RANGE                          14
-    * UNMODIFIABLE_FLAGS                   UHEX-000000FF
-    * FLAG_FOLDER                          UHEX-00000001
-    * FLAG_FILE                            UHEX-00000002
-    * FLAG_PIPE                            UHEX-00000004
-    * FLAG_EXECUTABLE                      UHEX-00000100
-    * FLAG_USER_ENCRYPTED                  UHEX-00000200
-    * FLAG_HIDDEN                          UHEX-01000000
-    * STREAM_ONLY_CREATE                   UHEX-00000001
-    * STREAM_ALSO_CREATE                   UHEX-00000002
-    * STREAM_FILE                          UHEX-00000004
-    * STREAM_PIPE                          UHEX-00000008
-    * STREAM_READ                          UHEX-00000100
-    * STREAM_WRITE                         UHEX-00000200
-    * STREAM_APPEND                        UHEX-00000400
-    * STREAM_FILE_TRUNC                    UHEX-00010000
-    * STREAM_FILE_EOF                      UHEX-00020000
+* the `--POS--` constant holds the current length of the binary code in bytes (note that this is not aligned) as value
+    * note the binary is aligned, directly before a command, so the --POS-- has the unaligned value.
+
+### Predefined Constants
+    * `INTERRUPT_COUNT` : the number of interrupts
+        * value: 67
+        * the number of interrupts supported by default
+        * the `INTCNT` register is initialed with this value
+    * `FP_NAN` : not a number
+        * value: UHEX-7FFE000000000000
+        * this floating point constant holds a NaN value
+    * `FP_MAX_VALUE` : floating point maximum finite
+        * value: UHEX-7FEFFFFFFFFFFFFF
+        * the maximum not infinite floating point value 
+    * `FP_MIN_VALUE` : floating point minimum finite
+        * value: UHEX-0000000000000001
+        * the minimum not infinite floating point value
+    * `FP_POS_INFINITY` : floating point positive infinity
+        * value: UHEX-7FF0000000000000
+        * the floating point constant for positive infinity
+    * `FP_NEG_INFINITY` : floating point negative infinity
+        * value: UHEX-FFF0000000000000
+        * the floating point constant for negative infinity
+    * `REGISTER_MEMORY_START` : register memory block address
+        * value: HEX-0000000000001000
+        * the start address of the register memory block
+    * `REGISTER_MEMORY_ADDR_IP` : address of `IP`
+        * value: HEX-0000000000001008
+        * the start address of the `IP` register
+        * this constant has the same value as the `REGISTER_MEMORY_START` constant
+    * `REGISTER_MEMORY_ADDR_SP` : address of `SP`
+        * value: HEX-0000000000001008
+        * the start address of the `SP` register
+    * `REGISTER_MEMORY_ADDR_INTP` : address of `INTP`
+        * value: HEX-0000000000001010
+        * the start address of the `INTP` register
+    * `REGISTER_MEMORY_ADDR_INTCNT` : address of `INTCNT`
+        * value: HEX-0000000000001018
+    * `REGISTER_MEMORY_ADDR_STATUS` : address of `STATUS`
+        * value: HEX-0000000000001020
+        * the start address of the `STATUS` register
+    * `REGISTER_MEMORY_ADDR_ERRNO` : address of `ERRNO`
+        * value: HEX-0000000000001028
+        * the start address of the `ERRNO` register
+    * `REGISTER_MEMORY_START_XNN` : address of `X00`
+        * value: HEX-0000000000001030
+        * the offset of the `XNN` registers
+        * the address of a `XNN` register can be calculated by multiplying the register number and adding this constant
+    * `REGISTER_MEMORY_LAST_ADDRESS` : address of the last `XNN` register
+        * value: HEX-00000000000017F8
+        * this constant holds the last valid address of the registers
+    * `REGISTER_MEMORY_END_ADDRESS_SPACE` : the address after the last address
+        * value: HEX-0000000000001800
+        * this constant holds the lowest address, which is above the register memory block
+    * `MAX_VALUE` : the maximum number value
+        * value: HEX-7FFFFFFFFFFFFFFF
+        * this constant holds the maximum number value
+    * `MIN_VALUE` : the minimum number value
+        * value: NHEX-8000000000000000
+        * this constant holds the minimum number value
+    * `STD_IN` : the ID of the STDIN stream
+        * value: 0
+        * this constant holds the Stream-ID of the STDIN stream
+        * the stream is initially open for reading
+        * write and seek operations on the STDIN stream will fail
+    * `STD_OUT` : the ID of the STDOUT stream
+        * value: 1
+        * this constant holds the Stream-ID of the STDOUT stream
+        * the stream is initially open for reading
+        * write and seek operations on the STDOUT stream will fail
+    * STD_LOG` : the ID of the STDLOG stream
+        * value: 2
+        * this constant holds the Stream-ID of the STDLOG stream
+        * the stream is initially open for reading
+        * write and seek operations on the STDLOG stream will fail
+    * `ERR_NONE` : indicates no error
+        * value: 0
+        * this constant has to hold the zero value
+        * every non zero value in the `ERRNO` register indicates some error
+        * after handling the error the `ERRNO` register should be set to this value
+    * `ERR_UNKNOWN_ERROR` : indicates an unknown error
+        * value: 1
+        * this error value is used when there occurred some unknown error
+        * this error value is the least helpful value for error handling
+    * `ERR_NO_MORE_ELEMNETS` : indicates that there are no more elements
+        * value: 2
+        * this error value is used when an iterator was used too often
+    * `ERR_ELEMENT_WRONG_TYPE` : indicates that the element has not the wanted/allowed type
+        * value: 3
+        * this error value indicates that some operation was used, which is not supported by the given element
+        * for example when an file is asked how many children it has
+    * `ERR_ELEMENT_NOT_EXIST` : indicates that the element does not exist
+        * value: 4
+        * this error value indicates that some element does not exist
+    * `ERR_ELEMENT_ALREADY_EXIST` : indicates that the element already exists
+        * value: 5
+        * this error value indicates that an element should be created but it exists already
+    * `ERR_OUT_OF_SPACE` : indicates that there is not enough space on the device
+        * value: 6
+        * this error value indicates that the file system could not allocate the needed blocks
+    * `ERR_IO_ERR` : indicates an IO error
+        * value: 7
+        * this error value indicates an Input/Output error
+    * `ERR_ILLEGAL_ARG` : indicates an illegal argument
+        * value: 8
+        * this error value indicates that some argument has an illegal value
+    * `ERR_ILLEGAL_MAGIC` : indicates that some magic value is invalid
+        * value: 9
+        * this error value indicates that a magic value was invalid
+    * `ERR_OUT_OF_MEMORY` : indicates that the system is out of memory
+        * value: 10
+        * this error value indicates that the system could not allocate the needed memory
+    * `ERR_ROOT_FOLDER` : indicates that the root folder does not support this operation
+        * value: 11
+        * this error value indicates that the root folder restrictions does not allow the tried operation
+    * `ERR_PARENT_IS_CHILD` : indicates that the parent can't be made to it's own child
+        * value: 12
+        * this error value indicates that it was tried to move a folder to one of it's (possibly indirect) children
+    * `ERR_ELEMENT_USED` : indicates the element is still used somewhere else
+        * value: 13
+        * this error value indicates that an element has open multiple handles (more than the used handle)
+    * `ERR_OUT_OF_RANGE` : indicates that some value was outside of the allowed range
+        * value: 14
+        * this error value indicates that some value was outside of the allowed range
+    * `UNMODIFIABLE_FLAGS` : element flags that can not be modified
+        * value: UHEX-000000FF
+        * these flags can not be modified after an element was created
+        * these flags hold essential information for the file system (for example if an element is a folder)
+    * `FLAG_FOLDER` : folder flag
+        * value: UHEX-00000001
+        * this flag is used for all folders
+    * `FLAG_FILE` : file flag
+        * value: UHEX-00000002
+        * this flag is used for all files
+    * `FLAG_PIPE` : pipe flag
+        * value: UHEX-00000004
+        * this flag is used for all pipes
+    * `FLAG_EXECUTABLE` : flag for executables
+        * value: UHEX-00000100
+        * this flag is used to indicate, that a file can be executed
+    * `FLAG_HIDDEN` : flag for hidden elements
+        * value: UHEX-01000000
+        * this flag is used to indicate, that an element should be hidden
+    * `STREAM_ONLY_CREATE` : create the element for the stream
+        * value: UHEX-00000001
+        * used when a stream is opened, when the element should be created during the open operation
+        * when used the open operation will fail, if the element already exists
+        * when used the `STREAM_FILE` or `STREAM_PIPE` flag has to be set
+    * `STREAM_ALSO_CREATE` : possibly create the element for the stream
+        * value: UHEX-00000002
+        * used when a stream is opened, when the element should be created during the open operation if it doesn't exists already
+        * when used the `STREAM_FILE` or `STREAM_PIPE` flag has to be set
+    * `STREAM_FILE` : create a file stream
+        * value: UHEX-00000004
+        * used when the stream should be used for a file, will fail if the existing element is a pipe
+        * when used the `STREAM_PIPE` flag is not allowed
+    * `STREAM_PIPE` : create a pipe stream
+        * value: UHEX-00000008
+        * used when the stream should be used for a pipe, will fail if the existing element is a file
+        * when used the `STREAM_FILE` flag is not allowed
+    * `STREAM_READ` : create a readable stream
+        * value: UHEX-00000100
+        * used to open a stream, which support the use of the read operations
+    * `STREAM_WRITE` : create a writable stream
+        * value: UHEX-00000200
+        * used to open a stream, which support the use of the write operations
+    * `STREAM_APPEND` : create a writable stream in append mode
+        * value: UHEX-00000400
+        * used to open a stream, which support the use of the write operations
+        * the given stream will seek the file/pipe end before every write operation
+        * for pipes the `STREAM_WRITE` flag is equally to this flag
+    * `STREAM_FILE_TRUNC` : truncate the file
+        * value: UHEX-00010000
+        * truncate the files content during the open operation
+        * this flag can be used only with file streams
+    * `STREAM_FILE_EOF` : start at end of file
+        * value: UHEX-00020000
+        * when used the stream will not start at the start of the file, but its end
+        * this flag can be used only with file streams
 
 ## STRINGS
 * a string is an array of multiple characters of the `UTF-8` encoding
@@ -1332,7 +1394,7 @@ the pre-commands ar executed at assemble time, not runtime
     * on failure the default interrupts use the `ERRNO` register to store information about the error which caused the interrupt to fail
 * negative interrupts will always cause the illegal interrup to be called instead
 * when `INTCNT` is greather then the number of default interrupts and the called interrupt is not overwritten, the illegal interrupt will be called instead
-* default interrupts:
+* for the list of default interrupts see the [predefined constant](#Predefined Constants) documentation
     * `0 : INT_ERRORS_ILLEGAL_INTERRUPT`: illegal interrupt
         * `X00` contains the number of the illegal interrupt
         * exits with `(128 + illegal_interrup_number)` (without calling the exit interrupt)

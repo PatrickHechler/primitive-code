@@ -16,7 +16,9 @@ import java.util.stream.Stream;
 
 public interface SrcGen {
 	
-	static final String PRIM_CODE_README = "/users/feri/git/primitive-code/README.md";
+	static final String BASE_DIR = "/home/pat/git/";
+	
+	static final String PRIM_CODE_README = BASE_DIR + "primitive-code/README.md";
 	
 	void generate(Writer out) throws IOException;
 	
@@ -44,8 +46,7 @@ public interface SrcGen {
 			List<String> definition) {
 		
 		private static final Pattern ACTIVATION_PATTERN = Pattern.compile("^\\s*##\\s*COMMANDS\\s*$");
-		private static final Pattern CMD_PATTERN = Pattern
-				.compile("^`([A-Z_0-9]+)\\s*(<[A-Z_]+>)?\\s*(,\\s*<[A-Z_]+>)?\\s*(,\\s*<[A-Z_]+>)?`$");
+		private static final Pattern CMD_PATTERN = Pattern.compile("^`([A-Z_0-9]+)\\s*(<[A-Z_]+>)?\\s*(,\\s*<[A-Z_]+>)?\\s*(,\\s*<[A-Z_]+>)?`$");
 		private static final Pattern DEFINITION_PATTERN = Pattern.compile("^\\s*\\*\\s*definition\\s*:\\s*$");
 		private static final Pattern BINARY_PATTERN = Pattern.compile("^\\s*\\*\\s*binary\\s*:\\s*$");
 		private static final Pattern NUM_PATTERN = Pattern.compile("^\\s*\\*\\s*`\\s*([0-9A-F][0-9A-F])\\s*([0-9A-F][0-9A-F]).*$");
@@ -170,6 +171,99 @@ public interface SrcGen {
 				});
 			} catch (IOException e) {
 				throw new IOError(e);
+			}
+			return Collections.unmodifiableList(result);
+		}
+		
+	}
+	
+	enum ValueType {
+		
+		DECIMAL, HEX, UHEX, UHEX_DWORD
+	
+	}
+	
+	static record PrimAsmConstant(String name, long value, ValueType valType, String header, List<String> docu) {
+		
+		private static final Pattern ACTIVATION_PATTERN = Pattern.compile("^###\\s*Predefined\\s*Constants\\s*$");
+		private static final Pattern CONST_START_PATTERN = Pattern.compile("^\\*\\s*`([A-Z_]+)`\\s*:\\s*([^\\s].*[^\\s])\\s*$");
+		private static final Pattern CONST_VAL_PATTERN = Pattern.compile("^ {4}\\*\\s*value\\s*:\\s*(U?HEX-[0-9A-F]+|-?[0-9]+)\\s*$");
+		private static final Pattern CONST_CONT_PATTERN = Pattern.compile("^ {4}\\*\\s*([^\\s].*[^\\s])\\s*$");
+		
+		public static final List<PrimAsmConstant> ALL_CONSTANTS = primAsmConstants();
+		
+		private static List<PrimAsmConstant> primAsmConstants() {
+			List<PrimAsmConstant> result = new ArrayList<>();
+			try (Stream<String> lines = Files.lines(Path.of(PRIM_CODE_README), StandardCharsets.UTF_8)) {
+				lines.forEachOrdered(new Consumer<String>() {
+					
+					private boolean activated = false;
+					private boolean finish    = false;
+					
+					private String       name    = null;
+					private String       header  = null;
+					private long         value;
+					private ValueType    valType = null;
+					private List<String> docu    = null;
+					
+					@Override
+					public void accept(String line) {
+						if (finish) {/**/} else if (!activated) {
+							Matcher matcher = ACTIVATION_PATTERN.matcher(line);
+							if (matcher.matches()) {
+								activated = true;
+							}
+						} else if (name == null) {
+							Matcher matcher = CONST_START_PATTERN.matcher(line);
+							if (!matcher.matches()) {
+								throw new IllegalStateException(line);
+							} else {
+								name   = matcher.group(1);
+								header = matcher.group(2);
+							}
+						} else if (valType == null) {
+							Matcher matcher = CONST_VAL_PATTERN.matcher(line);
+							if (!matcher.matches()) { throw new IllegalStateException(line); }
+							String val = matcher.group(1);
+							if (val.startsWith("UHEX-")) {
+								val = val.substring(5);
+								switch (val.length()) {
+								case 16 -> valType = ValueType.UHEX;
+								case 8 -> valType = ValueType.UHEX_DWORD;
+								default -> throw new IllegalStateException(line);
+								}
+								value = Long.parseUnsignedLong(val, 16);
+							} else if (val.startsWith("HEX-")) {
+								value   = Long.parseLong(val.substring(4), 16);
+								valType = ValueType.HEX;
+							} else {
+								value   = Long.parseLong(val);
+								valType = ValueType.DECIMAL;
+							}
+							docu = new ArrayList<>();
+						} else {
+							Matcher matcher = CONST_CONT_PATTERN.matcher(line);
+							if (!matcher.matches()) {
+								result.add(new PrimAsmConstant(name, value, valType, header, Collections.unmodifiableList(docu)));
+								name    = null;
+								header  = null;
+								value   = -1L;
+								valType = null;
+								docu    = null;
+								if (line.isBlank()) {
+									finish = true;
+								} else {
+									accept(line);
+								}
+							} else {
+								docu.add(line);
+							}
+						}
+					}
+					
+				});
+			} catch (IOException e) {
+				e.printStackTrace();
 			}
 			return Collections.unmodifiableList(result);
 		}

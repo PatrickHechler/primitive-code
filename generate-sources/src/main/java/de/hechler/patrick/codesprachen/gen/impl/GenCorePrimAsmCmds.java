@@ -1,9 +1,12 @@
-package de.hechler.patrick.codesprachen.gen;
+package de.hechler.patrick.codesprachen.gen.impl;
 
 import java.io.IOException;
 import java.io.Writer;
 import java.util.Iterator;
 import java.util.List;
+
+import de.hechler.patrick.codesprachen.gen.SrcGen;
+import de.hechler.patrick.codesprachen.gen.SrcGen.PrimAsmReadmeCommand;
 
 public class GenCorePrimAsmCmds implements SrcGen {
 	
