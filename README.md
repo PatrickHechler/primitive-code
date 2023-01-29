@@ -275,21 +275,21 @@ every register can also be addressed:
 * `MIN_VALUE` : the minimum number value
     * value: NHEX-8000000000000000
     * this constant holds the minimum number value
-* `STD_IN` : the ID of the STDIN stream
+* `STD_IN` : the _ID_ of the _STDIN_ stream
     * value: `0`
-    * this constant holds the Stream-ID of the STDIN stream
+    * this constant holds the _Stream-ID_ of the _STDIN_ stream
     * the stream is initially open for reading
-    * write and seek operations on the STDIN stream will fail
-* `STD_OUT` : the ID of the STDOUT stream
+    * write and seek operations on the _STDIN_ stream will fail
+* `STD_OUT` : the _ID_ of the STDOUT stream
     * value: `1`
-    * this constant holds the Stream-ID of the STDOUT stream
-    * the stream is initially open for reading
-    * write and seek operations on the STDOUT stream will fail
-* STD_LOG` : the ID of the STDLOG stream
+    * this constant holds the _Stream-ID_ of the _STDOUT_ stream
+    * the stream is initially open for writing
+    * read and seek operations on the _STDOUT_ stream will fail
+* `STD_LOG` : the _ID_ of the _STDLOG_ stream
     * value: `2`
-    * this constant holds the Stream-ID of the STDLOG stream
-    * the stream is initially open for reading
-    * write and seek operations on the STDLOG stream will fail
+    * this constant holds the _Stream-ID_ of the _STDLOG_ stream
+    * the stream is initially open for writing
+    * read and seek operations on the _STDLOG_ stream will fail
 * `ERR_NONE` : indicates no error
     * value: `0`
     * this constant has to hold the zero value
