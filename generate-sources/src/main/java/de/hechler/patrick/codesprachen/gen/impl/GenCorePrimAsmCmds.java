@@ -6,7 +6,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import de.hechler.patrick.codesprachen.gen.SrcGen;
-import de.hechler.patrick.codesprachen.gen.SrcGen.PrimAsmReadmeCommand;
 
 public class GenCorePrimAsmCmds implements SrcGen {
 	
@@ -120,6 +119,7 @@ public class GenCorePrimAsmCmds implements SrcGen {
 		javadoc = javadoc.replaceAll("(\\s)___([^_]*)___(\\s)", "$1<b><i>$2</i></b>$3");
 		javadoc = javadoc.replaceAll("(\\s)__([^_]*)__(\\s)", "$1<b>$2</b>$3");
 		javadoc = javadoc.replaceAll("(\\s)_([^_]*)_(\\s)", "$1<i>$2</i>$3");
+		javadoc = javadoc.replace("[predefined constant](#predefined-constants)", "{@link PrimAsmPreDefines predefined constant}");
 		return javadoc;
 	}
 	

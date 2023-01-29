@@ -9,7 +9,7 @@ public class GenCorePredefinedClass implements SrcGen {
 	
 	@Override
 	public void generate(Writer out) throws IOException {
-		
+		// TODO
 	}
 	
 }
