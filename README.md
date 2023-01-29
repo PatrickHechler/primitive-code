@@ -224,53 +224,53 @@ every register can also be addressed:
     * the number of interrupts supported by default
     * the `INTCNT` register is initialed with this value
 * `FP_NAN` : not a number
-    * value: UHEX-7FFE000000000000
+    * value: `UHEX-7FFE000000000000`
     * this floating point constant holds a NaN value
 * `FP_MAX_VALUE` : floating point maximum finite
-    * value: UHEX-7FEFFFFFFFFFFFFF
+    * value: `UHEX-7FEFFFFFFFFFFFFF`
     * the maximum not infinite floating point value 
 * `FP_MIN_VALUE` : floating point minimum finite
-    * value: UHEX-0000000000000001
+    * value: `UHEX-0000000000000001`
     * the minimum not infinite floating point value
 * `FP_POS_INFINITY` : floating point positive infinity
-    * value: UHEX-7FF0000000000000
+    * value: `UHEX-7FF0000000000000`
     * the floating point constant for positive infinity
 * `FP_NEG_INFINITY` : floating point negative infinity
-    * value: UHEX-FFF0000000000000
+    * value: `UHEX-FFF0000000000000`
     * the floating point constant for negative infinity
 * `REGISTER_MEMORY_START` : register memory block address
-    * value: HEX-0000000000001000
+    * value: `HEX-0000000000001000`
     * the start address of the register memory block
 * `REGISTER_MEMORY_ADDR_IP` : address of `IP`
-    * value: HEX-0000000000001008
+    * value: `HEX-0000000000001008`
     * the start address of the `IP` register
     * this constant has the same value as the `REGISTER_MEMORY_START` constant
 * `REGISTER_MEMORY_ADDR_SP` : address of `SP`
-    * value: HEX-0000000000001008
+    * value: `HEX-0000000000001008`
     * the start address of the `SP` register
 * `REGISTER_MEMORY_ADDR_INTP` : address of `INTP`
-    * value: HEX-0000000000001010
+    * value: `HEX-0000000000001010`
     * the start address of the `INTP` register
 * `REGISTER_MEMORY_ADDR_INTCNT` : address of `INTCNT`
-    * value: HEX-0000000000001018
+    * value: `HEX-0000000000001018`
 * `REGISTER_MEMORY_ADDR_STATUS` : address of `STATUS`
-    * value: HEX-0000000000001020
+    * value: `HEX-0000000000001020`
     * the start address of the `STATUS` register
 * `REGISTER_MEMORY_ADDR_ERRNO` : address of `ERRNO`
-    * value: HEX-0000000000001028
+    * value: `HEX-0000000000001028`
     * the start address of the `ERRNO` register
 * `REGISTER_MEMORY_START_XNN` : address of `X00`
-    * value: HEX-0000000000001030
+    * value: `HEX-0000000000001030`
     * the offset of the `XNN` registers
     * the address of a `XNN` register can be calculated by multiplying the register number and adding this constant
 * `REGISTER_MEMORY_LAST_ADDRESS` : address of the last `XNN` register
-    * value: HEX-00000000000017F8
+    * value: `HEX-00000000000017F8`
     * this constant holds the last valid address of the registers
 * `REGISTER_MEMORY_END_ADDRESS_SPACE` : the address after the last address
-    * value: HEX-0000000000001800
+    * value: `HEX-0000000000001800`
     * this constant holds the lowest address, which is above the register memory block
 * `MAX_VALUE` : the maximum number value
-    * value: HEX-7FFFFFFFFFFFFFFF
+    * value: `HEX-7FFFFFFFFFFFFFFF`
     * this constant holds the maximum number value
 * `MIN_VALUE` : the minimum number value
     * value: NHEX-8000000000000000
@@ -340,58 +340,58 @@ every register can also be addressed:
     * value: 14
     * this error value indicates that some value was outside of the allowed range
 * `UNMODIFIABLE_FLAGS` : element flags that can not be modified
-    * value: UHEX-000000FF
+    * value: `UHEX-000000FF`
     * these flags can not be modified after an element was created
     * these flags hold essential information for the file system (for example if an element is a folder)
 * `FLAG_FOLDER` : folder flag
-    * value: UHEX-00000001
+    * value: `UHEX-00000001`
     * this flag is used for all folders
 * `FLAG_FILE` : file flag
-    * value: UHEX-00000002
+    * value: `UHEX-00000002`
     * this flag is used for all files
 * `FLAG_PIPE` : pipe flag
-    * value: UHEX-00000004
+    * value: `UHEX-00000004`
     * this flag is used for all pipes
 * `FLAG_EXECUTABLE` : flag for executables
-    * value: UHEX-00000100
+    * value: `UHEX-00000100`
     * this flag is used to indicate, that a file can be executed
 * `FLAG_HIDDEN` : flag for hidden elements
-    * value: UHEX-01000000
+    * value: `UHEX-01000000`
     * this flag is used to indicate, that an element should be hidden
 * `STREAM_ONLY_CREATE` : create the element for the stream
-    * value: UHEX-00000001
+    * value: `UHEX-00000001`
     * used when a stream is opened, when the element should be created during the open operation
     * when used the open operation will fail, if the element already exists
     * when used the `STREAM_FILE` or `STREAM_PIPE` flag has to be set
 * `STREAM_ALSO_CREATE` : possibly create the element for the stream
-    * value: UHEX-00000002
+    * value: `UHEX-00000002`
     * used when a stream is opened, when the element should be created during the open operation if it doesn't exists already
     * when used the `STREAM_FILE` or `STREAM_PIPE` flag has to be set
 * `STREAM_FILE` : create a file stream
-    * value: UHEX-00000004
+    * value: `UHEX-00000004`
     * used when the stream should be used for a file, will fail if the existing element is a pipe
     * when used the `STREAM_PIPE` flag is not allowed
 * `STREAM_PIPE` : create a pipe stream
-    * value: UHEX-00000008
+    * value: `UHEX-00000008`
     * used when the stream should be used for a pipe, will fail if the existing element is a file
     * when used the `STREAM_FILE` flag is not allowed
 * `STREAM_READ` : create a readable stream
-    * value: UHEX-00000100
+    * value: `UHEX-00000100`
     * used to open a stream, which support the use of the read operations
 * `STREAM_WRITE` : create a writable stream
-    * value: UHEX-00000200
+    * value: `UHEX-00000200`
     * used to open a stream, which support the use of the write operations
 * `STREAM_APPEND` : create a writable stream in append mode
-    * value: UHEX-00000400
+    * value: `UHEX-00000400`
     * used to open a stream, which support the use of the write operations
     * the given stream will seek the file/pipe end before every write operation
     * for pipes the `STREAM_WRITE` flag is equally to this flag
 * `STREAM_FILE_TRUNC` : truncate the file
-    * value: UHEX-00010000
+    * value: `UHEX-00010000`
     * truncate the files content during the open operation
     * this flag can be used only with file streams
 * `STREAM_FILE_EOF` : start at end of file
-    * value: UHEX-00020000
+    * value: `UHEX-00020000`
     * when used the stream will not start at the start of the file, but its end
     * this flag can be used only with file streams
 
