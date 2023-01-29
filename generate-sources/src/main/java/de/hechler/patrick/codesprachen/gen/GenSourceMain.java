@@ -14,26 +14,30 @@ import java.util.List;
 import de.hechler.patrick.codesprachen.gen.impl.GenAsmEnumCommands;
 import de.hechler.patrick.codesprachen.gen.impl.GenCorePredefined;
 import de.hechler.patrick.codesprachen.gen.impl.GenCorePrimAsmCmds;
+import de.hechler.patrick.codesprachen.gen.impl.GenDisasmEnumCommands;
 
 public class GenSourceMain {
 	
 	private static final String GEN_START = "GENERATED-CODE-START";
 	private static final String GEN_END   = "GENERATED-CODE-END";
 	
-	private static final String ASM_COMMANDS_ENUMS = SrcGen.BASE_DIR
+	private static final String ASM_COMMANDS_ENUM    = SrcGen.BASE_DIR
 			+ "primitive-code/assemble/src/main/java/de/hechler/patrick/codesprachen/primitive/assemble/enums/Commands.java";
-	private static final String CORE_COMMANDS      = SrcGen.BASE_DIR
+	private static final String CORE_COMMANDS        = SrcGen.BASE_DIR
 			+ "primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmCommands.java";
-	private static final String CORE_PRE_DEFS_CLS  = SrcGen.BASE_DIR
+	private static final String CORE_PRE_DEFS_CLS    = SrcGen.BASE_DIR
 			+ "primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmPreDefines.java";
-	private static final String CORE_PRE_DEFS_RES  = SrcGen.BASE_DIR
+	private static final String CORE_PRE_DEFS_RES    = SrcGen.BASE_DIR
 			+ "primitive-code/prim-core/src/main/resources/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf";
+	private static final String DISASM_COMMANDS_ENUM = SrcGen.BASE_DIR
+			+ "primitive-code/disassemble/src/main/java/de/hechler/patrick/codesprachen/primitive/disassemble/enums/Commands.java";
 	
 	public static void main(String[] args) throws IOException, IOError {
-		generate(Path.of(ASM_COMMANDS_ENUMS), "\t", new GenAsmEnumCommands());
+		generate(Path.of(ASM_COMMANDS_ENUM), "\t", new GenAsmEnumCommands());
 		generate(Path.of(CORE_COMMANDS), "\t", new GenCorePrimAsmCmds());
 		generate(Path.of(CORE_PRE_DEFS_CLS), "\t", new GenCorePredefined(true));
 		generate0(Path.of(CORE_PRE_DEFS_RES), new GenCorePredefined(false));
+		generate(Path.of(DISASM_COMMANDS_ENUM), "\t", new GenDisasmEnumCommands());
 	}
 	
 	private static void generate0(Path file, SrcGen gen) throws IOException, IOError {

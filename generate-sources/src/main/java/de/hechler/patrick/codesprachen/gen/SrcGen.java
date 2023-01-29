@@ -101,12 +101,13 @@ public interface SrcGen {
 				if (line != null) {
 					out.write(lineStart + mdToJavadoc(line.substring(1).trim()));
 				}
-				br = "<br>";
+				br = "";
 				if (!stack.isEmpty()) { throw new IllegalStateException("stack is not empty"); }
 			}
 		}
-		out.write(br + "\n");
-		
+		if (!br.isEmpty()) {
+			out.write(br + "\n");
+		}
 	}
 	
 	static final Pattern MD_LIST_LINE = Pattern.compile("^( {4})+(\\*|[0-9]+.)\\s*(.*)$");
