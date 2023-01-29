@@ -220,7 +220,7 @@ every register can also be addressed:
 
 ### Predefined Constants
 * `INTERRUPT_COUNT` : the number of interrupts
-    * value: 67
+    * value: `67`
     * the number of interrupts supported by default
     * the `INTCNT` register is initialed with this value
 * `FP_NAN` : not a number
@@ -276,68 +276,68 @@ every register can also be addressed:
     * value: NHEX-8000000000000000
     * this constant holds the minimum number value
 * `STD_IN` : the ID of the STDIN stream
-    * value: 0
+    * value: `0`
     * this constant holds the Stream-ID of the STDIN stream
     * the stream is initially open for reading
     * write and seek operations on the STDIN stream will fail
 * `STD_OUT` : the ID of the STDOUT stream
-    * value: 1
+    * value: `1`
     * this constant holds the Stream-ID of the STDOUT stream
     * the stream is initially open for reading
     * write and seek operations on the STDOUT stream will fail
 * STD_LOG` : the ID of the STDLOG stream
-    * value: 2
+    * value: `2`
     * this constant holds the Stream-ID of the STDLOG stream
     * the stream is initially open for reading
     * write and seek operations on the STDLOG stream will fail
 * `ERR_NONE` : indicates no error
-    * value: 0
+    * value: `0`
     * this constant has to hold the zero value
     * every non zero value in the `ERRNO` register indicates some error
     * after handling the error the `ERRNO` register should be set to this value
 * `ERR_UNKNOWN_ERROR` : indicates an unknown error
-    * value: 1
+    * value: `1`
     * this error value is used when there occurred some unknown error
     * this error value is the least helpful value for error handling
 * `ERR_NO_MORE_ELEMNETS` : indicates that there are no more elements
-    * value: 2
+    * value: `2`
     * this error value is used when an iterator was used too often
 * `ERR_ELEMENT_WRONG_TYPE` : indicates that the element has not the wanted/allowed type
-    * value: 3
+    * value: `3`
     * this error value indicates that some operation was used, which is not supported by the given element
     * for example when an file is asked how many children it has
 * `ERR_ELEMENT_NOT_EXIST` : indicates that the element does not exist
-    * value: 4
+    * value: `4`
     * this error value indicates that some element does not exist
 * `ERR_ELEMENT_ALREADY_EXIST` : indicates that the element already exists
-    * value: 5
+    * value: `5`
     * this error value indicates that an element should be created but it exists already
 * `ERR_OUT_OF_SPACE` : indicates that there is not enough space on the device
-    * value: 6
+    * value: `6`
     * this error value indicates that the file system could not allocate the needed blocks
 * `ERR_IO_ERR` : indicates an IO error
-    * value: 7
+    * value: `7`
     * this error value indicates an Input/Output error
 * `ERR_ILLEGAL_ARG` : indicates an illegal argument
-    * value: 8
+    * value: `8`
     * this error value indicates that some argument has an illegal value
 * `ERR_ILLEGAL_MAGIC` : indicates that some magic value is invalid
-    * value: 9
+    * value: `9`
     * this error value indicates that a magic value was invalid
 * `ERR_OUT_OF_MEMORY` : indicates that the system is out of memory
-    * value: 10
+    * value: `10`
     * this error value indicates that the system could not allocate the needed memory
 * `ERR_ROOT_FOLDER` : indicates that the root folder does not support this operation
-    * value: 11
+    * value: `11`
     * this error value indicates that the root folder restrictions does not allow the tried operation
 * `ERR_PARENT_IS_CHILD` : indicates that the parent can't be made to it's own child
-    * value: 12
+    * value: `12`
     * this error value indicates that it was tried to move a folder to one of it's (possibly indirect) children
 * `ERR_ELEMENT_USED` : indicates the element is still used somewhere else
-    * value: 13
+    * value: `13`
     * this error value indicates that an element has open multiple handles (more than the used handle)
 * `ERR_OUT_OF_RANGE` : indicates that some value was outside of the allowed range
-    * value: 14
+    * value: `14`
     * this error value indicates that some value was outside of the allowed range
 * `UNMODIFIABLE_FLAGS` : element flags that can not be modified
     * value: `UHEX-000000FF`
