@@ -10,10 +10,15 @@ public enum Commands {
 	
 	//@formatter:off
 	
-	// NO_CONST_PARAM , PARAM , CONST_PARAM
+	//GENERATED-CODE-START
+	// this code-block is automatic generated, do not modify
+	
+	// PARAMS: NO_CONST_PARAM PARAM CONST_PARAM
+	
 	CMD_MVAD(MVAD, 3, 1),
 	
-	// NO_CONST_PARAM , NO_CONST_PARAM
+	// PARAMS: NO_CONST_PARAM NO_CONST_PARAM
+	
 	CMD_SWAP(SWAP, 2, 2),
 	CMD_DIV(DIV, 2, 2),
 	CMD_UDIV(UDIV, 2, 2),
@@ -23,7 +28,8 @@ public enum Commands {
 	CMD_BDIV(BDIV, 2, 2),
 	CMD_CMPB(CMPB, 2, 2),
 	
-	// NO_CONST_PARAM , PARAM
+	// PARAMS: NO_CONST_PARAM PARAM
+	
 	CMD_MVB(MVB, 2, 1),
 	CMD_MVW(MVW, 2, 1),
 	CMD_MVDW(MVDW, 2, 1),
@@ -47,35 +53,40 @@ public enum Commands {
 	CMD_UADD(UADD, 2, 1),
 	CMD_USUB(USUB, 2, 1),
 	CMD_UMUL(UMUL, 2, 1),
-	CMD_FPTN(FPTN, 2, 1),
-	CMD_NTFP(NTFP, 2, 1),
 	
-	// PARAM , PARAM
+	// PARAMS: PARAM PARAM
+	
 	CMD_CMP(CMP, 2, 0),
 	CMD_CMPL(CMPL, 2, 0),
 	CMD_CMPFP(CMPFP, 2, 0),
-	CMD_CHKFP(CHKFP, 2, 0),
 	CMD_CMPU(CMPU, 2, 0),
+	CMD_PUSHBLK(PUSHBLK, 2, 0),
+	CMD_POPBLK(POPBLK, 2, 0),
 	
-	// PARAM , CONST_PARAM
+	// PARAMS: PARAM CONST_PARAM
+	
 	CMD_CALO(CALO, 2, 0, 1),
 	
-	// NO_CONST_PARAM
-	CMD_NEG(NEG, 1, 1),
-	CMD_BNEG(BNEG, 1, 1),
-	CMD_NEGFP(NEGFP, 1, 1),
+	// PARAMS: NO_CONST_PARAM
+	
 	CMD_NOT(NOT, 1, 1),
+	CMD_NEG(NEG, 1, 1),
 	CMD_INC(INC, 1, 1),
 	CMD_DEC(DEC, 1, 1),
+	CMD_NEGFP(NEGFP, 1, 1),
+	CMD_BNEG(BNEG, 1, 1),
+	CMD_FPTN(FPTN, 1, 1),
+	CMD_NTFP(NTFP, 1, 1),
 	CMD_POP(POP, 1, 1),
 	
-	// PARAM
+	// PARAMS: PARAM
+	
+	CMD_CHKFP(CHKFP, 1, 0),
 	CMD_INT(INT, 1, 0),
 	CMD_PUSH(PUSH, 1, 0),
-	CMD_PUSHBLK(PUSHBLK, 1, 0),
-	CMD_POPBLK(POPBLK, 1, 0),
 	
-	// COPNST_PARAM/LABEL
+	// PARAMS: LABEL
+	
 	CMD_JMPERR(JMPERR, 1, -1),
 	CMD_JMPEQ(JMPEQ, 1, -1),
 	CMD_JMPNE(JMPNE, 1, -1),
@@ -94,11 +105,15 @@ public enum Commands {
 	CMD_JMPNB(JMPNB, 1, -1),
 	CMD_JMP(JMP, 1, -1),
 	CMD_CALL(CALL, 1, -1),
-
-	// 
-	CMD_RET(RET, 0, 0),
-	CMD_IRET(IRET, 0, 0),
 	
+	// PARAMS:
+	
+	CMD_IRET(IRET, 0, 0),
+	CMD_RET(RET, 0, 0),
+	
+	// here is the end of the automatic generated code-block
+	// GENERATED-CODE-END
+
 	;//@formatter:on
 	
 	public final int num;

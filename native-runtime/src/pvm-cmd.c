@@ -22,12 +22,7 @@ static void c_ill() /* --- */{
 #define incIP incIP0()
 #define incIPAddOneNum incIP0(+ 1)
 
-#define doJmp \
-	if (*ia.np & 0x0000800000000000L) { \
-		pvm.ip += 0xFFFF000000000000L | (*ia.np & 0x0000FFFFFFFFFFFFL); \
-	} else { \
-		pvm.ip += *ia.np & 0x00007FFFFFFFFFFFL; \
-	}
+#define doJmp pvm.ip += *ia.np >> 16;
 
 static void c_mvb() {
 	struct p p1 = param(1, 1);
@@ -133,17 +128,17 @@ static void c_or() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(1, 8);
+	struct p p2 = param(0, 8);
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(1, 8)
-	if (*p1.p.np | *p2.p.np) {
+	check_chaged(0, 8)
+	if (*p1.p.np | p2.p.n) {
 		pvm.status &= ~S_ZERO;
 	} else {
 		pvm.status |= S_ZERO;
 	}
-	*p1.p.np |= *p2.p.np;
+	*p1.p.np |= p2.p.n;
 	incIP
 }
 static void c_and() {
@@ -151,17 +146,17 @@ static void c_and() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(1, 8);
+	struct p p2 = param(0, 8);
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(1, 8)
-	if (*p1.p.np & *p2.p.np) {
+	check_chaged(0, 8)
+	if (*p1.p.np & p2.p.n) {
 		pvm.status &= ~S_ZERO;
 	} else {
 		pvm.status |= S_ZERO;
 	}
-	*p1.p.np &= *p2.p.np;
+	*p1.p.np &= p2.p.n;
 	incIP
 }
 static void c_xor() {
@@ -169,17 +164,17 @@ static void c_xor() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(1, 8);
+	struct p p2 = param(0, 8);
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(1, 8)
-	if (*p1.p.np ^ *p2.p.np) {
+	check_chaged(0, 8)
+	if (*p1.p.np ^ p2.p.n) {
 		pvm.status &= ~S_ZERO;
 	} else {
 		pvm.status |= S_ZERO;
 	}
-	*p1.p.np ^= *p2.p.np;
+	*p1.p.np ^= p2.p.n;
 	incIP
 }
 static void c_not() {
@@ -200,17 +195,17 @@ static void c_lsh() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(1, 8);
+	struct p p2 = param(0, 8);
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(1, 8)
-	if (((*p1.p.np << *p2.p.np) >> *p2.p.np) == *p1.p.np) {
+	check_chaged(0, 8)
+	if (((*p1.p.np << p2.p.n) >> p2.p.n) == *p1.p.np) {
 		pvm.status &= ~S_OVERFLOW;
 	} else {
 		pvm.status |= S_OVERFLOW;
 	}
-	*p1.p.np <<= *p2.p.np;
+	*p1.p.np <<= p2.p.n;
 	incIP
 }
 static void c_rash() {
@@ -218,17 +213,17 @@ static void c_rash() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(1, 8);
+	struct p p2 = param(0, 8);
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(1, 8)
-	if (((*p1.p.np >> *p2.p.np) << *p2.p.np) == *p1.p.np) {
+	check_chaged(0, 8)
+	if (((*p1.p.np >> p2.p.n) << p2.p.n) == p1.p.n) {
 		pvm.status &= ~S_OVERFLOW;
 	} else {
 		pvm.status |= S_OVERFLOW;
 	}
-	*p1.p.np >>= *p2.p.np;
+	*p1.p.np >>= p2.p.n;
 	incIP
 }
 static void c_rlsh() {
@@ -236,17 +231,17 @@ static void c_rlsh() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(1, 8);
+	struct p p2 = param(0, 8);
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(1, 8)
-	if (((*p1.p.up >> *p2.p.np) << *p2.p.np) == *p1.p.up) {
+	check_chaged(0, 8)
+	if (((*p1.p.up >> p2.p.n) << p2.p.n) == *p1.p.up) {
 		pvm.status &= ~S_OVERFLOW;
 	} else {
 		pvm.status |= S_OVERFLOW;
 	}
-	*p1.p.up >>= *p2.p.np;
+	*p1.p.up >>= p2.p.n;
 	incIP
 }
 
@@ -259,11 +254,11 @@ static void c_add() {
 	if (!p2.valid) {
 		return;
 	}
-	check_chaged(1, 8)
+	check_chaged(0, 8)
 	num op1 = *p1.p.np;
 	*p1.p.np += p2.p.n;
-	if (((*p1.p.np < 0) & (*p2.p.np > 0) & (op1 > 0))
-			|| ((*p1.p.np > 0) & (*p2.p.np < 0) & (op1 < 0))) {
+	if (((*p1.p.np < 0) & (p2.p.n > 0) & (op1 > 0))
+			|| ((*p1.p.np > 0) & (p2.p.n < 0) & (op1 < 0))) {
 		pvm.status = (pvm.status & ~(S_ZERO)) | S_OVERFLOW;
 	} else if (*p1.p.np) {
 		pvm.status = (pvm.status & ~(S_OVERFLOW | S_ZERO));
@@ -284,8 +279,8 @@ static void c_sub() {
 	check_chaged(1, 8)
 	num op1 = *p1.p.np;
 	*p1.p.np -= p2.p.n;
-	if (((*p1.p.np < 0) & (*p2.p.np < 0) & (op1 > 0))
-			|| ((*p1.p.np > 0) & (*p2.p.np > 0) & (op1 < 0))) {
+	if (((*p1.p.np < 0) & (p2.p.n < 0) & (op1 > 0))
+			|| ((*p1.p.np > 0) & (p2.p.n > 0) & (op1 < 0))) {
 		pvm.status = (pvm.status & ~(S_ZERO)) | S_OVERFLOW;
 	} else if (*p1.p.np) {
 		pvm.status = (pvm.status & ~(S_OVERFLOW | S_ZERO));
@@ -351,23 +346,23 @@ static void c_addc() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(1, 8);
+	struct p p2 = param(0, 8);
 	if (!p2.valid) {
 		return;
 	}
 	check_chaged(1, 8)
-	num np1 = *p1.p.np + *p2.p.np;
+	num np1 = *p1.p.np + p2.p.n;
 	if (pvm.status & S_OVERFLOW) {
 		np1++;
 	}
 	if (np1 < 0) {
-		if (*p1.p.np >= 0 && *p2.p.np >= 0) {
+		if (*p1.p.np >= 0 && p2.p.n >= 0) {
 			pvm.status |= S_OVERFLOW;
 		} else {
 			pvm.status &= ~S_OVERFLOW;
 		}
 	} else {
-		if (*p1.p.np < 0 && *p2.p.np < 0) {
+		if (*p1.p.np < 0 && p2.p.n < 0) {
 			pvm.status |= S_OVERFLOW;
 		} else {
 			pvm.status &= ~S_OVERFLOW;
@@ -381,23 +376,23 @@ static void c_subc() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(1, 8);
+	struct p p2 = param(0, 8);
 	if (!p2.valid) {
 		return;
 	}
 	check_chaged(1, 8)
-	num np1 = *p1.p.np + *p2.p.np;
+	num np1 = *p1.p.np + p2.p.n;
 	if (pvm.status & S_OVERFLOW) {
 		np1++;
 	}
 	if (np1 > 0) {
-		if (*p1.p.np < 0 && *p2.p.np >= 0) {
+		if (*p1.p.np < 0 && p2.p.n >= 0) {
 			pvm.status |= S_OVERFLOW;
 		} else {
 			pvm.status &= ~S_OVERFLOW;
 		}
 	} else {
-		if (*p1.p.np > 0 && *p2.p.np < 0) {
+		if (*p1.p.np > 0 && p2.p.n < 0) {
 			pvm.status |= S_OVERFLOW;
 		} else {
 			pvm.status &= ~S_OVERFLOW;
@@ -437,18 +432,7 @@ static void c_dec() {
 	incIP
 }
 
-static void c_jmp() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
-	doJmp
-}
 static void c_jmperr() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.err) {
 		doJmp
 	} else {
@@ -456,10 +440,6 @@ static void c_jmperr() {
 	}
 }
 static void c_jmpeq() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_EQUAL) {
 		doJmp
 	} else {
@@ -467,10 +447,6 @@ static void c_jmpeq() {
 	}
 }
 static void c_jmpne() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_EQUAL) {
 		incIP
 	} else {
@@ -478,10 +454,6 @@ static void c_jmpne() {
 	}
 }
 static void c_jmpgt() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_GREATHER) {
 		doJmp
 	} else {
@@ -489,10 +461,6 @@ static void c_jmpgt() {
 	}
 }
 static void c_jmpge() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & (S_EQUAL | S_GREATHER)) {
 		doJmp
 	} else {
@@ -500,10 +468,6 @@ static void c_jmpge() {
 	}
 }
 static void c_jmplt() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_LOWER) {
 		doJmp
 	} else {
@@ -511,10 +475,6 @@ static void c_jmplt() {
 	}
 }
 static void c_jmple() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & (S_EQUAL | S_LOWER)) {
 		doJmp
 	} else {
@@ -522,10 +482,6 @@ static void c_jmple() {
 	}
 }
 static void c_jmpcs() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_OVERFLOW) {
 		doJmp
 	} else {
@@ -533,10 +489,6 @@ static void c_jmpcs() {
 	}
 }
 static void c_jmpcc() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_OVERFLOW) {
 		incIP
 	} else {
@@ -544,10 +496,6 @@ static void c_jmpcc() {
 	}
 }
 static void c_jmpzs() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_ZERO) {
 		doJmp
 	} else {
@@ -555,10 +503,6 @@ static void c_jmpzs() {
 	}
 }
 static void c_jmpzc() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_ZERO) {
 		incIP
 	} else {
@@ -566,10 +510,6 @@ static void c_jmpzc() {
 	}
 }
 static void c_jmpnan() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_NAN) {
 		doJmp
 	} else {
@@ -577,10 +517,6 @@ static void c_jmpnan() {
 	}
 }
 static void c_jmpan() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_NAN) {
 		incIP
 	} else {
@@ -588,10 +524,6 @@ static void c_jmpan() {
 	}
 }
 static void c_jmpab() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_ALL_BITS) {
 		doJmp
 	} else {
@@ -599,10 +531,6 @@ static void c_jmpab() {
 	}
 }
 static void c_jmpsb() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_SOME_BITS) {
 		doJmp
 	} else {
@@ -610,15 +538,15 @@ static void c_jmpsb() {
 	}
 }
 static void c_jmpnb() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	if (pvm.status & S_NONE_BITS) {
 		doJmp
 	} else {
 		incIP
 	}
+}
+
+static void c_jmp() {
+	doJmp
 }
 
 static void c_int() {
@@ -644,10 +572,6 @@ static void c_iret() {
 	free_memory(p1.p.n);
 }
 static void c_call() {
-	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
-		return;
-	}
 	struct memory_check mem = chk(pvm.sp, 8);
 	if (!mem.mem) {
 		return;
@@ -712,17 +636,27 @@ static void c_pushblk() {
 	if (!p1.valid) {
 		return;
 	}
-	if (p1.p.n < 0) {
-		interrupt(INT_ERRORS_UNKNOWN_COMMAND, 0);
-		return;
-	}
-	struct p p2 = param(1, p1.p.n);
+	struct p p2 = param(0, 8);
 	if (!p2.valid) {
 		return;
 	}
-	struct memory *mem = chk(pvm.sp, p1.p.n).mem;
+	if (p2.p.n < 0) {
+		interrupt(INT_ERRORS_UNKNOWN_COMMAND, 0);
+		return;
+	}
+	struct memory *mem = chk(pvm.sp, p2.p.n).mem;
 	if (!mem) {
 		return;
+	}
+	struct memory_check pmem = chk(p1.p.n, p2.p.n);
+	if (!pmem.mem) {
+		return;
+	}
+	if (pmem.changed) {
+		mem = chk(pvm.sp, p2.p.n).mem;
+		if (!mem) {
+			return;
+		}
 	}
 	memmove(mem->offset + pvm.sp, p2.p.pntr, p1.p.n);
 	pvm.sp += p1.p.n;
@@ -736,20 +670,30 @@ static void c_popblk() {
 		interrupt(INT_ERRORS_UNKNOWN_COMMAND, 0);
 		return;
 	}
-	struct p p2 = param(1, p1.p.n);
+	struct p p2 = param(0, 8);
 	if (!p2.valid) {
 		return;
 	}
-	struct memory *mem = chk(pvm.sp, 0).mem;
-	if (!mem) {
+	struct memory *smem = chk(pvm.sp, 0).mem;
+	if (!smem) {
 		return;
 	}
-	if (p1.p.n > pvm.sp - mem->start) {
+	struct memory_check pmem = chk(p1.p.n, p2.p.n);
+	if (!pmem.mem) {
+		return;
+	}
+	if (pmem.changed) {
+		smem = chk(pvm.sp, 0).mem;
+		if (!smem) {
+			return;
+		}
+	}
+	if (p2.p.n > pvm.sp - smem->start) {
 		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
 		return;
 	}
-	pvm.sp -= p1.p.n;
-	memmove(p2.p.pntr, mem->offset + pvm.sp, p1.p.n);
+	pvm.sp -= p2.p.n;
+	memmove(pmem.mem->offset + p1.p.n, smem->offset + pvm.sp, p2.p.n);
 }
 
 static void c_cmp() {
@@ -779,12 +723,12 @@ static void c_cmpl() {
 	if (!p2.valid) {
 		return;
 	}
-	if ((p1.p.n & p2.p.n) == p1.p.n) {
-		pvm.status = (pvm.status & ~(S_NONE_BITS)) | (S_SOME_BITS | S_ALL_BITS);
-	} else if (p1.p.n < p2.p.n) {
-		pvm.status = (pvm.status & ~(S_NONE_BITS | S_ALL_BITS)) | (S_SOME_BITS);
-	} else {
+	if ((p1.p.n & p2.p.n) == 0) {
 		pvm.status = (pvm.status & ~(S_SOME_BITS | S_ALL_BITS)) | (S_NONE_BITS);
+	} else if ((p1.p.n & p2.p.n) == p2.p.n) {
+		pvm.status = (pvm.status & ~(S_NONE_BITS)) | (S_SOME_BITS | S_ALL_BITS);
+	} else {
+		pvm.status = (pvm.status & ~(S_NONE_BITS | S_ALL_BITS)) | (S_SOME_BITS);
 	}
 	incIP
 }

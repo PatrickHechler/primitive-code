@@ -13,6 +13,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchProviderException;
+import java.util.Arrays;
 import java.util.function.BooleanSupplier;
 
 import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleError;
@@ -31,7 +32,6 @@ import de.hechler.patrick.zeugs.pfs.interfaces.WriteStream;
 import de.hechler.patrick.zeugs.pfs.misc.ElementType;
 import de.hechler.patrick.zeugs.pfs.opts.PatrFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.StreamOpenOptions;
-import edu.emory.mathcs.backport.java.util.Arrays;
 
 @CheckClass
 @SuppressWarnings("static-method")
@@ -39,12 +39,15 @@ public class ProgramChecker {
 	
 	private static final byte[] EMPTY_BARR = new byte[0];
 	
-	private static final StreamOpenOptions CREATE_FILE_OPTS = new StreamOpenOptions(false, true, false,
-			ElementType.FILE, false, true);
+	private static final StreamOpenOptions CREATE_FILE_OPTS = new StreamOpenOptions(false, true, false, ElementType.FILE, false, true);
 	
 	private static final String HELLO_WORLD_PMF = "/hello-world";
 	private static final String HELLO_WORLD_PFS = "./testout/hello-world.pfs";
 	private static final String HELLO_WORLD_RES = "/de/hechler/patrick/codesprachen/primitive/assemble/programs/hello-world.psc";
+	
+	private static final String ECHO_PMF = "/echo";
+	private static final String ECHO_PFS = "./testout/echo.pfs";
+	private static final String ECHO_RES = "/de/hechler/patrick/codesprachen/primitive/assemble/programs/echo.psc";
 	
 	private FSProvider patrFsProv;
 	
@@ -79,21 +82,47 @@ public class ProgramChecker {
 			System.out.println("finished asm, close now fs");
 		}
 		System.out.println("execute now the program");
-		execute(HELLO_WORLD_PFS, HELLO_WORLD_PMF, 0, EMPTY_BARR,
-				"hello primitive world\n".getBytes(StandardCharsets.UTF_8), EMPTY_BARR);
+		execute(HELLO_WORLD_PFS, HELLO_WORLD_PMF, 0, EMPTY_BARR, "hello primitive world\n".getBytes(StandardCharsets.UTF_8), EMPTY_BARR);
 	}
 	
-	private void execute(String pfsFile, String pmfFile, int exitCode, byte[] stdin, byte[] stdout, byte[] stderr)
+	@Check
+	private void checkEchoHelloPrimitiveWorld() throws IOException, InterruptedException {
+		try (FS fs = patrFsProv.loadFS(new PatrFSOptions(ECHO_PFS, true, 4096L, 1024))) {
+			System.out.println("opened fs, asm now");
+			asm(fs, ECHO_RES, ECHO_PMF);
+			System.out.println("finished asm, close now fs");
+		}
+		System.out.println("execute now the program");
+		execute(ECHO_PFS, ECHO_PMF, 0, EMPTY_BARR, "hello primitive world\n".getBytes(StandardCharsets.UTF_8), EMPTY_BARR, "hello",
+				"primitive world");
+	}
+	
+	@Check
+	private void checkEchoNop() throws IOException, InterruptedException {
+		try (FS fs = patrFsProv.loadFS(new PatrFSOptions(ECHO_PFS, true, 4096L, 1024))) {
+			System.out.println("opened fs, asm now");
+			asm(fs, ECHO_RES, ECHO_PMF);
+			System.out.println("finished asm, close now fs");
+		}
+		System.out.println("execute now the program");
+		execute(ECHO_PFS, ECHO_PMF, 0, EMPTY_BARR, EMPTY_BARR, EMPTY_BARR);
+	}
+	
+	private void execute(String pfsFile, String pmfFile, int exitCode, byte[] stdin, byte[] stdout, byte[] stderr, String... programArgs)
 			throws IOException, InterruptedException {
 		Runtime  r    = Runtime.getRuntime();
 		String[] args = new String[] { "pvm", "--pfs=" + pfsFile, "--pmf=" + pmfFile };
+		if (programArgs != null && programArgs.length != 0) {
+			int olen = args.length;
+			args = Arrays.copyOf(args, olen + programArgs.length);
+			System.arraycopy(programArgs, 0, args, olen, programArgs.length);
+		}
 		System.out.println("args: " + Arrays.toString(args));
 		Process process = r.exec(args);
 		System.out.println("started process pid: " + process.pid() + "   " + process);
 		if (stdin.length > 0) { process.getOutputStream().write(stdin); }
 		TwoBools b1 = new TwoBools(), b2 = new TwoBools();
-		Thread   t  = Thread.ofVirtual()
-				.unstarted(() -> check(() -> process.isAlive(), process.getErrorStream(), stderr, b1));
+		Thread   t  = Thread.ofVirtual().unstarted(() -> check(() -> process.isAlive(), process.getErrorStream(), stderr, b1));
 		t.setName("check stderr");
 		t.start();
 		t = Thread.ofVirtual().unstarted(() -> check(() -> process.isAlive(), process.getInputStream(), stdout, b2));
@@ -153,7 +182,7 @@ public class ProgramChecker {
 						continue;
 					}
 					b.result = false;
-					other = new byte[stream.available()];
+					other    = new byte[stream.available()];
 					int r = stream.read(other, 0, other.length);
 					System.err.println(logStart() + "additioannly read: " + new String(other, 0, r));
 				}
@@ -182,8 +211,10 @@ public class ProgramChecker {
 	}
 	
 	private static final class TwoBools {
+		
 		volatile boolean finish;
 		volatile boolean result;
+		
 	}
 	
 	private void asm(FS fs, String res, String pmFile) throws IOException, AssembleError {
@@ -201,8 +232,7 @@ public class ProgramChecker {
 	}
 	
 	private static PrimitiveAssembler newAsm(WriteStream stream) {
-		return new PrimitiveAssembler(new BufferedOutputStream(stream.asOutputStream()), null, new Path[0], false,
-				true);
+		return new PrimitiveAssembler(new BufferedOutputStream(stream.asOutputStream()), null, new Path[0], false, true);
 	}
 	
 }
