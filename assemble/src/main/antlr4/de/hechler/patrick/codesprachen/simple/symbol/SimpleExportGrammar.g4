@@ -77,7 +77,7 @@ varExport returns [SimpleExportable imp] :
 
 functionExport returns [SimpleExportable imp] :
 	FUNC addr = NAME_OR_NUMBER FUNC name = NAME_OR_NUMBER functionType
-	{$imp = new SimpleFunction(Long.parseUnsignedLong($addr.getText(), 16), $name.getText(), (SimpleFuncType) $functionType.t);}
+	{$imp = new SimpleFunctionSymbol(Long.parseUnsignedLong($addr.getText(), 16), $name.getText(), (SimpleFuncType) $functionType.t);}
 ;
 
 variable [String number] returns [SimpleVariable v] :

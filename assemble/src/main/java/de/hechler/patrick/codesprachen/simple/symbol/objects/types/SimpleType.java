@@ -74,7 +74,7 @@ public interface SimpleType {
 	 * 
 	 * @return the number of bytes used to represent a member of this type
 	 */
-	int byteCount();
+	long byteCount();
 	
 	/**
 	 * append this type to the given string builder.<br>

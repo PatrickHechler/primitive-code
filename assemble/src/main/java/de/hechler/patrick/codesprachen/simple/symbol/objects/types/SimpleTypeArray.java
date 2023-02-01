@@ -5,9 +5,9 @@ import static de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExp
 
 public class SimpleTypeArray extends SimpleTypePointer {
 	
-	public final int elementCount;
+	public final long elementCount;
 	
-	public SimpleTypeArray(SimpleType target, int elementCount) {
+	public SimpleTypeArray(SimpleType target, long elementCount) {
 		super(target);
 		this.elementCount = elementCount;
 	}
@@ -23,7 +23,7 @@ public class SimpleTypeArray extends SimpleTypePointer {
 	}
 	
 	@Override
-	public int byteCount() {
+	public long byteCount() {
 		if (elementCount == -1) {
 			return 0;
 		}

@@ -29,12 +29,12 @@ public enum FileTypes {
 			if (fallback != null) {
 				yield fallback;
 			} else {
-				throw new IllegalArgumentException("unknown extension type: '" + extension + "'");
+				throw new IllegalArgumentException("unknown extension type: '" + extension + '\'');
 			}
 		}
 		};
 	}
-	
+
 	public String getExtension() {
 		return switch (this) {
 		case PRIMITIVE_SOURCE_CODE -> "psc";
@@ -42,6 +42,17 @@ public enum FileTypes {
 		case PRIMITIVE_MASHINE_CODE -> "pmc";
 		case SIMPLE_SOURCE_CODE -> "ssc";
 		case SIMPLE_SYMBOL_FILE -> "ssf";
+		default -> throw new InternalError("unknown FileType: " + name());
+		};
+	}
+	
+	public String getExtensionWithDot() {
+		return switch (this) {
+		case PRIMITIVE_SOURCE_CODE -> ".psc";
+		case PRIMITIVE_SYMBOL_FILE -> ".psf";
+		case PRIMITIVE_MASHINE_CODE -> ".pmc";
+		case SIMPLE_SOURCE_CODE -> ".ssc";
+		case SIMPLE_SYMBOL_FILE -> ".ssf";
 		default -> throw new InternalError("unknown FileType: " + name());
 		};
 	}

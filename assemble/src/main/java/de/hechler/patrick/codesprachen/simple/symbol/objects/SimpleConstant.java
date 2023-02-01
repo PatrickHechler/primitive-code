@@ -33,9 +33,8 @@ public record SimpleConstant(String name, long value, boolean export) implements
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
 		SimpleConstant other = (SimpleConstant) obj;
-		if ( !name.equals(other.name)) return false;
-		if (value != other.value) return false;
-		return true;
+		if (!name.equals(other.name)) return false;
+		return value == other.value;
 	}
 	
 	@Override
@@ -45,11 +44,7 @@ public record SimpleConstant(String name, long value, boolean export) implements
 		if (this.export) {
 			b.append("exp ");
 		}
-		b.append(this.name);
-		b.append(" = ");
-		b.append(this.value);
-		b.append(';');
-		return b.toString();
+		return b.append(this.name).append(" = ").append(this.value).append(';').toString();
 	}
 	
 }

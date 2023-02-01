@@ -20,7 +20,7 @@ import de.hechler.patrick.codesprachen.simple.symbol.SimpleExportGrammarLexer;
 import de.hechler.patrick.codesprachen.simple.symbol.SimpleExportGrammarParser;
 import de.hechler.patrick.codesprachen.simple.symbol.SimpleExportGrammarParser.SimpleExportsContext;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleConstant;
-import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleFunction;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleFunctionSymbol;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleFuncType;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleStructType;
@@ -29,7 +29,12 @@ import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleTypeArr
 import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleTypePointer;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleTypePrimitive;
 
-public interface SimpleExportable {
+/**
+ * a simple whatever which can be exported
+ * 
+ * @author pat
+ */
+public interface SimpleExportable extends SimpleNameable {
 	
 	static final char UNKNOWN_SIZE_ARRAY = ']';
 	static final char ARRAY              = '[';
@@ -53,11 +58,21 @@ public interface SimpleExportable {
 	static final char NAME_TYPE_SEP = ':';
 	static final char VAR_SEP       = ',';
 	
+	/**
+	 * returns <code>true</code> if this object is marked as export and <code>false</code> if not
+	 * 
+	 * @return <code>true</code> if this object is marked as export and <code>false</code> if not
+	 */
 	boolean isExport();
 	
-	String toExportString();
-	
-	String name();
+	/**
+	 * convert this {@link SimpleExportable} to an export {@link String}
+	 * 
+	 * @return this {@link SimpleExportable} converted to an export {@link String}
+	 * 
+	 * @throws IllegalStateException if this {@link SimpleExportable} is not marked as {@link #isExport() exportable}
+	 */
+	String toExportString() throws IllegalStateException;
 	
 	static SimpleExportable[] correctImports(Map<String, SimpleStructType> structs, List<SimpleExportable> imps) {
 		int                impcnt = imps.size();
@@ -66,7 +81,7 @@ public interface SimpleExportable {
 			SimpleExportable se = imps.get(i);
 			if (se instanceof SimpleConstant) {
 				// nothing to do
-			} else if (se instanceof SimpleFunction sf) {
+			} else if (se instanceof SimpleFunctionSymbol sf) {
 				correctArray(structs, sf.type.arguments);
 				correctArray(structs, sf.type.results);
 			} else if (se instanceof SimpleVariable sv) {
@@ -103,13 +118,16 @@ public interface SimpleExportable {
 		} else if (type instanceof SimpleFutureStructType sfst) {
 			SimpleStructType res = structs.get(sfst.name);
 			if (res == null) {
-				throw new NoSuchElementException("the needed structure was not exported! (name='" + ((SimpleFutureStructType) type).name
-						+ "') (exported structs: " + structs + ")");
+				throw new NoSuchElementException("the needed structure was not exported! (name='"
+						+ ((SimpleFutureStructType) type).name + "') (exported structs: " + structs + ")");
 			}
 			return res;
 		} else if (type instanceof SimpleStructType) {
-			throw new InternalError("simple struct type is not allowed here (should possibly be a SimpleFutureStructType)");
-		} else if (!(type instanceof SimpleTypePrimitive)) { throw new InternalError("unknown type class: " + type.getClass().getName()); }
+			throw new InternalError(
+					"simple struct type is not allowed here (should possibly be a SimpleFutureStructType)");
+		} else if (!(type instanceof SimpleTypePrimitive)) {
+			throw new InternalError("unknown type class: " + type.getClass().getName());
+		}
 		return type;
 	}
 	
@@ -138,8 +156,8 @@ public interface SimpleExportable {
 		@Override public boolean isArray() { return false; }
 		@Override public boolean isStruct() { return true; }
 		@Override public boolean isFunc() { return false; }
-		@Override public int byteCount() { throw new UnsupportedOperationException(); }
-		@Override public void appendToExportStr(StringBuilder build) { throw new UnsupportedOperationException(); }
+		@Override public long    byteCount() { throw new UnsupportedOperationException(); }
+		@Override public void    appendToExportStr(StringBuilder build) { throw new UnsupportedOperationException(); }
 		//@formatter:on
 		
 		@Override
@@ -182,11 +200,12 @@ public interface SimpleExportable {
 		}
 	}
 	
-	static void toPrimConsts(Map<String, PrimitiveConstant> addSymbols, String prefix, Map<String, SimpleExportable> imps, Path path) {
+	static void toPrimConsts(Map<String, PrimitiveConstant> addSymbols, String prefix,
+			Map<String, SimpleExportable> imps, Path path) {
 		for (SimpleExportable imp : imps.values()) {
 			if (imp instanceof SimpleConstant sc) {
 				convertConst(addSymbols, prefix, sc, path);
-			} else if (imp instanceof SimpleFunction sf) {
+			} else if (imp instanceof SimpleFunctionSymbol sf) {
 				convertFunc(addSymbols, prefix, sf, path);
 			} else if (imp instanceof SimpleStructType ss) {
 				convertStrut(addSymbols, prefix, ss, path);
@@ -205,12 +224,12 @@ public interface SimpleExportable {
 		checkedPut(result, pc);
 	}
 	
-	static void convertFunc(Map<String, PrimitiveConstant> result, String prefix, SimpleFunction sf, Path path) {
-		String            start = "FUNC_" + sf.name;
+	static void convertFunc(Map<String, PrimitiveConstant> result, String prefix, SimpleFunctionSymbol sf, Path path) {
+		String start = "FUNC_" + sf.name;
 		if (prefix != null) {
 			start = prefix + start;
 		}
-		PrimitiveConstant pc    = new PrimitiveConstant(start, sf.toString(), sf.address, path, -1);
+		PrimitiveConstant pc = new PrimitiveConstant(start, sf.toString(), sf.address, path, -1);
 		checkedPut(result, pc);
 		String argStart = start + "_ARG_";
 		for (SimpleVariable sv : sf.type.arguments) {
@@ -225,11 +244,11 @@ public interface SimpleExportable {
 	}
 	
 	static void convertStrut(Map<String, PrimitiveConstant> result, String prefix, SimpleStructType ss, Path path) {
-		String            start = "STRUCT_" + ss.name;
+		String start = "STRUCT_" + ss.name;
 		if (prefix != null) {
 			start = prefix + start;
 		}
-		PrimitiveConstant pc    = new PrimitiveConstant(start + "_SIZE", ss.toString(), ss.byteCount(), path, -1);
+		PrimitiveConstant pc = new PrimitiveConstant(start + "_SIZE", ss.toString(), ss.byteCount(), path, -1);
 		checkedPut(result, pc);
 		start += "_OFFSET_";
 		for (SimpleVariable sv : ss.members) {
@@ -249,7 +268,8 @@ public interface SimpleExportable {
 	
 	static void checkedPut(Map<String, PrimitiveConstant> result, PrimitiveConstant pc) {
 		if (result.put(pc.name(), pc) != null) {
-			throw new IllegalStateException("multiple exports whould get the same name when converting to primitive constants");
+			throw new IllegalStateException(
+					"multiple exports whould get the same name when converting to primitive constants");
 		}
 	}
 	

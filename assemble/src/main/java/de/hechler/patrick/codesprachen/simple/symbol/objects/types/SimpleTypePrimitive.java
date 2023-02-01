@@ -34,7 +34,7 @@ public enum SimpleTypePrimitive implements SimpleType {
 		}
 		
 		@Override
-		public int byteCount() {
+		public long byteCount() {
 			throw new IllegalStateException("inval");
 		}
 		
@@ -118,7 +118,7 @@ public enum SimpleTypePrimitive implements SimpleType {
 	}
 	
 	@Override
-	public int byteCount() {
+	public long byteCount() {
 		return bits >> 3;
 	}
 	

@@ -2,34 +2,27 @@ package de.hechler.patrick.codesprachen.simple.symbol.objects;
 
 import java.util.List;
 
-import de.hechler.patrick.codesprachen.primitive.assemble.objects.Command;
 import de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleFuncType;
 
-public class SimpleFunction implements SimpleExportable {
+public class SimpleFunctionSymbol implements SimpleExportable {
 	
-	public boolean                  addrVars;
-	public int                      regVars = -1;
-	public long                     address = -1L;
-	public List <Command>           cmds    = null;
-	public final boolean            export;
-	public final boolean            main;
-	public final String             name;
-	public final SimpleFuncType     type;
+	public long                 address;
+	public final boolean        export;
+	public final String         name;
+	public final SimpleFuncType type;
 	
-	public SimpleFunction(boolean export, boolean main, String name, List <SimpleVariable> args,
-		List <SimpleVariable> results) {
-		this( -1L, export, main, name, new SimpleFuncType(args, results));
+	public SimpleFunctionSymbol(boolean export, String name, List<SimpleVariable> args, List<SimpleVariable> results) {
+		this(-1L, export, name, new SimpleFuncType(args, results));
 	}
 	
-	public SimpleFunction(long address, String name, SimpleFuncType type) {
-		this(address, true, false, name, type);
+	public SimpleFunctionSymbol(long address, String name, SimpleFuncType type) {
+		this(address, true, name, type);
 	}
 	
-	private SimpleFunction(long address, boolean export, boolean main, String name, SimpleFuncType type) {
+	public SimpleFunctionSymbol(long address, boolean export, String name, SimpleFuncType type) {
 		this.address = address;
 		this.export = export;
-		this.main = main;
 		this.name = name;
 		this.type = type;
 	}
@@ -46,7 +39,7 @@ public class SimpleFunction implements SimpleExportable {
 	
 	@Override
 	public String toExportString() {
-		if ( !export) {
+		if (!export) {
 			throw new IllegalStateException("this is not marked as export!");
 		}
 		if (address == -1L) {
@@ -68,15 +61,11 @@ public class SimpleFunction implements SimpleExportable {
 	
 	@Override
 	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		SimpleFunction other = (SimpleFunction) obj;
-		if ( !type.equals(other.type))
-			return false;
+		if (this == obj) return true;
+		if (obj == null) return false;
+		if (getClass() != obj.getClass()) return false;
+		SimpleFunctionSymbol other = (SimpleFunctionSymbol) obj;
+		if (!type.equals(other.type)) return false;
 		return true;
 	}
 	

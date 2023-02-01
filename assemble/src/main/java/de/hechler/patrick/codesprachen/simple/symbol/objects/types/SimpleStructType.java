@@ -21,9 +21,9 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 	}
 	
 	public SimpleStructType(String name, boolean export, SimpleVariable[] members) {
-		this.name    = name;
+		this.name = name;
 		this.members = members;
-		this.export  = export;
+		this.export = export;
 	}
 	
 	@Override
@@ -50,8 +50,8 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 	public boolean isFunc() { return false; }
 	
 	@Override
-	public int byteCount() {
-		int bytes = 0;
+	public long byteCount() {
+		long bytes = 0;
 		for (SimpleVariable sv : members) {
 			bytes += sv.type.byteCount();
 		}
@@ -113,6 +113,18 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 		return b.toString();
 	}
 	
+	public static long align(long addr, long bc) {
+		if (Long.bitCount(bc) != 1) {
+			bc = Long.highestOneBit(bc) << 1;
+		}
+		if (bc >= 8) {
+			bc = 8;
+		}
+		long and = bc - 1;
+		if ((addr & and) == 0) return addr;
+		else return addr + bc - (addr & and);
+	}
+	
 	public static long align(long addr, int bc) {
 		if (Integer.bitCount(bc) != 1) {
 			bc = Integer.highestOneBit(bc) << 1;
@@ -120,8 +132,9 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 		if (bc >= 8) {
 			bc = 8;
 		}
-		if (addr % bc == 0) { return addr; }
-		return addr + bc - (addr % bc);
+		int and = bc - 1;
+		if ((addr & and) == 0) return addr;
+		else return addr + bc - (addr & and);
 	}
 	
 }

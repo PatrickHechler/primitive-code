@@ -41,7 +41,7 @@ public class SimpleTypePointer implements SimpleType {
 	}
 	
 	@Override
-	public int byteCount() {
+	public long byteCount() {
 		return 8;
 	}
 	
