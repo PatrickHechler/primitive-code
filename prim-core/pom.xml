@@ -6,7 +6,7 @@
 
 	<groupId>de.hechler.patrick.codesprachen.primitive</groupId>
 	<artifactId>prim-core</artifactId>
-	<version>4.2.0</version>
+	<version>4.2.1</version>
 	<packaging>jar</packaging>
 
 	<dependencies>

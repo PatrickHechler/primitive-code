@@ -17,8 +17,14 @@ import java.util.stream.Stream;
 
 public interface SrcGen {
 	
-	static final String BASE_DIR = "/home/pat/git/";
+	static final String BASE_DIR         = initilizeBaseDir();
 	static final String PRIM_CODE_README = BASE_DIR + "primitive-code/README.md";
+	
+	static String initilizeBaseDir() { 
+		String bd = System.getProperty("user.home") + "/git/";
+		System.out.println("base dir: " + bd);
+		return bd;
+	}
 	
 	void generate(Writer out) throws IOException;
 	
