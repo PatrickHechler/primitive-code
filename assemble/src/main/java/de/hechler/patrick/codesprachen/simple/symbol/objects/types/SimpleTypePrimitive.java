@@ -12,8 +12,8 @@ import static de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExp
 
 public enum SimpleTypePrimitive implements SimpleType {
 	
-	pt_num(64, true), pt_unum(64, false), pt_dword(32, true), pt_udword(32, false), pt_word(16, true), pt_uword(16, false), pt_byte(8, true), pt_ubyte(8, false),
-	pt_fpnum(64, true) {
+	pt_num(64, true), pt_unum(64, false), pt_dword(32, true), pt_udword(32, false), pt_word(16, true),
+	pt_uword(16, false), pt_byte(8, true), pt_ubyte(8, false), pt_fpnum(64, true) {
 		
 		@Override
 		public boolean signed() {
@@ -21,7 +21,9 @@ public enum SimpleTypePrimitive implements SimpleType {
 		}
 		
 	},
-	pt_inval( -1, false) {
+	// bool gets sometimes special handling (just like pointers)
+	pt_bool(64, false),
+	pt_inval(-1, false) {
 		
 		@Override
 		public int bits() {
