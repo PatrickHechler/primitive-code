@@ -225,18 +225,22 @@ every register can also be addressed:
     * exits with `(128 + illegal_interrup_number)` (without calling the exit interrupt)
     * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `128`
     * the value can be used by the `INT` command to indicate that this interrupt should be called
+    * the pvm may print an error message before terminating
 * `INT_ERRORS_UNKNOWN_COMMAND` :  unknown command
     * value: `1`
     * exits with `7` (without calling the exit interrupt)
     * the value can be used by the `INT` command to indicate that this interrupt should be called
+    * the pvm may print an error message before terminating
 * `INT_ERRORS_ILLEGAL_MEMORY` :  illegal memory
     * value: `2`
     * exits with `6` (without calling the exit interrupt)
     * the value can be used by the `INT` command to indicate that this interrupt should be called
+    * the pvm may print an error message before terminating
 * `INT_ERRORS_ARITHMETIC_ERROR` :  arithmetic error
     * value: `3`
     * exits with `5` (without calling the exit interrupt)
     * the value can be used by the `INT` command to indicate that this interrupt should be called
+    * the pvm may print an error message before terminating
 * `INT_EXIT` :  exit
     * value: `4`
     * use `X00` to specify the exit number of the progress
@@ -560,7 +564,7 @@ every register can also be addressed:
     * the `STATUS` register `LOWER` `GREATHER` and `EQUAL` flags will be set after this interrupt
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEM_CPY` :  memory copy
-    * value: `49`
+    * value: `50`
     * copies a block of memory
     * this function has undefined behavior if the two blocks overlap
     * `X00` points to the target memory block
@@ -568,7 +572,7 @@ every register can also be addressed:
     * `X02` has the length of bytes to bee copied
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEM_MOV` :  memory move
-    * value: `50`
+    * value: `51`
     * copies a block of memory
     * this function makes sure, that the original values of the source block are copied to the target block (even if the two block overlap)
     * `X00` points to the target memory block
@@ -576,25 +580,25 @@ every register can also be addressed:
     * `X02` has the length of bytes to bee copied
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEM_BSET` :  memory byte set
-    * value: `51`
+    * value: `52`
     * sets a memory block to the given byte-value
     * `X00` points to the block
     * `X01` the first byte contains the value to be written to each byte
     * `X02` contains the length in bytes
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_LEN` :  string length
-    * value: `52`
+    * value: `53`
     * `X00` points to the STRING
     * `X00` will be set to the length of the string/ the (byte-)offset of the first byte from the `'\0'` character
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_CMP` :  string compare
-    * value: `53`
+    * value: `54`
     * `X00` points to the first STRING
     * `X01` points to the second STRING
     * the `STATUS` register `LOWER` `GREATHER` and `EQUAL` flags will be set after this interrupt
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_NUM` :  number to string
-    * value: `54`
+    * value: `55`
     * `X00` is set to the number to convert
     * `X01` is points to the buffer to be filled with the number in a STRING format
     * `X02` contains the base of the number system
@@ -609,7 +613,7 @@ every register can also be addressed:
     * on error `X01` will be set to `-1`
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_FPNUM` :  floating point number to string
-    * value: `55`
+    * value: `56`
     * `X00` is set to the floating point number to convert
     * `X01` points to the buffer to be filled with the number in a STRING format
     * `X02` is set to the current size of the buffer
@@ -621,7 +625,7 @@ every register can also be addressed:
     * on error `X01` will be set to `-1`
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_NUM` :  string to number
-    * value: `56`
+    * value: `57`
     * `X00` points to the STRING
     * `X01` points to the base of the number system
         * (for example `10` for the decimal system or `2` for the binary system)
@@ -635,7 +639,7 @@ every register can also be addressed:
         * if `ERRNO` is set to out of range, the string value displayed a value outside of the 64-bit number range and `X00` will either be min or max value
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_FPNUM` :  string to floating point number
-    * value: `57`
+    * value: `58`
     * `X00` points to the STRING
     * `X00` will be set to the converted number
     * on success `X01` will be set to `1`
@@ -644,7 +648,7 @@ every register can also be addressed:
         * or the base is not valid
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_U16STR` :  STRING to U16-STRING
-    * value: `58`
+    * value: `59`
     * `X00` points to the STRING (`UTF-8`)
     * `X01` points to the buffer to be filled with the to `UTF-16` converted string
     * `X02` is set to the length of the buffer
@@ -654,7 +658,7 @@ every register can also be addressed:
     * `X03` will be set to the number of converted characters or `-1` on error
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_U32STR` :  STRING to U32-STRING
-    * value: `59`
+    * value: `60`
     * `X00` points to the STRING (`UTF-8`)
     * `X01` points to the buffer to be filled with the to `UTF-32` converted string
     * `X02` is set to the length of the buffer
@@ -664,7 +668,7 @@ every register can also be addressed:
     * `X03` will be set to the number of converted characters or `-1` on error
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_U16STR` :  U16-STRING to STRING
-    * value: `60`
+    * value: `61`
     * `X00` points to the `UTF-16` STRING
     * `X01` points to the buffer to be filled with the converted STRING (`UTF-8`)
     * `X02` is set to the length of the buffer
@@ -673,8 +677,8 @@ every register can also be addressed:
     * `X02` will be set to unmodified space at the end of the buffer
     * `X03` will be set to the number of converted characters or `-1` on error
     * the value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_STR_FROM_U32TR` :  U32-STRING to STRING
-    * value: `61`
+* `INT_STR_FROM_U32STR` :  U32-STRING to STRING
+    * value: `62`
     * `X00` points to the `UTF-32` STRING
     * `X01` points to the buffer to be filled with the converted STRING (`UTF-8`)
     * `X02` is set to the length of the buffer
@@ -684,7 +688,7 @@ every register can also be addressed:
     * `X03` will be set to the number of converted characters or `-1` on error
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FORMAT` :  format string
-    * value: `62`
+    * value: `63`
     * `X00` is set to the STRING input
     * `X01` contains the buffer for the STRING output
     * `X02` is the size of the buffer in bytes
@@ -710,13 +714,13 @@ every register can also be addressed:
         * `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_LOAD_FILE` :  load a file
-    * value: `63`
+    * value: `64`
     * `X00` is set to the path (inclusive name) of the file
     * `X00` will point to the memory block, in which the file has been loaded or `-1` on error
     * `X01` will be set to the length of the file (and the memory block)
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_LOAD_LIB` :  load a library file 
-    * value: `64`
+    * value: `65`
     * similar like the load file interrupt loads a file for the program.
         * the difference is that this interrupt may remember which files has been loaded
             * there are no guarantees, when the same memory block is reused and when a new memory block is created
@@ -731,7 +735,7 @@ every register can also be addressed:
     * when an error occurred `X00` will be set to `-1`
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_UNLOAD_LIB` :  unload a library file 
-    * value: `65`
+    * value: `66`
     * unloads a library previously loaded with the load lib interrupt
     * this interrupt will ensure that the given memory block will be freed and never again be returned from the load lib interrupt
     * `X00` points to the (start of the) memory block
@@ -2053,7 +2057,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `SP <- SP - p1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `03 22 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `03 23 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 

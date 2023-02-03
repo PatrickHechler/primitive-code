@@ -97,6 +97,22 @@ public class ProgramChecker {
 				"primitive world");
 	}
 	
+	
+	@Check
+	private void checkEchoManyArgs() throws IOException, InterruptedException {
+		try (FS fs = patrFsProv.loadFS(new PatrFSOptions(ECHO_PFS, true, 4096L, 1024))) {
+			System.out.println("opened fs, asm now");
+			asm(fs, ECHO_RES, ECHO_PMF);
+			System.out.println("finished asm, close now fs");
+		}
+		System.out.println("execute now the program");
+		execute(ECHO_PFS, ECHO_PMF, 0, EMPTY_BARR,
+				("hello primitive world\nthis is a multilie argument and here         comes some spaces and the text ... EOF\n")
+						.getBytes(StandardCharsets.UTF_8),
+				EMPTY_BARR, "hello", "primitive world\nthis is a multilie argument", "and", "here", "       ", "comes", "some", "spaces", "and",
+				"the", "text", "...", "EOF");
+	}
+	
 	@Check
 	private void checkEchoNop() throws IOException, InterruptedException {
 		try (FS fs = patrFsProv.loadFS(new PatrFSOptions(ECHO_PFS, true, 4096L, 1024))) {
@@ -105,7 +121,7 @@ public class ProgramChecker {
 			System.out.println("finished asm, close now fs");
 		}
 		System.out.println("execute now the program");
-		execute(ECHO_PFS, ECHO_PMF, 0, EMPTY_BARR, EMPTY_BARR, EMPTY_BARR);
+		execute(ECHO_PFS, ECHO_PMF, 0, EMPTY_BARR, "\n".getBytes(StandardCharsets.UTF_8), EMPTY_BARR);
 	}
 	
 	private void execute(String pfsFile, String pmfFile, int exitCode, byte[] stdin, byte[] stdout, byte[] stderr, String... programArgs)

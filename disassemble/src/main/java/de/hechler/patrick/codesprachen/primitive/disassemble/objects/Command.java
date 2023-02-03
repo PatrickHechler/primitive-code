@@ -147,8 +147,13 @@ public class Command {
 	}
 	
 	public int length() {
-		if (relativeLabel != -1) { return 16; }
-		if (p2 != null) {
+		if (cmd.art == ParamArt.LABEL_OR_CONST) { return 8; }
+		if (p3 != null) {
+			int len = p1.length();
+			len += p2.length();
+			len += p3.length();
+			return 8 + len;
+		} else if (p2 != null) {
 			int len = p1.length();
 			len += p2.length();
 			return 8 + len;

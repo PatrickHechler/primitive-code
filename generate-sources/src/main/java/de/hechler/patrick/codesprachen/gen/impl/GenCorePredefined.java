@@ -35,7 +35,7 @@ public class GenCorePredefined implements SrcGen {
 			} else {
 				out.write("|   ");
 				SrcGen.writeJavadocLines(out, "|   ", "<p>", cnst.docu());
-				out.write(cnst.name() + "=UHEX-" + Long.toHexString(cnst.value()) + '\n');
+				out.write("\n" + cnst.name() + "=UHEX-" + Long.toHexString(cnst.value()) + '\n');
 			}
 		}
 	}

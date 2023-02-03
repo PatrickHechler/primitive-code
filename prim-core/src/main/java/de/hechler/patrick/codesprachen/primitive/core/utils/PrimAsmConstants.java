@@ -36,15 +36,11 @@ public class PrimAsmConstants {
 			throw new IOError(e);
 		}
 		START_CONSTANTS = Collections.unmodifiableMap(startConsts);
-	}
-	
-	public static final long MAX_STD_STREAM = PrimAsmPreDefines.STD_LOG;
-	
-	static {
+		
 		for (Field field : PrimAsmPreDefines.class.getFields()) {
 			try {
 				long              val       = field.getLong(null);
-				PrimitiveConstant primConst = START_CONSTANTS.get(field.getName());
+				PrimitiveConstant primConst = startConsts.get(field.getName());
 				if (primConst == null) {
 					throw new AssertionError(
 							"validation error: primConst=null field: " + field.getName() + " (" + val + ")");
@@ -58,6 +54,8 @@ public class PrimAsmConstants {
 			}
 		}
 	}
+	
+	public static final long MAX_STD_STREAM = PrimAsmPreDefines.STD_LOG;
 	
 	public static final int IP     = 0;
 	public static final int SP     = 1;
@@ -112,7 +110,7 @@ public class PrimAsmConstants {
 				continue;
 			}
 			if (line.charAt(0) == '|') {
-				comment.append(line);
+				comment.append(line).append('\n');
 				continue;
 			}
 			Matcher matcher = pattern.matcher(line);

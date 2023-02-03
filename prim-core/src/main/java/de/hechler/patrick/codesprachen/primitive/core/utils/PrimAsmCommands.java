@@ -1343,7 +1343,7 @@ public class PrimAsmCommands {
 	 */
 	public static final int PUSHBLK = 0x0322;
 	/**
-	 * <b>POPBLK</b> <code>(03 22)</code><br>
+	 * <b>POPBLK</b> <code>(03 23)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
 	 * pops the memory block, which will be saved to p1 and is p2 large from the stack	 * <p>
@@ -1355,7 +1355,7 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 	 */
-	public static final int POPBLK  = 0x0322;
+	public static final int POPBLK  = 0x0323;
 	
 	// here is the end of the automatic generated code-block
 	// GENERATED-CODE-END

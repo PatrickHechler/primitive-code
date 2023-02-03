@@ -15,6 +15,9 @@ import de.hechler.patrick.codesprachen.gen.impl.GenAsmEnumCommands;
 import de.hechler.patrick.codesprachen.gen.impl.GenCorePredefined;
 import de.hechler.patrick.codesprachen.gen.impl.GenCorePrimAsmCmds;
 import de.hechler.patrick.codesprachen.gen.impl.GenDisasmEnumCommands;
+import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandArray;
+import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandFuncs;
+import de.hechler.patrick.codesprachen.gen.impl.GenRunIntHeader;
 
 public class GenSourceMain {
 	
@@ -31,6 +34,12 @@ public class GenSourceMain {
 			+ "primitive-code/prim-core/src/main/resources/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf";
 	private static final String DISASM_COMMANDS_ENUM = SrcGen.BASE_DIR
 			+ "primitive-code/disassemble/src/main/java/de/hechler/patrick/codesprachen/primitive/disassemble/enums/Commands.java";
+	private static final String RUN_COMMAND_FUNCS = SrcGen.BASE_DIR
+			+ "primitive-code/native-runtime/src/pvm-cmd.h";
+	private static final String RUN_COMMAND_ARRAY = SrcGen.BASE_DIR
+			+ "primitive-code/native-runtime/src/pvm-cmd-cmds-gen.h";
+	private static final String RUN_INT_HEADER = SrcGen.BASE_DIR
+			+ "primitive-code/native-runtime/src/pvm-int.h";
 	
 	public static void main(String[] args) throws IOException, IOError {
 		generate(Path.of(ASM_COMMANDS_ENUM), "\t", new GenAsmEnumCommands());
@@ -38,6 +47,10 @@ public class GenSourceMain {
 		generate(Path.of(CORE_PRE_DEFS_CLS), "\t", new GenCorePredefined(true));
 		generate0(Path.of(CORE_PRE_DEFS_RES), new GenCorePredefined(false));
 		generate(Path.of(DISASM_COMMANDS_ENUM), "\t", new GenDisasmEnumCommands());
+		generate(Path.of(RUN_COMMAND_FUNCS), "", new GenRunCommandFuncs());
+		generate(Path.of(RUN_COMMAND_ARRAY), "", new GenRunCommandArray());
+		generate0(Path.of(RUN_INT_HEADER), new GenRunIntHeader());
+		System.out.println("finish");
 	}
 	
 	private static void generate0(Path file, SrcGen gen) throws IOException, IOError {

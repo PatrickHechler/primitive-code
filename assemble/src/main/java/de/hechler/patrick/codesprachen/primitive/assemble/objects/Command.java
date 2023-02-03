@@ -154,7 +154,7 @@ public class Command {
 			return len;
 		case 1:
 			if (p1.label != null) {
-				return 16;
+				return 8;
 			} else {
 				switch (p1.art) {
 				case Param.ART_ANUM_BNUM:

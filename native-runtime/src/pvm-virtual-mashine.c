@@ -117,7 +117,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	}
 
 	struct memory *args_mem = alloc_memory2(argv, (argc + 1) * sizeof(char*),
-			MEM_NO_FREE | MEM_NO_RESIZE);
+	MEM_NO_FREE | MEM_NO_RESIZE);
 	if (!args_mem) {
 		abort();
 	}
@@ -125,7 +125,8 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	pvm.x[1] = args_mem->start;
 	for (; argc; argv++, argc--) {
 		num len = strlen(*argv) + 1;
-		struct memory *arg_mem = alloc_memory2(*argv, len, MEM_NO_FREE | MEM_NO_RESIZE);
+		struct memory *arg_mem = alloc_memory2(*argv, len,
+				MEM_NO_FREE | MEM_NO_RESIZE);
 		if (!arg_mem) {
 			abort();
 		}
@@ -1042,7 +1043,7 @@ PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size, unsigned flags) 
 			memory[index].offset = adr - memory[index].start;
 			memory[index].flags = flags;
 			next_adress = memory[index].end + ADRESS_HOLE_DEFAULT_SIZE;
-			if (memory->end < 0) {
+			if (memory[index].end < 0) {
 				// overflow
 				abort();
 			}
@@ -1054,19 +1055,19 @@ PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size, unsigned flags) 
 	memory = realloc(memory, mem_size * sizeof(struct memory));
 	memset(memory + oms + 1, -1, 15 * sizeof(struct memory));
 	memory[oms].start = next_adress;
-	memory[oms].end = memory->start + size;
-	memory[oms].offset = adr - memory->start;
+	memory[oms].end = memory[oms].start + size;
+	memory[oms].offset = adr - memory[oms].start;
 	memory[oms].flags = flags;
 	/*
-	 //	if (memory->start < 0 || memory->end < 0) {
+	 //	if (memory[oms].start < 0 || memory[oms].end < 0) {
 	 * whould be the better check
 	 * I know that the current check can fail when size is near 2^63
 	 */
-	if (memory->end < 0) {
+	if (memory[oms].end < 0) {
 		// overflow
 		abort();
 	}
-	next_adress = memory->end + ADRESS_HOLE_DEFAULT_SIZE;
+	next_adress = memory[oms].end + ADRESS_HOLE_DEFAULT_SIZE;
 	return memory + oms;
 }
 PVM_SI_PREFIX struct memory2 alloc_memory(num size, unsigned flags) {
@@ -1222,8 +1223,21 @@ static inline void print_pvm(FILE *file_write, int end) {
 	if (end == 4) {
 		return;
 	}
-	fprintf(file_write, "  STATUS: UHEX-%lX : %ld\n", pvm_copy.status,
+	fprintf(file_write, "  STATUS: UHEX-%lX : %ld (", pvm_copy.status,
 			pvm_copy.status);
+	_Bool notFirst = 0;
+#define print_flag(flag) if (pvm_copy.status & S_##flag) { if (notFirst) { fputs(" | ", file_write); } else { notFirst = 1; } fputs(#flag, file_write); }
+	print_flag(LOWER)
+	print_flag(GREATHER)
+	print_flag(EQUAL)
+	print_flag(OVERFLOW)
+	print_flag(ZERO)
+	print_flag(NAN)
+	print_flag(ALL_BITS)
+	print_flag(SOME_BITS)
+	print_flag(NONE_BITS)
+#undef print_flag
+	fputs(")\n", file_write);
 	if (end == 5) {
 		return;
 	}
