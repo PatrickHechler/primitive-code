@@ -2,8 +2,6 @@ package de.hechler.patrick.codesprachen.gen;
 
 import java.io.IOError;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -17,6 +15,7 @@ import de.hechler.patrick.codesprachen.gen.impl.GenCorePrimAsmCmds;
 import de.hechler.patrick.codesprachen.gen.impl.GenDisasmEnumCommands;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandArray;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandFuncs;
+import de.hechler.patrick.codesprachen.gen.impl.GenRunErrEnum;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunIntHeader;
 
 public class GenSourceMain {
@@ -24,22 +23,20 @@ public class GenSourceMain {
 	private static final String GEN_START = "GENERATED-CODE-START";
 	private static final String GEN_END   = "GENERATED-CODE-END";
 	
-	private static final String ASM_COMMANDS_ENUM    = SrcGen.BASE_DIR
-			+ "primitive-code/assemble/src/main/java/de/hechler/patrick/codesprachen/primitive/assemble/enums/Commands.java";
-	private static final String CORE_COMMANDS        = SrcGen.BASE_DIR
-			+ "primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmCommands.java";
-	private static final String CORE_PRE_DEFS_CLS    = SrcGen.BASE_DIR
-			+ "primitive-code/prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmPreDefines.java";
-	private static final String CORE_PRE_DEFS_RES    = SrcGen.BASE_DIR
-			+ "primitive-code/prim-core/src/main/resources/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf";
-	private static final String DISASM_COMMANDS_ENUM = SrcGen.BASE_DIR
-			+ "primitive-code/disassemble/src/main/java/de/hechler/patrick/codesprachen/primitive/disassemble/enums/Commands.java";
-	private static final String RUN_COMMAND_FUNCS = SrcGen.BASE_DIR
-			+ "primitive-code/native-runtime/src/pvm-cmd.h";
-	private static final String RUN_COMMAND_ARRAY = SrcGen.BASE_DIR
-			+ "primitive-code/native-runtime/src/pvm-cmd-cmds-gen.h";
-	private static final String RUN_INT_HEADER = SrcGen.BASE_DIR
-			+ "primitive-code/native-runtime/src/pvm-int.h";
+	private static final String ASM_COMMANDS_ENUM    = SrcGen.PRIMITIVE_CODE_DIR
+			+ "assemble/src/main/java/de/hechler/patrick/codesprachen/primitive/assemble/enums/Commands.java";
+	private static final String CORE_COMMANDS        = SrcGen.PRIMITIVE_CODE_DIR
+			+ "prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmCommands.java";
+	private static final String CORE_PRE_DEFS_CLS    = SrcGen.PRIMITIVE_CODE_DIR
+			+ "prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmPreDefines.java";
+	private static final String CORE_PRE_DEFS_RES    = SrcGen.PRIMITIVE_CODE_DIR
+			+ "prim-core/src/main/resources/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf";
+	private static final String DISASM_COMMANDS_ENUM = SrcGen.PRIMITIVE_CODE_DIR
+			+ "disassemble/src/main/java/de/hechler/patrick/codesprachen/primitive/disassemble/enums/Commands.java";
+	private static final String RUN_COMMAND_FUNCS    = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-cmd.h";
+	private static final String RUN_COMMAND_ARRAY    = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-cmd-cmds-gen.h";
+	private static final String RUN_INT_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-int.h";
+	private static final String RUN_ERR_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-err.h";
 	
 	public static void main(String[] args) throws IOException, IOError {
 		generate(Path.of(ASM_COMMANDS_ENUM), "\t", new GenAsmEnumCommands());
@@ -50,22 +47,13 @@ public class GenSourceMain {
 		generate(Path.of(RUN_COMMAND_FUNCS), "", new GenRunCommandFuncs());
 		generate(Path.of(RUN_COMMAND_ARRAY), "", new GenRunCommandArray());
 		generate0(Path.of(RUN_INT_HEADER), new GenRunIntHeader());
+		generate(Path.of(RUN_ERR_HEADER), "\t", new GenRunErrEnum());
 		System.out.println("finish");
 	}
 	
 	private static void generate0(Path file, SrcGen gen) throws IOException, IOError {
 		try (Writer out = Files.newBufferedWriter(file)) {
 			gen.generate(out);
-		}
-	}
-	
-	private static void generate(Path file, SrcGen gen) throws IOException, IOError {
-		try (OutputStream out = Files.newOutputStream(file)) {
-			Files.copy(file.resolveSibling("start-" + file.getFileName()), out);
-			try (Writer w = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
-				gen.generate(w);
-			}
-			Files.copy(file.resolveSibling("end-" + file.getFileName()), out);
 		}
 	}
 	

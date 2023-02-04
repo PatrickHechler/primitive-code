@@ -17,13 +17,16 @@ import java.util.stream.Stream;
 
 public interface SrcGen {
 	
-	static final String BASE_DIR         = initilizeBaseDir();
-	static final String PRIM_CODE_README = BASE_DIR + "primitive-code/README.md";
+	static final String BASE_DIR           = initilizeBaseDir();
+	static final String PRIMITIVE_CODE_DIR = BASE_DIR + "primitive-code/";
+	static final String PATR_FILE_SYS_DIR  = BASE_DIR + "PatrFileSys/";
+	static final String SIMPLE_CODE_DIR    = BASE_DIR + "simple-code/";
+	static final String PRIM_CODE_README   = PRIMITIVE_CODE_DIR + "README.md";
 	
-	static String initilizeBaseDir() { 
-		String bd = System.getProperty("user.home") + "/git/";
-		System.out.println("base dir: " + bd);
-		return bd;
+	static String initilizeBaseDir() {
+		String baseDir = System.getProperty("user.home") + "/git/";
+		System.out.println("base dir: " + baseDir);
+		return baseDir;
 	}
 	
 	void generate(Writer out) throws IOException;
