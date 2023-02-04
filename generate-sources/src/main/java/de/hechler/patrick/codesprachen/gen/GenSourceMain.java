@@ -2,6 +2,8 @@ package de.hechler.patrick.codesprachen.gen;
 
 import java.io.IOError;
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -15,7 +17,7 @@ import de.hechler.patrick.codesprachen.gen.impl.GenCorePrimAsmCmds;
 import de.hechler.patrick.codesprachen.gen.impl.GenDisasmEnumCommands;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandArray;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandFuncs;
-import de.hechler.patrick.codesprachen.gen.impl.GenRunErrEnum;
+import de.hechler.patrick.codesprachen.gen.impl.GenCErrEnum;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunIntHeader;
 
 public class GenSourceMain {
@@ -37,6 +39,7 @@ public class GenSourceMain {
 	private static final String RUN_COMMAND_ARRAY    = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-cmd-cmds-gen.h";
 	private static final String RUN_INT_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-int.h";
 	private static final String RUN_ERR_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-err.h";
+	private static final String PFS_ERR_HEADER       = SrcGen.PATR_FILE_SYS_DIR + "pfs-core/src/include/pfs-err.h";
 	
 	public static void main(String[] args) throws IOException, IOError {
 		generate(Path.of(ASM_COMMANDS_ENUM), "\t", new GenAsmEnumCommands());
@@ -47,13 +50,24 @@ public class GenSourceMain {
 		generate(Path.of(RUN_COMMAND_FUNCS), "", new GenRunCommandFuncs());
 		generate(Path.of(RUN_COMMAND_ARRAY), "", new GenRunCommandArray());
 		generate0(Path.of(RUN_INT_HEADER), new GenRunIntHeader());
-		generate(Path.of(RUN_ERR_HEADER), "\t", new GenRunErrEnum());
+		generate(Path.of(RUN_ERR_HEADER), "\t", new GenCErrEnum("PE_"));
+		generate(Path.of(PFS_ERR_HEADER), "\t", new GenCErrEnum("PFS_ERRNO_"));
 		System.out.println("finish");
 	}
 	
 	private static void generate0(Path file, SrcGen gen) throws IOException, IOError {
 		try (Writer out = Files.newBufferedWriter(file)) {
 			gen.generate(out);
+		}
+	}
+	
+	private static void generate(Path file, SrcGen gen) throws IOException, IOError {
+		try (OutputStream out = Files.newOutputStream(file)) {
+			Files.copy(file.resolveSibling("start-" + file.getFileName()), out);
+			try (Writer w = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
+				gen.generate(w);
+			}
+			Files.copy(file.resolveSibling("end-" + file.getFileName()), out);
 		}
 	}
 	

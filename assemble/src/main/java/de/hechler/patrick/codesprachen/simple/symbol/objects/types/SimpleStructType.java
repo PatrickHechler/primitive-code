@@ -6,6 +6,7 @@ import java.util.List;
 
 import de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable.SimpleOffsetVariable;
 
 public class SimpleStructType implements SimpleType, SimpleExportable {
 	
@@ -14,13 +15,13 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 	/**
 	 * this array should not be modified
 	 */
-	public final SimpleVariable[] members;
+	public final SimpleOffsetVariable[] members;
 	
-	public SimpleStructType(String name, boolean export, List<SimpleVariable> members) {
-		this(name, export, members.toArray(new SimpleVariable[members.size()]));
+	public SimpleStructType(String name, boolean export, List<SimpleOffsetVariable> members) {
+		this(name, export, members.toArray(new SimpleOffsetVariable[members.size()]));
 	}
 	
-	public SimpleStructType(String name, boolean export, SimpleVariable[] members) {
+	public SimpleStructType(String name, boolean export, SimpleOffsetVariable[] members) {
 		this.name = name;
 		this.members = members;
 		this.export = export;

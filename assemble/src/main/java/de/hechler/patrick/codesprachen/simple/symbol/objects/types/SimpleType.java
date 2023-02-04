@@ -14,47 +14,65 @@ public interface SimpleType {
 	public static final SimpleTypePrimitive BOOL   = SimpleTypePrimitive.pt_bool;
 	
 	/**
-	 * returns <code>true</code> if this type is a {@link SimpleTypePrimitive} and <code>false</code> if not
+	 * returns <code>true</code> if this type is a {@link SimpleTypePrimitive} and
+	 * <code>false</code> if not
 	 * 
-	 * @return <code>true</code> if this type is a {@link SimpleTypePrimitive} and <code>false</code> if not
+	 * @return <code>true</code> if this type is a {@link SimpleTypePrimitive} and
+	 *         <code>false</code> if not
 	 */
 	boolean isPrimitive();
 	
 	/**
-	 * returns <code>true</code> if this type is a pointer or an array and <code>false</code> if not
+	 * returns <code>true</code> if this type is a pointer or an array and
+	 * <code>false</code> if not
 	 * 
-	 * @return <code>true</code> if this type is a pointer or an array and <code>false</code> if not
+	 * @return <code>true</code> if this type is a pointer or an array and
+	 *         <code>false</code> if not
 	 */
 	boolean isPointerOrArray();
 	
 	/**
-	 * returns <code>true</code> if this type is a pointer and <code>false</code> if not
+	 * returns <code>true</code> if this type is a pointer and <code>false</code> if
+	 * not
 	 * 
-	 * @return <code>true</code> if this type is a pointer and <code>false</code> if not
+	 * @return <code>true</code> if this type is a pointer and <code>false</code> if
+	 *         not
 	 */
 	boolean isPointer();
 	
 	/**
-	 * returns <code>true</code> if this type is an array and <code>false</code> if not
+	 * returns <code>true</code> if this type is an array and <code>false</code> if
+	 * not
 	 * 
-	 * @return <code>true</code> if this type is an array and <code>false</code> if not
+	 * @return <code>true</code> if this type is an array and <code>false</code> if
+	 *         not
 	 */
 	boolean isArray();
 	
 	/**
-	 * returns <code>true</code> if this type is a structure and <code>false</code> if not
+	 * returns <code>true</code> if this type is a structure and <code>false</code>
+	 * if not
+	 * <p>
+	 * note this method will also return <code>true</code> if this type represents a
+	 * function structure ({@link #isFunc()})
 	 * 
-	 * @return <code>true</code> if this type is a structure and <code>false</code> if not
+	 * @return <code>true</code> if this type is a structure and <code>false</code>
+	 *         if not
+	 * 
+	 * @see #isFunc()
 	 */
 	boolean isStruct();
 	
 	/**
-	 * returns <code>true</code> if this type is a function call structure and <code>false</code> if not
+	 * returns <code>true</code> if this type is a function call structure and
+	 * <code>false</code> if not
 	 * <p>
-	 * note that a function call structure is also a structure, so {@link #isStruct()} will also return
+	 * note that a function call structure is also a structure, so
+	 * {@link #isStruct()} will also return
 	 * <code>true</code>
 	 * 
-	 * @return <code>true</code> if this type is a function call structure and <code>false</code> if not
+	 * @return <code>true</code> if this type is a function call structure and
+	 *         <code>false</code> if not
 	 */
 	boolean isFunc();
 	
@@ -67,7 +85,8 @@ public interface SimpleType {
 	
 	/**
 	 * append this type to the given string builder.<br>
-	 * the appended sequence will be a valid simple export sequence and represent this type
+	 * the appended sequence will be a valid simple export sequence and represent
+	 * this type
 	 * 
 	 * @param build the {@link StringBuilder} to which this type should be appended
 	 */

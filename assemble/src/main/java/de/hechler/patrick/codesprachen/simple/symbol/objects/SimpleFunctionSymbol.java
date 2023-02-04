@@ -3,6 +3,7 @@ package de.hechler.patrick.codesprachen.simple.symbol.objects;
 import java.util.List;
 
 import de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable.SimpleOffsetVariable;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleFuncType;
 
 public class SimpleFunctionSymbol implements SimpleExportable {
@@ -12,7 +13,7 @@ public class SimpleFunctionSymbol implements SimpleExportable {
 	public final String         name;
 	public final SimpleFuncType type;
 	
-	public SimpleFunctionSymbol(boolean export, String name, List<SimpleVariable> args, List<SimpleVariable> results) {
+	public SimpleFunctionSymbol(boolean export, String name, List<SimpleOffsetVariable> args, List<SimpleOffsetVariable> results) {
 		this(-1L, export, name, new SimpleFuncType(args, results));
 	}
 	

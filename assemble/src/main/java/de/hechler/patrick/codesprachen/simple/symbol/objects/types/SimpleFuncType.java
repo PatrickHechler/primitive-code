@@ -6,80 +6,67 @@ import static de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExp
 import java.util.List;
 
 import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants;
-import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable.SimpleOffsetVariable;
 
 public class SimpleFuncType implements SimpleType {
 	
 	public static final int REG_METHOD_STRUCT = PrimAsmConstants.X_ADD;
 	
-	private static final SimpleVariable[] EMPTY_RESULTS = new SimpleVariable[0];
+	private static final SimpleOffsetVariable[] EMPTY_RESULTS = new SimpleOffsetVariable[0];
 	
 	/**
 	 * this array should not be modified
 	 */
-	public final SimpleVariable[] arguments;
+	public final SimpleOffsetVariable[] arguments;
 	/**
 	 * this array should not be modified
 	 */
-	public final SimpleVariable[] results;
+	public final SimpleOffsetVariable[] results;
 	
-	public SimpleFuncType(List<SimpleVariable> args, List<SimpleVariable> results) {
-		this.arguments = args.toArray(new SimpleVariable[args.size()]);
-		this.results = results == null ? EMPTY_RESULTS : results.toArray(new SimpleVariable[results.size()]);
+	public SimpleFuncType(List<SimpleOffsetVariable> args, List<SimpleOffsetVariable> results) {
+		this.arguments = args.toArray(new SimpleOffsetVariable[args.size()]);
+		this.results   = results == null ? EMPTY_RESULTS : results.toArray(new SimpleOffsetVariable[results.size()]);
 		init(this.arguments);
 		init(this.results);
 	}
 	
-	private static final void init(SimpleVariable[] svs) {
+	private static final void init(SimpleOffsetVariable[] svs) {
 		long addr = 0L;
 		for (int i = 0; i < svs.length; i++) {
-			SimpleVariable sv = svs[i];
-			long           bc = sv.type.byteCount();
+			SimpleOffsetVariable sv = svs[i];
+			long                 bc = sv.type.byteCount();
 			addr = SimpleStructType.align(addr, bc);
-			sv.addr = addr;
-			sv.reg = REG_METHOD_STRUCT;
+			sv.init(addr);
 			addr += bc;
 		}
 	}
 	
 	@Override
-	public boolean isPrimitive() {
-		return false;
-	}
+	public boolean isPrimitive() { return false; }
 	
 	@Override
-	public boolean isPointerOrArray() {
-		return false;
-	}
+	public boolean isPointerOrArray() { return false; }
 	
 	@Override
-	public boolean isPointer() {
-		return false;
-	}
+	public boolean isPointer() { return false; }
 	
 	@Override
-	public boolean isArray() {
-		return false;
-	}
+	public boolean isArray() { return false; }
 	
 	@Override
-	public boolean isStruct() {
-		return true;
-	}
+	public boolean isStruct() { return true; }
 	
 	@Override
-	public boolean isFunc() {
-		return true;
-	}
+	public boolean isFunc() { return true; }
 	
 	@Override
 	public int hashCode() {
 		final int prime  = 31;
 		int       result = 1;
-		for (SimpleVariable sv : arguments) {
+		for (SimpleOffsetVariable sv : arguments) {
 			result = prime * result + sv.type.hashCode();
 		}
-		for (SimpleVariable sv : results) {
+		for (SimpleOffsetVariable sv : results) {
 			result = prime * result + sv.type.hashCode();
 		}
 		return result;

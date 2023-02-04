@@ -857,11 +857,11 @@ ERR_NONE=UHEX-0
 |   this error value is used when there occurred some unknown error<br>
 |   this error value is the least helpful value for error handling
 ERR_UNKNOWN_ERROR=UHEX-1
-|:  <b>ERR_NO_MORE_ELEMNETS</b>: indicates that there are no more elements<br>
+|:  <b>ERR_NO_MORE_ELEMENTS</b>: indicates that there are no more elements<br>
 |   value: <code>2</code>
 |   <p>
 |   this error value is used when an iterator was used too often
-ERR_NO_MORE_ELEMNETS=UHEX-2
+ERR_NO_MORE_ELEMENTS=UHEX-2
 |:  <b>ERR_ELEMENT_WRONG_TYPE</b>: indicates that the element has not the wanted/allowed type<br>
 |   value: <code>3</code>
 |   <p>
@@ -923,6 +923,12 @@ ERR_ELEMENT_USED=UHEX-d
 |   <p>
 |   this error value indicates that some value was outside of the allowed range
 ERR_OUT_OF_RANGE=UHEX-e
+|:  <b>ERR_FOLDER_NOT_EMPTY</b>: indicates that the operation was canceled, because only empty folders can be deleted<br>
+|   value: <code>15</code>
+|   <p>
+|   this error value indicates that the operation was canceled, because only empty folders can be deleted<br>
+|   this error will occur, when a non empty folder is tried to be deleted
+ERR_FOLDER_NOT_EMPTY=UHEX-f
 |:  <b>UNMODIFIABLE_FLAGS</b>: element flags that can not be modified<br>
 |   value: <code>0x000000ff</code>
 |   <p>

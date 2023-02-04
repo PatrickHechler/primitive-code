@@ -89,7 +89,7 @@ static void int_open_stream( INT_PARAMS) /* 8 */{
 static void int_streams_write( INT_PARAMS) /* 9 */{
 	if (pvm.x[1] < 0) {
 		pvm.x[1] = 0;
-		pvm.err = PFS_ERRNO_ILLEGAL_ARG;
+		pvm.err = PE_ILLEGAL_ARG;
 		return;
 	}
 	struct memory *mem = chk(pvm.x[2], pvm.x[1]).mem;
@@ -101,7 +101,7 @@ static void int_streams_write( INT_PARAMS) /* 9 */{
 static void int_streams_read( INT_PARAMS) /* 10 */{
 	if (pvm.x[1] < 0) {
 		pvm.x[1] = 0;
-		pvm.err = PFS_ERRNO_ILLEGAL_ARG;
+		pvm.err = PE_ILLEGAL_ARG;
 		return;
 	}
 	struct memory *mem = chk(pvm.x[2], pvm.x[1]).mem;
@@ -355,10 +355,10 @@ static void int_time_sleep( INT_PARAMS) /* 45 */{
 	if (nanosleep(&want, &remain) == -1) {
 		switch (errno) {
 		case EINVAL:
-			pvm.err = PFS_ERRNO_ILLEGAL_ARG;
+			pvm.err = PE_ILLEGAL_ARG;
 			break;
 		default:
-			pvm.err = PFS_ERRNO_UNKNOWN_ERROR;
+			pvm.err = PE_UNKNOWN_ERROR;
 		}
 		pvm.x[2] = 0;
 	} else {
@@ -372,10 +372,10 @@ static void int_time_wait( INT_PARAMS) /* 46 */{
 	if (clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &want, NULL) == -1) {
 		switch (errno) {
 		case EINVAL:
-			pvm.err = PFS_ERRNO_ILLEGAL_ARG;
+			pvm.err = PE_ILLEGAL_ARG;
 			break;
 		default:
-			pvm.err = PFS_ERRNO_UNKNOWN_ERROR;
+			pvm.err = PE_UNKNOWN_ERROR;
 		}
 		pvm.x[2] = 0;
 	} else {

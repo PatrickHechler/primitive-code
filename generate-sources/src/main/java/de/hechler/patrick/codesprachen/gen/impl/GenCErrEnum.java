@@ -6,7 +6,13 @@ import java.io.Writer;
 import de.hechler.patrick.codesprachen.gen.SrcGen;
 
 
-public class GenRunErrEnum implements SrcGen {
+public class GenCErrEnum implements SrcGen {
+	
+	private final String nameStart;
+	
+	public GenCErrEnum(String nameStart) {
+		this.nameStart = nameStart;
+	}
 	
 	@Override
 	public void generate(Writer out) throws IOException {
@@ -14,9 +20,10 @@ public class GenRunErrEnum implements SrcGen {
 			if (!cnst.name().startsWith("ERR_")) {
 				continue;
 			}
-			out.write("\tPE_");
+			out.write('\t');
+			out.write(nameStart);
 			out.write(cnst.name().substring("ERR_".length()));
-			out.write("                         ".substring(cnst.name().length()));
+			out.write("                                 ".substring(cnst.name().length()));
 			out.write(" = ");
 			out.write(Long.toString(cnst.value()));
 			out.write(", /* ");

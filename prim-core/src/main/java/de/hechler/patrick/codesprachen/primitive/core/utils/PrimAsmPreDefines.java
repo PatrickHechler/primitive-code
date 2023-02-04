@@ -961,11 +961,11 @@ public class PrimAsmPreDefines {
 	 * this error value is the least helpful value for error handling	 */
 	public static final long ERR_UNKNOWN_ERROR = 1L;
 	/**
-	 * <b>ERR_NO_MORE_ELEMNETS</b>: indicates that there are no more elements<br>
+	 * <b>ERR_NO_MORE_ELEMENTS</b>: indicates that there are no more elements<br>
 	 * value: <code>2</code>
 	 * <p>
 	 * this error value is used when an iterator was used too often	 */
-	public static final long ERR_NO_MORE_ELEMNETS = 2L;
+	public static final long ERR_NO_MORE_ELEMENTS = 2L;
 	/**
 	 * <b>ERR_ELEMENT_WRONG_TYPE</b>: indicates that the element has not the wanted/allowed type<br>
 	 * value: <code>3</code>
@@ -1039,6 +1039,13 @@ public class PrimAsmPreDefines {
 	 * <p>
 	 * this error value indicates that some value was outside of the allowed range	 */
 	public static final long ERR_OUT_OF_RANGE = 14L;
+	/**
+	 * <b>ERR_FOLDER_NOT_EMPTY</b>: indicates that the operation was canceled, because only empty folders can be deleted<br>
+	 * value: <code>15</code>
+	 * <p>
+	 * this error value indicates that the operation was canceled, because only empty folders can be deleted<br>
+	 * this error will occur, when a non empty folder is tried to be deleted	 */
+	public static final long ERR_FOLDER_NOT_EMPTY = 15L;
 	/**
 	 * <b>UNMODIFIABLE_FLAGS</b>: element flags that can not be modified<br>
 	 * value: <code>0x000000ff</code>

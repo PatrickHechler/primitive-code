@@ -820,7 +820,7 @@ every register can also be addressed:
     * value: `1`
     * this error value is used when there occurred some unknown error
     * this error value is the least helpful value for error handling
-* `ERR_NO_MORE_ELEMNETS` : indicates that there are no more elements
+* `ERR_NO_MORE_ELEMENTS` : indicates that there are no more elements
     * value: `2`
     * this error value is used when an iterator was used too often
 * `ERR_ELEMENT_WRONG_TYPE` : indicates that the element has not the wanted/allowed type
@@ -860,6 +860,10 @@ every register can also be addressed:
 * `ERR_OUT_OF_RANGE` : indicates that some value was outside of the allowed range
     * value: `14`
     * this error value indicates that some value was outside of the allowed range
+* `ERR_FOLDER_NOT_EMPTY` : indicates that the operation was canceled, because only empty folders can be deleted
+    * value: `15`
+    * this error value indicates that the operation was canceled, because only empty folders can be deleted
+    * this error will occur, when a non empty folder is tried to be deleted
 * `UNMODIFIABLE_FLAGS` : element flags that can not be modified
     * value: `UHEX-000000FF`
     * these flags can not be modified after an element was created
