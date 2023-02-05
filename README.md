@@ -1920,6 +1920,7 @@ the pre-commands ar executed at assemble time, not runtime
 * negative interrupts will always cause the illegal interrupt to be called instead
 * when `INTCNT` is greater then the number of default interrupts and the called interrupt is not overwritten, the illegal interrupt will be called instead
 * for the list of default interrupts see the [predefined constant](#predefined-constants) documentation
+    * note that all predefined interrupts set the `ERRNO` register to a nonzero value on error
 * definition:
     * `IP         <- IP + CMD_LEN`
     * note that default interrupts get called with a different routine

@@ -17,7 +17,7 @@ public enum SimpleTypePrimitive implements SimpleType {
 		
 		@Override
 		public boolean signed() {
-			throw new IllegalStateException("fpnum");
+			throw new AssertionError("fpnum");
 		}
 		
 	},
@@ -27,17 +27,17 @@ public enum SimpleTypePrimitive implements SimpleType {
 		
 		@Override
 		public int bits() {
-			throw new IllegalStateException("inval");
+			throw new AssertionError("inval");
 		}
 		
 		@Override
 		public boolean signed() {
-			throw new IllegalStateException("inval");
+			throw new AssertionError("inval");
 		}
 		
 		@Override
 		public long byteCount() {
-			throw new IllegalStateException("inval");
+			throw new AssertionError("inval");
 		}
 		
 	};

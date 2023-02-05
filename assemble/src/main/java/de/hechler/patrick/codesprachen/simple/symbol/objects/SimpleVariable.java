@@ -7,21 +7,33 @@ public abstract class SimpleVariable implements SimpleExportable {
 	
 	public static class SimpleOffsetVariable extends SimpleVariable {
 		
+		public final boolean intern;
+		
 		private long addr;
 		
 		public SimpleOffsetVariable(SimpleType type, String name) {
 			super(type, name, false);
-			this.addr = -1L;
+			this.addr   = -1L;
+			this.intern = false;
 		}
 		
 		public SimpleOffsetVariable(SimpleType type, String name, boolean export) {
 			super(type, name, export);
-			this.addr = -1L;
+			this.addr   = -1L;
+			this.intern = false;
+		}
+		
+		public SimpleOffsetVariable(SimpleType type, String name, boolean export, boolean intern) {
+			super(type, name, export);
+			if (export && intern) { throw new AssertionError("intern and export can't be both set"); }
+			this.addr   = -1L;
+			this.intern = intern;
 		}
 		
 		public SimpleOffsetVariable(long addr, SimpleType type, String name, boolean export) {
 			super(type, name, export);
-			this.addr = addr;
+			this.addr   = addr;
+			this.intern = false;
 		}
 		
 		public void init(long addr) {
@@ -29,7 +41,7 @@ public abstract class SimpleVariable implements SimpleExportable {
 			this.addr = addr;
 		}
 		
-		public long addr() {
+		public long offset() {
 			if (this.addr == -1L) { throw new AssertionError("not yet initilized"); }
 			return this.addr;
 		}

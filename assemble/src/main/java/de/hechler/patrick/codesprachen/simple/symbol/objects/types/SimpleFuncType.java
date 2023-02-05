@@ -28,6 +28,19 @@ public class SimpleFuncType implements SimpleType {
 		this.results   = results == null ? EMPTY_RESULTS : results.toArray(new SimpleOffsetVariable[results.size()]);
 		init(this.arguments);
 		init(this.results);
+		for (int i = 0; i < this.arguments.length; i++) {
+			checkDoubleName(this.arguments, i + 1, this.arguments[i].name);
+			checkDoubleName(this.results, 0, this.arguments[i].name);
+		}
+		for (int i = 0; i < this.results.length; i++) {
+			checkDoubleName(this.results, i + 1, this.arguments[i].name);
+		}
+	}
+	
+	private static void checkDoubleName(SimpleOffsetVariable[] vals, int startIndex, String name) {
+		for (int i = startIndex; i < vals.length; i++) {
+			if (vals[i].name.equals(name)) { throw new IllegalArgumentException("same name is used multiple times: " + name); }
+		}
 	}
 	
 	private static final void init(SimpleOffsetVariable[] svs) {
@@ -58,6 +71,16 @@ public class SimpleFuncType implements SimpleType {
 	
 	@Override
 	public boolean isFunc() { return true; }
+	
+	public SimpleOffsetVariable member(String name) {
+		for (SimpleOffsetVariable sv : arguments) {
+			if (sv.name.equals(name)) { return sv; }
+		}
+		for (SimpleOffsetVariable sv : arguments) {
+			if (sv.name.equals(name)) { return sv; }
+		}
+		throw new IllegalArgumentException("there is no member with the name: " + name);
+	}
 	
 	@Override
 	public int hashCode() {

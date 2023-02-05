@@ -78,7 +78,7 @@ public interface SimpleExportable extends SimpleNameable {
 	 */
 	String toExportString() throws IllegalStateException;
 	
-	static SimpleExportable[] correctImports(Map<String, SimpleStructType> structs, List<SimpleExportable> imps) {
+	public static SimpleExportable[] correctImports(Map<String, SimpleStructType> structs, List<SimpleExportable> imps) {
 		int                impcnt = imps.size();
 		SimpleExportable[] result = new SimpleExportable[structs.size() + impcnt];
 		for (int i = 0; i < impcnt; i++) {
@@ -86,12 +86,12 @@ public interface SimpleExportable extends SimpleNameable {
 			if (se instanceof SimpleConstant) {
 				// nothing to do
 			} else if (se instanceof SimpleFunctionSymbol sf) {
-				correctArray(structs, sf.type.arguments);
-				correctArray(structs, sf.type.results);
+				ImportHelp.correctArray(structs, sf.type.arguments);
+				ImportHelp.correctArray(structs, sf.type.results);
 			} else if (se instanceof SimpleOffsetVariable sv) {
-				SimpleType corrected = correctType(structs, sv.type);
+				SimpleType corrected = ImportHelp.correctType(structs, sv.type);
 				if (corrected != sv.type) {
-					se = new SimpleOffsetVariable(sv.addr(), corrected, sv.name, true);
+					se = new SimpleOffsetVariable(sv.offset(), corrected, sv.name, true);
 				}
 			} else {
 				throw new InternalError("unknown exportable class: " + se.getClass().getName());
@@ -106,43 +106,109 @@ public interface SimpleExportable extends SimpleNameable {
 		return result;
 	}
 	
-	static SimpleType correctType(Map<String, SimpleStructType> structs, SimpleType type) {
-		if (type instanceof SimpleFuncType sft) {
-			correctArray(structs, sft.arguments);
-			correctArray(structs, sft.results);
-		} else if (type instanceof SimpleTypePointer p) {
-			SimpleType corrected = correctType(structs, p.target);
-			if (corrected != p.target) {
-				if (p instanceof SimpleTypeArray arr) {
-					return new SimpleTypeArray(corrected, arr.elementCount);
-				} else {
-					return new SimpleTypePointer(corrected);
+	static class ImportHelp {
+		
+		private ImportHelp() {}
+		
+		private static SimpleType correctType(Map<String, SimpleStructType> structs, SimpleType type) {
+			if (type instanceof SimpleFuncType sft) {
+				correctArray(structs, sft.arguments);
+				correctArray(structs, sft.results);
+			} else if (type instanceof SimpleTypePointer p) {
+				SimpleType corrected = correctType(structs, p.target);
+				if (corrected != p.target) {
+					if (p instanceof SimpleTypeArray arr) {
+						return new SimpleTypeArray(corrected, arr.elementCount);
+					} else {
+						return new SimpleTypePointer(corrected);
+					}
+				}
+			} else if (type instanceof SimpleFutureStructType sfst) {
+				SimpleStructType res = structs.get(sfst.name);
+				if (res == null) {
+					throw new NoSuchElementException("the needed structure was not exported! (name='" + ((SimpleFutureStructType) type).name
+							+ "') (exported structs: " + structs + ")");
+				}
+				return res;
+			} else if (type instanceof SimpleStructType) {
+				throw new InternalError("simple struct type is not allowed here (should possibly be a SimpleFutureStructType)");
+			} else if (!(type instanceof SimpleTypePrimitive)) { throw new InternalError("unknown type class: " + type.getClass().getName()); }
+			return type;
+		}
+		
+		private static void correctArray(Map<String, SimpleStructType> structs, SimpleOffsetVariable[] results) {
+			for (int i = 0; i < results.length; i++) {
+				SimpleOffsetVariable sv        = results[i];
+				SimpleType           corrected = correctType(structs, sv.type);
+				if (corrected != sv.type) {
+					results[i] = new SimpleOffsetVariable(sv.offset(), corrected, sv.name, true);
 				}
 			}
-		} else if (type instanceof SimpleFutureStructType sfst) {
-			SimpleStructType res = structs.get(sfst.name);
-			if (res == null) {
-				throw new NoSuchElementException("the needed structure was not exported! (name='" + ((SimpleFutureStructType) type).name
-						+ "') (exported structs: " + structs + ")");
+		}
+		
+		
+		public static void convertConst(Map<String, PrimitiveConstant> result, String prefix, SimpleConstant sc, Path path) {
+			String start = "CONST_";
+			if (prefix != null) {
+				start = prefix + start;
 			}
-			return res;
-		} else if (type instanceof SimpleStructType) {
-			throw new InternalError("simple struct type is not allowed here (should possibly be a SimpleFutureStructType)");
-		} else if (!(type instanceof SimpleTypePrimitive)) { throw new InternalError("unknown type class: " + type.getClass().getName()); }
-		return type;
-	}
-	
-	static void correctArray(Map<String, SimpleStructType> structs, SimpleOffsetVariable[] results) {
-		for (int i = 0; i < results.length; i++) {
-			SimpleOffsetVariable sv        = results[i];
-			SimpleType           corrected = correctType(structs, sv.type);
-			if (corrected != sv.type) {
-				results[i] = new SimpleOffsetVariable(sv.addr(), corrected, sv.name, true);
+			PrimitiveConstant pc = new PrimitiveConstant(start + sc.name(), sc.toString(), sc.value(), path, -1);
+			checkedPut(result, pc);
+		}
+		
+		public static void convertFunc(Map<String, PrimitiveConstant> result, String prefix, SimpleFunctionSymbol sf, Path path, boolean addFunc) {
+			String start = "FUNC_" + sf.name;
+			if (prefix != null) {
+				start = prefix + start;
+			}
+			if (addFunc) {
+				PrimitiveConstant pc = new PrimitiveConstant(start, sf.toString(), sf.address(), path, -1);
+				checkedPut(result, pc);
+			}
+			String argStart = start + "_ARG_";
+			for (SimpleOffsetVariable sv : sf.type.arguments) {
+				PrimitiveConstant pc = new PrimitiveConstant(argStart + sv.name, sv.toString(), sv.offset(), path, -1);
+				checkedPut(result, pc);
+			}
+			String resStart = start + "_RES_";
+			for (SimpleOffsetVariable sv : sf.type.results) {
+				PrimitiveConstant pc = new PrimitiveConstant(resStart + sv.name, sv.toString(), sv.offset(), path, -1);
+				checkedPut(result, pc);
 			}
 		}
+		
+		public static void convertStrut(Map<String, PrimitiveConstant> result, String prefix, SimpleStructType ss, Path path) {
+			String start = "STRUCT_" + ss.name;
+			if (prefix != null) {
+				start = prefix + start;
+			}
+			PrimitiveConstant pc = new PrimitiveConstant(start + "_SIZE", ss.toString(), ss.byteCount(), path, -1);
+			checkedPut(result, pc);
+			start += "_OFFSET_";
+			for (SimpleOffsetVariable sv : ss.members) {
+				pc = new PrimitiveConstant(start + sv.name, sv.toString(), sv.offset(), null, -1);
+				checkedPut(result, pc);
+			}
+		}
+		
+		public static void convertVar(Map<String, PrimitiveConstant> result, String prefix, SimpleOffsetVariable sv, Path path) {
+			String start = "VAR_";
+			if (prefix != null) {
+				start = prefix + start;
+			}
+			PrimitiveConstant pc = new PrimitiveConstant(start + sv.name, sv.type.toString(), sv.offset(), path, -1);
+			checkedPut(result, pc);
+		}
+		
+		static void checkedPut(Map<String, PrimitiveConstant> result, PrimitiveConstant pc) {
+			if (result.put(pc.name(), pc) != null) {
+				throw new IllegalStateException("multiple exports whould get the same name when converting to primitive constants");
+			}
+		}
+		
 	}
 	
-	class SimpleFutureStructType implements SimpleType {
+	static class SimpleFutureStructType implements SimpleType {
 		
 		public final String name;
 		
@@ -151,11 +217,11 @@ public interface SimpleExportable extends SimpleNameable {
 		}
 		
 		//@formatter:off
+		@Override public boolean isStruct() { return true; }
 		@Override public boolean isPrimitive() { return false; }
 		@Override public boolean isPointerOrArray() { return false; }
 		@Override public boolean isPointer() { return false; }
 		@Override public boolean isArray() { return false; }
-		@Override public boolean isStruct() { return true; }
 		@Override public boolean isFunc() { return false; }
 		@Override public long    byteCount() { throw new UnsupportedOperationException(); }
 		@Override public void    appendToExportStr(StringBuilder build) { throw new UnsupportedOperationException(); }
@@ -204,73 +270,16 @@ public interface SimpleExportable extends SimpleNameable {
 	static void toPrimConsts(Map<String, PrimitiveConstant> addSymbols, String prefix, Map<String, SimpleExportable> imps, Path path) {
 		for (SimpleExportable imp : imps.values()) {
 			if (imp instanceof SimpleConstant sc) {
-				convertConst(addSymbols, prefix, sc, path);
+				ImportHelp.convertConst(addSymbols, prefix, sc, path);
 			} else if (imp instanceof SimpleFunctionSymbol sf) {
-				convertFunc(addSymbols, prefix, sf, path);
+				ImportHelp.convertFunc(addSymbols, prefix, sf, path, true);
 			} else if (imp instanceof SimpleStructType ss) {
-				convertStrut(addSymbols, prefix, ss, path);
+				ImportHelp.convertStrut(addSymbols, prefix, ss, path);
 			} else if (imp instanceof SimpleOffsetVariable sv) {
-				convertVar(addSymbols, prefix, sv, path);
+				ImportHelp.convertVar(addSymbols, prefix, sv, path);
 			} else {
 				throw new AssertionError(imp.getClass() + " : " + imp);
 			}
-		}
-	}
-	
-	static void convertConst(Map<String, PrimitiveConstant> result, String prefix, SimpleConstant sc, Path path) {
-		String start = "CONST_";
-		if (prefix != null) {
-			start = prefix + start;
-		}
-		PrimitiveConstant pc = new PrimitiveConstant(start + sc.name(), sc.toString(), sc.value(), path, -1);
-		checkedPut(result, pc);
-	}
-	
-	static void convertFunc(Map<String, PrimitiveConstant> result, String prefix, SimpleFunctionSymbol sf, Path path) {
-		String start = "FUNC_" + sf.name;
-		if (prefix != null) {
-			start = prefix + start;
-		}
-		PrimitiveConstant pc = new PrimitiveConstant(start, sf.toString(), sf.address, path, -1);
-		checkedPut(result, pc);
-		String argStart = start + "_ARG_";
-		for (SimpleOffsetVariable sv : sf.type.arguments) {
-			pc = new PrimitiveConstant(argStart + sv.name, sv.toString(), sv.addr(), path, -1);
-			checkedPut(result, pc);
-		}
-		String resStart = start + "_RES_";
-		for (SimpleOffsetVariable sv : sf.type.results) {
-			pc = new PrimitiveConstant(resStart + sv.name, sv.toString(), sv.addr(), path, -1);
-			checkedPut(result, pc);
-		}
-	}
-	
-	static void convertStrut(Map<String, PrimitiveConstant> result, String prefix, SimpleStructType ss, Path path) {
-		String start = "STRUCT_" + ss.name;
-		if (prefix != null) {
-			start = prefix + start;
-		}
-		PrimitiveConstant pc = new PrimitiveConstant(start + "_SIZE", ss.toString(), ss.byteCount(), path, -1);
-		checkedPut(result, pc);
-		start += "_OFFSET_";
-		for (SimpleOffsetVariable sv : ss.members) {
-			pc = new PrimitiveConstant(start + sv.name, sv.toString(), sv.addr(), null, -1);
-			checkedPut(result, pc);
-		}
-	}
-	
-	static void convertVar(Map<String, PrimitiveConstant> result, String prefix, SimpleOffsetVariable sv, Path path) {
-		String start = "VAR_";
-		if (prefix != null) {
-			start = prefix + start;
-		}
-		PrimitiveConstant pc = new PrimitiveConstant(start + sv.name, sv.type.toString(), sv.addr(), path, -1);
-		checkedPut(result, pc);
-	}
-	
-	static void checkedPut(Map<String, PrimitiveConstant> result, PrimitiveConstant pc) {
-		if (result.put(pc.name(), pc) != null) {
-			throw new IllegalStateException("multiple exports whould get the same name when converting to primitive constants");
 		}
 	}
 	

@@ -6,6 +6,7 @@ import java.util.*;
 import java.io.*;
 import java.nio.file.*;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.*;
+import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable.*;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.types.*;
 import de.hechler.patrick.codesprachen.simple.symbol.interfaces.*;
 import de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable.*;
@@ -49,7 +50,7 @@ structExport returns [SimpleStructType imp]:
 	{$imp = new SimpleStructType($NAME_OR_NUMBER.getText(), true, $varList.list);}
 ;
 
-varList returns [List<SimpleVariable> list]:
+varList returns [List<SimpleOffsetVariable> list]:
 	{$list = new ArrayList<>();}
 	(
 		variable [null]
@@ -80,13 +81,13 @@ functionExport returns [SimpleExportable imp] :
 	{$imp = new SimpleFunctionSymbol(Long.parseUnsignedLong($addr.getText(), 16), $name.getText(), (SimpleFuncType) $functionType.t);}
 ;
 
-variable [String number] returns [SimpleVariable v] :
+variable [String number] returns [SimpleOffsetVariable v] :
 	NAME_OR_NUMBER NAME_TYPE_SEP type
 	{
 		if (number == null) {
-			$v = new SimpleVariable($type.t, $NAME_OR_NUMBER.getText(), false);
+			$v = new SimpleOffsetVariable($type.t, $NAME_OR_NUMBER.getText(), false);
 		} else {
-			$v = new SimpleVariable(Long.parseUnsignedLong(number, 16), $type.t, $NAME_OR_NUMBER.getText());
+			$v = new SimpleOffsetVariable(Long.parseUnsignedLong(number, 16), $type.t, $NAME_OR_NUMBER.getText(), true);
 		}
 	}
 ;

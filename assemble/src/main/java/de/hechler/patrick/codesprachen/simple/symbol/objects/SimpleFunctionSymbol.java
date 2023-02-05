@@ -8,7 +8,7 @@ import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleFuncTyp
 
 public class SimpleFunctionSymbol implements SimpleExportable {
 	
-	public long                 address;
+	private long                address;
 	public final boolean        export;
 	public final String         name;
 	public final SimpleFuncType type;
@@ -23,29 +23,33 @@ public class SimpleFunctionSymbol implements SimpleExportable {
 	
 	public SimpleFunctionSymbol(long address, boolean export, String name, SimpleFuncType type) {
 		this.address = address;
-		this.export = export;
-		this.name = name;
-		this.type = type;
+		this.export  = export;
+		this.name    = name;
+		this.type    = type;
 	}
 	
 	@Override
-	public boolean isExport() {
-		return export;
-	}
+	public boolean isExport() { return export; }
 	
 	@Override
 	public String name() {
 		return this.name;
 	}
 	
+	public void init(long address) {
+		if (this.address != -1L) { throw new AssertionError("address is already initilized!"); }
+		this.address = address;
+	}
+	
+	public long address() {
+		if (this.address == -1L) { throw new AssertionError("address is not initilized!"); }
+		return this.address;
+	}
+	
 	@Override
 	public String toExportString() {
-		if (!export) {
-			throw new IllegalStateException("this is not marked as export!");
-		}
-		if (address == -1L) {
-			throw new IllegalStateException("address is not initilized!");
-		}
+		if (!export) { throw new IllegalStateException("this is not marked as export!"); }
+		if (address == -1L) { throw new AssertionError("address is not initilized!"); }
 		StringBuilder b = new StringBuilder();
 		b.append(FUNC);
 		b.append(Long.toHexString(this.address).toUpperCase());

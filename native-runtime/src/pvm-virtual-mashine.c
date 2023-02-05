@@ -14,6 +14,7 @@
 #include <pfs-folder.h>
 #include <pfs-file.h>
 #include <pfs-pipe.h>
+#include <pfs-err.h>
 
 #include "pvm-virtual-mashine.h"
 #include "pvm-err.h"
@@ -69,6 +70,8 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	if (next_adress != REGISTER_START) {
 		abort();
 	}
+
+	pfs_err_loc = (ui32*) &pvm.err;
 
 	if (pfs_stream_open_delegate(STDIN_FILENO, PFS_SO_PIPE | PFS_SO_READ)
 			!= 0) {

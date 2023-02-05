@@ -10,8 +10,8 @@ import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable.Simp
 
 public class SimpleStructType implements SimpleType, SimpleExportable {
 	
-	public final String           name;
-	public final boolean          export;
+	public final String                 name;
+	public final boolean                export;
 	/**
 	 * this array should not be modified
 	 */
@@ -22,9 +22,9 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 	}
 	
 	public SimpleStructType(String name, boolean export, SimpleOffsetVariable[] members) {
-		this.name = name;
+		this.name    = name;
 		this.members = members;
-		this.export = export;
+		this.export  = export;
 	}
 	
 	@Override
@@ -49,6 +49,13 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 	
 	@Override
 	public boolean isFunc() { return false; }
+	
+	public SimpleOffsetVariable member(String name) {
+		for (SimpleOffsetVariable sv : members) {
+			if (sv.name.equals(name)) { return sv; }
+		}
+		throw new IllegalArgumentException("there is no member with the name: " + name);
+	}
 	
 	@Override
 	public long byteCount() {
@@ -128,7 +135,7 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 	
 	public static long align(long addr, int bc) {
 		if (Integer.bitCount(bc) != 1) {
-			bc = Integer.highestOneBit(bc) << 1;
+			bc = Integer.highestOneBit(bc);
 		}
 		if (bc >= 8) {
 			bc = 8;

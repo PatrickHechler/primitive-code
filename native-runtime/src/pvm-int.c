@@ -22,6 +22,8 @@ static inline void write_error(const char*msg) {
 #endif
 }
 
+// TODO set pvm.err to a nonzero value on error
+
 static void int_errors_illegal_interrupt( INT_PARAMS) /* 0 */{
 	write_error("illegal interrupt\n");
 	exit(128 + pvm.x[0]);

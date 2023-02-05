@@ -106,7 +106,7 @@ public class PrimitiveAssembler {
 	public ParseContext preassemble(Path path, Reader in, Map<String, PrimitiveConstant> predefinedConstants) throws IOException, AssembleError {
 		return preassemble(path, new ANTLRInputStream(in), predefinedConstants);
 	}
-	
+
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin) throws AssembleError {
 		return preassemble(path, antlrin, new LinkedHashMap<>(START_CONSTANTS));
 	}
@@ -115,9 +115,18 @@ public class PrimitiveAssembler {
 		return preassemble(path, antlrin, new LinkedHashMap<>(predefinedConstants), true);
 	}
 	
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, long pos) throws AssembleError {
+		return preassemble(path, antlrin, new LinkedHashMap<>(predefinedConstants), true, pos);
+	}
+	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, boolean bailError)
 			throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, bailError ? new BailErrorStrategy() : null, bailError);
+	}
+	
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, boolean bailError, long pos)
+			throws AssembleError {
+		return preassemble(path, antlrin, predefinedConstants, bailError ? new BailErrorStrategy() : null, bailError, pos);
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants,
@@ -126,33 +135,62 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants,
+			ANTLRErrorStrategy errorHandler, boolean bailError, long pos) throws AssembleError {
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, null, pos);
+	}
+
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants,
 			ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {});
 	}
-	
+
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants,
+			ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener, long pos) throws AssembleError {
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {}, pos);
+	}
+
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants,
 			ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool)
 			throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, "[THIS]");
 	}
-	
+
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants,
+			ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, long pos)
+			throws AssembleError {
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, "[THIS]", pos);
+	}
+
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants,
 			ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool,
 			String thisFile) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile,
 				new LinkedHashMap<>());
 	}
+
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants,
+			ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool,
+			String thisFile, long pos) throws AssembleError {
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile,
+				new LinkedHashMap<>(), pos);
+	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants,
 			ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool,
 			String thisFile, Map<String, List<Map<String, Long>>> readFiles) throws AssembleError {
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile, readFiles, 0L);
+	}
+	
+	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants,
+			ANTLRErrorStrategy errorHandler, boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool,
+			String thisFile, Map<String, List<Map<String, Long>>> readFiles, long pos) throws AssembleError {
 		PrimitiveFileGrammarLexer  lexer  = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream          tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
 		if (errorHandler != null) { parser.setErrorHandler(errorHandler); }
 		if (errorListener != null) { parser.addErrorListener(errorListener); }
 		try {
-			return parser.parse(path, 0L, defaultAlign, predefinedConstants, bailError, errorHandler, errorListener, enterConstPool, this, antlrin,
+			return parser.parse(path, pos, defaultAlign, predefinedConstants, bailError, errorHandler, errorListener, enterConstPool, this, antlrin,
 					thisFile, readFiles);
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
