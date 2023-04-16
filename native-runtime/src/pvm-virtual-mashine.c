@@ -33,7 +33,7 @@
 #include <iconv.h>
 #ifdef PVM_DEBUG
 #include "pvm-version.h"
-// not realy usable here #include <readline/readline.h>
+// not really usable here: #include <readline/readline.h>
 #include <pthread.h>
 #include <signal.h>
 #include <sys/socket.h>
@@ -60,9 +60,12 @@ static union instruction_adres {
 } ia;
 static num remain_instruct_space;
 
-static void close_pfs_on_exit(int status, void *arg) {
-	if (!pfs_close()) {
-		exit(126);
+/* terminates the program with 126 when the PFS could not be closed and status is zero */
+static void close_pfs_on_exit(int status, void *ignore) {
+	if (!pfs_close() && !status) {
+		fflush(NULL);
+		sync();
+		_exit(126);
 	}
 }
 
