@@ -48,7 +48,7 @@ public enum SimpleTypePrimitive implements SimpleType {
 			if (signed) {
 				return pt_num;
 			} else {
-				return pt_num;
+				return pt_unum;
 			}
 		case 32:
 			if (signed) {
@@ -132,37 +132,17 @@ public enum SimpleTypePrimitive implements SimpleType {
 	@Override
 	public void appendToExportStr(StringBuilder build) {
 		switch (this) {
-		case pt_fpnum:
-			build.append(PRIM_FPNUM);
-			break;
-		case pt_unum:
-			build.append(PRIM_UNUM);
-			break;
-		case pt_num:
-			build.append(PRIM_NUM);
-			break;
-		case pt_udword:
-			build.append(PRIM_UDWORD);
-			break;
-		case pt_dword:
-			build.append(PRIM_DWORD);
-			break;
-		case pt_uword:
-			build.append(PRIM_UWORD);
-			break;
-		case pt_word:
-			build.append(PRIM_WORD);
-			break;
-		case pt_ubyte:
-			build.append(PRIM_UBYTE);
-			break;
-		case pt_byte:
-			build.append(PRIM_BYTE);
-			break;
-		case pt_inval:
-			throw new InternalError("the primitive type inval is only for intern use, thus it can not be exported!");
-		default:
-			throw new InternalError("unknown primitive type: " + name());
+		case pt_fpnum -> build.append(PRIM_FPNUM);
+		case pt_unum -> build.append(PRIM_UNUM);
+		case pt_num -> build.append(PRIM_NUM);
+		case pt_udword -> build.append(PRIM_UDWORD);
+		case pt_dword -> build.append(PRIM_DWORD);
+		case pt_uword -> build.append(PRIM_UWORD);
+		case pt_word -> build.append(PRIM_WORD);
+		case pt_ubyte -> build.append(PRIM_UBYTE);
+		case pt_byte -> build.append(PRIM_BYTE);
+		case pt_inval, pt_bool -> throw new InternalError("the primitive type inval and bool is only for intern use, thus it can not be exported!");
+		default -> throw new InternalError("unknown primitive type: " + name());
 		}
 	}
 	

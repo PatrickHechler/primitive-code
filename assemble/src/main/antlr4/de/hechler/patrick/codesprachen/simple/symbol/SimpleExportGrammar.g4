@@ -176,6 +176,6 @@ CONST :             '~c' ;
 NAME_TYPE_SEP :     ':' ;
 VAR_SEP :           ',' ;
 
-NAME_OR_NUMBER : [a-zA-Z_0-9]* ;
+NAME_OR_NUMBER : [a-zA-Z_0-9]+ ;
 
 LINE : [\r\n]+ ;
