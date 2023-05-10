@@ -1,74 +1,6 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.enums;
 
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.ADD;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.ADDC;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.ADDFP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.AND;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.BADD;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.BDIV;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.BMUL;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.BNEG;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.BSUB;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.CALL;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.CALO;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.CHKFP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.CMP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.CMPB;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.CMPFP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.CMPL;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.CMPU;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.DEC;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.DIV;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.DIVFP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.FPTN;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.INC;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.INT;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPAB;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPAN;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPCC;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPCS;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPEQ;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPERR;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPGE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPGT;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPLE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPLT;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPNAN;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPNB;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPNE;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPSB;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPZC;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.JMPZS;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.LEA;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.LSH;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.MOV;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.MUL;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.MULFP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.MVAD;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.MVB;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.MVDW;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.MVW;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.NEG;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.NEGFP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.NOT;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.NTFP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.OR;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.POP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.POPBLK;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.PUSH;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.PUSHBLK;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.RASH;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.RLSH;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.SUB;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.SUBC;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.SUBFP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.SWAP;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.UADD;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.UDIV;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.UMUL;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.USUB;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.XOR;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands.*;
 
 import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoCommandException;
 
@@ -140,6 +72,8 @@ public enum Commands {
 	
 	// Params: <PARAM>
 	CMD_CHKFP(ParamArt.ONE_PARAM_ALLOW_CONST, CHKFP),
+	CMD_SGN(ParamArt.ONE_PARAM_ALLOW_CONST, SGN),
+	CMD_SGNFP(ParamArt.ONE_PARAM_ALLOW_CONST, SGNFP),
 	CMD_INT(ParamArt.ONE_PARAM_ALLOW_CONST, INT),
 	CMD_PUSH(ParamArt.ONE_PARAM_ALLOW_CONST, PUSH),
 	
@@ -185,8 +119,7 @@ public enum Commands {
 		
 		ONE_PARAM_NO_CONST, ONE_PARAM_ALLOW_CONST,
 		
-		TWO_PARAMS_NO_CONSTS, TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST, TWO_PARAMS_ALLOW_CONSTS,
-		TWO_PARAMS_P1_NO_CONST_P2_COMPILE_CONST,
+		TWO_PARAMS_NO_CONSTS, TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST, TWO_PARAMS_ALLOW_CONSTS, TWO_PARAMS_P1_NO_CONST_P2_COMPILE_CONST,
 		
 		THREE_PARAMS_P1_NO_CONST_P2_ALLOW_CONST_P3_COMPILE_CONST,
 	
@@ -200,8 +133,7 @@ public enum Commands {
 	static {
 		for (Commands c : values()) {
 			if (COMMANDS[c.num] != null) {
-				throw new InternalError("multiple commands with the num " + c.num + " : '" + COMMANDS[c.num].name()
-						+ "' '" + c.name() + '\'');
+				throw new InternalError("multiple commands with the num " + c.num + " : '" + COMMANDS[c.num].name() + "' '" + c.name() + '\'');
 			}
 			COMMANDS[c.num] = c;
 		}

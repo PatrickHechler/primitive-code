@@ -32,6 +32,7 @@ import de.hechler.patrick.zeugs.pfs.opts.JavaFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.PatrFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.StreamOpenOptions;
 
+@SuppressWarnings("javadoc")
 public class PrimitiveCodeAssembleMain {
 	
 	private static final String SYMBOL_FILE_POSSIX = ".psf";
@@ -52,8 +53,6 @@ public class PrimitiveCodeAssembleMain {
 			LOG.info("assembled successful");
 			if (fileSys != null) { fileSys.close(); }
 			JAVA_FS.close();
-		} catch (ThreadDeath t) {
-			throw t;
 		} catch (Throwable t) {
 			LOG.severe(() -> {
 				StringBuilder b = new StringBuilder();
@@ -198,7 +197,7 @@ public class PrimitiveCodeAssembleMain {
 						} else {
 							crash(args, -1, "out file already exists use --force to overwrite");
 						}
-					} catch (NoSuchFileException e) { /* ignore */ }
+					} catch (@SuppressWarnings("unused") NoSuchFileException e) { /* ignore */ }
 					try (File of = parent.createFile(outFile)) {
 						out = of.openWrite();
 					}
@@ -212,7 +211,7 @@ public class PrimitiveCodeAssembleMain {
 							} else {
 								crash(args, -1, "out file already exists use --force to overwrite");
 							}
-						} catch (NoSuchFileException e) { /* ignore */ }
+						} catch (@SuppressWarnings("unused") NoSuchFileException e) { /* ignore */ }
 						try (File eof = parent.createFile(outFile + SYMBOL_FILE_POSSIX)) {
 							expOut = eof.openWrite();
 						}
@@ -274,7 +273,7 @@ public class PrimitiveCodeAssembleMain {
 		try {
 			patrProv = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME);
 			fileSys = patrProv.loadFS(new PatrFSOptions(args[i]));
-		} catch (IOException e) {
+		} catch (@SuppressWarnings("unused") IOException e) {
 			if (force) {
 				fileSys = patrProv.loadFS(new PatrFSOptions(args[i], true, CREATE_BLOCK_COUNT, CREATE_BLOCK_SIZE));
 			}

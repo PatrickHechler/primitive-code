@@ -4,14 +4,13 @@ public class PrimAsmCommands {
 	
 	private PrimAsmCommands() {}
 	
-	// GENERATED-CODE-START
+	//GENERATED-CODE-START
 	// this code-block is automatic generated, do not modify
 	/**
 	 * <b>MVB</b> <code>(00 01)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * copies the byte value of the second parameter to the first byte parameter
-	 * <p>
+	 * copies the byte value of the second parameter to the first byte parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;-8-bit- p2</code></li>
@@ -23,8 +22,7 @@ public class PrimAsmCommands {
 	 * <b>MVW</b> <code>(00 02)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * copies the word value of the second parameter to the first word parameter
-	 * <p>
+	 * copies the word value of the second parameter to the first word parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;-16-bit- p2 </code></li>
@@ -36,8 +34,7 @@ public class PrimAsmCommands {
 	 * <b>MVDW</b> <code>(00 03)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * copies the double-word value of the second parameter to the first double-word parameter
-	 * <p>
+	 * copies the double-word value of the second parameter to the first double-word parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;-32-bit- p2</code></li>
@@ -49,8 +46,7 @@ public class PrimAsmCommands {
 	 * <b>MOV</b> <code>(00 04)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * copies the value of the second parameter to the first parameter
-	 * <p>
+	 * copies the value of the second parameter to the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p2</code></li>
@@ -62,8 +58,7 @@ public class PrimAsmCommands {
 	 * <b>LEA</b> <code>(00 05)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * sets the first parameter of the value of the second parameter plus the instruction pointer
-	 * <p>
+	 * sets the first parameter of the value of the second parameter plus the instruction pointer	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p2 + IP</code></li>
@@ -75,8 +70,7 @@ public class PrimAsmCommands {
 	 * <b>MVAD</b> <code>(00 06)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt; , &lt;CONST_PARAM&gt;</code>
 	 * <p>
-	 * copies the value of the second parameter plus the third parameter to the first parameter
-	 * <p>
+	 * copies the value of the second parameter plus the third parameter to the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p2 + p3</code></li>
@@ -88,8 +82,7 @@ public class PrimAsmCommands {
 	 * <b>SWAP</b> <code>(00 07)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * swaps the value of the first and the second parameter
-	 * <p>
+	 * swaps the value of the first and the second parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>ZW &lt;- p1</code></li>
@@ -103,20 +96,17 @@ public class PrimAsmCommands {
 	 * <b>OR</b> <code>(01 00)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
-	 * <p>
+	 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if (p1 | p2) = 0</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- p1 | p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -126,20 +116,17 @@ public class PrimAsmCommands {
 	 * <b>AND</b> <code>(01 01)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * uses the logical AND operator with the first and the second parameter and stores the result in the first parameter
-	 * <p>
+	 * uses the logical AND operator with the first and the second parameter and stores the result in the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if (p1 &amp; p2) = 0</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- p1 &amp; p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -149,20 +136,17 @@ public class PrimAsmCommands {
 	 * <b>XOR</b> <code>(01 02)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
-	 * <p>
+	 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if (p1 ^ p2) = 0</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- p1 ^ p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -173,20 +157,17 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * uses the logical NOT operator with every bit of the parameter and stores the result in the parameter<br>
-	 * this instruction works like <code>XOR p1, -1</code>
-	 * <p>
+	 * this instruction works like <code>XOR p1, -1</code>	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 = -1</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- ~ p1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -196,20 +177,17 @@ public class PrimAsmCommands {
 	 * <b>LSH</b> <code>(01 04)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * shifts bits of the parameter logically left
-	 * <p>
+	 * shifts bits of the parameter logically left	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ((p1 &lt;&lt; p2) &gt;&gt; p2) = p1</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- p1 &lt;&lt; p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -219,20 +197,17 @@ public class PrimAsmCommands {
 	 * <b>RASH</b> <code>(01 05)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * shifts bits of the parameter arithmetic right
-	 * <p>
+	 * shifts bits of the parameter arithmetic right	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ((p1 &gt;&gt; p2) &lt;&lt; p2) = p1</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- p1 &gt;&gt; 2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -242,20 +217,17 @@ public class PrimAsmCommands {
 	 * <b>RLSH</b> <code>(01 06)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * shifts bits of the parameter logically right
-	 * <p>
+	 * shifts bits of the parameter logically right	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ((p1 &gt;&gt;&gt; p2) &lt;&lt; p2) = p1</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- p1 &gt;&gt;&gt; 1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -265,8 +237,7 @@ public class PrimAsmCommands {
 	 * <b>ADD</b> <code>(01 10)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * adds the values of both parameters and stores the sum in the first parameter
-	 * <p>
+	 * adds the values of both parameters and stores the sum in the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 + p2</code></li>
@@ -274,26 +245,22 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>ZERO &lt;-  0</code></li>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if ((p1 &gt; 0) &amp; (p2 &lt; 0) &amp; (p1 - p2 &lt; 0))</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;-  0</code></li>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 != 0</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
 	 * <li><code>ZERO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
 	 * <li><code>ZERO &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 	 */
@@ -302,8 +269,7 @@ public class PrimAsmCommands {
 	 * <b>SUB</b> <code>(01 11)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * subtracts the second parameter from the first parameter and stores the result in the first parameter
-	 * <p>
+	 * subtracts the second parameter from the first parameter and stores the result in the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 - p2</code></li>
@@ -311,26 +277,22 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>ZERO &lt;-  0</code></li>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if ((p1 &gt; 0) &amp; (p2 &gt; 0) &amp; (p1 + p2 &lt; 0))</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;-  0</code></li>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 != 0</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
 	 * <li><code>ZERO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
 	 * <li><code>ZERO &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 	 */
@@ -339,21 +301,18 @@ public class PrimAsmCommands {
 	 * <b>MUL</b> <code>(01 12)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * multiplies the first parameter with the second and stores the result in the first parameter
-	 * <p>
+	 * multiplies the first parameter with the second and stores the result in the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 * p2</code></li>
 	 * <li><code>if p1 = 0</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>ZERO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 	 */
@@ -362,8 +321,7 @@ public class PrimAsmCommands {
 	 * <b>DIV</b> <code>(01 13)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * divides the first parameter with the second and stores the result in the first parameter and the reminder in the second parameter
-	 * <p>
+	 * divides the first parameter with the second and stores the result in the first parameter and the reminder in the second parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 / p2</code></li>
@@ -377,20 +335,17 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * uses the arithmetic negation operation with the parameter and stores the result in the parameter<br>
-	 * this instruction works like <code>MUL p1, -1</code>
-	 * <p>
+	 * this instruction works like <code>MUL p1, -1</code>	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 = UHEX-8000000000000000</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- 0 - p1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -400,21 +355,18 @@ public class PrimAsmCommands {
 	 * <b>ADDC</b> <code>(01 15)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * adds the values of both parameters and the OVERFLOW flag and stores the sum in the first parameter
-	 * <p>
+	 * adds the values of both parameters and the OVERFLOW flag and stores the sum in the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>ZW &lt;- p1 + (p2 + OVERFLOW)</code></li>
 	 * <li><code>if ((p1 &gt; 0) &amp; ((p2 + OVERFLOW) &gt; 0) &amp; ((p1 + p2 + OVERFLOW) &lt; 0)) | ((p1 &lt; 0) &amp; ((p2 + OVERFLOW) &lt; 0) &amp; ((p1 + (p2 + OVERFLOW)) &gt; 0))</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- ZW</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -424,21 +376,18 @@ public class PrimAsmCommands {
 	 * <b>SUBC</b> <code>(01 16)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * subtracts the second parameter with the OVERFLOW flag from the first parameter and stores the result in the first parameter
-	 * <p>
+	 * subtracts the second parameter with the OVERFLOW flag from the first parameter and stores the result in the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>ZW &lt;- p1 - (p2 + OVERFLOW)</code></li>
 	 * <li><code>if (p1 &gt; 0) &amp; ((p2 + OVERFLOW) &lt; 0) &amp; ((p1 - (p2 + OVERFLOW)) &lt; 0)) | ((p1 &lt; 0) &amp; (p2 &gt; 0) &amp; ((p1 - (p2 + OVERFLOW)) &gt; 0))</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- ZW</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -448,28 +397,24 @@ public class PrimAsmCommands {
 	 * <b>INC</b> <code>(01 17)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * increments the param by one
-	 * <p>
+	 * increments the param by one	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 = MAX_VALUE</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
 	 * <li><code>ZERO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 = -1</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
 	 * <li><code>ZERO &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
 	 * <li><code>ZERO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- p1 + 1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -479,28 +424,24 @@ public class PrimAsmCommands {
 	 * <b>DEC</b> <code>(01 18)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * decrements the param by one
-	 * <p>
+	 * decrements the param by one	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 = MIN_VALUE</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 1</code></li>
 	 * <li><code>ZERO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 = 1</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
 	 * <li><code>ZERO &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>OVERFLOW &lt;- 0</code></li>
 	 * <li><code>ZREO &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>p1 &lt;- p1 - 1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -510,8 +451,7 @@ public class PrimAsmCommands {
 	 * <b>ADDFP</b> <code>(01 20)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * adds the floating point values of both parameters and stores the floating point sum in the first parameter
-	 * <p>
+	 * adds the floating point values of both parameters and stores the floating point sum in the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
@@ -524,8 +464,7 @@ public class PrimAsmCommands {
 	 * <b>SUBFP</b> <code>(01 21)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
-	 * <p>
+	 * subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
@@ -538,8 +477,7 @@ public class PrimAsmCommands {
 	 * <b>MULFP</b> <code>(01 22)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
-	 * <p>
+	 * multiplies the first fp parameter with the second fp and stores the fp result in the first parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
@@ -552,8 +490,7 @@ public class PrimAsmCommands {
 	 * <b>DIVFP</b> <code>(01 23)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
-	 * <p>
+	 * divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
@@ -566,8 +503,7 @@ public class PrimAsmCommands {
 	 * <b>NEGFP</b> <code>(01 24)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * multiplies the fp parameter with -1.0
-	 * <p>
+	 * multiplies the fp parameter with -1.0	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 is NAN</li>
@@ -580,8 +516,7 @@ public class PrimAsmCommands {
 	 * <b>UADD</b> <code>(01 30)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * like ADD, but uses the parameters as unsigned parameters
-	 * <p>
+	 * like ADD, but uses the parameters as unsigned parameters	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 uadd p2</code></li>
@@ -593,8 +528,7 @@ public class PrimAsmCommands {
 	 * <b>USUB</b> <code>(01 31)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * like SUB, but uses the parameters as unsigned parameters
-	 * <p>
+	 * like SUB, but uses the parameters as unsigned parameters	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 usub p2</code></li>
@@ -606,8 +540,7 @@ public class PrimAsmCommands {
 	 * <b>UMUL</b> <code>(01 32)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * like MUL, but uses the parameters as unsigned parameters
-	 * <p>
+	 * like MUL, but uses the parameters as unsigned parameters	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 umul p2</code></li>
@@ -619,8 +552,7 @@ public class PrimAsmCommands {
 	 * <b>UDIV</b> <code>(01 33)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * like DIV, but uses the parameters as unsigned parameters
-	 * <p>
+	 * like DIV, but uses the parameters as unsigned parameters	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- oldp1 udiv oldp2</code></li>
@@ -720,8 +652,7 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * converts the value of the floating point param to a number<br>
-	 * the value after the
-	 * <p>
+	 * the value after the	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 is no normal value</li>
@@ -735,8 +666,7 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * converts the value of the number param to a floating point<br>
-	 * the value after the
-	 * <p>
+	 * the value after the	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- as_fp(p1)</code></li>
@@ -748,8 +678,7 @@ public class PrimAsmCommands {
 	 * <b>CMP</b> <code>(02 00)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the two values and stores the result in the status register
-	 * <p>
+	 * compares the two values and stores the result in the status register	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
@@ -757,22 +686,19 @@ public class PrimAsmCommands {
 	 * <li><code>GREATHER &lt;- 1</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 &lt; p2</code>
 	 * <ul>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 	 */
@@ -781,8 +707,7 @@ public class PrimAsmCommands {
 	 * <b>CMPL</b> <code>(02 01)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the two values on logical/bit level
-	 * <p>
+	 * compares the two values on logical/bit level	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if (p1 &amp; p2) = p2</code>
@@ -790,22 +715,19 @@ public class PrimAsmCommands {
 	 * <li><code>ALL_BITS &lt;- 1</code></li>
 	 * <li><code>SOME_BITS &lt;- 1</code></li>
 	 * <li><code>NONE_BITS &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if (p1 &amp; p2) != 0</code>
 	 * <ul>
 	 * <li><code>ALL_BITS &lt;- 0</code></li>
 	 * <li><code>SOME_BITS &lt;- 1</code></li>
 	 * <li><code>NONE_BITS &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>ALL_BITS &lt;- 0</code></li>
 	 * <li><code>SOME_BITS &lt;- 0</code></li>
 	 * <li><code>NONE_BITS &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int CMPL    = 0x0201;
@@ -813,8 +735,7 @@ public class PrimAsmCommands {
 	 * <b>CMPFP</b> <code>(02 02)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the two floating point values and stores the result in the status register
-	 * <p>
+	 * compares the two floating point values and stores the result in the status register	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
@@ -823,32 +744,28 @@ public class PrimAsmCommands {
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>NaN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 &lt; p2</code>
 	 * <ul>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>NaN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 is NaN | p2 is NaN</code>
 	 * <ul>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>NaN &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>NaN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 	 */
@@ -857,8 +774,7 @@ public class PrimAsmCommands {
 	 * <b>CHKFP</b> <code>(02 03)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
-	 * checks if the floating point param is a positive, negative infinity, NaN or normal value
-	 * <p>
+	 * checks if the floating point param is a positive, negative infinity, NaN or normal value	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 is positive-infinity</code>
@@ -867,32 +783,28 @@ public class PrimAsmCommands {
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>NAN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 is negative-infinity</code>
 	 * <ul>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>NAN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 is NaN</code>
 	 * <ul>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>NAN &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>NAN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 	 */
@@ -901,8 +813,7 @@ public class PrimAsmCommands {
 	 * <b>CMPU</b> <code>(02 04)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the two unsigned values and stores the result in the status register
-	 * <p>
+	 * compares the two unsigned values and stores the result in the status register	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
@@ -910,22 +821,19 @@ public class PrimAsmCommands {
 	 * <li><code>GREATHER &lt;- 1</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 &lt; p2</code>
 	 * <ul>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 	 */
@@ -934,8 +842,7 @@ public class PrimAsmCommands {
 	 * <b>CMPB</b> <code>(02 05)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * compares the two 128 bit values and stores the result in the status register
-	 * <p>
+	 * compares the two 128 bit values and stores the result in the status register	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
@@ -943,44 +850,106 @@ public class PrimAsmCommands {
 	 * <li><code>GREATHER &lt;- 1</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else if p1 &lt; p2</code>
 	 * <ul>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>GREATHER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 	 */
 	public static final int CMPB    = 0x0205;
 	/**
+	 * <b>SGN</b> <code>(02 06)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt;</code>
+	 * <p>
+	 * compares the value with <code>0</code> and stores the result in the status register	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>if p1 &gt; 0</code>
+	 * <ul>
+	 * <li><code>GREATHER &lt;- 1</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 &lt; 0</code>
+	 * <ul>
+	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 1</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 1</code></li>
+	 * </ul></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+	 */
+	public static final int SGN     = 0x0206;
+	/**
+	 * <b>SGNFP</b> <code>(02 07)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt;</code>
+	 * <p>
+	 * compares the floating-point value with <code>0.0</code> and stores the result in the status register	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>if p1 &gt; 0.0</code>
+	 * <ul>
+	 * <li><code>GREATHER &lt;- 1</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>NaN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 &lt; 0.0</code>
+	 * <ul>
+	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 1</code></li>
+	 * <li><code>NaN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 is NaN</code>
+	 * <ul>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>NaN &lt;- 1</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>NaN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 1</code></li>
+	 * </ul></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+	 */
+	public static final int SGNFP   = 0x0207;
+	/**
 	 * <b>JMPERR</b> <code>(02 10)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the <code>ERRNO</code> register stores a value other than <code>0</code>
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the <code>ERRNO</code> register stores a value other than <code>0</code>	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ERRNO != 0</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPERR  = 0x0210;
@@ -988,20 +957,17 @@ public class PrimAsmCommands {
 	 * <b>JMPEQ</b> <code>(02 11)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare operation compared two equal values
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare operation compared two equal values	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if EQUAL</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPEQ   = 0x0211;
@@ -1009,20 +975,17 @@ public class PrimAsmCommands {
 	 * <b>JMPNE</b> <code>(02 12)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare operation compared two different values
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare operation compared two different values	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if EQUAL</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPNE   = 0x0212;
@@ -1030,20 +993,17 @@ public class PrimAsmCommands {
 	 * <b>JMPGT</b> <code>(02 13)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare result was greater
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare result was greater	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if GREATHER</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPGT   = 0x0213;
@@ -1051,20 +1011,17 @@ public class PrimAsmCommands {
 	 * <b>JMPGE</b> <code>(02 14)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare result was not lower
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare result was not lower	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if GREATHER | EQUAL</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPGE   = 0x0214;
@@ -1072,20 +1029,17 @@ public class PrimAsmCommands {
 	 * <b>JMPLT</b> <code>(02 15)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare result was lower
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare result was lower	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if LOWER</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPLT   = 0x0215;
@@ -1093,20 +1047,17 @@ public class PrimAsmCommands {
 	 * <b>JMPLE</b> <code>(02 16)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare result was not greater	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if LOWER | EQUAL</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPLE   = 0x0216;
@@ -1114,20 +1065,17 @@ public class PrimAsmCommands {
 	 * <b>JMPCS</b> <code>(02 17)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is set
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is set	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if OVERFLOW</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPCS   = 0x0217;
@@ -1135,20 +1083,17 @@ public class PrimAsmCommands {
 	 * <b>JMPCC</b> <code>(02 18)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is cleared
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is cleared	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ! OVERFLOW</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPCC   = 0x0218;
@@ -1156,20 +1101,17 @@ public class PrimAsmCommands {
 	 * <b>JMPZS</b> <code>(02 19)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last zero flag is set
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last zero flag is set	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ZERO</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPZS   = 0x0219;
@@ -1177,20 +1119,17 @@ public class PrimAsmCommands {
 	 * <b>JMPZC</b> <code>(02 1a)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last zero flag is cleared
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last zero flag is cleared	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ! ZERO</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPZC   = 0x021a;
@@ -1198,20 +1137,17 @@ public class PrimAsmCommands {
 	 * <b>JMPNAN</b> <code>(02 1b)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last NaN flag is set
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last NaN flag is set	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if NAN</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPNAN  = 0x021b;
@@ -1219,20 +1155,17 @@ public class PrimAsmCommands {
 	 * <b>JMPAN</b> <code>(02 1c)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last NaN flag is cleared
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last NaN flag is cleared	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ! NAN</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPAN   = 0x021c;
@@ -1240,20 +1173,17 @@ public class PrimAsmCommands {
 	 * <b>JMPAB</b> <code>(02 1d)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last AllBits flag is set
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last AllBits flag is set	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ALL_BITS</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPAB   = 0x021d;
@@ -1261,20 +1191,17 @@ public class PrimAsmCommands {
 	 * <b>JMPSB</b> <code>(02 1e)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last SomeBits flag is set
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last SomeBits flag is set	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if SOME_BITS</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPSB   = 0x021e;
@@ -1282,20 +1209,17 @@ public class PrimAsmCommands {
 	 * <b>JMPNB</b> <code>(02 1f)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last NoneBits flag is set
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last NoneBits flag is set	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if NONE_BITS</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int JMPNB   = 0x021f;
@@ -1303,8 +1227,7 @@ public class PrimAsmCommands {
 	 * <b>JMP</b> <code>(02 20)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label
-	 * <p>
+	 * sets the instruction pointer to position of the command after the label	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
@@ -1323,14 +1246,15 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>|&gt; example to overwrite a interrupt</code></li>
 	 * <li><code>LEA [INTP + OVERWRITE_INT_NUM_MULTIPLIED_WITH_8], RELATIVE_POS_FROM_GET_TO_INTERRUPT</code></li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li>on failure the default interrupts use the <code>ERRNO</code> register to store information about the error which caused the interrupt to fail</li>
 	 * </ul>
 	 * negative interrupts will always cause the illegal interrupt to be called instead<br>
-	 * when <code>INTCNT</code> is greater then the number of default interrupts and the called interrupt is not overwritten, the illegal interrupt will be called
-	 * instead<br>
+	 * when <code>INTCNT</code> is greater then the number of default interrupts and the called interrupt is not overwritten, the illegal interrupt will be called instead<br>
 	 * for the list of default interrupts see the {@link PrimAsmPreDefines predefined constant} documentation
+	 * <ul>
+	 * <li>note that all predefined interrupts set the <code>ERRNO</code> register to a nonzero value on error</li>
+	 * </ul>
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
@@ -1340,8 +1264,7 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>if the memory allocation fails, the program will terminate with 127</li>
 	 * <li>the allocated memory block will not be resizable, but can be freed normally with the free interrupt or with the <code>IRET</code> command</li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li><code>[ZW]       &lt;- IP</code></li>
 	 * <li><code>[ZW + 8]   &lt;- SP</code></li>
 	 * <li><code>[ZW + 16]  &lt;- STATUS</code></li>
@@ -1364,19 +1287,15 @@ public class PrimAsmCommands {
 	 * <li>if the address <code>INTP + (p1 * 8)</code> is invalid the pvm will execute the illegal memory interrupt
 	 * <ul>
 	 * <li>the pvm will terminate with 127 instead if the address <code>INTP + (INT_ERRORS_ILLEGAL_MEMORY * 8)</code> is also invalid</li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * <li>note that if the address <code>[INTP + (p1 * 8)]</code> the illegal memory interrupt will be executed.
 	 * <ul>
 	 * <li>note that if is the illegal memory interrupt entry is invalid (and not <code>-1</code>) a loop will occur
 	 * <ul>
 	 * <li>note that in this loop the program would allocate memory, until there is no longer enough memory</li>
-	 * </ul>
-	 * </li>
-	 * </ul>
-	 * </li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
+	 * </ul></li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int INT     = 0x0230;
@@ -1385,8 +1304,7 @@ public class PrimAsmCommands {
 	 * <i>Parameter: none</i>
 	 * <p>
 	 * returns from an interrupt<br>
-	 * if the address stored in <code>X09</code> was not retrieved from an <code>INT</code> execution, the PVM will call the illegal memory interrupt
-	 * <p>
+	 * if the address stored in <code>X09</code> was not retrieved from an <code>INT</code> execution, the PVM will call the illegal memory interrupt	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>ZW      &lt;- X09</code></li>
@@ -1408,10 +1326,8 @@ public class PrimAsmCommands {
 	 * <li><code>X09     &lt;- [X09 + 120]</code></li>
 	 * <li><code>FREE ZW</code>
 	 * <ul>
-	 * <li>this does not use the free interrupt, but works like the default free interrupt (without calling the interrupt (what could cause an infinite
-	 * recursion))</li>
-	 * </ul>
-	 * </li>
+	 * <li>this does not use the free interrupt, but works like the default free interrupt (without calling the interrupt (what could cause an infinite recursion))</li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int IRET    = 0x0231;
@@ -1420,8 +1336,7 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
 	 * sets the instruction pointer to position of the label<br>
-	 * and pushes the current instruction pointer to the stack
-	 * <p>
+	 * and pushes the current instruction pointer to the stack	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>[SP] &lt;- IP</code></li>
@@ -1435,8 +1350,7 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;CONST_PARAM&gt;</code>
 	 * <p>
 	 * sets the instruction pointer to position of the label<br>
-	 * and pushes the current instruction pointer to the stack
-	 * <p>
+	 * and pushes the current instruction pointer to the stack	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>[SP] &lt;- IP</code></li>
@@ -1444,8 +1358,7 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- p1 + p2</code>
 	 * <ul>
 	 * <li>note that this call is not relative from the current position</li>
-	 * </ul>
-	 * </li>
+	 * </ul></li>
 	 * </ul>
 	 */
 	public static final int CALO    = 0x0301;
@@ -1453,8 +1366,7 @@ public class PrimAsmCommands {
 	 * <b>RET</b> <code>(03 10)</code><br>
 	 * <i>Parameter: none</i>
 	 * <p>
-	 * sets the instruction pointer to the position which was secured in the stack
-	 * <p>
+	 * sets the instruction pointer to the position which was secured in the stack	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>IP &lt;- [SP + -8]</code></li>
@@ -1466,8 +1378,7 @@ public class PrimAsmCommands {
 	 * <b>PUSH</b> <code>(03 20)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
-	 * pushes the parameter to the stack
-	 * <p>
+	 * pushes the parameter to the stack	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>[SP] &lt;- p1</code></li>
@@ -1480,8 +1391,7 @@ public class PrimAsmCommands {
 	 * <b>POP</b> <code>(03 21)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * pops the highest value from the stack to the parameter
-	 * <p>
+	 * pops the highest value from the stack to the parameter	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- [SP - 8]</code></li>
@@ -1494,8 +1404,7 @@ public class PrimAsmCommands {
 	 * <b>PUSHBLK</b> <code>(03 22)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * pushes the memory block, which is refereed by p1 and p2 large to the stack
-	 * <p>
+	 * pushes the memory block, which is refered by p1 and p2 large to the stack	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>note that p1 is not allowed to be negative</code></li>
@@ -1509,8 +1418,7 @@ public class PrimAsmCommands {
 	 * <b>POPBLK</b> <code>(03 23)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * pops the memory block, which will be saved to p1 and is p2 large from the stack
-	 * <p>
+	 * pops the memory block, which will be saved to p1 and is p2 large from the stack	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>note that p2 is not allowed to be negative</code></li>

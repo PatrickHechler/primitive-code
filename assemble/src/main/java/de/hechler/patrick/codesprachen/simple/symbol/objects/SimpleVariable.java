@@ -9,7 +9,8 @@ public abstract class SimpleVariable implements SimpleExportable {
 		
 		public final boolean intern;
 		
-		private long addr;
+		private Object relative;
+		private long   addr;
 		
 		public SimpleOffsetVariable(SimpleType type, String name) {
 			super(type, name, false);
@@ -30,15 +31,22 @@ public abstract class SimpleVariable implements SimpleExportable {
 			this.intern = intern;
 		}
 		
-		public SimpleOffsetVariable(long addr, SimpleType type, String name, boolean export) {
+		public SimpleOffsetVariable(long addr, Object relative, SimpleType type, String name, boolean export) {
 			super(type, name, export);
-			this.addr   = addr;
-			this.intern = false;
+			this.addr     = addr;
+			this.relative = relative;
+			this.intern   = false;
 		}
 		
-		public void init(long addr) {
+		public void init(long addr, Object relative) {
 			if (this.addr != -1) { throw new AssertionError("already initilized"); }
-			this.addr = addr;
+			this.addr     = addr;
+			this.relative = relative;
+		}
+		
+		public Object relative() {
+			if (this.addr == -1L) { throw new AssertionError("not yet initilized"); }
+			return relative;
 		}
 		
 		public long offset() {

@@ -814,6 +814,36 @@ static void c_cmpb() {
 	}
 	incIP
 }
+static void c_sgn() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (p1.p.n > 0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER)) | S_GREATHER;
+	} else if (p1.p.n < 0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_GREATHER)) | S_LOWER;
+	} else {
+		pvm.status = (pvm.status & ~(S_GREATHER | S_LOWER)) | S_EQUAL;
+	}
+	incIP
+}
+static void c_sgnfp() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (isnan(p1.p.fpn)) {
+		pvm.status = (pvm.status & ~(S_GREATHER | S_EQUAL | S_LOWER)) | S_NAN;
+	} else if (p1.p.fpn > 0.0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER | S_NAN)) | S_GREATHER;
+	} else if (p1.p.fpn < 0.0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_GREATHER | S_NAN)) | S_LOWER;
+	} else {
+		pvm.status = (pvm.status & ~(S_GREATHER | S_LOWER | S_NAN)) | S_EQUAL;
+	}
+	incIP
+}
 static void c_fptn() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {

@@ -12,13 +12,13 @@ import de.hechler.patrick.codesprachen.simple.symbol.interfaces.*;
 import de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable.*;
 }
 
-simpleExports returns [SimpleExportable[] imported] :
+simpleExports [Object relative] returns [SimpleExportable[] imported] :
 	{
 		Map<String, SimpleStructType> structs = new HashMap<>();
 		List<SimpleExportable> imps = new ArrayList<>();
 	}
 	(
-		export [structs]
+		export [relative, structs]
 		{imps.add($export.imp);}
 		( LINE | EOF )
 	)*
@@ -26,24 +26,23 @@ simpleExports returns [SimpleExportable[] imported] :
 	EOF
 ;
 
-export [Map<String, SimpleStructType> structs] returns [SimpleExportable imp] :
+export [Object relative, Map<String, SimpleStructType> structs] returns [SimpleExportable imp] :
 	constExport
 	{$imp = $constExport.imp;}
 	|
 	structExport
 	{
 		Object obj = structs.put($structExport.imp.name, $structExport.imp);
-		assert obj == null;
+		assert obj == null : "old: '" + obj + "' new: '" + $structExport.imp + '\'';
 		$imp = $structExport.imp;
 	}
 	|
-	varExport
+	varExport [relative]
 	{$imp = $varExport.imp;}
 	|
-	functionExport
+	functionExport [relative]
 	{$imp = $functionExport.imp;}
 ;
-
 
 structExport returns [SimpleStructType imp]:
 	STRUCT NAME_OR_NUMBER STRUCT varList STRUCT
@@ -53,11 +52,11 @@ structExport returns [SimpleStructType imp]:
 varList returns [List<SimpleOffsetVariable> list]:
 	{$list = new ArrayList<>();}
 	(
-		variable [null]
+		variable [null, null]
 		{$list.add($variable.v);}
 		(
 			VAR_SEP
-			variable [null]
+			variable [null, null]
 			{$list.add($variable.v);}
 		)*
 	)?
@@ -71,28 +70,31 @@ constExport returns [SimpleExportable imp] :
 	}
 ;
 
-varExport returns [SimpleExportable imp] :
-	VAR NAME_OR_NUMBER VAR variable [$NAME_OR_NUMBER.getText()]
+varExport [Object relative] returns [SimpleExportable imp] :
+	VAR NAME_OR_NUMBER VAR variable [relative, $NAME_OR_NUMBER.getText()]
 	{$imp = $variable.v;}
 ;
 
-functionExport returns [SimpleExportable imp] :
-	FUNC2 addr = NAME_OR_NUMBER FUNC name = NAME_OR_NUMBER functionType
-	{$imp = new SimpleFunctionSymbol(Long.parseUnsignedLong($addr.getText(), 16), $name.getText(), (SimpleFuncType) $functionType.t);}
+functionExport [Object relative] returns [SimpleExportable imp] :
+	FUNC addr = NAME_OR_NUMBER
+	FUNC name = NAME_OR_NUMBER
+	functionType [relative]
+	{$imp = new SimpleFunctionSymbol(Long.parseUnsignedLong($addr.getText(), 16), relative, $name.getText(), (SimpleFuncType) $functionType.t);}
 ;
 
-variable [String number] returns [SimpleOffsetVariable v] :
-	NAME_OR_NUMBER NAME_TYPE_SEP type
+variable [Object relative, String number] returns [SimpleOffsetVariable v] :
+	NAME_OR_NUMBER NAME_TYPE_SEP
+	type [relative]
 	{
 		if (number == null) {
 			$v = new SimpleOffsetVariable($type.t, $NAME_OR_NUMBER.getText(), false);
 		} else {
-			$v = new SimpleOffsetVariable(Long.parseUnsignedLong(number, 16), $type.t, $NAME_OR_NUMBER.getText(), true);
+			$v = new SimpleOffsetVariable(Long.parseUnsignedLong(number, 16), relative, $type.t, $NAME_OR_NUMBER.getText(), true);
 		}
 	}
 ;
 
-type returns [SimpleType t] :
+type [Object relative] returns [SimpleType t] :
 	(
 		primType
 		{$t = $primType.t;}
@@ -100,7 +102,7 @@ type returns [SimpleType t] :
 		structType
 		{$t = $structType.t;}
 		|
-		functionType
+		functionType[relative]
 		{$t = $functionType.t;}
 	)
 	(
@@ -115,8 +117,10 @@ type returns [SimpleType t] :
 	)*
 ;
 
-functionType returns [SimpleType t] :
-	FUNC args = varList FUNC res = varList FUNC
+functionType [Object relative] returns [SimpleType t] :
+	FUNC args = varList
+	FUNC2 res = varList
+	FUNC
 	{$t = new SimpleFuncType($args.list, $res.list);}
 ;
 

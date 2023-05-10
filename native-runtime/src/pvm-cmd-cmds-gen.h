@@ -153,8 +153,8 @@ static void(*cmds[])() = {
 	c_chkfp, /* 0203 */
 	c_cmpu, /* 0204 */
 	c_cmpb, /* 0205 */
-	ILL_1
-	ILL_1
+	c_sgn, /* 0206 */
+	c_sgnfp, /* 0207 */
 	ILL_1
 	ILL_1
 	ILL_1

@@ -83,6 +83,8 @@ public enum Commands {
 	// PARAMS: PARAM
 	
 	CMD_CHKFP(CHKFP, 1, 0),
+	CMD_SGN(SGN, 1, 0),
+	CMD_SGNFP(SGNFP, 1, 0),
 	CMD_INT(INT, 1, 0),
 	CMD_PUSH(PUSH, 1, 0),
 	

@@ -1737,6 +1737,7 @@ the pre-commands ar executed at assemble time, not runtime
 
 `SGN <PARAM>`
 * compares the value with `0` and stores the result in the status register
+* this command is like `CMP PARAM , 0`
 * definition:
     * `if p1 > 0`
         * `GREATHER <- 1`
@@ -1758,6 +1759,7 @@ the pre-commands ar executed at assemble time, not runtime
 
 `SGNFP <PARAM>`
 * compares the floating-point value with `0.0` and stores the result in the status register
+* this command is like `CMPFP PARAM , 0.0`
 * definition:
     * `if p1 > 0.0`
         * `GREATHER <- 1`

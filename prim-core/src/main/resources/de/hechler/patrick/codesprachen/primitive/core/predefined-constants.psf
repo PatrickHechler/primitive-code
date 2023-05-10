@@ -720,7 +720,7 @@ INT_LOAD_FILE=UHEX-40
 |   <code>X00</code> will point to the memory block, in which the file has been loaded<br>
 |   <code>X01</code> will be set to the length of the file (and the memory block)<br>
 |   <code>X02</code> will be set to <code>1</code> if the file has been loaded as result of this interrupt and <code>0</code> if the file was previously loaded<br>
-|   when an error occurred <code>X00</code> will be set to <code>-1</code><br>
+|   when an error occurred <code>X01</code> will be set to <code>-1</code>, <code>X00</code> will be unmodified and <code>ERRNO</code> will be set to a non-zero value<br>
 |   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_LOAD_LIB=UHEX-41
 |:  <b>INT_UNLOAD_LIB</b>: unload a library file<br>

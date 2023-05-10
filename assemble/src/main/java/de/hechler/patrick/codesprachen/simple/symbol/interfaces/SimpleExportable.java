@@ -78,29 +78,29 @@ public interface SimpleExportable extends SimpleNameable {
 	
 	public static SimpleExportable[] correctImports(Map<String, SimpleStructType> structs, List<SimpleExportable> imps) {
 		int                impcnt = imps.size();
-		SimpleExportable[] result = new SimpleExportable[structs.size() + impcnt];
+		SimpleExportable[] result = new SimpleExportable[impcnt];
 		for (int i = 0; i < impcnt; i++) {
 			SimpleExportable se = imps.get(i);
-			if (se instanceof SimpleConstant) {
-				// nothing to do
-			} else if (se instanceof SimpleFunctionSymbol sf) {
+			switch (se) {
+			case @SuppressWarnings("preview") SimpleConstant sc -> {/* nothing to do */}
+			case @SuppressWarnings("preview") SimpleFunctionSymbol sf -> {
 				ImportHelp.correctArray(structs, sf.type.arguments);
 				ImportHelp.correctArray(structs, sf.type.results);
-			} else if (se instanceof SimpleOffsetVariable sv) {
+			}
+			case @SuppressWarnings("preview") SimpleOffsetVariable sv -> {
 				SimpleType corrected = ImportHelp.correctType(structs, sv.type);
 				if (corrected != sv.type) {
-					se = new SimpleOffsetVariable(sv.offset(), corrected, sv.name, true);
+					se = new SimpleOffsetVariable(sv.offset(), sv.relative(), corrected, sv.name, true);
 				}
-			} else {
-				throw new InternalError("unknown exportable class: " + se.getClass().getName());
+			}
+			case @SuppressWarnings("preview") SimpleFutureStructType fst -> {
+				se = structs.get(fst.name);
+			}
+			case @SuppressWarnings("preview") SimpleStructType st -> {/* nothing to do */}
+			default -> throw new AssertionError("unknown exportable class: " + se.getClass().getName());
 			}
 			result[i] = se;
 		}
-		Iterator<SimpleStructType> iter = structs.values().iterator();
-		for (int i = impcnt; i < result.length; i++) {
-			result[i] = iter.next();
-		}
-		assert !iter.hasNext();
 		return result;
 	}
 	
@@ -146,7 +146,7 @@ public interface SimpleExportable extends SimpleNameable {
 				SimpleOffsetVariable sv        = results[i];
 				SimpleType           corrected = correctType(structs, sv.type);
 				if (corrected != sv.type) {
-					results[i] = new SimpleOffsetVariable(sv.offset(), corrected, sv.name, true);
+					results[i] = new SimpleOffsetVariable(sv.offset(), sv.relative(), corrected, sv.name, true);
 				}
 			}
 		}
@@ -245,13 +245,12 @@ public interface SimpleExportable extends SimpleNameable {
 				build.append(VAR_SEP);
 			}
 			first = false;
-			build.append(sv.name);
-			build.append(NAME_TYPE_SEP);
+			build.append(sv.name).append(NAME_TYPE_SEP);
 			sv.type.appendToExportStr(build);
 		}
 	}
 	
-	static Map<String, SimpleExportable> readExports(Reader r) {
+	static Map<String, SimpleExportable> readExports(Object relative, Reader r) {
 		try {
 			ANTLRInputStream in = new ANTLRInputStream();
 			in.load(r, 1024, 1024);
@@ -259,7 +258,7 @@ public interface SimpleExportable extends SimpleNameable {
 			CommonTokenStream         toks   = new CommonTokenStream(lexer);
 			SimpleExportGrammarParser parser = new SimpleExportGrammarParser(toks);
 			parser.setErrorHandler(new BailErrorStrategy());
-			SimpleExportsContext          sec    = parser.simpleExports();
+			SimpleExportsContext          sec    = parser.simpleExports(relative);
 			SimpleExportable[]            se     = sec.imported;
 			Map<String, SimpleExportable> result = new HashMap<>(se.length);
 			for (int i = 0; i < se.length; i++) {

@@ -73,6 +73,8 @@ static void c_ill();
 	/* 0203 */ static void c_chkfp();
 	/* 0204 */ static void c_cmpu();
 	/* 0205 */ static void c_cmpb();
+	/* 0206 */ static void c_sgn();
+	/* 0207 */ static void c_sgnfp();
 /* 002. : conditional jump */
 	/* 0210 */ static void c_jmperr();
 	/* 0211 */ static void c_jmpeq();

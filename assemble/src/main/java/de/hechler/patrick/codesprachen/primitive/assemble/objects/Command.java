@@ -32,16 +32,16 @@ public class Command {
 	
 	public Command(Commands cmd, Param p1, Param p2, Param p3) {
 		this.cmd = cmd;
-		this.p1 = p1;
-		this.p2 = p2;
-		this.p3 = p3;
+		this.p1  = p1;
+		this.p2  = p2;
+		this.p3  = p3;
 	}
 	
-	public static ConstsContext parseCP(String cp, Map <String, PrimitiveConstant> constants, Map <String, Long> labels, long pos, boolean align, int line, int posInLine, int charPos, boolean bailError,
-		ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener) {
-		ANTLRInputStream in = new ANTLRInputStream(cp);
-		ConstantPoolGrammarLexer lexer = new ConstantPoolGrammarLexer(in);
-		CommonTokenStream tokens = new CommonTokenStream(lexer);
+	public static ConstsContext parseCP(String cp, Map<String, PrimitiveConstant> constants, Map<String, Long> labels, long pos, boolean align, int line,
+		int posInLine, int charPos, boolean bailError, ANTLRErrorStrategy errorHandler, ANTLRErrorListener errorListener) {
+		ANTLRInputStream          in     = new ANTLRInputStream(cp);
+		ConstantPoolGrammarLexer  lexer  = new ConstantPoolGrammarLexer(in);
+		CommonTokenStream         tokens = new CommonTokenStream(lexer);
 		ConstantPoolGrammarParser parser = new ConstantPoolGrammarParser(tokens);
 		if (errorHandler != null) {
 			parser.setErrorHandler(errorHandler);
@@ -54,7 +54,8 @@ public class Command {
 			return constantPool;
 		} catch (AssembleRuntimeException ae) {
 			assert false;
-			AssembleRuntimeException err = new AssembleRuntimeException(line + ae.line, ae.line == 0 ? ae.posInLine + posInLine : ae.posInLine, ae.length, charPos + ae.charPos, ae.getMessage());
+			AssembleRuntimeException err = new AssembleRuntimeException(line + ae.line, ae.line == 0 ? ae.posInLine + posInLine : ae.posInLine, ae.length,
+				charPos + ae.charPos, ae.getMessage());
 			err.setStackTrace(ae.getStackTrace());
 			throw err;
 		} catch (AssembleError ae) {
@@ -65,17 +66,17 @@ public class Command {
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
 			if (cause instanceof AssembleError) {
-				AssembleError ae = (AssembleError) cause;
+				AssembleError ae  = (AssembleError) cause;
 				AssembleError err = new AssembleError(line + ae.line, ae.posInLine + (ae.length == 0 ? posInLine : 0), ae.length, ae.charPos, ae.getMessage());
 				err.setStackTrace(ae.getStackTrace());
 				throw err;
 			} else if (cause instanceof NoViableAltException) {
-				NoViableAltException nvae = (NoViableAltException) cause;
-				Token ot = nvae.getOffendingToken();
-				String[] names = parser.getTokenNames();
-				StringBuilder msg = new StringBuilder("illegal token: ").append(ot).append("\nexpected: [");
-				IntervalSet ets = nvae.getExpectedTokens();
-				for (int i = 0; i < ets.size(); i ++ ) {
+				NoViableAltException nvae  = (NoViableAltException) cause;
+				Token                ot    = nvae.getOffendingToken();
+				String[]             names = parser.getTokenNames();
+				StringBuilder        msg   = new StringBuilder("illegal token: ").append(ot).append("\nexpected: [");
+				IntervalSet          ets   = nvae.getExpectedTokens();
+				for (int i = 0; i < ets.size(); i++) {
 					if (i > 0) {
 						msg.append(", ");
 					}
@@ -83,8 +84,8 @@ public class Command {
 					msg.append('<').append(names[t]).append('>');
 				}
 				int lineAdd = ot.getLine();
-				throw new AssembleError(line + lineAdd, lineAdd == 0 ? posInLine + ot.getCharPositionInLine() : ot.getCharPositionInLine(), ot.getStopIndex() - ot.getStartIndex() + 1,
-					ot.getStartIndex(), msg.append(']').toString());
+				throw new AssembleError(line + lineAdd, lineAdd == 0 ? posInLine + ot.getCharPositionInLine() : ot.getCharPositionInLine(),
+					ot.getStopIndex() - ot.getStartIndex() + 1, ot.getStartIndex(), msg.append(']').toString());
 			} else {
 				throw new AssembleError(line, posInLine, 1, charPos, e.getClass().getName() + ": " + e.getMessage(), e);
 			}
@@ -95,12 +96,12 @@ public class Command {
 		if (are == null) {
 			return null;
 		} else {
-			AssembleRuntimeException result = new AssembleRuntimeException(are.line + line, are.line == 0 ? are.posInLine : are.posInLine + posInLine, are.length, charPos + are.charPos,
-				are.getMessage(), are.getCause());
-			Throwable[] sup = are.getSuppressed();
+			AssembleRuntimeException result = new AssembleRuntimeException(are.line + line, are.line == 0 ? are.posInLine : are.posInLine + posInLine, are.length,
+				charPos + are.charPos, are.getMessage(), are.getCause());
+			Throwable[]              sup    = are.getSuppressed();
 			if (sup != null) {
 				for (Throwable s : sup) {
-					if ( ! (s instanceof AssembleRuntimeException)) {
+					if (!(s instanceof AssembleRuntimeException)) {
 						result.addSuppressed(getConvertedCP_ARE((AssembleRuntimeException) s, line, posInLine, charPos));
 					}
 				}
@@ -160,6 +161,14 @@ public class Command {
 				case Param.ART_ANUM_BNUM:
 					return 24;
 				case Param.ART_ANUM:
+					switch (cmd) {
+					case CMD_CALL, CMD_JMP, CMD_JMPAB, CMD_JMPAN, CMD_JMPCC, CMD_JMPCS, CMD_JMPEQ, CMD_JMPERR, CMD_JMPGE, CMD_JMPGT, CMD_JMPLE, CMD_JMPLT,
+						CMD_JMPNAN, CMD_JMPNB, CMD_JMPNE, CMD_JMPSB, CMD_JMPZC, CMD_JMPZS:
+						return 8;
+					// $CASES-OMITTED$
+					default:
+						return 16;
+					}
 				case Param.ART_AREG_BNUM:
 				case Param.ART_ANUM_BADR:
 				case Param.ART_ANUM_BREG:

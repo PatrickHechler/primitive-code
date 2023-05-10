@@ -45,13 +45,13 @@ public class SimpleFuncType implements SimpleType {
 		}
 	}
 	
-	private static final void init(SimpleOffsetVariable[] svs) {
+	private final void init(SimpleOffsetVariable[] svs) {
 		long addr = 0L;
 		for (int i = 0; i < svs.length; i++) {
 			SimpleOffsetVariable sv = svs[i];
 			long                 bc = sv.type.byteCount();
 			addr = SimpleStructType.align(addr, bc);
-			sv.init(addr);
+			sv.init(addr, this);
 			addr += bc;
 		}
 	}
@@ -139,9 +139,9 @@ public class SimpleFuncType implements SimpleType {
 	
 	@Override
 	public void appendToExportStr(StringBuilder build) {
-		build.append(FUNC2);
-		exportVars(build, this.arguments);
 		build.append(FUNC);
+		exportVars(build, this.arguments);
+		build.append(FUNC2);
 		exportVars(build, this.results);
 		build.append(FUNC);
 	}

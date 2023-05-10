@@ -34,10 +34,10 @@ import de.hechler.patrick.zeugs.pfs.opts.PatrFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.StreamOpenOptions;
 
 @CheckClass
-@SuppressWarnings("static-method")
+@SuppressWarnings({"static-method", "javadoc"})
 public class ProgramChecker {
 	
-	private static final byte[] EMPTY_BARR = new byte[0];
+	protected static final byte[] EMPTY_BARR = new byte[0];
 	
 	private static final StreamOpenOptions CREATE_FILE_OPTS = new StreamOpenOptions(false, true, false, ElementType.FILE, false, true);
 	
@@ -49,23 +49,23 @@ public class ProgramChecker {
 	private static final String ECHO_PFS = "./testout/echo.pfs";
 	private static final String ECHO_RES = "/de/hechler/patrick/codesprachen/primitive/assemble/programs/echo.psc";
 	
-	private FSProvider patrFsProv;
+	protected FSProvider patrFsProv;
 	
 	@Start
-	private void init() throws IOException {
+	protected void init() throws IOException {
 		Files.createDirectories(Path.of("./testout/"));
 	}
 	
 	@Start
-	private void start(@MethodParam Method met) throws NoSuchProviderException {
+	protected void start(@MethodParam Method met) throws NoSuchProviderException {
 		System.out.println("check now " + met.getName());
-		patrFsProv = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME);
+		this.patrFsProv = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME);
 	}
 	
 	@End
-	private void end(@MethodParam Method met) {
+	protected void end(@MethodParam Method met) {
 		System.out.println("finished " + met.getName() + " check");
-		patrFsProv.loadedFS().forEach(fs -> {
+		this.patrFsProv.loadedFS().forEach(fs -> {
 			try {
 				fs.close();
 			} catch (IOException e) {
@@ -76,7 +76,7 @@ public class ProgramChecker {
 	
 	@Check
 	private void checkHelloWorld() throws IOException, InterruptedException {
-		try (FS fs = patrFsProv.loadFS(new PatrFSOptions(HELLO_WORLD_PFS, true, 4096L, 1024))) {
+		try (FS fs = this.patrFsProv.loadFS(new PatrFSOptions(HELLO_WORLD_PFS, true, 4096L, 1024))) {
 			System.out.println("opened fs, asm now");
 			asm(fs, HELLO_WORLD_RES, HELLO_WORLD_PMF);
 			System.out.println("finished asm, close now fs");
@@ -87,7 +87,7 @@ public class ProgramChecker {
 	
 	@Check
 	private void checkEchoHelloPrimitiveWorld() throws IOException, InterruptedException {
-		try (FS fs = patrFsProv.loadFS(new PatrFSOptions(ECHO_PFS, true, 4096L, 1024))) {
+		try (FS fs = this.patrFsProv.loadFS(new PatrFSOptions(ECHO_PFS, true, 4096L, 1024))) {
 			System.out.println("opened fs, asm now");
 			asm(fs, ECHO_RES, ECHO_PMF);
 			System.out.println("finished asm, close now fs");
@@ -100,7 +100,7 @@ public class ProgramChecker {
 	
 	@Check
 	private void checkEchoManyArgs() throws IOException, InterruptedException {
-		try (FS fs = patrFsProv.loadFS(new PatrFSOptions(ECHO_PFS, true, 4096L, 1024))) {
+		try (FS fs = this.patrFsProv.loadFS(new PatrFSOptions(ECHO_PFS, true, 4096L, 1024))) {
 			System.out.println("opened fs, asm now");
 			asm(fs, ECHO_RES, ECHO_PMF);
 			System.out.println("finished asm, close now fs");
@@ -115,7 +115,7 @@ public class ProgramChecker {
 	
 	@Check
 	private void checkEchoNop() throws IOException, InterruptedException {
-		try (FS fs = patrFsProv.loadFS(new PatrFSOptions(ECHO_PFS, true, 4096L, 1024))) {
+		try (FS fs = this.patrFsProv.loadFS(new PatrFSOptions(ECHO_PFS, true, 4096L, 1024))) {
 			System.out.println("opened fs, asm now");
 			asm(fs, ECHO_RES, ECHO_PMF);
 			System.out.println("finished asm, close now fs");
@@ -124,7 +124,7 @@ public class ProgramChecker {
 		execute(ECHO_PFS, ECHO_PMF, 0, EMPTY_BARR, "\n".getBytes(StandardCharsets.UTF_8), EMPTY_BARR);
 	}
 	
-	private void execute(String pfsFile, String pmfFile, int exitCode, byte[] stdin, byte[] stdout, byte[] stderr, String... programArgs)
+	protected void execute(String pfsFile, String pmfFile, int exitCode, byte[] stdin, byte[] stdout, byte[] stderr, String... programArgs)
 			throws IOException, InterruptedException {
 		Runtime  r    = Runtime.getRuntime();
 		String[] args = new String[] { "pvm", "--pfs=" + pfsFile, "--pmf=" + pmfFile };
@@ -149,7 +149,7 @@ public class ProgramChecker {
 		checkResult(b2);
 	}
 	
-	private void checkResult(TwoBools res) throws InterruptedException, CheckerException {
+	protected void checkResult(TwoBools res) throws InterruptedException, CheckerException {
 		while (!res.finish) {
 			synchronized (res) {
 				if (res.finish) { break; }
@@ -159,7 +159,7 @@ public class ProgramChecker {
 		assertTrue(res.result);
 	}
 	
-	private void check(BooleanSupplier cond, InputStream stream, byte[] value, TwoBools b) {
+	protected void check(BooleanSupplier cond, InputStream stream, byte[] value, TwoBools b) {
 		System.err.println(logStart() + "start");
 		try {
 			b.result = false;
@@ -179,7 +179,6 @@ public class ProgramChecker {
 					System.err.println("\nreat: " + reat);
 					i += reat;
 				} catch (IOException e) {
-					b.finish = true;
 					throw new IOError(e);
 				}
 			}
@@ -187,7 +186,7 @@ public class ProgramChecker {
 				System.err.print(logStart() + "read: ");
 				try {
 					System.err.write(other);
-				} catch (IOException e) {}
+				} catch (@SuppressWarnings("unused") IOException e) {}
 				System.err.println();
 			}
 			b.result = Arrays.equals(value, other);
