@@ -1735,6 +1735,56 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
+`SGN <PARAM>`
+* compares the value with `0` and stores the result in the status register
+* definition:
+    * `if p1 > 0`
+        * `GREATHER <- 1`
+        * `LOWER <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < 0`
+        * `GREATHER <- 0`
+        * `LOWER <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `GREATHER <- 0`
+        * `LOWER <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 06 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`SGNFP <PARAM>`
+* compares the floating-point value with `0.0` and stores the result in the status register
+* definition:
+    * `if p1 > 0.0`
+        * `GREATHER <- 1`
+        * `LOWER <- 0`
+        * `NaN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < 0.0`
+        * `GREATHER <- 0`
+        * `LOWER <- 1`
+        * `NaN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 is NaN`
+        * `LOWER <- 0`
+        * `GREATHER <- 0`
+        * `NaN <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `GREATHER <- 0`
+        * `LOWER <- 0`
+        * `NaN <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 07 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
 #### 021. : conditional jump
 
 `JMPERR <LABEL>`
