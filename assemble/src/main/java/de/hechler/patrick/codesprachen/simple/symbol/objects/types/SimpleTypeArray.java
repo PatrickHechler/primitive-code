@@ -52,4 +52,10 @@ public class SimpleTypeArray extends SimpleTypePointer {
 		return b.append(']').toString();
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if (!super.equals(obj)) return false;
+		return this.target.equals(((SimpleTypeArray) obj).target);
+	}
+	
 }

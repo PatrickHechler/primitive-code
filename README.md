@@ -732,7 +732,7 @@ every register can also be addressed:
     * `X00` will point to the memory block, in which the file has been loaded
     * `X01` will be set to the length of the file (and the memory block)
     * `X02` will be set to `1` if the file has been loaded as result of this interrupt and `0` if the file was previously loaded
-    * when an error occurred `X00` will be set to `-1`
+    * when an error occurred `X01` will be set to `-1`, `X00` will be unmodified and `ERRNO` will be set to a non-zero value
     * the value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_UNLOAD_LIB` :  unload a library file 
     * value: `66`

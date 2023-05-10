@@ -14,7 +14,7 @@
 
 #define check_string_len(XNN_OFFSET, error_reg, error_value) check_string_len0(XNN_OFFSET, mem, name, max_len, error_reg, error_value)
 
-static inline void write_error(const char*msg) {
+static inline void write_error(const char *msg) {
 #ifdef PVM_DEBUG
 	fputs(msg, old_stderr);
 #else
@@ -1138,23 +1138,26 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 	}
 	i64 eof = pfs_stream_seek_eof(sh);
 	if (eof == -1) {
-		pvm.x[0] = -1;
+		pvm.x[1] = -1;
 		return;
 	}
 	if (!pfs_stream_set_pos(sh, 0)) {
-		pvm.x[0] = -1;
+		pvm.x[1] = -1;
 		return;
 	}
 	struct memory2 lib_mem = alloc_memory(eof,
 			MEM_NO_FREE | MEM_NO_RESIZE | MEM_LIB);
 	if (!lib_mem.mem) {
-		pvm.x[0] = -1;
+		pvm.x[1] = -1;
 		return;
 	}
 	i64 reat = pfs_stream_read(sh, lib_mem.adr, eof);
 	if (reat != eof) {
 		free_memory(lib_mem.mem->start);
-		pvm.x[0] = -1;
+		pvm.x[1] = -1;
+		if (!pvm.err) {
+			pvm.err = PE_IO_ERR;
+		}
 		return;
 	}
 	if (name_len < MAX_LIB_NAME_LEN) {

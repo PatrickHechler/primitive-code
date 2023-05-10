@@ -58,4 +58,10 @@ public class SimpleTypePointer implements SimpleType {
 		return b.toString();
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		if (obj == null) return false;
+		return obj.getClass() != getClass();
+	}
+	
 }

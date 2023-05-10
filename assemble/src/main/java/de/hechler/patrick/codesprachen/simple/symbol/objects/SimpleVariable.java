@@ -48,15 +48,15 @@ public abstract class SimpleVariable implements SimpleExportable {
 		
 		@Override
 		public String toExportString() {
-			if (addr == -1) { throw new AssertionError("not yet initilized"); }
-			if (!export) { throw new IllegalStateException("this is not marked as export!"); }
+			if (this.addr == -1) { throw new AssertionError("not yet initilized"); }
+			if (!this.export) { throw new IllegalStateException("this is not marked as export!"); }
 			StringBuilder b = new StringBuilder();
 			b.append(VAR);
 			b.append(Long.toHexString(this.addr).toUpperCase());
 			b.append(VAR);
 			b.append(this.name);
 			b.append(NAME_TYPE_SEP);
-			type.appendToExportStr(b);
+			this.type.appendToExportStr(b);
 			return b.toString();
 		}
 		

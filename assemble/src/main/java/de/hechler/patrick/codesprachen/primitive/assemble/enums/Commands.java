@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 
 import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmCommands;
 
+@SuppressWarnings("javadoc")
 public enum Commands {
 	
 	//@formatter:off

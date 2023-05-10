@@ -52,6 +52,7 @@ public interface SimpleExportable extends SimpleNameable {
 	static final String PRIM_UBYTE  = ".ub";
 	
 	static final String FUNC   = "~f";
+	static final String FUNC2  = "~F";
 	static final String VAR    = "~v";
 	static final String STRUCT = "~s";
 	static final String CONST  = "~c";
@@ -60,11 +61,9 @@ public interface SimpleExportable extends SimpleNameable {
 	static final char VAR_SEP       = ',';
 	
 	/**
-	 * returns <code>true</code> if this object is marked as export and
-	 * <code>false</code> if not
+	 * returns <code>true</code> if this object is marked as export and <code>false</code> if not
 	 * 
-	 * @return <code>true</code> if this object is marked as export and
-	 *         <code>false</code> if not
+	 * @return <code>true</code> if this object is marked as export and <code>false</code> if not
 	 */
 	boolean isExport();
 	
@@ -73,8 +72,7 @@ public interface SimpleExportable extends SimpleNameable {
 	 * 
 	 * @return this {@link SimpleExportable} converted to an export {@link String}
 	 * 
-	 * @throws IllegalStateException if this {@link SimpleExportable} is not marked
-	 *                               as {@link #isExport() exportable}
+	 * @throws IllegalStateException if this {@link SimpleExportable} is not marked as {@link #isExport() exportable}
 	 */
 	String toExportString() throws IllegalStateException;
 	
@@ -108,7 +106,14 @@ public interface SimpleExportable extends SimpleNameable {
 	
 	static class ImportHelp {
 		
+		
 		private ImportHelp() {}
+		
+		public static final String VAR_PREFIX        = "VAR_";
+		public static final String STRUCT_PREFIX     = "STRUCT_";
+		public static final String FUNC_PREFIX       = "FUNC_";
+		public static final String CONST_PREFIX      = "CONST_";
+		public static final String DEPENDENCY_PREFIX = "DEP_";
 		
 		private static SimpleType correctType(Map<String, SimpleStructType> structs, SimpleType type) {
 			if (type instanceof SimpleFuncType sft) {
@@ -126,8 +131,8 @@ public interface SimpleExportable extends SimpleNameable {
 			} else if (type instanceof SimpleFutureStructType sfst) {
 				SimpleStructType res = structs.get(sfst.name);
 				if (res == null) {
-					throw new NoSuchElementException("the needed structure was not exported! (name='" + ((SimpleFutureStructType) type).name
-							+ "') (exported structs: " + structs + ")");
+					throw new NoSuchElementException(
+						"the needed structure was not exported! (name='" + ((SimpleFutureStructType) type).name + "') (exported structs: " + structs + ")");
 				}
 				return res;
 			} else if (type instanceof SimpleStructType) {
@@ -146,9 +151,8 @@ public interface SimpleExportable extends SimpleNameable {
 			}
 		}
 		
-		
 		public static void convertConst(Map<String, PrimitiveConstant> result, String prefix, SimpleConstant sc, Path path) {
-			String start = "CONST_";
+			String start = CONST_PREFIX;
 			if (prefix != null) {
 				start = prefix + start;
 			}
@@ -157,7 +161,7 @@ public interface SimpleExportable extends SimpleNameable {
 		}
 		
 		public static void convertFunc(Map<String, PrimitiveConstant> result, String prefix, SimpleFunctionSymbol sf, Path path, boolean addFunc) {
-			String start = "FUNC_" + sf.name;
+			String start = FUNC_PREFIX + sf.name;
 			if (prefix != null) {
 				start = prefix + start;
 			}
@@ -178,7 +182,7 @@ public interface SimpleExportable extends SimpleNameable {
 		}
 		
 		public static void convertStrut(Map<String, PrimitiveConstant> result, String prefix, SimpleStructType ss, Path path) {
-			String start = "STRUCT_" + ss.name;
+			String start = STRUCT_PREFIX + ss.name;
 			if (prefix != null) {
 				start = prefix + start;
 			}
@@ -192,7 +196,7 @@ public interface SimpleExportable extends SimpleNameable {
 		}
 		
 		public static void convertVar(Map<String, PrimitiveConstant> result, String prefix, SimpleOffsetVariable sv, Path path) {
-			String start = "VAR_";
+			String start = VAR_PREFIX;
 			if (prefix != null) {
 				start = prefix + start;
 			}
@@ -224,17 +228,17 @@ public interface SimpleExportable extends SimpleNameable {
 		@Override public boolean isArray() { return false; }
 		@Override public boolean isFunc() { return false; }
 		@Override public long    byteCount() { throw new UnsupportedOperationException(); }
-		@Override public void    appendToExportStr(StringBuilder build) { throw new UnsupportedOperationException(); }
+		@Override public void    appendToExportStr(@SuppressWarnings("unused") StringBuilder build) { throw new UnsupportedOperationException(); }
 		//@formatter:on
 		
 		@Override
 		public String toString() {
-			return "struct " + name;
+			return "struct " + this.name;
 		}
 		
 	}
 	
-	static void exportVars(StringBuilder build, SimpleVariable[] arr) {
+	static void exportVars(StringBuilder build, SimpleVariable... arr) {
 		boolean first = true;
 		for (SimpleVariable sv : arr) {
 			if (!first) {

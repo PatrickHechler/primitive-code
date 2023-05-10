@@ -77,7 +77,7 @@ varExport returns [SimpleExportable imp] :
 ;
 
 functionExport returns [SimpleExportable imp] :
-	FUNC addr = NAME_OR_NUMBER FUNC name = NAME_OR_NUMBER functionType
+	FUNC2 addr = NAME_OR_NUMBER FUNC name = NAME_OR_NUMBER functionType
 	{$imp = new SimpleFunctionSymbol(Long.parseUnsignedLong($addr.getText(), 16), $name.getText(), (SimpleFuncType) $functionType.t);}
 ;
 
@@ -168,6 +168,7 @@ PRIM_UWORD :        '.uw' ;
 PRIM_BYTE :         '.b' ;
 PRIM_UBYTE :        '.ub' ;
 
+FUNC2 :             '~F' ;
 FUNC :              '~f' ;
 VAR :               '~v' ;
 STRUCT :            '~s' ;

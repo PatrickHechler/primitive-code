@@ -6,6 +6,7 @@ import de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable
 import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable.SimpleOffsetVariable;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.types.SimpleFuncType;
 
+@SuppressWarnings("javadoc")
 public class SimpleFunctionSymbol implements SimpleExportable {
 	
 	private long                address;
