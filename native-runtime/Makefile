@@ -1,10 +1,14 @@
 PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
-PFS_CORE_EXP_FOLDER = $(PROJECT_ROOT)../../PatrFileSys/pfs-core/exports/
+PFS_CORE_FOLDER = $(PROJECT_ROOT)../../PatrFileSys/pfs-core/
+
+PFS_CORE_EXP_FOLDER = $(PFS_CORE_FOLDER)exports/
 
 PFS_LIB_INCLUDE = $(PFS_CORE_EXP_FOLDER)include/
 
 PFS_LIB_FOLDER = $(PFS_CORE_EXP_FOLDER)static/
+
+PFS_LIB_FILE = $(PFS_LIB_FOLDER)libpfs-core.a
 
 BUILD_TARGET_DEBUG = DEBUG_PVM
 
@@ -33,7 +37,7 @@ else
     $(error Build mode $(BUILD_MODE) not supported by this Makefile)
 endif
 
-BIN_ROOT = $(PROJEXT_ROOT)bin/
+BIN_ROOT = $(PROJECT_ROOT)bin/
 
 BINARY_PARENT = $(BIN_ROOT)$(BUILD_MODE)/
 
@@ -73,9 +77,6 @@ $(DEBUG_TARGET):	INIT $(PFS_LIB_FILE)
 INIT:
 	echo BUILD_MODE=$(BUILD_MODE)
 	mkdir -p $(BINARY_PARENT)
-
-$(PFS_LIB_FILE):
-	make -C $(PFS_CORE_FOLDER) all
 
 $(TARGET_WITH_PATH):	$(OBJS)
 	$(CC) -o $(TARGET_WITH_PATH) $^ $(LDFLAGS)
