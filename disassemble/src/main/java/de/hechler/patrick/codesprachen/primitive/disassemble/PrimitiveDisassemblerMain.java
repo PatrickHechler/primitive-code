@@ -15,6 +15,7 @@ import de.hechler.patrick.codesprachen.primitive.disassemble.objects.LimitInputS
 import de.hechler.patrick.codesprachen.primitive.disassemble.objects.PrimitiveDisassembler;
 import de.hechler.patrick.zeugs.pfs.FSProvider;
 import de.hechler.patrick.zeugs.pfs.interfaces.FS;
+import de.hechler.patrick.zeugs.pfs.interfaces.File;
 import de.hechler.patrick.zeugs.pfs.interfaces.ReadStream;
 import de.hechler.patrick.zeugs.pfs.opts.JavaFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.PatrFSOptions;
@@ -31,10 +32,21 @@ public class PrimitiveDisassemblerMain {
 	private static long                  pos;
 	private static FS                    fs;
 	
-	public static void main(String[] args) {
-		setup(args);
+	public static void main(String[] args) throws NoSuchProviderException {
+		setup(new String[] {"--analyse"});
 		int exitCode = 0;
 		try {
+			try (FS fs = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME)
+				.loadFS(new PatrFSOptions("../../simple-code/simple-compile/testout/add.pfs", false, 4096L, 1024))) {
+				System.out.println("loaded fs");
+				try (File file = fs.file("/add")) {
+					System.out.println("file size: " + file.length());
+					try (ReadStream read = file.openRead()) {
+						disasm.deassemble(0, read.asInputStream());
+					}
+				}
+			}
+			System.exit(0);
 			disasm.deassemble(pos, binary);
 		} catch (IOException e) {
 			LOG.severe("an error occured during the diassembling of the binary:");
@@ -68,10 +80,10 @@ public class PrimitiveDisassemblerMain {
 	}
 	
 	private static void setup(String[] args) {
-		fs = null;
+		fs     = null;
 		disasm = null;
 		binary = null;
-		pos = -1L;
+		pos    = -1L;
 		long       len   = -1L;
 		String     in    = null;
 		String     out   = null;
@@ -104,7 +116,7 @@ public class PrimitiveDisassemblerMain {
 		if (len != -1L) {
 			binary = new LimitInputStream(binary, len);
 		}
-		pos = pos == -1L ? 0L : pos;
+		pos   = pos == -1L ? 0L : pos;
 		dmode = dmode == null ? DisasmMode.executable : dmode;
 		try {
 			Writer writer;
@@ -115,8 +127,7 @@ public class PrimitiveDisassemblerMain {
 			}
 			disasm = new PrimitiveDisassembler(dmode, writer);
 		} catch (IOException e) {
-			crash(-1, args, "error on opening outputstream for '" + out + "': " + e.getClass().getSimpleName() + ": "
-					+ e.getMessage());
+			crash(-1, args, "error on opening outputstream for '" + out + "': " + e.getClass().getSimpleName() + ": " + e.getMessage());
 		}
 	}
 	
@@ -199,42 +210,42 @@ public class PrimitiveDisassemblerMain {
 	
 	private static void help() {
 		System.out.print( //
-				/*	    */"Usage: prim-asm [OPTIONS]\n" //
-						+ "    --help\n" //
-						+ "        to print this message and exit\n" //
-						+ "    --len <LENGTH>\n" //
-						+ "        to disassemble at most LENGTH bytes\n" //
-						+ "        if the POS starts with '0x' or 'HEX-' it is read in a\n" //
-						+ "        hexadecimal format, if not the decimal format is used\n" //
-						+ "    --pos <POS>\n" //
-						+ "        to set the beginning position of the binary data\n" //
-						+ "        if the POS starts with '0x' or 'HEX-' it is read in a\n" //
-						+ "        hexadecimal format, if not the decimal format is used\n" //
-						+ "    --in <MACHINE_FILE>\n" //
-						+ "    --bin <MACHINE_FILE>\n" //
-						+ "    --pmf <MACHINE_FILE>\n" //
-						+ "        to set the input-machine-file\n" //
-						+ "        if not set stdin will be used instead\n" //
-						+ "            note that then pfs/ref is not allowed\n" //
-						+ "            to be used.\n" //
-						+ "    --out <OUTPUT>\n" //
-						+ "        to set the output-file\n" //
-						+ "            if not set stdout will be used\n" //
-						+ "    -a\n" //
-						+ "    --analyse\n" //
-						+ "        to set the analyse mode\n" //
-						+ "        then the output data can not be assembled\n" //
-						+ "        without the need further changes\n" //
-						+ "        but more information is printed\n" //
-						+ "    -e\n" //
-						+ "    --executable\n" //
-						+ "        to set the executable mode (default)\n" //
-						+ "        then the output data can be assembled\n" //
-						+ "        without the need further change\n" //
-						+ "    --rfs\n" //
-						+ "        to use the 'real' file-system for the machine-file\n" //
-						+ "    --pfs <PFS_PATH>\n" //
-						+ "        to specify the patr-file-system file for the machine-file\n" //
+			/*	    */"Usage: prim-asm [OPTIONS]\n" //
+				+ "    --help\n" //
+				+ "        to print this message and exit\n" //
+				+ "    --len <LENGTH>\n" //
+				+ "        to disassemble at most LENGTH bytes\n" //
+				+ "        if the POS starts with '0x' or 'HEX-' it is read in a\n" //
+				+ "        hexadecimal format, if not the decimal format is used\n" //
+				+ "    --pos <POS>\n" //
+				+ "        to set the beginning position of the binary data\n" //
+				+ "        if the POS starts with '0x' or 'HEX-' it is read in a\n" //
+				+ "        hexadecimal format, if not the decimal format is used\n" //
+				+ "    --in <MACHINE_FILE>\n" //
+				+ "    --bin <MACHINE_FILE>\n" //
+				+ "    --pmf <MACHINE_FILE>\n" //
+				+ "        to set the input-machine-file\n" //
+				+ "        if not set stdin will be used instead\n" //
+				+ "            note that then pfs/ref is not allowed\n" //
+				+ "            to be used.\n" //
+				+ "    --out <OUTPUT>\n" //
+				+ "        to set the output-file\n" //
+				+ "            if not set stdout will be used\n" //
+				+ "    -a\n" //
+				+ "    --analyse\n" //
+				+ "        to set the analyse mode\n" //
+				+ "        then the output data can not be assembled\n" //
+				+ "        without the need further changes\n" //
+				+ "        but more information is printed\n" //
+				+ "    -e\n" //
+				+ "    --executable\n" //
+				+ "        to set the executable mode (default)\n" //
+				+ "        then the output data can be assembled\n" //
+				+ "        without the need further change\n" //
+				+ "    --rfs\n" //
+				+ "        to use the 'real' file-system for the machine-file\n" //
+				+ "    --pfs <PFS_PATH>\n" //
+				+ "        to specify the patr-file-system file for the machine-file\n" //
 		);
 	}
 	
