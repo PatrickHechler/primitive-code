@@ -15,7 +15,6 @@ import de.hechler.patrick.codesprachen.primitive.disassemble.objects.LimitInputS
 import de.hechler.patrick.codesprachen.primitive.disassemble.objects.PrimitiveDisassembler;
 import de.hechler.patrick.zeugs.pfs.FSProvider;
 import de.hechler.patrick.zeugs.pfs.interfaces.FS;
-import de.hechler.patrick.zeugs.pfs.interfaces.File;
 import de.hechler.patrick.zeugs.pfs.interfaces.ReadStream;
 import de.hechler.patrick.zeugs.pfs.opts.JavaFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.PatrFSOptions;
@@ -33,20 +32,20 @@ public class PrimitiveDisassemblerMain {
 	private static FS                    fs;
 	
 	public static void main(String[] args) throws NoSuchProviderException {
-		setup(new String[] {"--analyse"});
+		setup(args);
 		int exitCode = 0;
 		try {
-			try (FS fs = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME)
-				.loadFS(new PatrFSOptions("../../simple-code/simple-compile/testout/add.pfs", false, 4096L, 1024))) {
-				System.out.println("loaded fs");
-				try (File file = fs.file("/add")) {
-					System.out.println("file size: " + file.length());
-					try (ReadStream read = file.openRead()) {
-						disasm.deassemble(0, read.asInputStream());
-					}
-				}
-			}
-			System.exit(0);
+//			try (FS fs = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME)
+//				.loadFS(new PatrFSOptions("../../simple-code/simple-compile/testout/add.pfs", false, 4096L, 1024))) {
+//				System.out.println("loaded fs");
+//				try (File file = fs.file("/add")) {
+//					System.out.println("file size: " + file.length());
+//					try (ReadStream read = file.openRead()) {
+//						disasm.deassemble(0, read.asInputStream());
+//					}
+//				}
+//			}
+//			System.exit(0);
 			disasm.deassemble(pos, binary);
 		} catch (IOException e) {
 			LOG.severe("an error occured during the diassembling of the binary:");
@@ -96,7 +95,7 @@ public class PrimitiveDisassemblerMain {
 			case "--in", "--bin", "--pmf" -> in = argPmf(args, in, ++i);
 			case "-a", "--analyse" -> dmode = argAnalyze(args, dmode, i);
 			case "-e", "--executable" -> dmode = argExecutable(args, dmode, i);
-			case "--rfs" -> argRFS(args, i);
+			case "--rfs", "--lfs" -> argRFS(args, i);
 			case "--pfs" -> argPFS(args, ++i);
 			case "--out" -> out = argOut(args, out, ++i);
 			default -> crash(i, args, "unknown argument: '" + args[i] + "'");
@@ -243,6 +242,7 @@ public class PrimitiveDisassemblerMain {
 				+ "        then the output data can be assembled\n" //
 				+ "        without the need further change\n" //
 				+ "    --rfs\n" //
+				+ "    --lfs\n" //
 				+ "        to use the 'real' file-system for the machine-file\n" //
 				+ "    --pfs <PFS_PATH>\n" //
 				+ "        to specify the patr-file-system file for the machine-file\n" //

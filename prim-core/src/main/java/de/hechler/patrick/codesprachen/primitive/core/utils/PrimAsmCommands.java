@@ -871,7 +871,8 @@ public class PrimAsmCommands {
 	 * <b>SGN</b> <code>(02 06)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the value with <code>0</code> and stores the result in the status register	 * <p>
+	 * compares the value with <code>0</code> and stores the result in the status register<br>
+	 * this command is like <code>CMP PARAM , 0</code>	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; 0</code>
@@ -900,7 +901,8 @@ public class PrimAsmCommands {
 	 * <b>SGNFP</b> <code>(02 07)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the floating-point value with <code>0.0</code> and stores the result in the status register	 * <p>
+	 * compares the floating-point value with <code>0.0</code> and stores the result in the status register<br>
+	 * this command is like <code>CMPFP PARAM , 0.0</code>	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; 0.0</code>

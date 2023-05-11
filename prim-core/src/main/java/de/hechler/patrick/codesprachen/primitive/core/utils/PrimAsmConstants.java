@@ -69,18 +69,18 @@ public class PrimAsmConstants {
 	public static final int PARAM_A_NUM = 0x02;
 	public static final int PARAM_A_REG = 0x04;
 	public static final int PARAM_NO_B  = 0x10;
-	public static final int PARAM_B_REG = 0x20;
-	public static final int PARAM_B_NUM = 0x40;
+	public static final int PARAM_B_NUM = 0x20;
+	public static final int PARAM_B_REG = 0x40;
 	public static final int PARAM_B_ADR = 0x80;
 	
 	public static final int PARAM_ART_ANUM      = PARAM_BASE | PARAM_A_NUM | PARAM_NO_B;
 	public static final int PARAM_ART_AREG      = PARAM_BASE | PARAM_A_REG | PARAM_NO_B;
-	public static final int PARAM_ART_ANUM_BADR = PARAM_BASE | PARAM_A_NUM | PARAM_B_ADR;
-	public static final int PARAM_ART_AREG_BADR = PARAM_BASE | PARAM_A_REG | PARAM_B_ADR;
 	public static final int PARAM_ART_ANUM_BNUM = PARAM_BASE | PARAM_A_NUM | PARAM_B_NUM;
 	public static final int PARAM_ART_AREG_BNUM = PARAM_BASE | PARAM_A_REG | PARAM_B_NUM;
 	public static final int PARAM_ART_ANUM_BREG = PARAM_BASE | PARAM_A_NUM | PARAM_B_REG;
 	public static final int PARAM_ART_AREG_BREG = PARAM_BASE | PARAM_A_REG | PARAM_B_REG;
+	public static final int PARAM_ART_ANUM_BADR = PARAM_BASE | PARAM_A_NUM | PARAM_B_ADR;
+	public static final int PARAM_ART_AREG_BADR = PARAM_BASE | PARAM_A_REG | PARAM_B_ADR;
 	
 	public static void export(Map<String, PrimitiveConstant> exports, PrintStream out) {
 		exports.forEach((symbol, pc) -> {
