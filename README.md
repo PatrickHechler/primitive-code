@@ -271,10 +271,10 @@ every register can also be addressed:
 * `INT_OPEN_STREAM` : open new stream
     * value: `8`
     * params:
-        * `X00` file_name: (`char#`) the STRING, which refers to the file which should be read
-        * `X01` mode: (`unum`) the open mode (bitwise OR of the options)
+        * `X00` `file_name`: (`char#`) the STRING, which refers to the file which should be read
+        * `X01` `mode`: (`unum`) the open mode (bitwise OR of the options)
     * result values:
-        * `X00` id: (`num`) the ID of the opened STREAM or `-1` on error
+        * `X00` `id`: (`num`) the ID of the opened STREAM or `-1` on error
     * opens a new stream to the specified file
     * to close the stream use the stream close interrupt (`INT_STREAM_CLOSE`)
     * open options
