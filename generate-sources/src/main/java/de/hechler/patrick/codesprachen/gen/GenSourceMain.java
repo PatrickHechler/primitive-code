@@ -1,19 +1,19 @@
-//This file is part of the Primitive Code Project
-//DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-//Copyright (C) 2023  Patrick Hechler
+// This file is part of the Patr File System and Code Projects
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+// Copyright (C) 2023 Patrick Hechler
 //
-//This program is free software: you can redistribute it and/or modify
-//it under the terms of the GNU General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-//This program is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU General Public License for more details.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
 //
-//You should have received a copy of the GNU General Public License
-//along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 package de.hechler.patrick.codesprachen.gen;
 
 import java.io.IOError;
@@ -36,6 +36,7 @@ import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandFuncs;
 import de.hechler.patrick.codesprachen.gen.impl.GenCErrEnum;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunIntHeader;
 
+@SuppressWarnings("javadoc")
 public class GenSourceMain {
 	
 	private static final String GEN_START = "GENERATED-CODE-START";
@@ -72,18 +73,27 @@ public class GenSourceMain {
 	}
 	
 	private static void generate0(Path file, SrcGen gen) throws IOException, IOError {
+		List<String> list = Files.readAllLines(file, StandardCharsets.UTF_8);
 		try (Writer out = Files.newBufferedWriter(file)) {
 			gen.generate(out);
+		} catch (Throwable t) {
+			setContent(file, list);
+			throw t;
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private static void generate(Path file, SrcGen gen) throws IOException, IOError {
+		List<String> list = Files.readAllLines(file, StandardCharsets.UTF_8);
 		try (OutputStream out = Files.newOutputStream(file)) {
 			Files.copy(file.resolveSibling("start-" + file.getFileName()), out);
 			try (Writer w = new OutputStreamWriter(out, StandardCharsets.UTF_8)) {
 				gen.generate(w);
 			}
 			Files.copy(file.resolveSibling("end-" + file.getFileName()), out);
+		} catch (Throwable t) {
+			setContent(file, list);
+			throw t;
 		}
 	}
 	
@@ -105,6 +115,17 @@ public class GenSourceMain {
 					gen.generate(out);
 					out.write(genEndLines(indent));
 				}
+			}
+		} catch (Throwable t) {
+			setContent(file, list);
+			throw t;
+		}
+	}
+	
+	private static void setContent(Path file, List<String> list) throws IOException {
+		try (Writer out = Files.newBufferedWriter(file)) {
+			for (String line : list) {
+				out.append(line).append('\n');
 			}
 		}
 	}

@@ -148,7 +148,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	for (; argc; argv++, argc--) {
 		num len = strlen(*argv) + 1;
 		struct memory *arg_mem = alloc_memory2(*argv, len,
-				MEM_NO_FREE | MEM_NO_RESIZE);
+		MEM_NO_FREE | MEM_NO_RESIZE);
 		if (!arg_mem) {
 			abort();
 		}
@@ -437,10 +437,7 @@ static void pvm_dbcmd_regs(struct sok_data *sd, char *buffer);
 static void pvm_dbcmd_mem(struct sok_data *sd, char *buffer);
 static void pvm_dbcmd_disasm(struct sok_data *sd, char *buffer);
 
-static inline void init_debug_cmds_set() {
-	struct debug_cmd *dc;
 #define set_debug_cmd(name) set_debug_cmd0(name, #name)
-
 #define set_debug_cmd0(name0, str) \
 		dc = malloc(sizeof(struct debug_cmd)); \
 		if (!dc) { \
@@ -449,7 +446,8 @@ static inline void init_debug_cmds_set() {
 		dc->name = str; \
 		dc->func = pvm_dbcmd_##name0; \
 		hashset_put(&debug_commands, debug_cmds_hash(dc), dc);
-
+static inline void init_debug_cmds_set() {
+	struct debug_cmd *dc;
 	set_debug_cmd(help)
 	set_debug_cmd(version)
 	set_debug_cmd(detach)
@@ -466,9 +464,9 @@ static inline void init_debug_cmds_set() {
 	set_debug_cmd(regs)
 	set_debug_cmd(mem)
 	set_debug_cmd(disasm)
+}
 #undef set_debug_cmd0
 #undef set_debug_cmd
-}
 
 static inline void create_pipes(int stdin_pipe[2], int stdout_pipe[2],
 		int stderr_pipe[2]) {
@@ -533,34 +531,26 @@ static void (*do_returns[RETURN_COMMANDS_COUNT])();
 
 static void call_command_wrapper() {
 	if (pvm_next_state == pvm_ds_stepping) {
-		pvm_lock();
-		if (pvm_next_state == pvm_ds_stepping) {
-			pvm_depth++;
-		}
-		pvm_unlock();
+		pvm_depth++;
 	}
 	do_calls[(*ia.wp) - CALL_COMMANDS_START]();
 }
 
 static void return_command_wrapper() {
 	if (pvm_next_state == pvm_ds_stepping) {
-		pvm_lock();
-		if (pvm_next_state == pvm_ds_stepping) {
-			pvm_depth--;
-		}
-		pvm_unlock();
+		pvm_depth--;
 	}
 	do_returns[(*ia.wp) - RETURN_COMMANDS_START]();
 }
 
 static inline void init_debug_cmds() {
-	for (int i = CALL_COMMANDS_COUNT; i >= 0; i--) {
+	for (int i = CALL_COMMANDS_COUNT-1; i--;) {
 		do_calls[i] = cmds[CALL_COMMANDS_START + i];
 		cmds[CALL_COMMANDS_START + i] = call_command_wrapper;
 	}
-	for (int i = RETURN_COMMANDS_COUNT; i >= 0; i--) {
-		do_returns[i] = cmds[CALL_COMMANDS_START + i];
-		cmds[CALL_COMMANDS_START + i] = return_command_wrapper;
+	for (int i = RETURN_COMMANDS_COUNT-1; i --;) {
+		do_returns[i] = cmds[RETURN_COMMANDS_START + i];
+		cmds[RETURN_COMMANDS_START + i] = return_command_wrapper;
 	}
 }
 

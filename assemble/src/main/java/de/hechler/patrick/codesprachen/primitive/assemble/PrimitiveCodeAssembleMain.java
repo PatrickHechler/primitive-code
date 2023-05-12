@@ -1,19 +1,19 @@
-//This file is part of the Primitive Code Project
-//DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-//Copyright (C) 2023  Patrick Hechler
+// This file is part of the Primitive Code Project
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+// Copyright (C) 2023 Patrick Hechler
 //
-//This program is free software: you can redistribute it and/or modify
-//it under the terms of the GNU General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-//This program is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU General Public License for more details.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
 //
-//You should have received a copy of the GNU General Public License
-//along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 package de.hechler.patrick.codesprachen.primitive.assemble;
 
 import java.io.BufferedInputStream;
@@ -44,6 +44,7 @@ import de.hechler.patrick.zeugs.pfs.interfaces.File;
 import de.hechler.patrick.zeugs.pfs.interfaces.Folder;
 import de.hechler.patrick.zeugs.pfs.interfaces.ReadStream;
 import de.hechler.patrick.zeugs.pfs.interfaces.WriteStream;
+import de.hechler.patrick.zeugs.pfs.misc.ElementType;
 import de.hechler.patrick.zeugs.pfs.opts.JavaFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.PatrFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.StreamOpenOptions;
@@ -62,7 +63,7 @@ public class PrimitiveCodeAssembleMain {
 	private static Reader             input;
 	private static FS                 fileSys;
 	
-	public static void main(String[] args) throws IOException {
+	public static void main(String[] args) {
 		setup(args);
 		try {
 			asm.assemble(null, input);
@@ -176,7 +177,7 @@ public class PrimitiveCodeAssembleMain {
 				case "-n", "--no-export" -> noExport = true;
 				case "-f", "--force" -> force = true;
 				default -> {
-					if (args[i].matches("\\-[hns]+")) {
+					if (args[i].matches("\\-[hns?]+")) {
 						if (args[i].indexOf('s') != -1) { suppressWarn = true; }
 						if (args[i].indexOf('n') != -1) { noExport = true; }
 						if (args[i].indexOf('f') != -1) { force = true; }
@@ -196,8 +197,8 @@ public class PrimitiveCodeAssembleMain {
 		}
 	}
 	
-	private static void doSetup(String[] args, Charset charset, String inFile, String outFile,
-			boolean suppressWarn, boolean noExport, boolean force) throws IOException {
+	private static void doSetup(String[] args, Charset charset, String inFile, String outFile, boolean suppressWarn, boolean noExport, boolean force)
+			throws IOException {
 		@SuppressWarnings("resource")
 		FS outFS = PrimitiveCodeAssembleMain.fileSys == null ? JAVA_FS : PrimitiveCodeAssembleMain.fileSys;
 		try (File in = JAVA_FS.file(inFile)) {
@@ -234,8 +235,13 @@ public class PrimitiveCodeAssembleMain {
 					}
 				}
 			} else {
-				StreamOpenOptions opts = new StreamOpenOptions(false, true);
+				StreamOpenOptions opts = new StreamOpenOptions(false, true, false, ElementType.FILE, true, !force);
 				out = (WriteStream) outFS.stream(outFile, opts);
+				if (force) {
+					try (File file = outFS.file(outFile)) {
+						file.truncate(0L);
+					}
+				}
 				if (noExport) {
 					expOut = null;
 				} else {
@@ -249,9 +255,8 @@ public class PrimitiveCodeAssembleMain {
 	private static String pmfName(String name) {
 		if (name.endsWith(".psc")) {
 			return name.substring(0, name.length() - 4);
-		} else {
-			return name + ".pmf";
 		}
+		return name + ".pmf";
 	}
 	
 	private static void argHelp() {
@@ -279,7 +284,12 @@ public class PrimitiveCodeAssembleMain {
 	
 	private static void argRfs(String[] args, int i) {
 		if (fileSys != null) { crash(args, i, "file system already set"); }
-		fileSys = null;
+		try {
+			fileSys = FSProvider.ofName(FSProvider.JAVA_FS_PROVIDER_NAME).loadFS(new JavaFSOptions(Path.of("/")));
+			fileSys.cwd(fileSys.folder(Path.of(".").toAbsolutePath().normalize().toString()));
+		} catch (NoSuchProviderException | IOException e) {
+			crash(args, i, e.getLocalizedMessage());
+		}
 	}
 	
 	private static void argPfs(String[] args, int i, boolean force) throws IOException {
@@ -288,7 +298,7 @@ public class PrimitiveCodeAssembleMain {
 		FSProvider patrProv = null;
 		try {
 			patrProv = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME);
-			fileSys = patrProv.loadFS(new PatrFSOptions(args[i]));
+			fileSys  = patrProv.loadFS(new PatrFSOptions(args[i]));
 		} catch (@SuppressWarnings("unused") IOException e) {
 			if (force) {
 				fileSys = patrProv.loadFS(new PatrFSOptions(args[i], true, CREATE_BLOCK_COUNT, CREATE_BLOCK_SIZE));
@@ -301,17 +311,14 @@ public class PrimitiveCodeAssembleMain {
 		}
 	}
 	
-	private static void initAsm(Charset charset, ReadStream in, WriteStream out, WriteStream exportOut,
-			boolean suppressWarn) throws IOException {
+	private static void initAsm(Charset charset, ReadStream in, WriteStream out, WriteStream exportOut, boolean suppressWarn) throws IOException {
 		input = new InputStreamReader(new BufferedInputStream(in.asInputStream()));
-		try (OutputStream outFileStream = new BufferedOutputStream(out.asOutputStream())) {
-			if (exportOut == null) {
-				asm = new PrimitiveAssembler(outFileStream, null, new Path[] { Paths.get(".") }, suppressWarn, true);
-			} else {
-				try (OutputStream exportOutStream = new BufferedOutputStream(exportOut.asOutputStream())) {
-					asm = new PrimitiveAssembler(outFileStream, new PrintStream(exportOutStream, true, charset),
-							new Path[] { Paths.get(".") }, suppressWarn, true);
-				}
+		OutputStream outFileStream = new BufferedOutputStream(out.asOutputStream());
+		if (exportOut == null) {
+			asm = new PrimitiveAssembler(outFileStream, null, new Path[] { Paths.get(".") }, suppressWarn, true);
+		} else {
+			try (OutputStream exportOutStream = new BufferedOutputStream(exportOut.asOutputStream())) {
+				asm = new PrimitiveAssembler(outFileStream, new PrintStream(exportOutStream, true, charset), new Path[] { Paths.get(".") }, suppressWarn, true);
 			}
 		}
 	}

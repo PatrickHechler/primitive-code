@@ -229,7 +229,7 @@ public class PrimitiveAssembler {
 		} catch (Throwable t) {
 			handleUnknwon(t);
 		}
-		throw new InternalError("handle returned");
+		throw new AssertionError("handle returned");
 	}
 	
 	/*
@@ -237,7 +237,7 @@ public class PrimitiveAssembler {
 	 */
 	private static void handleUnknwon(Throwable t) {
 		if (t instanceof Error e) { throw e; }
-		throw new InternalError("unknwon error: " + t, t);
+		throw new AssertionError("unknwon error: " + t, t);
 	}
 	
 	private static void handle(InputMismatchException ime) {
@@ -462,7 +462,7 @@ public class PrimitiveAssembler {
 						}
 						break;
 					default:
-						throw new InternalError("unknown directive: " + ccc.directive.name());
+						throw new AssertionError("unknown directive: " + ccc.directive.name());
 					}
 				} else {
 					cmd = replaceUnknownCommand(cmd);
@@ -472,11 +472,11 @@ public class PrimitiveAssembler {
 				cond  = false;
 			}
 		}
-		out.flush();
+		this.out.flush();
 	}
 	
-	protected Command replaceUnknownCommand(Command cmd) throws InternalError {
-		throw new InternalError("unknown command class: " + cmd.getClass().getName());
+	protected Command replaceUnknownCommand(Command cmd) throws AssertionError {
+		throw new AssertionError("unknown command class: " + cmd.getClass().getName());
 	}
 	
 	private long align(long pos, boolean doAlign) throws IOException {
@@ -491,7 +491,7 @@ public class PrimitiveAssembler {
 		return pos;
 	}
 	
-	private void asmCommand(long pos, Map<String, Long> labels, Command cmd) throws IOException, InternalError {
+	private void asmCommand(long pos, Map<String, Long> labels, Command cmd) throws IOException, AssertionError {
 		byte[] bytes = new byte[8];
 		bytes[0] = (byte) cmd.cmd.num;
 		bytes[1] = (byte) (cmd.cmd.num >>> 8);
@@ -499,18 +499,19 @@ public class PrimitiveAssembler {
 		case 3 -> asm3Params(cmd, bytes);
 		case 2 -> asm2Params(cmd, bytes);
 		case 1 -> asm1Params(pos, labels, cmd, bytes);
-		case 0 -> asm0Params(cmd);
-		default -> throw new InternalError("unknown command param count: " + cmd.cmd.name());
+		case 0 -> asm0Params(cmd, bytes);
+		default -> throw new AssertionError("unknown command param count: " + cmd.cmd.name());
 		}
 	}
 	
-	private static void asm0Params(Command cmd) {
+	private void asm0Params(Command cmd, byte[] bytes) throws IOException {
 		nullCheck(cmd.p3, cmd);
 		nullCheck(cmd.p2, cmd);
 		nullCheck(cmd.p1, cmd);
+		writeNullParam(cmd, bytes);
 	}
 	
-	private void asm1Params(long pos, Map<String, Long> labels, Command cmd, byte[] bytes) throws IOException, InternalError {
+	private void asm1Params(long pos, Map<String, Long> labels, Command cmd, byte[] bytes) throws IOException, AssertionError {
 		nullCheck(cmd.p3, cmd);
 		nullCheck(cmd.p2, cmd);
 		switch (cmd.cmd.noconstParams) {
@@ -535,15 +536,15 @@ public class PrimitiveAssembler {
 			fillJumpAddr(bytes, num);
 			out.write(bytes, 0, bytes.length);
 		}
-		default -> throw new InternalError(UNKNOWN_NOCONST_PARAM_COUNT + cmd.cmd.name());
+		default -> throw new AssertionError(UNKNOWN_NOCONST_PARAM_COUNT + cmd.cmd.name());
 		}
 	}
 	
-	private void asm2Params(Command cmd, byte[] bytes) throws InternalError, IOException {
+	private void asm2Params(Command cmd, byte[] bytes) throws AssertionError, IOException {
 		nullCheck(cmd.p3, cmd);
 		switch (cmd.cmd.constParams) {
 		case 1 -> {
-			if (cmd.cmd.noconstParams != 0) { throw new InternalError(UNKNOWN_NOCONST_PARAM_COUNT + cmd.cmd.name()); }
+			if (cmd.cmd.noconstParams != 0) { throw new AssertionError(UNKNOWN_NOCONST_PARAM_COUNT + cmd.cmd.name()); }
 			writeOneParam(cmd, bytes);
 		}
 		case 0 -> {
@@ -564,15 +565,15 @@ public class PrimitiveAssembler {
 				fillJumpAddr(bytes, cmd.p2.num);
 				out.write(bytes, 0, bytes.length);
 			}
-			default -> throw new InternalError(UNKNOWN_NOCONST_PARAM_COUNT + cmd.cmd.name());
+			default -> throw new AssertionError(UNKNOWN_NOCONST_PARAM_COUNT + cmd.cmd.name());
 			}
 		}
-		default -> throw new InternalError(UNKNOWN_CONST_PARAM_COUNT + cmd.cmd.name());
+		default -> throw new AssertionError(UNKNOWN_CONST_PARAM_COUNT + cmd.cmd.name());
 		}
 	}
 	
-	private void asm3Params(Command cmd, byte[] bytes) throws InternalError, IOException {
-		if (cmd.cmd.noconstParams != 1) { throw new InternalError(UNKNOWN_NOCONST_PARAM_COUNT + cmd.cmd.name()); }
+	private void asm3Params(Command cmd, byte[] bytes) throws AssertionError, IOException {
+		if (cmd.cmd.noconstParams != 1) { throw new AssertionError(UNKNOWN_NOCONST_PARAM_COUNT + cmd.cmd.name()); }
 		if (cmd.p3.art != Param.ART_ANUM) { throw new IllegalStateException(PARAM_MUST_BE_A_CONSTANT_CMD + cmd.cmd.name() + ')'); }
 		noConstCheck(cmd.p2, cmd);
 		writeTwoParam(cmd, bytes);
@@ -603,7 +604,12 @@ public class PrimitiveAssembler {
 		bytes[6] = (byte) (num >> 32);
 		bytes[7] = (byte) (num >> 40);
 	}
-	
+
+	private void writeNullParam(Command cmd, byte[] bytes) throws IOException {
+		assert bytes.length == 8;
+		out.write(bytes, 0, 8);
+	}
+
 	private void writeOneParam(Command cmd, byte[] bytes) throws IOException {
 		assert cmd.p1 != null : "I need a first Param!";
 		assert cmd.p1.label == null : UNWANTED_LABEL_IN_PARAMS;
@@ -638,7 +644,7 @@ public class PrimitiveAssembler {
 		out.write(bytes, 0, 8);
 	}
 	
-	private void addNums(byte[] bytes, final long pnum, final long poff, final int part) throws IOException, InternalError {
+	private void addNums(byte[] bytes, final long pnum, final long poff, final int part) throws IOException, AssertionError {
 		switch (part) {
 		case Param.ART_ANUM -> {
 			out.write(bytes, 0, 8);
@@ -667,11 +673,11 @@ public class PrimitiveAssembler {
 		}
 		case Param.ART_AREG_BADR -> {/**/}
 		case Param.ART_AREG_BREG -> {/**/}
-		default -> throw new InternalError(UNKNOWN_ART + part);
+		default -> throw new AssertionError(UNKNOWN_ART + part);
 		}
 	}
 	
-	private int addRegs(byte[] bytes, final long pnum, final long poff, final int part, int index) throws InternalError {
+	private int addRegs(byte[] bytes, final long pnum, final long poff, final int part, int index) throws AssertionError {
 		switch (part) {
 		case Param.ART_ANUM -> { /**/ }
 		case Param.ART_ANUM_BNUM -> { if (!supressWarn) { LOG.warning(ADD_CONSTANTS_RUNTIME_WARN); } }
@@ -698,7 +704,7 @@ public class PrimitiveAssembler {
 			bytes[index--] = (byte) pnum;
 			bytes[index--] = (byte) poff;
 		}
-		default -> throw new InternalError(UNKNOWN_ART + part);
+		default -> throw new AssertionError(UNKNOWN_ART + part);
 		}
 		return index;
 	}

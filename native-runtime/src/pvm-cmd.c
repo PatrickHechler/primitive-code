@@ -33,7 +33,7 @@ static void c_ill() /* --- */{
 			} \
 		}
 
-#define incIPVal param_num_value_index << 3
+#define incIPVal (param_num_value_index << 3)
 #define incIP0(postfix) pvm.ip += (param_num_value_index postfix) << 3;
 #define incIP incIP0()
 #define incIPAddOneNum incIP0(+ 1)
@@ -592,7 +592,7 @@ static void c_call() {
 	if (!mem.mem) {
 		return;
 	}
-	*(num*) (mem.mem->offset + pvm.sp) = pvm.ip;
+	*(num*) (mem.mem->offset + pvm.sp) = pvm.ip + incIPVal;
 	pvm.sp += 8;
 	doJmp
 }
@@ -609,7 +609,7 @@ static void c_calo() {
 	if (!mem.mem) {
 		return;
 	}
-	*(num*) (mem.mem->offset + pvm.sp) = pvm.ip;
+	*(num*) (mem.mem->offset + pvm.sp) = pvm.ip + incIPVal;
 	pvm.sp += 8;
 	pvm.ip += p1.p.n + ia.np[param_num_value_index];
 }

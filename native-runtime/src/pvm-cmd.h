@@ -14,13 +14,13 @@
 //
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 /*
  * pvm-cmd.h
  *
  *  CreateD on: Nov 9, 2022
  *      Author: pat
  */
-
 #if defined SRC_PVM_CMD_H_ | !defined PVM
 #error "Multiple includes of pvm-cmd.h or PVM is not defined!"
 #endif
@@ -119,11 +119,11 @@ static void c_ill();
 #define CALL_COMMANDS_START 0x0300
 	/* 0300 */ static void c_call();
 	/* 0301 */ static void c_calo();
-#define CALL_COMMANDS_COUNT 1
+#define CALL_COMMANDS_COUNT 2
 /* 003. : return */
 #define RETURN_COMMANDS_START 0x0310
 	/* 0310 */ static void c_ret();
-#define RETURN_COMMANDS_COUNT 0
+#define RETURN_COMMANDS_COUNT 1
 /* 003. : push/pop */
 	/* 0320 */ static void c_push();
 	/* 0321 */ static void c_pop();

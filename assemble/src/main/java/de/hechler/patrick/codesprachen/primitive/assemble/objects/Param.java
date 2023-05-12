@@ -18,6 +18,7 @@ package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
 
+@SuppressWarnings("javadoc")
 public class Param {
 	
 	public static final int ART_LABEL = -1;

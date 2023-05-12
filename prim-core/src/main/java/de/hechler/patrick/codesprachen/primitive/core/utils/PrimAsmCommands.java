@@ -26,79 +26,92 @@ public class PrimAsmCommands {
 	 * <b>MVB</b> <code>(00 01)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * copies the byte value of the second parameter to the first byte parameter	 * <p>
+	 * copies the byte value of the second parameter to the first byte parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;-8-bit- p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int MVB     = 0x0001;
 	/**
 	 * <b>MVW</b> <code>(00 02)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * copies the word value of the second parameter to the first word parameter	 * <p>
+	 * copies the word value of the second parameter to the first word parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;-16-bit- p2 </code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int MVW     = 0x0002;
 	/**
 	 * <b>MVDW</b> <code>(00 03)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * copies the double-word value of the second parameter to the first double-word parameter	 * <p>
+	 * copies the double-word value of the second parameter to the first double-word parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;-32-bit- p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int MVDW    = 0x0003;
 	/**
 	 * <b>MOV</b> <code>(00 04)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * copies the value of the second parameter to the first parameter	 * <p>
+	 * copies the value of the second parameter to the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int MOV     = 0x0004;
 	/**
 	 * <b>LEA</b> <code>(00 05)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * sets the first parameter of the value of the second parameter plus the instruction pointer	 * <p>
+	 * sets the first parameter of the value of the second parameter plus the instruction pointer
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p2 + IP</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int LEA     = 0x0005;
 	/**
 	 * <b>MVAD</b> <code>(00 06)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt; , &lt;CONST_PARAM&gt;</code>
 	 * <p>
-	 * copies the value of the second parameter plus the third parameter to the first parameter	 * <p>
+	 * copies the value of the second parameter plus the third parameter to the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p2 + p3</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int MVAD    = 0x0006;
 	/**
 	 * <b>SWAP</b> <code>(00 07)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * swaps the value of the first and the second parameter	 * <p>
+	 * swaps the value of the first and the second parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>ZW &lt;- p1</code></li>
@@ -106,13 +119,15 @@ public class PrimAsmCommands {
 	 * <li><code>p2 &lt;- ZW</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int SWAP    = 0x0007;
 	/**
 	 * <b>OR</b> <code>(01 00)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter	 * <p>
+	 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if (p1 | p2) = 0</code>
@@ -126,13 +141,15 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- p1 | p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int OR      = 0x0100;
 	/**
 	 * <b>AND</b> <code>(01 01)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * uses the logical AND operator with the first and the second parameter and stores the result in the first parameter	 * <p>
+	 * uses the logical AND operator with the first and the second parameter and stores the result in the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if (p1 &amp; p2) = 0</code>
@@ -146,13 +163,15 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- p1 &amp; p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int AND     = 0x0101;
 	/**
 	 * <b>XOR</b> <code>(01 02)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter	 * <p>
+	 * uses the logical OR operator with the first and the second parameter and stores the result in the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if (p1 ^ p2) = 0</code>
@@ -166,6 +185,7 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- p1 ^ p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int XOR     = 0x0102;
 	/**
@@ -173,7 +193,8 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * uses the logical NOT operator with every bit of the parameter and stores the result in the parameter<br>
-	 * this instruction works like <code>XOR p1, -1</code>	 * <p>
+	 * this instruction works like <code>XOR p1, -1</code>
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 = -1</code>
@@ -187,13 +208,15 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- ~ p1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int NOT     = 0x0103;
 	/**
 	 * <b>LSH</b> <code>(01 04)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * shifts bits of the parameter logically left	 * <p>
+	 * shifts bits of the parameter logically left
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ((p1 &lt;&lt; p2) &gt;&gt; p2) = p1</code>
@@ -207,13 +230,15 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- p1 &lt;&lt; p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int LSH     = 0x0104;
 	/**
 	 * <b>RASH</b> <code>(01 05)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * shifts bits of the parameter arithmetic right	 * <p>
+	 * shifts bits of the parameter arithmetic right
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ((p1 &gt;&gt; p2) &lt;&lt; p2) = p1</code>
@@ -227,13 +252,15 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- p1 &gt;&gt; 2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int RASH    = 0x0105;
 	/**
 	 * <b>RLSH</b> <code>(01 06)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * shifts bits of the parameter logically right	 * <p>
+	 * shifts bits of the parameter logically right
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ((p1 &gt;&gt;&gt; p2) &lt;&lt; p2) = p1</code>
@@ -247,13 +274,15 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- p1 &gt;&gt;&gt; 1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int RLSH    = 0x0106;
 	/**
 	 * <b>ADD</b> <code>(01 10)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * adds the values of both parameters and stores the sum in the first parameter	 * <p>
+	 * adds the values of both parameters and stores the sum in the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 + p2</code></li>
@@ -279,13 +308,15 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int ADD     = 0x0110;
 	/**
 	 * <b>SUB</b> <code>(01 11)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * subtracts the second parameter from the first parameter and stores the result in the first parameter	 * <p>
+	 * subtracts the second parameter from the first parameter and stores the result in the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 - p2</code></li>
@@ -311,13 +342,15 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int SUB     = 0x0111;
 	/**
 	 * <b>MUL</b> <code>(01 12)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * multiplies the first parameter with the second and stores the result in the first parameter	 * <p>
+	 * multiplies the first parameter with the second and stores the result in the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 * p2</code></li>
@@ -331,19 +364,22 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int MUL     = 0x0112;
 	/**
 	 * <b>DIV</b> <code>(01 13)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * divides the first parameter with the second and stores the result in the first parameter and the reminder in the second parameter	 * <p>
+	 * divides the first parameter with the second and stores the result in the first parameter and the reminder in the second parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 / p2</code></li>
 	 * <li><code>p2 &lt;- p1 mod p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int DIV     = 0x0113;
 	/**
@@ -351,7 +387,8 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * uses the arithmetic negation operation with the parameter and stores the result in the parameter<br>
-	 * this instruction works like <code>MUL p1, -1</code>	 * <p>
+	 * this instruction works like <code>MUL p1, -1</code>
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 = UHEX-8000000000000000</code>
@@ -365,13 +402,15 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- 0 - p1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int NEG     = 0x0114;
 	/**
 	 * <b>ADDC</b> <code>(01 15)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * adds the values of both parameters and the OVERFLOW flag and stores the sum in the first parameter	 * <p>
+	 * adds the values of both parameters and the OVERFLOW flag and stores the sum in the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>ZW &lt;- p1 + (p2 + OVERFLOW)</code></li>
@@ -386,13 +425,15 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- ZW</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int ADDC    = 0x0115;
 	/**
 	 * <b>SUBC</b> <code>(01 16)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * subtracts the second parameter with the OVERFLOW flag from the first parameter and stores the result in the first parameter	 * <p>
+	 * subtracts the second parameter with the OVERFLOW flag from the first parameter and stores the result in the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>ZW &lt;- p1 - (p2 + OVERFLOW)</code></li>
@@ -407,13 +448,15 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- ZW</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int SUBC    = 0x0116;
 	/**
 	 * <b>INC</b> <code>(01 17)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * increments the param by one	 * <p>
+	 * increments the param by one
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 = MAX_VALUE</code>
@@ -434,13 +477,15 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- p1 + 1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int INC     = 0x0117;
 	/**
 	 * <b>DEC</b> <code>(01 18)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * decrements the param by one	 * <p>
+	 * decrements the param by one
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 = MIN_VALUE</code>
@@ -461,120 +506,139 @@ public class PrimAsmCommands {
 	 * <li><code>p1 &lt;- p1 - 1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int DEC     = 0x0118;
 	/**
 	 * <b>ADDFP</b> <code>(01 20)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * adds the floating point values of both parameters and stores the floating point sum in the first parameter	 * <p>
+	 * adds the floating point values of both parameters and stores the floating point sum in the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
 	 * <li><code>p1 &lt;- p1 fp-add p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int ADDFP   = 0x0120;
 	/**
 	 * <b>SUBFP</b> <code>(01 21)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter	 * <p>
+	 * subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
 	 * <li><code>p1 &lt;- p1 fp-sub p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int SUBFP   = 0x0121;
 	/**
 	 * <b>MULFP</b> <code>(01 22)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * multiplies the first fp parameter with the second fp and stores the fp result in the first parameter	 * <p>
+	 * multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
 	 * <li><code>p1 &lt;- p1 fp-mul p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int MULFP   = 0x0122;
 	/**
 	 * <b>DIVFP</b> <code>(01 23)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter	 * <p>
+	 * divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
 	 * <li><code>p1 &lt;- p1 fp-div p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int DIVFP   = 0x0123;
 	/**
 	 * <b>NEGFP</b> <code>(01 24)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * multiplies the fp parameter with -1.0	 * <p>
+	 * multiplies the fp parameter with -1.0
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 is NAN</li>
 	 * <li><code>p1 &lt;- p1 fp-mul -1.0</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int NEGFP   = 0x0124;
 	/**
 	 * <b>UADD</b> <code>(01 30)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * like ADD, but uses the parameters as unsigned parameters	 * <p>
+	 * like ADD, but uses the parameters as unsigned parameters
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 uadd p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int UADD    = 0x0130;
 	/**
 	 * <b>USUB</b> <code>(01 31)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * like SUB, but uses the parameters as unsigned parameters	 * <p>
+	 * like SUB, but uses the parameters as unsigned parameters
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 usub p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int USUB    = 0x0131;
 	/**
 	 * <b>UMUL</b> <code>(01 32)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * like MUL, but uses the parameters as unsigned parameters	 * <p>
+	 * like MUL, but uses the parameters as unsigned parameters
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 umul p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int UMUL    = 0x0132;
 	/**
 	 * <b>UDIV</b> <code>(01 33)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * like DIV, but uses the parameters as unsigned parameters	 * <p>
+	 * like DIV, but uses the parameters as unsigned parameters
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- oldp1 udiv oldp2</code></li>
 	 * <li><code>p2 &lt;- oldp1 umod oldp2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int UDIV    = 0x0133;
 	/**
@@ -586,12 +650,14 @@ public class PrimAsmCommands {
 	 * <li>if registers are used the next register is also used</li>
 	 * <li>the last register will cause the illegal memory interrupt</li>
 	 * </ul>
+
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 big-add p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int BADD    = 0x0140;
 	/**
@@ -603,12 +669,14 @@ public class PrimAsmCommands {
 	 * <li>if registers are used the next register is also used</li>
 	 * <li>the last register will cause the illegal memory interrupt</li>
 	 * </ul>
+
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 big-sub p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int BSUB    = 0x0141;
 	/**
@@ -620,12 +688,14 @@ public class PrimAsmCommands {
 	 * <li>if registers are used the next register is also used</li>
 	 * <li>the last register will cause the illegal memory interrupt</li>
 	 * </ul>
+
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 big-mul p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int BMUL    = 0x0142;
 	/**
@@ -637,6 +707,7 @@ public class PrimAsmCommands {
 	 * <li>if registers are used the next register is also used</li>
 	 * <li>the last register will cause the illegal memory interrupt</li>
 	 * </ul>
+
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
@@ -644,6 +715,7 @@ public class PrimAsmCommands {
 	 * <li><code>p2 &lt;- oldp1 big-mod oldp2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int BDIV    = 0x0143;
 	/**
@@ -655,12 +727,14 @@ public class PrimAsmCommands {
 	 * <li>if registers are used the next register is also used</li>
 	 * <li>the last register will cause the illegal memory interrupt</li>
 	 * </ul>
+
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- big-neg p1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int BNEG    = 0x0144;
 	/**
@@ -668,13 +742,15 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * converts the value of the floating point param to a number<br>
-	 * the value after the	 * <p>
+	 * the value after the
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li>note that the aritmetic error interrupt is executed instead if p1 is no normal value</li>
 	 * <li><code>p1 &lt;- as_num(p1)</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int FPTN    = 0x0150;
 	/**
@@ -682,19 +758,22 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * converts the value of the number param to a floating point<br>
-	 * the value after the	 * <p>
+	 * the value after the
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- as_fp(p1)</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int NTFP    = 0x0151;
 	/**
 	 * <b>CMP</b> <code>(02 00)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the two values and stores the result in the status register	 * <p>
+	 * compares the two values and stores the result in the status register
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
@@ -717,13 +796,15 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int CMP     = 0x0200;
 	/**
 	 * <b>CMPL</b> <code>(02 01)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the two values on logical/bit level	 * <p>
+	 * compares the two values on logical/bit level
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if (p1 &amp; p2) = p2</code>
@@ -745,13 +826,15 @@ public class PrimAsmCommands {
 	 * <li><code>NONE_BITS &lt;- 1</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int CMPL    = 0x0201;
 	/**
 	 * <b>CMPFP</b> <code>(02 02)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the two floating point values and stores the result in the status register	 * <p>
+	 * compares the two floating point values and stores the result in the status register
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
@@ -784,13 +867,15 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int CMPFP   = 0x0202;
 	/**
 	 * <b>CHKFP</b> <code>(02 03)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
-	 * checks if the floating point param is a positive, negative infinity, NaN or normal value	 * <p>
+	 * checks if the floating point param is a positive, negative infinity, NaN or normal value
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 is positive-infinity</code>
@@ -823,13 +908,15 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int CHKFP   = 0x0203;
 	/**
 	 * <b>CMPU</b> <code>(02 04)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the two unsigned values and stores the result in the status register	 * <p>
+	 * compares the two unsigned values and stores the result in the status register
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
@@ -852,13 +939,15 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int CMPU    = 0x0204;
 	/**
 	 * <b>CMPB</b> <code>(02 05)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * compares the two 128 bit values and stores the result in the status register	 * <p>
+	 * compares the two 128 bit values and stores the result in the status register
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
@@ -881,6 +970,7 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int CMPB    = 0x0205;
 	/**
@@ -888,7 +978,8 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
 	 * compares the value with <code>0</code> and stores the result in the status register<br>
-	 * this command is like <code>CMP PARAM , 0</code>	 * <p>
+	 * this command is like <code>CMP PARAM , 0</code>
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; 0</code>
@@ -911,6 +1002,7 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int SGN     = 0x0206;
 	/**
@@ -918,7 +1010,8 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
 	 * compares the floating-point value with <code>0.0</code> and stores the result in the status register<br>
-	 * this command is like <code>CMPFP PARAM , 0.0</code>	 * <p>
+	 * this command is like <code>CMPFP PARAM , 0.0</code>
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if p1 &gt; 0.0</code>
@@ -951,13 +1044,15 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int SGNFP   = 0x0207;
 	/**
 	 * <b>JMPERR</b> <code>(02 10)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the <code>ERRNO</code> register stores a value other than <code>0</code>	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the <code>ERRNO</code> register stores a value other than <code>0</code>
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ERRNO != 0</code>
@@ -969,13 +1064,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPERR  = 0x0210;
 	/**
 	 * <b>JMPEQ</b> <code>(02 11)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare operation compared two equal values	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare operation compared two equal values
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if EQUAL</code>
@@ -987,13 +1084,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPEQ   = 0x0211;
 	/**
 	 * <b>JMPNE</b> <code>(02 12)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare operation compared two different values	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare operation compared two different values
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if EQUAL</code>
@@ -1005,13 +1104,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPNE   = 0x0212;
 	/**
 	 * <b>JMPGT</b> <code>(02 13)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare result was greater	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare result was greater
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if GREATHER</code>
@@ -1023,13 +1124,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPGT   = 0x0213;
 	/**
 	 * <b>JMPGE</b> <code>(02 14)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare result was not lower	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare result was not lower
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if GREATHER | EQUAL</code>
@@ -1041,13 +1144,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPGE   = 0x0214;
 	/**
 	 * <b>JMPLT</b> <code>(02 15)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare result was lower	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare result was lower
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if LOWER</code>
@@ -1059,13 +1164,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPLT   = 0x0215;
 	/**
 	 * <b>JMPLE</b> <code>(02 16)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last compare result was not greater	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last compare result was not greater
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if LOWER | EQUAL</code>
@@ -1077,13 +1184,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPLE   = 0x0216;
 	/**
 	 * <b>JMPCS</b> <code>(02 17)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is set	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is set
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if OVERFLOW</code>
@@ -1095,13 +1204,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPCS   = 0x0217;
 	/**
 	 * <b>JMPCC</b> <code>(02 18)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is cleared	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last OVERFLOW flag is cleared
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ! OVERFLOW</code>
@@ -1113,13 +1224,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPCC   = 0x0218;
 	/**
 	 * <b>JMPZS</b> <code>(02 19)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last zero flag is set	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last zero flag is set
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ZERO</code>
@@ -1131,13 +1244,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPZS   = 0x0219;
 	/**
 	 * <b>JMPZC</b> <code>(02 1a)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last zero flag is cleared	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last zero flag is cleared
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ! ZERO</code>
@@ -1149,13 +1264,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPZC   = 0x021a;
 	/**
 	 * <b>JMPNAN</b> <code>(02 1b)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last NaN flag is set	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last NaN flag is set
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if NAN</code>
@@ -1167,13 +1284,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPNAN  = 0x021b;
 	/**
 	 * <b>JMPAN</b> <code>(02 1c)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last NaN flag is cleared	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last NaN flag is cleared
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ! NAN</code>
@@ -1185,13 +1304,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPAN   = 0x021c;
 	/**
 	 * <b>JMPAB</b> <code>(02 1d)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last AllBits flag is set	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last AllBits flag is set
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if ALL_BITS</code>
@@ -1203,13 +1324,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPAB   = 0x021d;
 	/**
 	 * <b>JMPSB</b> <code>(02 1e)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last SomeBits flag is set	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last SomeBits flag is set
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if SOME_BITS</code>
@@ -1221,13 +1344,15 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPSB   = 0x021e;
 	/**
 	 * <b>JMPNB</b> <code>(02 1f)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last NoneBits flag is set	 * <p>
+	 * sets the instruction pointer to position of the command after the label if the last NoneBits flag is set
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>if NONE_BITS</code>
@@ -1239,17 +1364,20 @@ public class PrimAsmCommands {
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int JMPNB   = 0x021f;
 	/**
 	 * <b>JMP</b> <code>(02 20)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label	 * <p>
+	 * sets the instruction pointer to position of the command after the label
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
 	 * </ul>
+
 	 */
 	public static final int JMP     = 0x0220;
 	/**
@@ -1273,6 +1401,7 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>note that all predefined interrupts set the <code>ERRNO</code> register to a nonzero value on error</li>
 	 * </ul>
+
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
@@ -1315,6 +1444,7 @@ public class PrimAsmCommands {
 	 * </ul></li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int INT     = 0x0230;
 	/**
@@ -1322,7 +1452,8 @@ public class PrimAsmCommands {
 	 * <i>Parameter: none</i>
 	 * <p>
 	 * returns from an interrupt<br>
-	 * if the address stored in <code>X09</code> was not retrieved from an <code>INT</code> execution, the PVM will call the illegal memory interrupt	 * <p>
+	 * if the address stored in <code>X09</code> was not retrieved from an <code>INT</code> execution, the PVM will call the illegal memory interrupt
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>ZW      &lt;- X09</code></li>
@@ -1347,6 +1478,7 @@ public class PrimAsmCommands {
 	 * <li>this does not use the free interrupt, but works like the default free interrupt (without calling the interrupt (what could cause an infinite recursion))</li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int IRET    = 0x0231;
 	/**
@@ -1354,13 +1486,15 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
 	 * sets the instruction pointer to position of the label<br>
-	 * and pushes the current instruction pointer to the stack	 * <p>
+	 * and pushes the current instruction pointer to the stack
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>[SP] &lt;- IP</code></li>
 	 * <li><code>SP &lt;- SP + 8</code></li>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
 	 * </ul>
+
 	 */
 	public static final int CALL    = 0x0300;
 	/**
@@ -1368,7 +1502,8 @@ public class PrimAsmCommands {
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;CONST_PARAM&gt;</code>
 	 * <p>
 	 * sets the instruction pointer to position of the label<br>
-	 * and pushes the current instruction pointer to the stack	 * <p>
+	 * and pushes the current instruction pointer to the stack
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>[SP] &lt;- IP</code></li>
@@ -1378,51 +1513,59 @@ public class PrimAsmCommands {
 	 * <li>note that this call is not relative from the current position</li>
 	 * </ul></li>
 	 * </ul>
+
 	 */
 	public static final int CALO    = 0x0301;
 	/**
 	 * <b>RET</b> <code>(03 10)</code><br>
 	 * <i>Parameter: none</i>
 	 * <p>
-	 * sets the instruction pointer to the position which was secured in the stack	 * <p>
+	 * sets the instruction pointer to the position which was secured in the stack
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>IP &lt;- [SP + -8]</code></li>
 	 * <li><code>SP &lt;- SP - 8</code></li>
 	 * </ul>
+
 	 */
 	public static final int RET     = 0x0310;
 	/**
 	 * <b>PUSH</b> <code>(03 20)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
-	 * pushes the parameter to the stack	 * <p>
+	 * pushes the parameter to the stack
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>[SP] &lt;- p1</code></li>
 	 * <li><code>SP &lt;- SP + 8</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int PUSH    = 0x0320;
 	/**
 	 * <b>POP</b> <code>(03 21)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * pops the highest value from the stack to the parameter	 * <p>
+	 * pops the highest value from the stack to the parameter
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- [SP - 8]</code></li>
 	 * <li><code>SP &lt;- SP - 8</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int POP     = 0x0321;
 	/**
 	 * <b>PUSHBLK</b> <code>(03 22)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * pushes the memory block, which is refered by p1 and p2 large to the stack	 * <p>
+	 * pushes the memory block, which is refered by p1 and p2 large to the stack
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>note that p1 is not allowed to be negative</code></li>
@@ -1430,13 +1573,15 @@ public class PrimAsmCommands {
 	 * <li><code>SP &lt;- SP + p1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int PUSHBLK = 0x0322;
 	/**
 	 * <b>POPBLK</b> <code>(03 23)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * pops the memory block, which will be saved to p1 and is p2 large from the stack	 * <p>
+	 * pops the memory block, which will be saved to p1 and is p2 large from the stack
+	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>note that p2 is not allowed to be negative</code></li>
@@ -1444,6 +1589,7 @@ public class PrimAsmCommands {
 	 * <li><code>SP &lt;- SP - p1</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
+
 	 */
 	public static final int POPBLK  = 0x0323;
 	

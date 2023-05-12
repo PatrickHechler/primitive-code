@@ -1,4 +1,4 @@
-//This file is part of the Primitive Code Project
+//This file is part of the Patr File System and Code Projects
 //DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 //Copyright (C) 2023  Patrick Hechler
 //
@@ -31,10 +31,10 @@ public class GenCorePrimAsmCmds implements SrcGen {
 			writeParams(out, cmd);
 			out.write("\t * ");
 			SrcGen.writeJavadocLines(out, "<p>", cmd.general());
-			out.write("\t * <p>\n");
+			out.write("\n\t * <p>\n");
 			out.write("\t * <b>definition:</b>");
 			SrcGen.writeJavadocLines(out, "<br>", cmd.definition());
-			out.write("\t */\n");
+			out.write("\n\t */\n");
 			out.write("\tpublic static final int " + cmd.name());
 			out.write("        ".substring(cmd.name().length()) + "= 0x" + word(cmd.num()) + ";\n");
 		}

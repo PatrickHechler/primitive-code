@@ -1,4 +1,4 @@
-//This file is part of the Primitive Code Project
+//This file is part of the Patr File System and Code Projects
 //DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 //Copyright (C) 2023  Patrick Hechler
 //
@@ -34,6 +34,7 @@ public class GenDisasmEnumCommands implements SrcGen {
 		write(out, ParamType.NO_CONST_PARAM, null, null, "ONE_PARAM_NO_CONST");
 		write(out, ParamType.PARAM, null, null, "ONE_PARAM_ALLOW_CONST");
 		write(out, ParamType.LABEL, null, null, "LABEL_OR_CONST");
+		write(out, null, null, null, "NO_PARAMS");
 	}
 	
 	private static void write(Writer out, ParamType p1, ParamType p2, ParamType p3, String paramArt) throws IOException {

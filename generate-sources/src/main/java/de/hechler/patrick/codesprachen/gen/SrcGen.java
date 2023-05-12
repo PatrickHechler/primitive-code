@@ -1,4 +1,4 @@
-//This file is part of the Primitive Code Project
+//This file is part of the Patr File System and Code Projects
 //DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 //Copyright (C) 2023  Patrick Hechler
 //
@@ -31,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
+@SuppressWarnings("javadoc")
 public interface SrcGen {
 	
 	static final String BASE_DIR           = initilizeBaseDir();
@@ -144,9 +145,8 @@ public interface SrcGen {
 	static String listEnd(List<Boolean> stack) {
 		if (stack.remove(stack.size() - 1).booleanValue()) {
 			return "</ol>";
-		} else {
-			return "</ul>";
 		}
+		return "</ul>";
 	}
 	
 	static String listStart(char c, List<Boolean> stack) {
@@ -163,7 +163,7 @@ public interface SrcGen {
 	
 	enum ParamType {
 		
-		NO_CONST_PARAM, PARAM, CONST_PARAM, LABEL;
+		NO_CONST_PARAM, PARAM, CONST_PARAM, LABEL, NONE;
 		
 		public static ParamType val(String type) {
 			if (type == null || type.isEmpty()) { return null; }
@@ -175,6 +175,7 @@ public interface SrcGen {
 			case "PARAM", "<PARAM>" -> PARAM;
 			case "CONST_PARAM", "<CONST_PARAM>" -> CONST_PARAM;
 			case "LABEL", "<LABEL>" -> LABEL;
+			case "NONE", "<NONE>" -> NONE;
 			default -> throw new IllegalStateException("unknown parameter type: '" + type + "'");
 			};
 		}

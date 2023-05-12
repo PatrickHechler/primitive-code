@@ -113,6 +113,10 @@ public enum Commands {
 	CMD_JMP(ParamArt.LABEL_OR_CONST, JMP),
 	CMD_CALL(ParamArt.LABEL_OR_CONST, CALL),
 	
+	// Params: none 
+	CMD_IRET(ParamArt.NO_PARAMS, IRET),
+	CMD_RET(ParamArt.NO_PARAMS, RET),
+	
 	// here is the end of the automatic generated code-block
 	// GENERATED-CODE-END
 	//@formatter:on

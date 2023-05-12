@@ -195,7 +195,7 @@ public class PrimitiveDisassembler implements Closeable {
 					}
 					break;
 				}
-				case TWO_PARAMS_ALLOW_CONSTS, TWO_PARAMS_NO_CONSTS, TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST: {
+				case TWO_PARAMS_ALLOW_CONSTS, TWO_PARAMS_NO_CONSTS, TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST, TWO_PARAMS_P1_NO_CONST_P2_COMPILE_CONST: {
 					bytes[2] = (byte) cmd.p1.art;
 					bytes[3] = (byte) cmd.p2.art;
 					int off = 7;
@@ -231,6 +231,46 @@ public class PrimitiveDisassembler implements Closeable {
 						ipos += 8;
 						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.off, "   | [p2-offset]\n")));
 					}
+					break;
+				}
+				case THREE_PARAMS_P1_NO_CONST_P2_ALLOW_CONST_P3_COMPILE_CONST: {
+					bytes[2] = (byte) cmd.p1.art;
+					bytes[3] = (byte) cmd.p2.art;
+					int off = 7;
+					if ((cmd.p1.art & PARAM_A_REG) == PARAM_A_REG) {
+						bytes[off--] = (byte) cmd.p1.num;
+					}
+					if ((cmd.p1.art & PARAM_B_REG) == PARAM_B_REG) {
+						bytes[off--] = (byte) cmd.p1.off;
+					}
+					if ((cmd.p2.art & PARAM_A_REG) == PARAM_A_REG) {
+						bytes[off--] = (byte) cmd.p2.num;
+					}
+					if ((cmd.p2.art & PARAM_B_REG) == PARAM_B_REG) {
+						bytes[off--] = (byte) cmd.p2.off;
+					}
+					out.write(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = ")));
+					out.write(cmd.toString());
+					out.write('\n');
+					long ipos = pos;
+					if ((cmd.p1.art & PARAM_A_REG) != PARAM_A_REG) {
+						ipos += 8;
+						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p1-num]\n")));
+					}
+					if ((cmd.p1.art & PARAM_B_REG) == PARAM_B_NUM) {
+						ipos += 8;
+						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p1-offset]\n")));
+					}
+					if ((cmd.p2.art & PARAM_A_REG) != PARAM_A_REG) {
+						ipos += 8;
+						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.num, "   | [p2-num]\n")));
+					}
+					if ((cmd.p2.art & PARAM_B_REG) == PARAM_B_NUM) {
+						ipos += 8;
+						out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.off, "   | [p2-offset]\n")));
+					}
+					ipos += 8;
+					out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p3.num, "   | [p3-num]\n")));
 					break;
 				}
 				default:

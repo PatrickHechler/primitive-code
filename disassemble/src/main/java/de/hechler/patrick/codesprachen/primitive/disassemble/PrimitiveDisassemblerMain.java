@@ -36,6 +36,7 @@ import de.hechler.patrick.zeugs.pfs.opts.JavaFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.PatrFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.StreamOpenOptions;
 
+@SuppressWarnings("javadoc")
 public class PrimitiveDisassemblerMain {
 	
 	private static final String NOT_ENUGH_ARGS = "not enugh args";
@@ -47,21 +48,10 @@ public class PrimitiveDisassemblerMain {
 	private static long                  pos;
 	private static FS                    fs;
 	
-	public static void main(String[] args) throws NoSuchProviderException {
+	public static void main(String[] args) {
 		setup(args);
 		int exitCode = 0;
 		try {
-//			try (FS fs = FSProvider.ofName(FSProvider.PATR_FS_PROVIDER_NAME)
-//				.loadFS(new PatrFSOptions("../../simple-code/simple-compile/testout/add.pfs", false, 4096L, 1024))) {
-//				System.out.println("loaded fs");
-//				try (File file = fs.file("/add")) {
-//					System.out.println("file size: " + file.length());
-//					try (ReadStream read = file.openRead()) {
-//						disasm.deassemble(0, read.asInputStream());
-//					}
-//				}
-//			}
-//			System.exit(0);
 			disasm.deassemble(pos, binary);
 		} catch (IOException e) {
 			LOG.severe("an error occured during the diassembling of the binary:");
@@ -118,7 +108,7 @@ public class PrimitiveDisassemblerMain {
 			}
 		}
 		if (fs == null) {
-			if (in != null) { crash(-1, args, "no file system spezified!"); }
+			if (in != null) crash(-1, args, "no file system spezified!");
 			binary = System.in;
 		} else {
 			if (in == null) { crash(-1, args, "no binary/input set"); }
