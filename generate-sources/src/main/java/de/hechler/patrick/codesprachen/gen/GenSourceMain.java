@@ -35,6 +35,7 @@ import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandArray;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandFuncs;
 import de.hechler.patrick.codesprachen.gen.impl.GenCErrEnum;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunIntHeader;
+import de.hechler.patrick.codesprachen.gen.impl.GenSCStdLibFuncs;
 
 @SuppressWarnings("javadoc")
 public class GenSourceMain {
@@ -52,6 +53,8 @@ public class GenSourceMain {
 			+ "prim-core/src/main/resources/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf";
 	private static final String DISASM_COMMANDS_ENUM = SrcGen.PRIMITIVE_CODE_DIR
 			+ "disassemble/src/main/java/de/hechler/patrick/codesprachen/primitive/disassemble/enums/Commands.java";
+	private static final String SC_SDTLIB_FUNCS      = SrcGen.SIMPLE_COMPILE_DIR
+			+ "src/main/java/de/hechler/patrick/codesprachen/simple/compile/objects/compiler/StdLib.java";
 	private static final String RUN_COMMAND_FUNCS    = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-cmd.h";
 	private static final String RUN_COMMAND_ARRAY    = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-cmd-cmds-gen.h";
 	private static final String RUN_INT_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-int.h";
@@ -69,6 +72,7 @@ public class GenSourceMain {
 		generate0(Path.of(RUN_INT_HEADER), new GenRunIntHeader());
 		generate(Path.of(RUN_ERR_HEADER), "\t", new GenCErrEnum("PE_"));
 		generate(Path.of(PFS_ERR_HEADER), "\t", new GenCErrEnum("PFS_ERRNO_"));
+		generate(Path.of(SC_SDTLIB_FUNCS), "\t", new GenSCStdLibFuncs());
 		System.out.println("finish");
 	}
 	
@@ -135,7 +139,7 @@ public class GenSourceMain {
 	}
 	
 	private static String genStartLines(String indent) {
-		return indent + "//" + GEN_START + "\n" + indent + "// this code-block is automatic generated, do not modify\n";
+		return indent + "// " + GEN_START + "\n" + indent + "// this code-block is automatic generated, do not modify\n";
 	}
 	
 	public static void writeLine(Writer out, String line) throws IOException {

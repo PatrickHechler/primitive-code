@@ -1,19 +1,19 @@
-//This file is part of the Patr File System and Code Projects
-//DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-//Copyright (C) 2023  Patrick Hechler
+// This file is part of the Patr File System and Code Projects
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+// Copyright (C) 2023 Patrick Hechler
 //
-//This program is free software: you can redistribute it and/or modify
-//it under the terms of the GNU General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-//This program is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU General Public License for more details.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
 //
-//You should have received a copy of the GNU General Public License
-//along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 package de.hechler.patrick.codesprachen.gen;
 
 import java.io.IOError;
@@ -38,6 +38,7 @@ public interface SrcGen {
 	static final String PRIMITIVE_CODE_DIR = BASE_DIR + "primitive-code/";
 	static final String PATR_FILE_SYS_DIR  = BASE_DIR + "PatrFileSys/";
 	static final String SIMPLE_CODE_DIR    = BASE_DIR + "simple-code/";
+	static final String SIMPLE_COMPILE_DIR = SIMPLE_CODE_DIR + "simple-compile/";
 	static final String PRIM_CODE_README   = PRIMITIVE_CODE_DIR + "README.md";
 	
 	static String initilizeBaseDir() {
@@ -73,65 +74,72 @@ public interface SrcGen {
 			} else {
 				List<Boolean> stack = new ArrayList<>();
 				out.write("\n" + lineStart + listStart(line.charAt(4), stack) + '\n');
-				int     deep            = 1;
-				String  start           = "    *";
-				boolean missingEntryEnd = false;
-				while (true) {
-					if (line.startsWith(start)) {/**/
-					} else {
-						String leadingWhite = line.substring(0, line.length() - line.stripLeading().length());
-						if (leadingWhite.length() < start.length() - 1) {
-							if (missingEntryEnd) {
-								missingEntryEnd = false;
-								out.write("</li>\n");
-							}
-							do {
-								out.write(lineStart + listEnd(stack) + "</li>\n");
-								deep--;
-								start = start.substring(4);
-							} while (leadingWhite.length() < start.length() - 1);
-						} else if (leadingWhite.length() > start.length() - 1) {
-							if (!missingEntryEnd) { throw new IllegalStateException(); }
-							out.write("\n" + lineStart + listStart(line.charAt(leadingWhite.length()), stack) + '\n');
-							missingEntryEnd = false;
-							deep++;
-							start = "    " + start;
-						} else {
-							throw new IllegalStateException("'" + line + "'");
-						}
-						if (leadingWhite.length() != start.length() - 1 || !leadingWhite.matches("^ *$")) {
-							throw new IllegalStateException("'" + line + "' start='" + start + "'");
-						}
-					}
-					if (missingEntryEnd) {
-						out.write("</li>\n");
-					}
-					out.write(lineStart + "<li>" + mdToJavadoc(mdListEntryText(line).trim()));
-					missingEntryEnd = true;
-					if (!iter.hasNext()) {
-						line = null;
-						break;
-					}
-					line = iter.next();
-					if (line.charAt(0) == '*') {
-						break;
-					}
-				}
-				if (missingEntryEnd) {
-					out.write("</li>\n");
-				}
-				while (--deep > 0) {
-					out.write(lineStart + listEnd(stack) + "</li>\n");
-				}
-				out.write(lineStart + listEnd(stack) + '\n');
-				if (line != null) {
-					out.write(lineStart + mdToJavadoc(line.substring(1).trim()));
-				}
+				javadocNonDirectListLine(out, lineStart, iter, line, stack);
 				br = "<br>";
-				if (!stack.isEmpty()) { throw new IllegalStateException("stack is not empty"); }
+				if (!stack.isEmpty()) throw new IllegalStateException("stack is not empty");
 			}
 		}
 		return br;
+	}
+	
+	static void javadocNonDirectListLine(Writer out, String lineStart, Iterator<String> iter, String line, List<Boolean> stack) throws IOException {
+		int     deep            = 1;
+		String  start           = "    *";
+		boolean missingEntryEnd = false;
+		while (true) {
+			if (!line.startsWith(start)) {
+				String leadingWhite = line.substring(0, line.length() - line.stripLeading().length());
+				if (leadingWhite.length() < start.length() - 1) {
+					if (missingEntryEnd) {
+						missingEntryEnd = false;
+						out.write("</li>\n");
+					}
+					do {
+						out.write(lineStart + listEnd(stack) + "</li>\n");
+						deep--;
+						start = start.substring(4);
+					} while (leadingWhite.length() < start.length() - 1);
+				} else if (leadingWhite.length() > start.length() - 1) {
+					if (!missingEntryEnd) { throw new IllegalStateException(); }
+					out.write("\n" + lineStart + listStart(line.charAt(leadingWhite.length()), stack) + '\n');
+					missingEntryEnd = false;
+					deep++;
+					start = "    " + start;
+				} else {
+					throw new IllegalStateException("'" + line + "'");
+				}
+				if (leadingWhite.length() != start.length() - 1 || !leadingWhite.matches("^ *$")) {
+					throw new IllegalStateException("'" + line + "' start='" + start + "'");
+				}
+			}
+			if (missingEntryEnd) {
+				out.write("</li>\n");
+			}
+			out.write(lineStart + "<li>" + mdToJavadoc(mdListEntryText(line).trim()));
+			missingEntryEnd = true;
+			if (!iter.hasNext()) {
+				line = null;
+				break;
+			}
+			line = iter.next();
+			if (line.charAt(0) == '*') {
+				break;
+			}
+		}
+		javadocNonDirectListEnd(out, lineStart, line, stack, deep, missingEntryEnd);
+	}
+	
+	static void javadocNonDirectListEnd(Writer out, String lineStart, String line, List<Boolean> stack, int deep, boolean missingEntryEnd) throws IOException {
+		if (missingEntryEnd) {
+			out.write("</li>\n");
+		}
+		while (--deep > 0) {
+			out.write(lineStart + listEnd(stack) + "</li>\n");
+		}
+		out.write(lineStart + listEnd(stack) + '\n');
+		if (line != null) {
+			out.write(lineStart + mdToJavadoc(line.substring(1).trim()));
+		}
 	}
 	
 	static final Pattern MD_LIST_LINE = Pattern.compile("^( {4})+(\\*|[0-9]+.)\\s*(.*)$");
@@ -182,8 +190,7 @@ public interface SrcGen {
 		
 	}
 	
-	static record PrimAsmReadmeCommand(String name, ParamType p1, ParamType p2, ParamType p3, int num, List<String> general,
-			List<String> definition) {
+	static record PrimAsmReadmeCommand(String name, ParamType p1, ParamType p2, ParamType p3, int num, List<String> general, List<String> definition) {
 		
 		private static final Pattern ACTIVATION_PATTERN = Pattern.compile("^\\s*##\\s*COMMANDS\\s*$");
 		private static final Pattern CMD_PATTERN = Pattern.compile("^`([A-Z_0-9]+)\\s*(<[A-Z_]+>)?\\s*(,\\s*<[A-Z_]+>)?\\s*(,\\s*<[A-Z_]+>)?`$");
@@ -253,9 +260,8 @@ public interface SrcGen {
 											matcher = END_PATTERN.matcher(line);
 											if (!matcher.matches()) {
 												throw new IllegalStateException(line);
-											} else {
-												finish = true;
 											}
+											finish = true;
 										}
 									}
 								}
@@ -348,58 +354,57 @@ public interface SrcGen {
 					
 					@Override
 					public void accept(String line) {
-						if (finish) {/**/} else if (!activated) {
+						if (this.finish) {/**/} else if (!this.activated) {
 							Matcher matcher = ACTIVATION_PATTERN.matcher(line);
 							if (matcher.matches()) {
-								activated = true;
+								this.activated = true;
 							}
-						} else if (name == null) {
+						} else if (this.name == null) {
 							Matcher matcher = CONST_START_PATTERN.matcher(line);
 							if (!matcher.matches()) {
 								throw new IllegalStateException("'" + line + "'");
-							} else {
-								name   = matcher.group(1);
-								header = matcher.group(2);
 							}
-						} else if (valType == null) {
+							this.name   = matcher.group(1);
+							this.header = matcher.group(2);
+						} else if (this.valType == null) {
 							Matcher matcher = CONST_VAL_PATTERN.matcher(line);
 							if (!matcher.matches()) { throw new IllegalStateException(line); }
 							String val = matcher.group(1);
 							if (val.startsWith("UHEX-")) {
 								val = val.substring(5);
 								switch (val.length()) {
-								case 16 -> valType = ValueType.UHEX;
-								case 8 -> valType = ValueType.UHEX_DWORD;
+								case 16 -> this.valType = ValueType.UHEX;
+								case 8 -> this.valType = ValueType.UHEX_DWORD;
 								default -> throw new IllegalStateException(line);
 								}
-								value = Long.parseUnsignedLong(val, 16);
+								this.value = Long.parseUnsignedLong(val, 16);
 							} else if (val.startsWith("HEX-")) {
-								value   = Long.parseLong(val.substring(4), 16);
-								valType = ValueType.HEX;
+								this.value   = Long.parseLong(val.substring(4), 16);
+								this.valType = ValueType.HEX;
 							} else if (val.startsWith("NHEX-")) {
-								value   = Long.parseLong(val.substring(4), 16);
-								valType = ValueType.NHEX;
+								this.value   = Long.parseLong(val.substring(4), 16);
+								this.valType = ValueType.NHEX;
 							} else {
-								value   = Long.parseLong(val);
-								valType = ValueType.DECIMAL;
+								this.value   = Long.parseLong(val);
+								this.valType = ValueType.DECIMAL;
 							}
-							docu = new ArrayList<>();
+							this.docu = new ArrayList<>();
 						} else {
 							Matcher matcher = CONST_CONT_PATTERN.matcher(line);
 							if (!matcher.matches()) {
-								result.add(new PrimAsmConstant(name, value, valType, header, Collections.unmodifiableList(docu)));
-								name    = null;
-								header  = null;
-								value   = -1L;
-								valType = null;
-								docu    = null;
+								result.add(new PrimAsmConstant(this.name, this.value, this.valType, this.header, Collections.unmodifiableList(this.docu)));
+								this.name    = null;
+								this.header  = null;
+								this.value   = -1L;
+								this.valType = null;
+								this.docu    = null;
 								if (line.isBlank()) {
-									finish = true;
+									this.finish = true;
 								} else {
 									accept(line);
 								}
 							} else {
-								docu.add(line.substring(4));
+								this.docu.add(line.substring(4));
 							}
 						}
 					}
