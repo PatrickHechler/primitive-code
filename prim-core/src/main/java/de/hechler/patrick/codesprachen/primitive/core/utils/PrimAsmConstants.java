@@ -1,3 +1,19 @@
+// This file is part of the Primitive Code Project
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+// Copyright (C) 2023 Patrick Hechler
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 package de.hechler.patrick.codesprachen.primitive.core.utils;
 
 import java.io.IOError;
@@ -27,8 +43,7 @@ public class PrimAsmConstants {
 	
 	static {
 		Map<String, PrimitiveConstant> startConsts = new LinkedHashMap<>();
-		try (InputStream in = PrimAsmConstants.class
-				.getResourceAsStream("/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf")) {
+		try (InputStream in = PrimAsmConstants.class.getResourceAsStream("/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf")) {
 			try (Scanner sc = new Scanner(in, StandardCharsets.UTF_8)) {
 				readSymbols(null, startConsts, sc, START_CONSTANTS_PATH);
 			}
@@ -42,12 +57,11 @@ public class PrimAsmConstants {
 				long              val       = field.getLong(null);
 				PrimitiveConstant primConst = startConsts.get(field.getName());
 				if (primConst == null) {
-					throw new AssertionError(
-							"validation error: primConst=null field: " + field.getName() + " (" + val + ")");
+					throw new AssertionError("validation error: primConst=null field: " + field.getName() + " (" + val + ")");
 				}
 				if (primConst.value() != val) {
-					throw new AssertionError("validation error: field: " + field.getName() + "=" + val
-							+ " primConst.val=" + primConst.value() + " (comment):\n" + primConst.comment());
+					throw new AssertionError("validation error: field: " + field.getName() + "=" + val + " primConst.val=" + primConst.value() + " (comment):\n"
+							+ primConst.comment());
 				}
 			} catch (IllegalArgumentException | IllegalAccessException e) {
 				throw new InternalError(e);
@@ -110,13 +124,14 @@ public class PrimAsmConstants {
 				continue;
 			}
 			if (line.charAt(0) == '|') {
-				comment.append(line).append('\n');
+				if (line.length() <= 1 || line.charAt(1) != '|') {
+					comment.append(line).append('\n');
+				}
 				continue;
 			}
 			Matcher matcher = pattern.matcher(line);
 			if (!matcher.matches()) {
-				throw new IllegalStateException(
-						"line does not match regex: line='" + line + "', regex='" + REGEX + "'");
+				throw new IllegalStateException("line does not match regex: line='" + line + "', regex='" + REGEX + "'");
 			}
 			String            constName = matcher.group(1);
 			String            strVal    = matcher.group(2);
@@ -125,7 +140,7 @@ public class PrimAsmConstants {
 			if (comment.length() == 0) {
 				value = new PrimitiveConstant(constName, null, val, path, lineNumber);
 			} else {
-				value = new PrimitiveConstant(constName, comment.toString(), val, path, lineNumber);
+				value   = new PrimitiveConstant(constName, comment.toString(), val, path, lineNumber);
 				comment = new StringBuilder();
 			}
 			if (prefix == null) {
