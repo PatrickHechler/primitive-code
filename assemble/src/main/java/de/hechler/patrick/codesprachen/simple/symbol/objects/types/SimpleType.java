@@ -27,6 +27,7 @@ public interface SimpleType {
 	public static final SimpleTypePrimitive UWORD  = SimpleTypePrimitive.pt_uword;
 	public static final SimpleTypePrimitive BYTE   = SimpleTypePrimitive.pt_byte;
 	public static final SimpleTypePrimitive UBYTE  = SimpleTypePrimitive.pt_ubyte;
+	@Deprecated(forRemoval = true)
 	public static final SimpleTypePrimitive BOOL   = SimpleTypePrimitive.pt_bool;
 	
 	/**

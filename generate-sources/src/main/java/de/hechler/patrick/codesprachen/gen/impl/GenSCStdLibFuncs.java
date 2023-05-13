@@ -16,6 +16,10 @@ public class GenSCStdLibFuncs implements SrcGen {
 	
 	private record Var(int reg, String name, String type, int pointerCnt, String doc) {
 		
+		public Var {
+			if (reg < 0 || reg >= 256 || name == null || type == null || pointerCnt < 0 || doc == null) throw new AssertionError();
+		}
+		
 	}
 	
 	private static final Pattern ARGS   = Pattern.compile("^\\*\\s*params\\s*:\\s*$");
@@ -31,72 +35,105 @@ public class GenSCStdLibFuncs implements SrcGen {
 		} else {
 			reg = PrimAsmConstants.X_ADD + Integer.parseInt(regG, 16);
 		}
-		String name = matcher.group(2);
-		String type = matcher.group(3);
-		int pointerCnt = matcher.group(4).length();
-		String doc  = matcher.group(5).trim();
+		String name       = matcher.group(2);
+		String type       = matcher.group(3);
+		int    pointerCnt = matcher.group(4).length();
+		String doc        = matcher.group(5).trim();
 		return new Var(reg, name, type, pointerCnt, doc);
 	}
 	
 	@Override
 	public void generate(Writer out) throws IOException {
 		start(out);
-		for (PrimAsmConstant parc : SrcGen.PrimAsmConstant.ALL_CONSTANTS) {
-			if (!parc.name().startsWith("INT_")) continue;
+		for (PrimAsmConstant pac : SrcGen.PrimAsmConstant.ALL_CONSTANTS) {
+			if (!pac.name().startsWith("INT_")) continue;
 			List<Var> args = new ArrayList<>();
 			List<Var> ress = new ArrayList<>();
-			fillLists(parc, args, ress);
-			
+			fillLists(pac, args, ress);
+			if (!args.isEmpty() && args.get(0).reg < PrimAsmConstants.X_ADD || !ress.isEmpty() && ress.get(0).reg < PrimAsmConstants.X_ADD) {
+				System.out.println("skip: " + pac.name());
+				continue;
+			}
+			String name = name(pac.name());
+			out.write("\t\tres.put(\"" + name + "\", new SimpleFuncType(List.of(");
+			write(out, args);
+			out.write("), List.of(");
+			write(out, ress);
+			out.write(")));\n");
 		}
 		end(out);
 	}
 	
-	private static void fillLists(PrimAsmConstant parc, List<Var> args, List<Var> ress) throws AssertionError {
-		final int stateNone = 0;
-		final int stateArgs = 1;
-		final int stateRess = 2;
-		int       state     = stateNone;
-		for (String doc : parc.docu()) {
-			switch (state) {
-			case stateNone -> {
-				Matcher matcher = ARGS.matcher(doc);
-				if (matcher.matches()) {
-					state = stateArgs;
-					break;
-				}
-				matcher = RESS.matcher(doc);
-				if (matcher.matches()) {
-					state = stateRess;
-				}
-			}
-			case stateArgs -> {
-				Matcher matcher = VAR.matcher(doc);
-				if (!matcher.matches()) {
-					state = checkNoVal(stateNone, doc);
-					break;
-				}
-				args.add(var(matcher));
-			}
-			case stateRess -> {
-				Matcher matcher = VAR.matcher(doc);
-				if (!matcher.matches()) {
-					state = checkNoVal(stateNone, doc);
-					break;
-				}
-				ress.add(var(matcher));
-			}
-			default -> throw new AssertionError(state);
-			}
+	private static void write(Writer out, List<Var> vars) throws IOException {
+		if (vars.isEmpty()) return;
+		int     unused = 0;
+		int     reg    = PrimAsmConstants.X_ADD;
+		boolean first  = true;
+		for (Var var : vars) {
+			out.write("sv(SimpleTypePrimitive.pt_" + var.type + ", " + var.pointerCnt + ", \"" + var.name + "\")");
 		}
 	}
 	
-	private static int checkNoVal(final int stateNone, String doc) {
-		int state;
+	private static String name(String name) {
+		StringBuilder b = new StringBuilder(name.length() - 4);
+		for (int i = 4; i < name.length();) {
+			int ni = name.indexOf('_', i);
+			b.append(name.charAt(i));
+			if (ni == -1) ni = name.length();
+			String sub = name.substring(i + 1, ni);
+			b.append(sub.toLowerCase());
+			i = ni + 1;
+		}
+		return b.toString();
+	}
+	
+	private static final int STATE_NONE = 0;
+	private static final int STATE_ARGS = 1;
+	private static final int STATE_RESS = 2;
+	
+	private static void fillLists(PrimAsmConstant parc, List<Var> args, List<Var> ress) throws AssertionError {
+		int state = STATE_NONE;
+		for (String doc : parc.docu()) {
+			state = fillDocLine(args, ress, state, doc);
+		}
+	}
+	
+	private static int fillDocLine(List<Var> args, List<Var> ress, int state, String doc) throws AssertionError {
+		return switch (state) {
+		case STATE_NONE -> {
+			Matcher matcher = ARGS.matcher(doc);
+			if (matcher.matches()) {
+				yield STATE_ARGS;
+			}
+			matcher = RESS.matcher(doc);
+			if (matcher.matches()) {
+				yield STATE_RESS;
+			}
+			yield state;
+		}
+		case STATE_ARGS -> processVar(args, ress, doc, args, state);
+		case STATE_RESS -> processVar(args, ress, doc, ress, state);
+		default -> throw new AssertionError(state);
+		};
+	}
+	
+	private static int processVar(List<Var> args, List<Var> ress, String doc, List<Var> useList, int state) throws AssertionError {
+		Matcher matcher = VAR.matcher(doc);
+		if (!matcher.matches()) {
+			checkNoVal(doc);
+			return fillDocLine(args, ress, STATE_NONE, doc);
+		}
+		Var v = var(matcher);
+		if (!useList.isEmpty() && useList.get(useList.size() - 1).reg >= v.reg) throw new AssertionError();
+		useList.add(v);
+		return state;
+	}
+	
+	private static int checkNoVal(String doc) {
 		if (!NO_VAR.matcher(doc).matches()) {
 			throw new IllegalStateException("unexpected end: '" + doc + "'");
 		}
-		state = stateNone;
-		return state;
+		return STATE_NONE;
 	}
 	
 	private static void end(Writer out) throws IOException {

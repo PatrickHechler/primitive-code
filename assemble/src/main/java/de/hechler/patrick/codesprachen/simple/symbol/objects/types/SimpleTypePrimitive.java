@@ -38,6 +38,7 @@ public enum SimpleTypePrimitive implements SimpleType {
 		
 	},
 	// bool gets sometimes special handling (just like pointers)
+	@Deprecated(forRemoval = true)
 	pt_bool(64, false),
 	pt_inval(-1, false) {
 		

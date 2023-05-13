@@ -222,7 +222,7 @@ every register can also be addressed:
 * `INT_ERRORS_ILLEGAL_INTERRUPT` : illegal interrupt
     * value: `0`
     * params:
-        * `X00` intnum: (`num`) the number of the illegal interrupt
+        * `X00` `intnum`: (`num`) the number of the illegal interrupt
     * exits with `(128 + illegal_interrup_number)` (without calling the exit interrupt)
     * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `128`
     * the pvm may print an error message before terminating
@@ -245,27 +245,27 @@ every register can also be addressed:
 * `INT_EXIT` : exit
     * value: `4`
     * params:
-        * `X00` exitnum: (`num`) the exit number this progress will have
+        * `X00` `exitnum`: (`num`) the exit number this progress will have
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEMORY_ALLOC` : allocate a memory-block
     * value: `5`
     * params:
-        * `X00` len: (`unum`) the size of the block to be allocated
+        * `X00` `len`: (`unum`) the size of the block to be allocated
     * result values:
-        * `X00` mem: (`ubyte#`) the allocated memory block or `-1` on error
+        * `X00` `mem`: (`ubyte#`) the allocated memory block or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEMORY_REALLOC` : reallocate a memory-block
     * value: `6`
     * params:
-        * `X00` old_mem: (`ubyte#`) points to the old memory-block
-        * `X01` new_len: (`unum`) the new size of the memory-block
+        * `X00` `old_mem`: (`ubyte#`) points to the old memory-block
+        * `X01` `new_len`: (`unum`) the new size of the memory-block
     * result values:
-        * `X01` new_mem: (`ubyte#`) points to the new memory-block or `-1` on error
+        * `X01` `new_mem`: (`ubyte#`) points to the new memory-block or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEMORY_FREE` : free a memory-block
     * value: `7`
     * params:
-        * `X00` mem: (`ubyte#`) points to the old memory-block
+        * `X00` `mem`: (`ubyte#`) points to the old memory-block
     * after this the memory-block should not be used
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_OPEN_STREAM` : open new stream
@@ -308,33 +308,45 @@ every register can also be addressed:
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STREAMS_WRITE` : write
     * value: `9`
-    * `X00` contains the STREAM-ID
-    * `X01` contains the number of elements to write
-    * `X02` points to the elements to write
-    * `X01` will be set to the number of written bytes.
+    * params:
+        * `X00` `id`: (`num`) the STREAM-ID
+        * `X01` `len`: (`unum`) the number of bytes to write
+        * `X02` `data`: (`ubyte#`) points to the elements to write
+    * result values:
+        * `X01` `wrote`: (``) will be set to the number of written bytes.
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STREAMS_READ` : read
     * value: `10`
-    * `X00` contains the STREAM-ID
-    * `X01` contains the number of elements to read
-    * `X02` points to the elements to read
-    * after execution `X01` will contain the number of elements, which has been read.
-        * when the value is less than len either an error occured or end of file/pipe has reached (which is not considered an error)
+    * params:
+        * `X00` `id`: (`num`) the STREAM-ID
+        * `X01` `len`: (`unum`) the number of bytes to read
+        * `X02` `data`: (`ubyte#`) points to the elements to read
+    * result values:
+        * `X01` `read`: (`unum`) the number of bytes which have been read
+    * when less than len bytes where read either an error occured or end of file/pipe has reached
+        * end of file/pipe is not considered an error (`ERRNO` will be unmodified)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STREAMS_CLOSE` : stream close
     * value: `11`
-    * `X00` contains the STREAM-ID
-    * `X00` will be set to 1 on success and 0 on error
+    * params:
+        * `X00` `id`: (`num`) the STREAM-ID
+    * result values:
+        * `X00` `success`: (`num`) will be set to `1` on success and `0` on error
+    * note that even on error the STREAM-ID will be released by the system, so do NOT retry
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STREAMS_FILE_GET_POS` : stream file get position
     * value: `12`
-    * `X00` contains the STREAM/FILE_STREAM-ID
-    * `X01` will be set to the stream position or -1 on error
+    * params:
+        * `X00` `id`: (`num`) the (FILE-)STREAM-ID
+    * result values:
+        * `X01` `pos`: (`num`) be set to the stream position or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STREAMS_FILE_SET_POS` : stream file set position
     * value: `13`
-    * `X00` contains the STREAM/FILE_STREAM-ID
-    * `X01` contains the new position of the stream
+    * params:
+        * `X00` `id`: (`num`) the (FILE-)STREAM-ID
+    * result values:
+        * `X01` contains the new position of the stream
     * `X01` will be set to 1 or 0 on error
     * note that it is possible to set the stream position behind the end of the file.
         * when this is done, the next write (not append) operation will fill the hole with zeros
