@@ -257,10 +257,10 @@ every register can also be addressed:
 * `INT_MEMORY_REALLOC` : reallocate a memory-block
     * value: `6`
     * params:
-        * `X00` `old_mem`: (`ubyte#`) points to the old memory-block
-        * `X01` `new_len`: (`unum`) the new size of the memory-block
+        * `X00` `oldMem`: (`ubyte#`) points to the old memory-block
+        * `X01` `newLen`: (`unum`) the new size of the memory-block
     * result values:
-        * `X01` `new_mem`: (`ubyte#`) points to the new memory-block or `-1` on error
+        * `X01` `newMem`: (`ubyte#`) points to the new memory-block or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEMORY_FREE` : free a memory-block
     * value: `7`
@@ -271,7 +271,7 @@ every register can also be addressed:
 * `INT_OPEN_STREAM` : open new stream
     * value: `8`
     * params:
-        * `X00` `file_name`: (`char#`) the STRING, which refers to the file which should be read
+        * `X00` `fileName`: (`char#`) the STRING, which refers to the file which should be read
         * `X01` `mode`: (`unum`) the open mode (bitwise OR of the options)
     * result values:
         * `X00` `id`: (`num`) the ID of the opened STREAM or `-1` on error
@@ -381,111 +381,144 @@ every register can also be addressed:
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_OPEN_FOLDER` : open element handle folder
     * value: `17`
-    * `X00` points to the `STRING` which contains the path of the folder to be opened
-    * `X00` will be set to the newly opened STREAM/FOLDER-ID or -1 on error
+    * params:
+        * `X00` `folder`: (`char#`) points to the STRING which contains the path of the folder to be opened
+    * result values:
+        * `X00` `id`: (`num`) the newly opened (FOLDER-)ELEMENT-ID or `-1` on error
     * this operation will fail if the element is no folder
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_OPEN_PIPE` : open element handle pipe
     * value: `18`
-    * `X00` points to the `STRING` which contains the path of the pipe to be opened
-    * `X00` will be set to the newly opened STREAM/PIPE-ID or -1 on error
+    * elements:
+        * `X00` `pipe`: (`char#`) points to the `STRING` which contains the path of the pipe to be opened
+    * result values:
+        * `X00` `id`: (`num`) the newly opened (PIPE-)ELEMENT-ID or `-1` on error
     * this operation will fail if the element is no pipe
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_OPEN_ELEMENT` : open element handle (any)
     * value: `19`
-    * `X00` points to the `STRING` which contains the path of the element to be opened
-    * `X00` will be set to the newly opened STREAM-ID or -1 on error
+    * elements:
+        * `X00` `element`: (`char#`) the STRING which contains the path of the element to be opened
+    * result values:
+        * `X00` `id`: (`num`) the newly opened ELEMENT-ID or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_OPEN_PARENT` : element open parent handle
     * value: `20`
-    * `X00` contains the ELEMENT-ID
-    * `X00` will be set to the newly opened ELEMENT/FOLDER-ID or -1 on error
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT-ID
+    * result values:
+        * `X00` `parent_id`: (`num`) the newly opened (FOLDER-)ELEMENT-ID or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_GET_CREATE` : get create date
     * value: `21`
-    * `X00` contains the ELEMENT-ID
-    * `X01` will be set to the create date or `-1` on error
-        * note that `-1` may be the create date of the element, so check `ERRNO` instead
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT-ID
+    * result values:
+        * `X01` `date`: (`num`) the create date or `-1` on error
+    * note that `-1` may be the create date of the element, so check `ERRNO` instead
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_GET_LAST_MOD` : get last mod date
     * value: `22`
-    * `X00` contains the ELEMENT-ID
-    * `X01` will be set to the last modified date or `-1` on error
-        * note that `-1` may be the last modified date of the element, so check `ERRNO` instead
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT-ID
+    * result values:
+        * `X01` will be set to the last modified date or `-1` on error
+    * note that `-1` may be the last modified date of the element, so check `ERRNO` instead
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_SET_CREATE` : set create date
     * value: `23`
-    * `X00` contains the ELEMENT-ID
-    * `X00` contains the new create date of the element
-    * `X01` will be set to `1` or `0` on error
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT-ID
+        * `X00` `date`: (`num`) the new create date of the element
+    * result values:
+        * `X01` `success`: (`num`) `1` on success or `0` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_SET_LAST_MOD` : set last modified date
     * value: `24`
-    * `X00` contains the ELEMENT-ID
-    * `X00` contains the last modified date of the element
-    * `X01` will be set to `1` or `0` on error
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT-ID
+        * `X00` `date`: (`num`) the new last modified date of the element
+    * result values:
+        * `X01`  `success`: (`num`) `1` on success or `0` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_DELETE` : element delete
     * value: `25`
-    * `X00` contains the ELEMENT-ID
-    * note that this operation automatically closes the given ELEMENT-ID, the close interrupt should not be invoked after this interrupt returned
-    * `X01` will be set to `1` or `0` on error
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT-ID
+    * result values:
+        * `X01` `success`: (`num`) `1` on success or `0` on error
+    * this operation automatically closes the given ELEMENT-ID, even when it fails
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_MOVE` : element move
     * value: `26`
-    * `X00` contains the ELEMENT-ID
-    * `X01` points to a STRING which will be the new name or it is set to `-1` if the name should not be changed
-    * `X02` contains the ELEMENT-ID of the new parent of `-1` if the new parent should not be changed
-    * when both `X01` and `X02` are set to `-1` this operation will do nothing
-    * `X01` will be set to `1` or `0` on error
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT-ID
+        * `X01` `newName`: (`char#`) points to a STRING which will be the new name or it is set to `-1` if the name should not be changed
+        * `X02` `newParentId`: (`num`) contains the ELEMENT-ID of the new parent of `-1` if the new parent should not be changed
+    * result values:
+        * `X01` `success`: (`num`) `1` on success or `0` on error
+    * when both `newName` and `newParentId` are set to `-1` this operation will do nothing
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_GET_NAME` : element get name
     * value: `27`
-    * `X00` contains the ELEMENT-ID
-    * `X01` points the the a memory block, which should be used to store the name as a STRING
-        * when `X01` is set to `-1` a new memory block will be allocated
-    * on success `X01` will point to the name as STRING representation
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT-ID
+        * `X01` `buffer`: (`char#`) points the the a memory block, which should be used to store the name as a STRING
+    * result values:
+        * `X01` `name`: (`char#`) points to the name as STRING representation or `-1` on error
+    * when `buffer` is set to `-1` a new memory block will be allocated
         * when the memory block is not large enough, it will be resized
-        * note that when `X01` does not point to the start of the memory block the start of the memory block can still be moved during the reallocation
-    * on error `X01` will be set to `-1`
+        * note that when `X01` does not point to the start of the memory block the resize will fail
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_GET_FLAGS` : element get flags
     * value: `28`
-    * `X00` contains the ELEMENT-ID
-    * `X01` will be set to the flags or `-1` on error
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT-ID
+    * result values:
+        * `X01` `flags`: (`num`) will be set to the flags or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_MODIFY_FLAGS` : element modify flags
     * value: `29`
-    * `X00` contains the ELEMENT-ID
-    * `X01` contains the flags to be added
-    * `X02` contains the flags to be removed
-    * note that only the low 32 bit will be used and the high 32 bit will be ignored
-    * `X01` will be set to `1` or `0` on error
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT-ID
+        * `X01` `addFlags`: (`udword`) the flags to be added
+        * `X02` `remFlags`: (`udword`) the flags to be removed
+    * result values:
+        * `X01` `success`: (`num`) `1` on success or `0` on error
+    * only the low 32 bit will be used for the flags and the high 32 bit will be ignored
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_CHILD_COUNT` : element folder child count
     * value: `30`
-    * `X00` contains the ELEMENT/FOLDER-ID
-    * `X01` will be set to the number of child elements the folder has or `-1` on error
+    * elements:
+        * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
+    * result values:
+        * `X01` `childCount`: (`num`) the number of child elements the folder has or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_OPEN_CHILD_OF_NAME` : folder get child of name
     * value: `31`
-    * `X00` contains the ELEMENT/FOLDER-ID
-    * `X00` points to a STRING with the name of the child
-    * `X01` will be set to a newly opened ELEMENT-ID for the child or `-1` on error
+    * elements:
+        * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
+        * `X00` `name`: (`char#`) points to a STRING with the name of the child
+    * result values:
+        * `X01` `childId`: (`num`) the newly opened ELEMENT-ID for the child or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME` : folder get child folder of name
     * value: `32`
-    * `X00` contains the ELEMENT/FOLDER-ID
-    * `X00` points to a STRING with the name of the child
+    * elements:
+        * `X00` `id`: (`num`) the ELEMENT/FOLDER-ID
+        * `X00` `name`: (`char#`) points to a STRING with the name of the child
+    * result values:
+        * `X01` `cildId`: (`num`) the newly opened (FOLDER-)ELEMENT-ID for the child or `-1` on error
     * this operation will fail if the child is no folder
-    * `X01` will be set to a newly opened ELEMENT/FOLDER-ID for the child or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_OPEN_CHILD_FILE_OF_NAME` : folder get child file of name
     * value: `33`
-    * `X00` contains the ELEMENT/FOLDER-ID
-    * `X00` points to a STRING with the name of the child
+    * elements:
+        * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
+        * `X00` `name`: (`char#`) points to a STRING with the name of the child
+    * result values:
+        * `X01` `cildId`: (`num`) the newly opened ELEMENT/FILE-ID for the child or `-1` on error
     * this operation will fail if the child is no file
-    * `X01` will be set to a newly opened ELEMENT/FILE-ID for the child or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME` : folder get child pipe of name
     * value: `34`
