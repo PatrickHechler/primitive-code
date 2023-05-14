@@ -23,7 +23,7 @@ import de.hechler.patrick.codesprachen.primitive.disassemble.exceptions.NoComman
 public enum Commands {
 	
 	//@formatter:off
-	//GENERATED-CODE-START
+	// GENERATED-CODE-START
 	// this code-block is automatic generated, do not modify
 	
 	// Params: <NO_CONST_PARAM> , <PARAM> , <CONST_PARAM>

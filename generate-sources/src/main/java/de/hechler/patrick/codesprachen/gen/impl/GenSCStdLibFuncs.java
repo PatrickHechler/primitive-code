@@ -24,16 +24,16 @@ public class GenSCStdLibFuncs implements SrcGen {
 	
 	private static final Pattern ARGS   = Pattern.compile("^\\*\\s*params\\s*:\\s*$");
 	private static final Pattern RESS   = Pattern.compile("^\\*\\s*result\\s*values\\s*:\\s*$");
-	private static final Pattern VAR    = Pattern.compile("^ {4}\\*\\s*`(STATUS|X[A-F0-9]{2})`\\s*([a-z][a-zA-Z0-9_]+)\\s*:\\s*\\{`([a-zA-Z]+)(#*)`\\}(.*)$");
+	private static final Pattern VAR    = Pattern.compile("^ {4}\\*\\s*`(STATUS|X[A-F0-9]{2})`\\s*`([a-z][a-zA-Z0-9_]+)`\\s*:\\s*\\(`([a-zA-Z]+)(#*)`\\)(.*)$");
 	private static final Pattern NO_VAR = Pattern.compile("^\\*.*$");
 	
-	private static Var var(Matcher matcher) {
+	private static Var v(Matcher matcher) {
 		String regG = matcher.group(1);
 		int    reg;
 		if ("STATUS".equals(regG)) {
 			reg = PrimAsmConstants.STATUS;
 		} else {
-			reg = PrimAsmConstants.X_ADD + Integer.parseInt(regG, 16);
+			reg = PrimAsmConstants.X_ADD + Integer.parseInt(regG.substring(1), 16);
 		}
 		String name       = matcher.group(2);
 		String type       = matcher.group(3);
@@ -55,9 +55,9 @@ public class GenSCStdLibFuncs implements SrcGen {
 				continue;
 			}
 			String name = name(pac.name());
-			out.write("\t\tres.put(\"" + name + "\", new SimpleFuncType(List.of(");
+			out.write("\t\tres.put(\"" + pac.name() + "\", slf(" + pac.value() + ", \"" + name + "\", of(");
 			write(out, args);
-			out.write("), List.of(");
+			out.write("), of(");
 			write(out, ress);
 			out.write(")));\n");
 		}
@@ -66,19 +66,33 @@ public class GenSCStdLibFuncs implements SrcGen {
 	
 	private static void write(Writer out, List<Var> vars) throws IOException {
 		if (vars.isEmpty()) return;
-		int     unused = 0;
+		int     ignored = 0;
 		int     reg    = PrimAsmConstants.X_ADD;
 		boolean first  = true;
-		for (Var var : vars) {
-			out.write("sv(SimpleTypePrimitive.pt_" + var.type + ", " + var.pointerCnt + ", \"" + var.name + "\")");
+		for (Var v : vars) {
+			for (; reg < v.reg; reg++, ignored++) {
+				first = writeSep(out, first);
+				out.write("sv(NUM, 0, \"ignored" + ignored + "\")");
+			}
+			first = writeSep(out, first);
+			out.write("sv(" + v.type.toUpperCase() + ", " + v.pointerCnt + ", \"" + v.name + "\")");
+			reg++;
 		}
+	}
+	
+	private static boolean writeSep(Writer out, boolean first) throws IOException {
+		if (!first) {
+			out.write(", ");
+		}
+		return false;
 	}
 	
 	private static String name(String name) {
 		StringBuilder b = new StringBuilder(name.length() - 4);
 		for (int i = 4; i < name.length();) {
 			int ni = name.indexOf('_', i);
-			b.append(name.charAt(i));
+			if (i == 4) i--;
+			else b.append(name.charAt(i));
 			if (ni == -1) ni = name.length();
 			String sub = name.substring(i + 1, ni);
 			b.append(sub.toLowerCase());
@@ -123,7 +137,7 @@ public class GenSCStdLibFuncs implements SrcGen {
 			checkNoVal(doc);
 			return fillDocLine(args, ress, STATE_NONE, doc);
 		}
-		Var v = var(matcher);
+		Var v = v(matcher);
 		if (!useList.isEmpty() && useList.get(useList.size() - 1).reg >= v.reg) throw new AssertionError();
 		useList.add(v);
 		return state;
@@ -137,13 +151,13 @@ public class GenSCStdLibFuncs implements SrcGen {
 	}
 	
 	private static void end(Writer out) throws IOException {
-		out.write("		return Collections.unmodifiableMap(res);\n" //
-				+ "	}\n");
+		out.write("\t\treturn res;\n" //
+				+ "}\n");
 	}
 	
 	private static void start(Writer out) throws IOException {
-		out.write("	private static Map<String, Func> allInts() {\n"//
-				+ "		Map<String, Func> res = new HashMap<>();\n");
+		out.write("\tprivate static Map<String, StdLibFunc> allInts() {\n"//
+				+ "\t\tMap<String, StdLibFunc> res = new HashMap<>();\n");
 	}
 	
 }

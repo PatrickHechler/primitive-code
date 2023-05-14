@@ -48,7 +48,7 @@ the assembler language for the Primitive-Virtual-Machine
             * a address `A` is considered a little below an other address `B` when `B - A` is less then or equal to `8`
         3. when this happens, the `SP` register will be changed to point to the same data in the new memory block
         * note that the stack pointer will NOT be modified, when the memory block is resized manually.
-        * when the stack is not able to grow, it will cause the `INT_ERRORS_ILLEGAL_MEMORY` to be executed instead
+        * when the stack is not able to grow, it will cause the `INT_ERROR_ILLEGAL_MEMORY` to be executed instead
         * this means the `PUSH` command can be used without caring about a stack overflow
             * (the `POP` command can still cause a stack underflow)
         * note that this also means that the `SP` register is the only reliable source of the stack memory block
@@ -62,7 +62,7 @@ the assembler language for the Primitive-Virtual-Machine
                 6. `|> note that the call also stores the current address in the stack and thus the X00 address stored previously may get corrupt/invalid`
                 7. `|> also note that the sub may also use the stack before using the stored address its last time`
         * also note that this means that the `SP` register can not be used to store other information, because it will get corruopted whwn the stack grows
-        * this is an example of letting the stack grow, until there is no longer enough memory to let the stack grow, which will cause an INT_ERRORS_ILLEGAL_MEMORY
+        * this is an example of letting the stack grow, until there is no longer enough memory to let the stack grow, which will cause an INT_ERROR_ILLEGAL_MEMORY
             1. `LOOP:`
             2. `  PUSH X00`
             3. `  JMP LOOP`
@@ -219,7 +219,7 @@ every register can also be addressed:
     * note the binary is aligned, directly before a command, so the --POS-- has the unaligned value.
 
 ### Predefined Constants
-* `INT_ERRORS_ILLEGAL_INTERRUPT` : illegal interrupt
+* `INT_ERROR_ILLEGAL_INTERRUPT` : illegal interrupt
     * value: `0`
     * params:
         * `X00` `intnum`: (`num`) the number of the illegal interrupt
@@ -227,17 +227,17 @@ every register can also be addressed:
     * if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with `128`
     * the pvm may print an error message before terminating
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_ERRORS_UNKNOWN_COMMAND` : unknown command
+* `INT_ERROR_UNKNOWN_COMMAND` : unknown command
     * value: `1`
     * exits with `7` (without calling the exit interrupt)
     * the pvm may print an error message before terminating
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_ERRORS_ILLEGAL_MEMORY` : illegal memory
+* `INT_ERROR_ILLEGAL_MEMORY` : illegal memory
     * value: `2`
     * exits with `6` (without calling the exit interrupt)
     * the pvm may print an error message before terminating
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_ERRORS_ARITHMETIC_ERROR` : arithmetic error
+* `INT_ERROR_ARITHMETIC_ERROR` : arithmetic error
     * value: `3`
     * exits with `5` (without calling the exit interrupt)
     * the pvm may print an error message before terminating
@@ -306,16 +306,17 @@ every register can also be addressed:
         * other flags will be ignored
         * the operation will fail if it is not spezified if the file should be opened for read, write and/or append
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_STREAMS_WRITE` : write
+* `INT_STREAM_WRITE` : write
     * value: `9`
     * params:
         * `X00` `id`: (`num`) the STREAM-ID
         * `X01` `len`: (`unum`) the number of bytes to write
         * `X02` `data`: (`ubyte#`) points to the elements to write
     * result values:
-        * `X01` `wrote`: (``) will be set to the number of written bytes.
+        * `X01` `wrote`: (`num`) will be set to the number of written bytes
+    * if less bytes than len where written, an error occured (for example the disk could be full)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_STREAMS_READ` : read
+* `INT_STREAM_READ` : read
     * value: `10`
     * params:
         * `X00` `id`: (`num`) the STREAM-ID
@@ -326,7 +327,7 @@ every register can also be addressed:
     * when less than len bytes where read either an error occured or end of file/pipe has reached
         * end of file/pipe is not considered an error (`ERRNO` will be unmodified)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_STREAMS_CLOSE` : stream close
+* `INT_STREAM_CLOSE` : stream close
     * value: `11`
     * params:
         * `X00` `id`: (`num`) the STREAM-ID
@@ -334,42 +335,48 @@ every register can also be addressed:
         * `X00` `success`: (`num`) will be set to `1` on success and `0` on error
     * note that even on error the STREAM-ID will be released by the system, so do NOT retry
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_STREAMS_FILE_GET_POS` : stream file get position
+* `INT_STREAM_FILE_GET_POS` : stream file get position
     * value: `12`
     * params:
         * `X00` `id`: (`num`) the (FILE-)STREAM-ID
     * result values:
         * `X01` `pos`: (`num`) be set to the stream position or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_STREAMS_FILE_SET_POS` : stream file set position
+* `INT_STREAM_FILE_SET_POS` : stream file set position
     * value: `13`
     * params:
         * `X00` `id`: (`num`) the (FILE-)STREAM-ID
+        * `X01` `pos`: (`unum`) the new position of the stream
     * result values:
-        * `X01` contains the new position of the stream
-    * `X01` will be set to 1 or 0 on error
+        * `X01` `success`: (`num`) `1` on success and `0` on error
     * note that it is possible to set the stream position behind the end of the file.
         * when this is done, the next write (not append) operation will fill the hole with zeros
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_STREAMS_FILE_ADD_POS` : stream file add position
+* `INT_STREAM_FILE_ADD_POS` : stream file add position
     * value: `14`
-    * `X00` contains the STREAM/FILE_STREAM-ID
-    * `X01` contains the value, which should be added to the position of the stream
-        * `X01` is allowed to be negative, but the sum of the old position and `X01` is not allowed to be negative
-    * `X01` will be set to the new position or -1 on error
+    * params:
+        * `X00` `id`: (`num`) the (FILE-)STREAM-ID
+        * `X01` `add`: (`num`) the value to be added to the stream position
+    * result values:
+        * `X01` `pos`: (`num`) the new position or `-1` on error
+    * if add is lower than the negative value of the old position, this operation will fail (the new position will not be negative)
     * note that it is possible to set the stream position behind the end of the file.
         * when this is done, the next write (not append) operation will fill the hole with zeros
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_STREAMS_FILE_SEEK_EOF` : stream file seek eof
+* `INT_STREAM_FILE_SEEK_EOF` : stream file seek eof
     * value: `15`
-    * `X00` contains the STREAM-ID
-    * `X01` will be set to the new position of the stream or -1 on error
+    * params:
+        * `X00` `id`: (`num`) the STREAM-ID
+    * result values:
+        * `X01` `pos`: (`num`) the new position of the stream or `-1` on error
     * sets the position of the stream to the end of the file (the file length)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_OPEN_FILE` : open element handle file
     * value: `16`
-    * `X00` points to the `STRING` which contains the path of the file to be opened
-    * `X00` will be set to the newly opened STREAM/FILE-ID or -1 on error
+    * params:
+        * `X00` `file`: (`char#`) points to the STRING which contains the path of the file to be opened
+    * result values:
+        * `X00` `id`: (`num`) the newly opened (FILE-)ELEMENT-ID or `-1` on error
     * this operation will fail if the element is no file
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_OPEN_FOLDER` : open element handle folder
@@ -2017,7 +2024,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `X09        <- ZW`
     * `IP         <- [INTP + (p1 * 8)]`
         * if the address `INTP + (p1 * 8)` is invalid the pvm will execute the illegal memory interrupt
-            * the pvm will terminate with 127 instead if the address `INTP + (INT_ERRORS_ILLEGAL_MEMORY * 8)` is also invalid
+            * the pvm will terminate with 127 instead if the address `INTP + (INT_ERROR_ILLEGAL_MEMORY * 8)` is also invalid
         * note that if the address `[INTP + (p1 * 8)]` the illegal memory interrupt will be executed.
             * note that if is the illegal memory interrupt entry is invalid (and not `-1`) a loop will occur
                 * note that in this loop the program would allocate memory, until there is no longer enough memory

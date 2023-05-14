@@ -28,7 +28,7 @@
 
 static void c_ill();
 
-//GENERATED-CODE-START
+// GENERATED-CODE-START
 // this code-block is automatic generated, do not modify
 
 /* 00.. : data */

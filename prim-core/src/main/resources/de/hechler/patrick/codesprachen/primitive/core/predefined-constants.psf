@@ -1,68 +1,97 @@
-|:  <b>INT_ERRORS_ILLEGAL_INTERRUPT</b>: illegal interrupt<br>
+|:  <b>INT_ERROR_ILLEGAL_INTERRUPT</b>: illegal interrupt<br>
 |   value: <code>0</code>
 |   <p>
-|   <code>X00</code> contains the number of the illegal interrupt<br>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>intnum</code>: (<code>num</code>) the number of the illegal interrupt</li>
+|   </ul>
 |   exits with <code>(128 + illegal_interrup_number)</code> (without calling the exit interrupt)<br>
 |   if this interrupt is tried to bee called, but it is forbidden to call this interrupt, the program exits with <code>128</code><br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called<br>
-|   the pvm may print an error message before terminating
-INT_ERRORS_ILLEGAL_INTERRUPT=UHEX-0
-|:  <b>INT_ERRORS_UNKNOWN_COMMAND</b>: unknown command<br>
+|   the pvm may print an error message before terminating<br>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_ERROR_ILLEGAL_INTERRUPT=UHEX-0
+|:  <b>INT_ERROR_UNKNOWN_COMMAND</b>: unknown command<br>
 |   value: <code>1</code>
 |   <p>
 |   exits with <code>7</code> (without calling the exit interrupt)<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called<br>
-|   the pvm may print an error message before terminating
-INT_ERRORS_UNKNOWN_COMMAND=UHEX-1
-|:  <b>INT_ERRORS_ILLEGAL_MEMORY</b>: illegal memory<br>
+|   the pvm may print an error message before terminating<br>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_ERROR_UNKNOWN_COMMAND=UHEX-1
+|:  <b>INT_ERROR_ILLEGAL_MEMORY</b>: illegal memory<br>
 |   value: <code>2</code>
 |   <p>
 |   exits with <code>6</code> (without calling the exit interrupt)<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called<br>
-|   the pvm may print an error message before terminating
-INT_ERRORS_ILLEGAL_MEMORY=UHEX-2
-|:  <b>INT_ERRORS_ARITHMETIC_ERROR</b>: arithmetic error<br>
+|   the pvm may print an error message before terminating<br>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_ERROR_ILLEGAL_MEMORY=UHEX-2
+|:  <b>INT_ERROR_ARITHMETIC_ERROR</b>: arithmetic error<br>
 |   value: <code>3</code>
 |   <p>
 |   exits with <code>5</code> (without calling the exit interrupt)<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called<br>
-|   the pvm may print an error message before terminating
-INT_ERRORS_ARITHMETIC_ERROR=UHEX-3
+|   the pvm may print an error message before terminating<br>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_ERROR_ARITHMETIC_ERROR=UHEX-3
 |:  <b>INT_EXIT</b>: exit<br>
 |   value: <code>4</code>
 |   <p>
-|   use <code>X00</code> to specify the exit number of the progress<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>exitnum</code>: (<code>num</code>) the exit number this progress will have</li>
+|   </ul>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_EXIT=UHEX-4
 |:  <b>INT_MEMORY_ALLOC</b>: allocate a memory-block<br>
 |   value: <code>5</code>
 |   <p>
-|   <code>X00</code> saves the size of the block<br>
-|   if the value of <code>X00</code> is <code>-1</code> after the call the memory-block could not be allocated<br>
-|   if the value of <code>X00</code> is not <code>-1</code>, <code>X00</code> points to the first element of the allocated memory-block<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>len</code>: (<code>unum</code>) the size of the block to be allocated</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X00</code> <code>mem</code>: (<code>ubyte#</code>) the allocated memory block or <code>-1</code> on error</li>
+|   </ul>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_MEMORY_ALLOC=UHEX-5
 |:  <b>INT_MEMORY_REALLOC</b>: reallocate a memory-block<br>
 |   value: <code>6</code>
 |   <p>
-|   <code>X00</code> points to the memory-block<br>
-|   <code>X01</code> is set to the new size of the memory-block<br>
-|   <code>X01</code> will be <code>-1</code> if the memory-block could not be reallocated, the old memory-block will remain valid and should be freed if it is not longer needed<br>
-|   <code>X01</code> will point to the new memory block, the old memory-block was automatically freed, so it should not be used, the new block should be freed if it is not longer needed<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>old_mem</code>: (<code>ubyte#</code>) points to the old memory-block</li>
+|   <li><code>X01</code> <code>new_len</code>: (<code>unum</code>) the new size of the memory-block</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X01</code> <code>new_mem</code>: (<code>ubyte#</code>) points to the new memory-block or <code>-1</code> on error</li>
+|   </ul>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_MEMORY_REALLOC=UHEX-6
 |:  <b>INT_MEMORY_FREE</b>: free a memory-block<br>
 |   value: <code>7</code>
 |   <p>
-|   <code>X00</code> points to the old memory-block<br>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>mem</code>: (<code>ubyte#</code>) points to the old memory-block</li>
+|   </ul>
 |   after this the memory-block should not be used<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_MEMORY_FREE=UHEX-7
 |:  <b>INT_OPEN_STREAM</b>: open new stream<br>
 |   value: <code>8</code>
 |   <p>
-|   <code>X00</code> contains a pointer to the STRING, which refers to the file which should be read<br>
-|   <code>X01</code> specfies the open mode: (bitwise flags)
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>file_name</code>: (<code>char#</code>) the STRING, which refers to the file which should be read</li>
+|   <li><code>X01</code> <code>mode</code>: (<code>unum</code>) the open mode (bitwise OR of the options)</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the ID of the opened STREAM or <code>-1</code> on error</li>
+|   </ul>
+|   opens a new stream to the specified file<br>
+|   to close the stream use the stream close interrupt (<code>INT_STREAM_CLOSE</code>)<br>
+|   open options
 |   <ul>
 |   <li><code>OPEN_ONLY_CREATE</code>
 |   <ul>
@@ -110,89 +139,134 @@ INT_MEMORY_FREE=UHEX-7
 |   <li>other flags will be ignored</li>
 |   <li>the operation will fail if it is not spezified if the file should be opened for read, write and/or append</li>
 |   </ul>
-|   opens a new stream to the specified file<br>
-|   if successfully the STREAM-ID will be saved in the <code>X00</code> register<br>
-|   if failed <code>X00</code> will contain <code>-1</code><br>
-|   to close the stream use the stream close interrupt (<code>INT_STREAM_CLOSE</code>)<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_OPEN_STREAM=UHEX-8
-|:  <b>INT_STREAMS_WRITE</b>: write<br>
+|:  <b>INT_STREAM_WRITE</b>: write<br>
 |   value: <code>9</code>
 |   <p>
-|   <code>X00</code> contains the STREAM-ID<br>
-|   <code>X01</code> contains the number of elements to write<br>
-|   <code>X02</code> points to the elements to write<br>
-|   <code>X01</code> will be set to the number of written bytes.<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAMS_WRITE=UHEX-9
-|:  <b>INT_STREAMS_READ</b>: read<br>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the STREAM-ID</li>
+|   <li><code>X01</code> <code>len</code>: (<code>unum</code>) the number of bytes to write</li>
+|   <li><code>X02</code> <code>data</code>: (<code>ubyte#</code>) points to the elements to write</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X01</code> <code>wrote</code>: (<code>num</code>) will be set to the number of written bytes</li>
+|   </ul>
+|   if less bytes than len where written, an error occured (for example the disk could be full)<br>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_STREAM_WRITE=UHEX-9
+|:  <b>INT_STREAM_READ</b>: read<br>
 |   value: <code>10</code>
 |   <p>
-|   <code>X00</code> contains the STREAM-ID<br>
-|   <code>X01</code> contains the number of elements to read<br>
-|   <code>X02</code> points to the elements to read<br>
-|   after execution <code>X01</code> will contain the number of elements, which has been read.
+|   params:
 |   <ul>
-|   <li>when the value is less than len either an error occured or end of file/pipe has reached (which is not considered an error)</li>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the STREAM-ID</li>
+|   <li><code>X01</code> <code>len</code>: (<code>unum</code>) the number of bytes to read</li>
+|   <li><code>X02</code> <code>data</code>: (<code>ubyte#</code>) points to the elements to read</li>
 |   </ul>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAMS_READ=UHEX-a
-|:  <b>INT_STREAMS_CLOSE</b>: stream close<br>
+|   result values:
+|   <ul>
+|   <li><code>X01</code> <code>read</code>: (<code>unum</code>) the number of bytes which have been read</li>
+|   </ul>
+|   when less than len bytes where read either an error occured or end of file/pipe has reached
+|   <ul>
+|   <li>end of file/pipe is not considered an error (<code>ERRNO</code> will be unmodified)</li>
+|   </ul>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_STREAM_READ=UHEX-a
+|:  <b>INT_STREAM_CLOSE</b>: stream close<br>
 |   value: <code>11</code>
 |   <p>
-|   <code>X00</code> contains the STREAM-ID<br>
-|   <code>X00</code> will be set to 1 on success and 0 on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAMS_CLOSE=UHEX-b
-|:  <b>INT_STREAMS_FILE_GET_POS</b>: stream file get position<br>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the STREAM-ID</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X00</code> <code>success</code>: (<code>num</code>) will be set to <code>1</code> on success and <code>0</code> on error</li>
+|   </ul>
+|   note that even on error the STREAM-ID will be released by the system, so do NOT retry<br>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_STREAM_CLOSE=UHEX-b
+|:  <b>INT_STREAM_FILE_GET_POS</b>: stream file get position<br>
 |   value: <code>12</code>
 |   <p>
-|   <code>X00</code> contains the STREAM/FILE_STREAM-ID<br>
-|   <code>X01</code> will be set to the stream position or -1 on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAMS_FILE_GET_POS=UHEX-c
-|:  <b>INT_STREAMS_FILE_SET_POS</b>: stream file set position<br>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the (FILE-)STREAM-ID</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X01</code> <code>pos</code>: (<code>num</code>) be set to the stream position or <code>-1</code> on error</li>
+|   </ul>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_STREAM_FILE_GET_POS=UHEX-c
+|:  <b>INT_STREAM_FILE_SET_POS</b>: stream file set position<br>
 |   value: <code>13</code>
 |   <p>
-|   <code>X00</code> contains the STREAM/FILE_STREAM-ID<br>
-|   <code>X01</code> contains the new position of the stream<br>
-|   <code>X01</code> will be set to 1 or 0 on error<br>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the (FILE-)STREAM-ID</li>
+|   <li><code>X01</code> <code>pos</code>: (<code>unum</code>) the new position of the stream</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X01</code> <code>success</code>: (<code>num</code>) <code>1</code> on success and <code>0</code> on error</li>
+|   </ul>
 |   note that it is possible to set the stream position behind the end of the file.
 |   <ul>
 |   <li>when this is done, the next write (not append) operation will fill the hole with zeros</li>
 |   </ul>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAMS_FILE_SET_POS=UHEX-d
-|:  <b>INT_STREAMS_FILE_ADD_POS</b>: stream file add position<br>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_STREAM_FILE_SET_POS=UHEX-d
+|:  <b>INT_STREAM_FILE_ADD_POS</b>: stream file add position<br>
 |   value: <code>14</code>
 |   <p>
-|   <code>X00</code> contains the STREAM/FILE_STREAM-ID<br>
-|   <code>X01</code> contains the value, which should be added to the position of the stream
+|   params:
 |   <ul>
-|   <li><code>X01</code> is allowed to be negative, but the sum of the old position and <code>X01</code> is not allowed to be negative</li>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the (FILE-)STREAM-ID</li>
+|   <li><code>X01</code> <code>add</code>: (<code>num</code>) the value to be added to the stream position</li>
 |   </ul>
-|   <code>X01</code> will be set to the new position or -1 on error<br>
+|   result values:
+|   <ul>
+|   <li><code>X01</code> <code>pos</code>: (<code>num</code>) the new position or <code>-1</code> on error</li>
+|   </ul>
+|   if add is lower than the negative value of the old position, this operation will fail (the new position will not be negative)<br>
 |   note that it is possible to set the stream position behind the end of the file.
 |   <ul>
 |   <li>when this is done, the next write (not append) operation will fill the hole with zeros</li>
 |   </ul>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAMS_FILE_ADD_POS=UHEX-e
-|:  <b>INT_STREAMS_FILE_SEEK_EOF</b>: stream file seek eof<br>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_STREAM_FILE_ADD_POS=UHEX-e
+|:  <b>INT_STREAM_FILE_SEEK_EOF</b>: stream file seek eof<br>
 |   value: <code>15</code>
 |   <p>
-|   <code>X00</code> contains the STREAM-ID<br>
-|   <code>X01</code> will be set to the new position of the stream or -1 on error<br>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the STREAM-ID</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X01</code> <code>pos</code>: (<code>num</code>) the new position of the stream or <code>-1</code> on error</li>
+|   </ul>
 |   sets the position of the stream to the end of the file (the file length)<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAMS_FILE_SEEK_EOF=UHEX-f
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_STREAM_FILE_SEEK_EOF=UHEX-f
 |:  <b>INT_OPEN_FILE</b>: open element handle file<br>
 |   value: <code>16</code>
 |   <p>
-|   <code>X00</code> points to the <code>STRING</code> which contains the path of the file to be opened<br>
-|   <code>X00</code> will be set to the newly opened STREAM/FILE-ID or -1 on error<br>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>file</code>: (<code>char#</code>) points to the STRING which contains the path of the file to be opened</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the newly opened (FILE-)ELEMENT-ID or <code>-1</code> on error</li>
+|   </ul>
 |   this operation will fail if the element is no file<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_OPEN_FILE=UHEX-10
 |:  <b>INT_OPEN_FOLDER</b>: open element handle folder<br>
 |   value: <code>17</code>
@@ -200,7 +274,7 @@ INT_OPEN_FILE=UHEX-10
 |   <code>X00</code> points to the <code>STRING</code> which contains the path of the folder to be opened<br>
 |   <code>X00</code> will be set to the newly opened STREAM/FOLDER-ID or -1 on error<br>
 |   this operation will fail if the element is no folder<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_OPEN_FOLDER=UHEX-11
 |:  <b>INT_OPEN_PIPE</b>: open element handle pipe<br>
 |   value: <code>18</code>
@@ -208,21 +282,21 @@ INT_OPEN_FOLDER=UHEX-11
 |   <code>X00</code> points to the <code>STRING</code> which contains the path of the pipe to be opened<br>
 |   <code>X00</code> will be set to the newly opened STREAM/PIPE-ID or -1 on error<br>
 |   this operation will fail if the element is no pipe<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_OPEN_PIPE=UHEX-12
 |:  <b>INT_OPEN_ELEMENT</b>: open element handle (any)<br>
 |   value: <code>19</code>
 |   <p>
 |   <code>X00</code> points to the <code>STRING</code> which contains the path of the element to be opened<br>
 |   <code>X00</code> will be set to the newly opened STREAM-ID or -1 on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_OPEN_ELEMENT=UHEX-13
 |:  <b>INT_ELEMENT_OPEN_PARENT</b>: element open parent handle<br>
 |   value: <code>20</code>
 |   <p>
 |   <code>X00</code> contains the ELEMENT-ID<br>
 |   <code>X00</code> will be set to the newly opened ELEMENT/FOLDER-ID or -1 on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_OPEN_PARENT=UHEX-14
 |:  <b>INT_ELEMENT_GET_CREATE</b>: get create date<br>
 |   value: <code>21</code>
@@ -232,7 +306,7 @@ INT_ELEMENT_OPEN_PARENT=UHEX-14
 |   <ul>
 |   <li>note that <code>-1</code> may be the create date of the element, so check <code>ERRNO</code> instead</li>
 |   </ul>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_GET_CREATE=UHEX-15
 |:  <b>INT_ELEMENT_GET_LAST_MOD</b>: get last mod date<br>
 |   value: <code>22</code>
@@ -242,7 +316,7 @@ INT_ELEMENT_GET_CREATE=UHEX-15
 |   <ul>
 |   <li>note that <code>-1</code> may be the last modified date of the element, so check <code>ERRNO</code> instead</li>
 |   </ul>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_GET_LAST_MOD=UHEX-16
 |:  <b>INT_ELEMENT_SET_CREATE</b>: set create date<br>
 |   value: <code>23</code>
@@ -250,7 +324,7 @@ INT_ELEMENT_GET_LAST_MOD=UHEX-16
 |   <code>X00</code> contains the ELEMENT-ID<br>
 |   <code>X00</code> contains the new create date of the element<br>
 |   <code>X01</code> will be set to <code>1</code> or <code>0</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_SET_CREATE=UHEX-17
 |:  <b>INT_ELEMENT_SET_LAST_MOD</b>: set last modified date<br>
 |   value: <code>24</code>
@@ -258,7 +332,7 @@ INT_ELEMENT_SET_CREATE=UHEX-17
 |   <code>X00</code> contains the ELEMENT-ID<br>
 |   <code>X00</code> contains the last modified date of the element<br>
 |   <code>X01</code> will be set to <code>1</code> or <code>0</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_SET_LAST_MOD=UHEX-18
 |:  <b>INT_ELEMENT_DELETE</b>: element delete<br>
 |   value: <code>25</code>
@@ -266,7 +340,7 @@ INT_ELEMENT_SET_LAST_MOD=UHEX-18
 |   <code>X00</code> contains the ELEMENT-ID<br>
 |   note that this operation automatically closes the given ELEMENT-ID, the close interrupt should not be invoked after this interrupt returned<br>
 |   <code>X01</code> will be set to <code>1</code> or <code>0</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_DELETE=UHEX-19
 |:  <b>INT_ELEMENT_MOVE</b>: element move<br>
 |   value: <code>26</code>
@@ -276,7 +350,7 @@ INT_ELEMENT_DELETE=UHEX-19
 |   <code>X02</code> contains the ELEMENT-ID of the new parent of <code>-1</code> if the new parent should not be changed<br>
 |   when both <code>X01</code> and <code>X02</code> are set to <code>-1</code> this operation will do nothing<br>
 |   <code>X01</code> will be set to <code>1</code> or <code>0</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_MOVE=UHEX-1a
 |:  <b>INT_ELEMENT_GET_NAME</b>: element get name<br>
 |   value: <code>27</code>
@@ -292,14 +366,14 @@ INT_ELEMENT_MOVE=UHEX-1a
 |   <li>note that when <code>X01</code> does not point to the start of the memory block the start of the memory block can still be moved during the reallocation</li>
 |   </ul>
 |   on error <code>X01</code> will be set to <code>-1</code><br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_GET_NAME=UHEX-1b
 |:  <b>INT_ELEMENT_GET_FLAGS</b>: element get flags<br>
 |   value: <code>28</code>
 |   <p>
 |   <code>X00</code> contains the ELEMENT-ID<br>
 |   <code>X01</code> will be set to the flags or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_GET_FLAGS=UHEX-1c
 |:  <b>INT_ELEMENT_MODIFY_FLAGS</b>: element modify flags<br>
 |   value: <code>29</code>
@@ -309,14 +383,14 @@ INT_ELEMENT_GET_FLAGS=UHEX-1c
 |   <code>X02</code> contains the flags to be removed<br>
 |   note that only the low 32 bit will be used and the high 32 bit will be ignored<br>
 |   <code>X01</code> will be set to <code>1</code> or <code>0</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_MODIFY_FLAGS=UHEX-1d
 |:  <b>INT_FOLDER_CHILD_COUNT</b>: element folder child count<br>
 |   value: <code>30</code>
 |   <p>
 |   <code>X00</code> contains the ELEMENT/FOLDER-ID<br>
 |   <code>X01</code> will be set to the number of child elements the folder has or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FOLDER_CHILD_COUNT=UHEX-1e
 |:  <b>INT_FOLDER_OPEN_CHILD_OF_NAME</b>: folder get child of name<br>
 |   value: <code>31</code>
@@ -324,7 +398,7 @@ INT_FOLDER_CHILD_COUNT=UHEX-1e
 |   <code>X00</code> contains the ELEMENT/FOLDER-ID<br>
 |   <code>X00</code> points to a STRING with the name of the child<br>
 |   <code>X01</code> will be set to a newly opened ELEMENT-ID for the child or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FOLDER_OPEN_CHILD_OF_NAME=UHEX-1f
 |:  <b>INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME</b>: folder get child folder of name<br>
 |   value: <code>32</code>
@@ -333,7 +407,7 @@ INT_FOLDER_OPEN_CHILD_OF_NAME=UHEX-1f
 |   <code>X00</code> points to a STRING with the name of the child<br>
 |   this operation will fail if the child is no folder<br>
 |   <code>X01</code> will be set to a newly opened ELEMENT/FOLDER-ID for the child or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME=UHEX-20
 |:  <b>INT_FOLDER_OPEN_CHILD_FILE_OF_NAME</b>: folder get child file of name<br>
 |   value: <code>33</code>
@@ -342,7 +416,7 @@ INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME=UHEX-20
 |   <code>X00</code> points to a STRING with the name of the child<br>
 |   this operation will fail if the child is no file<br>
 |   <code>X01</code> will be set to a newly opened ELEMENT/FILE-ID for the child or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FOLDER_OPEN_CHILD_FILE_OF_NAME=UHEX-21
 |:  <b>INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME</b>: folder get child pipe of name<br>
 |   value: <code>34</code>
@@ -351,7 +425,7 @@ INT_FOLDER_OPEN_CHILD_FILE_OF_NAME=UHEX-21
 |   <code>X00</code> points to a STRING with the name of the child<br>
 |   this operation will fail if the child is no pipe<br>
 |   <code>X01</code> will be set to a newly opened ELEMENT/PIPE-ID for the child or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME=UHEX-22
 |:  <b>INT_FOLDER_CREATE_CHILD_FOLDER</b>: folder add child folder<br>
 |   value: <code>35</code>
@@ -359,7 +433,7 @@ INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME=UHEX-22
 |   <code>X00</code> contains the ELEMENT/FOLDER-ID<br>
 |   <code>X00</code> points to a STRING with the name of the child<br>
 |   <code>X01</code> will be set to a newly opened/created ELEMENT/FOLDER-ID for the child or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FOLDER_CREATE_CHILD_FOLDER=UHEX-23
 |:  <b>INT_FOLDER_CREATE_CHILD_FILE</b>: folder add child file<br>
 |   value: <code>36</code>
@@ -367,7 +441,7 @@ INT_FOLDER_CREATE_CHILD_FOLDER=UHEX-23
 |   <code>X00</code> contains the ELEMENT/FOLDER-ID<br>
 |   <code>X01</code> points to the STRING name of the new child element<br>
 |   <code>X01</code> will be set to a newly opened/created ELEMENT/FILE-ID for the child or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FOLDER_CREATE_CHILD_FILE=UHEX-24
 |:  <b>INT_FOLDER_CREATE_CHILD_PIPE</b>: folder add child pipe<br>
 |   value: <code>37</code>
@@ -375,7 +449,7 @@ INT_FOLDER_CREATE_CHILD_FILE=UHEX-24
 |   <code>X00</code> contains the ELEMENT/FOLDER-ID<br>
 |   <code>X01</code> points to the STRING name of the new child element<br>
 |   <code>X01</code> will be set to a newly opened/created ELEMENT/PIPE-ID for the child or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FOLDER_CREATE_CHILD_PIPE=UHEX-25
 |:  <b>INT_FOLDER_OPEN_ITER</b>: open child iterator of folder<br>
 |   value: <code>38</code>
@@ -383,14 +457,14 @@ INT_FOLDER_CREATE_CHILD_PIPE=UHEX-25
 |   <code>X00</code> contains the ELEMENT/FOLDER-ID<br>
 |   <code>X01</code> is set to <code>0</code> if hidden files should be skipped and any other value if not<br>
 |   <code>X01</code> will be set to the FOLDER-ITER-ID or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FOLDER_OPEN_ITER=UHEX-26
 |:  <b>INT_FILE_LENGTH</b>: get the length of a file<br>
 |   value: <code>39</code>
 |   <p>
 |   <code>X00</code> contains the ELEMENT/FILE-ID<br>
 |   <code>X01</code> will be set to the file length in bytes or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FILE_LENGTH=UHEX-27
 |:  <b>INT_FILE_TRUNCATE</b>: set the length of a file<br>
 |   value: <code>40</code>
@@ -399,7 +473,7 @@ INT_FILE_LENGTH=UHEX-27
 |   <code>X01</code> is set to the new length of the file<br>
 |   this interrupt will append zeros to the file when the new length is larger than the old length or remove all content after the new length<br>
 |   <code>X01</code> will be set <code>1</code> on success or <code>0</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_FILE_TRUNCATE=UHEX-28
 |:  <b>INT_HANDLE_OPEN_STREAM</b>: opens a stream from a file or pipe handle<br>
 |   value: <code>41</code>
@@ -413,14 +487,14 @@ INT_FILE_TRUNCATE=UHEX-28
 |   <li>note that the high 32-bit of the flags are ignored</li>
 |   </ul>
 |   <code>X01</code> will be set to the STREAM-ID or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_HANDLE_OPEN_STREAM=UHEX-29
 |:  <b>INT_PIPE_LENGTH</b>: get the length of a pipe<br>
 |   value: <code>42</code>
 |   <p>
 |   <code>X00</code> contains the ELEMENT/PIPE-ID<br>
 |   <code>X01</code> will be set to the pipe length in bytes or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_PIPE_LENGTH=UHEX-2a
 |:  <b>INT_TIME_GET</b>: get the current system time<br>
 |   value: <code>43</code>
@@ -428,7 +502,7 @@ INT_PIPE_LENGTH=UHEX-2a
 |   <code>X00</code> will be set to <code>1</code> on success and <code>0</code> on error<br>
 |   <code>X01</code> will be set to the curent system time in seconds since the epoch<br>
 |   <code>X02</code> will be set to the additional curent system time in nanoseconds<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_TIME_GET=UHEX-2b
 |:  <b>INT_TIME_RES</b>: get the system time resolution<br>
 |   value: <code>44</code>
@@ -436,7 +510,7 @@ INT_TIME_GET=UHEX-2b
 |   <code>X00</code> will be set to <code>1</code> on success and <code>0</code> on error<br>
 |   <code>X01</code> will be set to the resolution in seconds<br>
 |   <code>X02</code> will be set to the additional resolution in nanoseconds<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_TIME_RES=UHEX-2c
 |:  <b>INT_TIME_SLEEP</b>: to sleep the given time in nanoseconds<br>
 |   value: <code>45</code>
@@ -446,7 +520,7 @@ INT_TIME_RES=UHEX-2c
 |   <code>X00</code> and <code>X01</code> will contain the remaining time (both <code>0</code> if it finished waiting)<br>
 |   <code>X02</code> will be <code>1</code> if the call was successfully and <code>0</code> if something went wrong<br>
 |   <code>X00</code> will not be negative if the progress waited too long<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_TIME_SLEEP=UHEX-2d
 |:  <b>INT_TIME_WAIT</b>: to wait the given time in nanoseconds<br>
 |   value: <code>46</code>
@@ -456,7 +530,7 @@ INT_TIME_SLEEP=UHEX-2d
 |   this interrupt will wait until the current system time is equal or after the given absolute time.<br>
 |   <code>X00</code> and <code>X01</code> will contain the remaining time (both <code>0</code> if it finished waiting)<br>
 |   <code>X02</code> will be <code>1</code> if the call was successfully and <code>0</code> if something went wrong<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_TIME_WAIT=UHEX-2e
 |:  <b>INT_RND_OPEN</b>: open a read stream which delivers random values<br>
 |   value: <code>47</code>
@@ -468,13 +542,13 @@ INT_TIME_WAIT=UHEX-2e
 |   <li>not write/append or seek/setpos operations</li>
 |   </ul></li>
 |   </ul>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_RND_OPEN=UHEX-2f
 |:  <b>INT_RND_NUM</b>: sets `X00` to a random number<br>
 |   value: <code>48</code>
 |   <p>
 |   <code>X00</code> will be set to a random non negative number or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_RND_NUM=UHEX-30
 |:  <b>INT_MEM_CMP</b>: memory compare<br>
 |   value: <code>49</code>
@@ -484,7 +558,7 @@ INT_RND_NUM=UHEX-30
 |   <code>X01</code> points to the source memory block<br>
 |   <code>X02</code> has the length in bytes of both memory blocks<br>
 |   the <code>STATUS</code> register <code>LOWER</code> <code>GREATHER</code> and <code>EQUAL</code> flags will be set after this interrupt<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_MEM_CMP=UHEX-31
 |:  <b>INT_MEM_CPY</b>: memory copy<br>
 |   value: <code>50</code>
@@ -494,7 +568,7 @@ INT_MEM_CMP=UHEX-31
 |   <code>X00</code> points to the target memory block<br>
 |   <code>X01</code> points to the source memory block<br>
 |   <code>X02</code> has the length of bytes to bee copied<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_MEM_CPY=UHEX-32
 |:  <b>INT_MEM_MOV</b>: memory move<br>
 |   value: <code>51</code>
@@ -504,7 +578,7 @@ INT_MEM_CPY=UHEX-32
 |   <code>X00</code> points to the target memory block<br>
 |   <code>X01</code> points to the source memory block<br>
 |   <code>X02</code> has the length of bytes to bee copied<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_MEM_MOV=UHEX-33
 |:  <b>INT_MEM_BSET</b>: memory byte set<br>
 |   value: <code>52</code>
@@ -513,14 +587,14 @@ INT_MEM_MOV=UHEX-33
 |   <code>X00</code> points to the block<br>
 |   <code>X01</code> the first byte contains the value to be written to each byte<br>
 |   <code>X02</code> contains the length in bytes<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_MEM_BSET=UHEX-34
 |:  <b>INT_STR_LEN</b>: string length<br>
 |   value: <code>53</code>
 |   <p>
 |   <code>X00</code> points to the STRING<br>
 |   <code>X00</code> will be set to the length of the string/ the (byte-)offset of the first byte from the <code>'\0'</code> character<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_LEN=UHEX-35
 |:  <b>INT_STR_CMP</b>: string compare<br>
 |   value: <code>54</code>
@@ -528,7 +602,7 @@ INT_STR_LEN=UHEX-35
 |   <code>X00</code> points to the first STRING<br>
 |   <code>X01</code> points to the second STRING<br>
 |   the <code>STATUS</code> register <code>LOWER</code> <code>GREATHER</code> and <code>EQUAL</code> flags will be set after this interrupt<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_CMP=UHEX-36
 |:  <b>INT_STR_FROM_NUM</b>: number to string<br>
 |   value: <code>55</code>
@@ -551,7 +625,7 @@ INT_STR_CMP=UHEX-36
 |   <li>the new length will be the old length or if the old length is smaller than the size of the STRING (with <code>\0</code>) than the size of the STRING (with <code>\0</code>)</li>
 |   </ul>
 |   on error <code>X01</code> will be set to <code>-1</code><br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_FROM_NUM=UHEX-37
 |:  <b>INT_STR_FROM_FPNUM</b>: floating point number to string<br>
 |   value: <code>56</code>
@@ -569,7 +643,7 @@ INT_STR_FROM_NUM=UHEX-37
 |   <li>the new length will be the old length or if the old length is smaller than the size of the STRING (with <code>\0</code>) than the size of the STRING (with <code>\0</code>)</li>
 |   </ul>
 |   on error <code>X01</code> will be set to <code>-1</code><br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_FROM_FPNUM=UHEX-38
 |:  <b>INT_STR_TO_NUM</b>: string to number<br>
 |   value: <code>57</code>
@@ -589,7 +663,7 @@ INT_STR_FROM_FPNUM=UHEX-38
 |   <li>or the base is not valid</li>
 |   <li>if <code>ERRNO</code> is set to out of range, the string value displayed a value outside of the 64-bit number range and <code>X00</code> will either be min or max value</li>
 |   </ul>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_TO_NUM=UHEX-39
 |:  <b>INT_STR_TO_FPNUM</b>: string to floating point number<br>
 |   value: <code>58</code>
@@ -602,7 +676,7 @@ INT_STR_TO_NUM=UHEX-39
 |   <li>the STRING contains illegal characters</li>
 |   <li>or the base is not valid</li>
 |   </ul>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_TO_FPNUM=UHEX-3a
 |:  <b>INT_STR_TO_U16STR</b>: STRING to U16-STRING<br>
 |   value: <code>59</code>
@@ -614,7 +688,7 @@ INT_STR_TO_FPNUM=UHEX-3a
 |   <code>X01</code> points to the start of the unmodified space of the target buffer<br>
 |   <code>X02</code> will be set to unmodified space at the end of the buffer<br>
 |   <code>X03</code> will be set to the number of converted characters or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_TO_U16STR=UHEX-3b
 |:  <b>INT_STR_TO_U32STR</b>: STRING to U32-STRING<br>
 |   value: <code>60</code>
@@ -626,7 +700,7 @@ INT_STR_TO_U16STR=UHEX-3b
 |   <code>X01</code> points to the start of the unmodified space of the target buffer<br>
 |   <code>X02</code> will be set to unmodified space at the end of the buffer<br>
 |   <code>X03</code> will be set to the number of converted characters or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_TO_U32STR=UHEX-3c
 |:  <b>INT_STR_FROM_U16STR</b>: U16-STRING to STRING<br>
 |   value: <code>61</code>
@@ -638,7 +712,7 @@ INT_STR_TO_U32STR=UHEX-3c
 |   <code>X01</code> points to the start of the unmodified space of the target buffer<br>
 |   <code>X02</code> will be set to unmodified space at the end of the buffer<br>
 |   <code>X03</code> will be set to the number of converted characters or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_FROM_U16STR=UHEX-3d
 |:  <b>INT_STR_FROM_U32STR</b>: U32-STRING to STRING<br>
 |   value: <code>62</code>
@@ -650,7 +724,7 @@ INT_STR_FROM_U16STR=UHEX-3d
 |   <code>X01</code> points to the start of the unmodified space of the target buffer<br>
 |   <code>X02</code> will be set to unmodified space at the end of the buffer<br>
 |   <code>X03</code> will be set to the number of converted characters or <code>-1</code> on error<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_FROM_U32STR=UHEX-3e
 |:  <b>INT_STR_FORMAT</b>: format string<br>
 |   value: <code>63</code>
@@ -690,7 +764,7 @@ INT_STR_FROM_U32STR=UHEX-3e
 |   <li><code>%b</code>: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here</li>
 |   <li><code>%o</code>: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here</li>
 |   </ul>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STR_FORMAT=UHEX-3f
 |:  <b>INT_LOAD_FILE</b>: load a file<br>
 |   value: <code>64</code>
@@ -698,7 +772,7 @@ INT_STR_FORMAT=UHEX-3f
 |   <code>X00</code> is set to the path (inclusive name) of the file<br>
 |   <code>X00</code> will point to the memory block, in which the file has been loaded or <code>-1</code> on error<br>
 |   <code>X01</code> will be set to the length of the file (and the memory block)<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_LOAD_FILE=UHEX-40
 |:  <b>INT_LOAD_LIB</b>: load a library file<br>
 |   value: <code>65</code>
@@ -721,7 +795,7 @@ INT_LOAD_FILE=UHEX-40
 |   <code>X01</code> will be set to the length of the file (and the memory block)<br>
 |   <code>X02</code> will be set to <code>1</code> if the file has been loaded as result of this interrupt and <code>0</code> if the file was previously loaded<br>
 |   when an error occurred <code>X01</code> will be set to <code>-1</code>, <code>X00</code> will be unmodified and <code>ERRNO</code> will be set to a non-zero value<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_LOAD_LIB=UHEX-41
 |:  <b>INT_UNLOAD_LIB</b>: unload a library file<br>
 |   value: <code>66</code>
@@ -729,7 +803,7 @@ INT_LOAD_LIB=UHEX-41
 |   unloads a library previously loaded with the load lib interrupt<br>
 |   this interrupt will ensure that the given memory block will be freed and never again be returned from the load lib interrupt<br>
 |   <code>X00</code> points to the (start of the) memory block<br>
-|   the value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_UNLOAD_LIB=UHEX-42
 |:  <b>INTERRUPT_COUNT</b>: the number of interrupts<br>
 |   value: <code>67</code>

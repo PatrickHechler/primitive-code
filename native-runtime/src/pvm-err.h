@@ -25,7 +25,7 @@
 #define SRC_PVM_ERR_H_
 
 enum perr {
-	//GENERATED-CODE-START
+	// GENERATED-CODE-START
 	// this code-block is automatic generated, do not modify
 	PE_NONE                          = 0, /* indicates no error */
 	PE_UNKNOWN_ERROR                 = 1, /* indicates an unknown error */

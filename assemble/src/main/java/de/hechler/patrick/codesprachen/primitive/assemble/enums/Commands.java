@@ -27,7 +27,7 @@ public enum Commands {
 	
 	//@formatter:off
 	
-	//GENERATED-CODE-START
+	// GENERATED-CODE-START
 	// this code-block is automatic generated, do not modify
 	
 	// PARAMS: NO_CONST_PARAM PARAM CONST_PARAM

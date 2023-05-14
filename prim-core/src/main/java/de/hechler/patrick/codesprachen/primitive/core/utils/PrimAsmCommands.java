@@ -20,7 +20,7 @@ public class PrimAsmCommands {
 	
 	private PrimAsmCommands() {}
 	
-	//GENERATED-CODE-START
+	// GENERATED-CODE-START
 	// this code-block is automatic generated, do not modify
 	/**
 	 * <b>MVB</b> <code>(00 01)</code><br>
@@ -1433,7 +1433,7 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li>if the address <code>INTP + (p1 * 8)</code> is invalid the pvm will execute the illegal memory interrupt
 	 * <ul>
-	 * <li>the pvm will terminate with 127 instead if the address <code>INTP + (INT_ERRORS_ILLEGAL_MEMORY * 8)</code> is also invalid</li>
+	 * <li>the pvm will terminate with 127 instead if the address <code>INTP + (INT_ERROR_ILLEGAL_MEMORY * 8)</code> is also invalid</li>
 	 * </ul></li>
 	 * <li>note that if the address <code>[INTP + (p1 * 8)]</code> the illegal memory interrupt will be executed.
 	 * <ul>

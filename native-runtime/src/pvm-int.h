@@ -14,22 +14,22 @@
 #else
 #	define INT_PARAMS
 #endif // PVM_DEBUG
-static void int_errors_illegal_interrupt(INT_PARAMS); /* 0 */
-static void int_errors_unknown_command(INT_PARAMS); /* 1 */
-static void int_errors_illegal_memory(INT_PARAMS); /* 2 */
-static void int_errors_arithmetic_error(INT_PARAMS); /* 3 */
+static void int_error_illegal_interrupt(INT_PARAMS); /* 0 */
+static void int_error_unknown_command(INT_PARAMS); /* 1 */
+static void int_error_illegal_memory(INT_PARAMS); /* 2 */
+static void int_error_arithmetic_error(INT_PARAMS); /* 3 */
 static void int_exit(INT_PARAMS); /* 4 */
 static void int_memory_alloc(INT_PARAMS); /* 5 */
 static void int_memory_realloc(INT_PARAMS); /* 6 */
 static void int_memory_free(INT_PARAMS); /* 7 */
 static void int_open_stream(INT_PARAMS); /* 8 */
-static void int_streams_write(INT_PARAMS); /* 9 */
-static void int_streams_read(INT_PARAMS); /* 10 */
-static void int_streams_close(INT_PARAMS); /* 11 */
-static void int_streams_file_get_pos(INT_PARAMS); /* 12 */
-static void int_streams_file_set_pos(INT_PARAMS); /* 13 */
-static void int_streams_file_add_pos(INT_PARAMS); /* 14 */
-static void int_streams_file_seek_eof(INT_PARAMS); /* 15 */
+static void int_stream_write(INT_PARAMS); /* 9 */
+static void int_stream_read(INT_PARAMS); /* 10 */
+static void int_stream_close(INT_PARAMS); /* 11 */
+static void int_stream_file_get_pos(INT_PARAMS); /* 12 */
+static void int_stream_file_set_pos(INT_PARAMS); /* 13 */
+static void int_stream_file_add_pos(INT_PARAMS); /* 14 */
+static void int_stream_file_seek_eof(INT_PARAMS); /* 15 */
 static void int_open_file(INT_PARAMS); /* 16 */
 static void int_open_folder(INT_PARAMS); /* 17 */
 static void int_open_pipe(INT_PARAMS); /* 18 */
@@ -82,22 +82,22 @@ static void int_load_file(INT_PARAMS); /* 64 */
 static void int_load_lib(INT_PARAMS); /* 65 */
 static void int_unload_lib(INT_PARAMS); /* 66 */
 
-#define INT_ERRORS_ILLEGAL_INTERRUPT 0
-#define INT_ERRORS_UNKNOWN_COMMAND 1
-#define INT_ERRORS_ILLEGAL_MEMORY 2
-#define INT_ERRORS_ARITHMETIC_ERROR 3
+#define INT_ERROR_ILLEGAL_INTERRUPT 0
+#define INT_ERROR_UNKNOWN_COMMAND 1
+#define INT_ERROR_ILLEGAL_MEMORY 2
+#define INT_ERROR_ARITHMETIC_ERROR 3
 #define INT_EXIT 4
 #define INT_MEMORY_ALLOC 5
 #define INT_MEMORY_REALLOC 6
 #define INT_MEMORY_FREE 7
 #define INT_OPEN_STREAM 8
-#define INT_STREAMS_WRITE 9
-#define INT_STREAMS_READ 10
-#define INT_STREAMS_CLOSE 11
-#define INT_STREAMS_FILE_GET_POS 12
-#define INT_STREAMS_FILE_SET_POS 13
-#define INT_STREAMS_FILE_ADD_POS 14
-#define INT_STREAMS_FILE_SEEK_EOF 15
+#define INT_STREAM_WRITE 9
+#define INT_STREAM_READ 10
+#define INT_STREAM_CLOSE 11
+#define INT_STREAM_FILE_GET_POS 12
+#define INT_STREAM_FILE_SET_POS 13
+#define INT_STREAM_FILE_ADD_POS 14
+#define INT_STREAM_FILE_SEEK_EOF 15
 #define INT_OPEN_FILE 16
 #define INT_OPEN_FOLDER 17
 #define INT_OPEN_PIPE 18
@@ -152,22 +152,22 @@ static void int_unload_lib(INT_PARAMS); /* 66 */
 #define INTERRUPT_COUNT 67
 
 static void (*(ints[]))(INT_PARAMS) = {
-	int_errors_illegal_interrupt, /* 0 */
-	int_errors_unknown_command, /* 1 */
-	int_errors_illegal_memory, /* 2 */
-	int_errors_arithmetic_error, /* 3 */
+	int_error_illegal_interrupt, /* 0 */
+	int_error_unknown_command, /* 1 */
+	int_error_illegal_memory, /* 2 */
+	int_error_arithmetic_error, /* 3 */
 	int_exit, /* 4 */
 	int_memory_alloc, /* 5 */
 	int_memory_realloc, /* 6 */
 	int_memory_free, /* 7 */
 	int_open_stream, /* 8 */
-	int_streams_write, /* 9 */
-	int_streams_read, /* 10 */
-	int_streams_close, /* 11 */
-	int_streams_file_get_pos, /* 12 */
-	int_streams_file_set_pos, /* 13 */
-	int_streams_file_add_pos, /* 14 */
-	int_streams_file_seek_eof, /* 15 */
+	int_stream_write, /* 9 */
+	int_stream_read, /* 10 */
+	int_stream_close, /* 11 */
+	int_stream_file_get_pos, /* 12 */
+	int_stream_file_set_pos, /* 13 */
+	int_stream_file_add_pos, /* 14 */
+	int_stream_file_seek_eof, /* 15 */
 	int_open_file, /* 16 */
 	int_open_folder, /* 17 */
 	int_open_pipe, /* 18 */
