@@ -97,15 +97,15 @@ the primitive virtual machine has the following 64-bit registers:
     * initialized with the interrupt count which can be used as default interrupts (`#INTERRUPT_COUNT`)
 * `STATUS`
     * saves some results of operations
-    * `UHEX-0000000000000001` : `LOWER`: if on the last `CMP A, B` `A` was lower than `B`
-    * `UHEX-0000000000000002` : `GREATHER`: if on the last `CMP A, B` `A` was greater than `B`
-    * `UHEX-0000000000000004` : `EQUAL`: if on the last `CMP A, B` `A` was greater than `B`
-    * `UHEX-0000000000000008` : `OVERFLOW`: if an overflow was detected
-    * `UHEX-0000000000000010` : `ZERO`: if the last arithmetic or logical operation leaded to zero (`0`)
-    * `UHEX-0000000000000020` : `NAN`: if the last floating point operation leaded to a NaN value
-    * `UHEX-0000000000000040` : `ALL_BITS`: if on the last `BCP A, B` was `A & B = B`
-    * `UHEX-0000000000000080` : `SOME_BITS`: if on the last `BCP A, B` was `A & B != 0`
-    * `UHEX-0000000000000100` : `NONE_BITS`: if on the last `BCP A, B` was `A & B = 0`
+    * `STATUS_LOWER`: if on the last `CMP A, B` `A` was lower than `B`
+    * `STATUS_GREATER`: if on the last `CMP A, B` `A` was greater than `B`
+    * `STATUS_EQUAL`: if on the last `CMP A, B` `A` was greater than `B`
+    * `STATUS_OVERFLOW`: if an overflow was detected
+    * `STATUS_ZERO`: if the last arithmetic or logical operation leaded to zero (`0`)
+    * `STATUS_NAN`: if the last floating point operation leaded to a NaN value
+    * `STATUS_ALL_BITS`: if on the last `BCP A, B` was `A & B = B`
+    * `STATUS_SOME_BITS`: if on the last `BCP A, B` was `A & B != 0`
+    * `STATUS_NONE_BITS`: if on the last `BCP A, B` was `A & B = 0`
     * initialized with `0`
 * `ERRNO`
     * number registers, used to indicate what went wrong
@@ -268,50 +268,22 @@ every register can also be addressed:
         * `X00` `mem`: (`ubyte#`) points to the old memory-block
     * after this the memory-block should not be used
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_OPEN_STREAM` : open new stream
+* `INT_STREAM_OPEN` : open new stream
     * value: `8`
     * params:
         * `X00` `fileName`: (`char#`) the STRING, which refers to the file which should be read
-        * `X01` `mode`: (`unum`) the open mode (bitwise OR of the options)
+        * `X01` `flags`: (`unum`) the open flags (see the `STREAM_*` constants)
     * result values:
         * `X00` `id`: (`num`) the ID of the opened STREAM or `-1` on error
     * opens a new stream to the specified file
     * to close the stream use the stream close interrupt (`INT_STREAM_CLOSE`)
-    * open options
-        * `OPEN_ONLY_CREATE`
-            * fail if the file/pipe exist already
-            * when this flags is set either `OPEN_FILE` or `OPEN_PIPE` has to be set
-        * `OPEN_ALSO_CREATE`
-            * create the file/pipe if it does not exist, but do not fail if the file/pipe exist already (overwritten by PFS_SO_ONLY_CREATE)
-        * `OPEN_FILE`
-            * fail if the element is a pipe and if a create flag is set create a file if the element does not exist already
-            * this flag is not compatible with `OPEN_PIPE`
-        * `OPEN_PIPE`
-            * fail if the element is a file and if a create flag is set create a pipe
-            * this flag is not compatible with `OPEN_FILE`
-        * `OPEN_READ`
-            * open the stream for read access
-        * `OPEN_WRITE`
-            * open the stream for write access
-        * `OPEN_APPEND`
-            * open the stream for append access (before every write operation the position is set to the end of the file)
-            * implicitly also sets `OPEN_WRITE` (for pipes there is no diffrence in `OPEN_WRITE` and `OPEN_APPEND`)
-        * `OPEN_FILE_TRUNCATE`
-            * truncate the files content
-            * implicitly sets `OPEN_FILE`
-            * nop when also `OPEN_ONLY_CREATE` is set
-        * `OPEN_FILE_EOF`
-            * set the position initially to the end of the file not the start
-            * ignored when opening a pipe
-        * other flags will be ignored
-        * the operation will fail if it is not spezified if the file should be opened for read, write and/or append
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STREAM_WRITE` : write
     * value: `9`
     * params:
         * `X00` `id`: (`num`) the STREAM-ID
         * `X01` `len`: (`unum`) the number of bytes to write
-        * `X02` `data`: (`ubyte#`) points to the elements to write
+        * `X02` `data`: (`ubyte#`) points to the params to write
     * result values:
         * `X01` `wrote`: (`num`) will be set to the number of written bytes
     * if less bytes than len where written, an error occured (for example the disk could be full)
@@ -321,7 +293,7 @@ every register can also be addressed:
     * params:
         * `X00` `id`: (`num`) the STREAM-ID
         * `X01` `len`: (`unum`) the number of bytes to read
-        * `X02` `data`: (`ubyte#`) points to the elements to read
+        * `X02` `data`: (`ubyte#`) points to the params to read
     * result values:
         * `X01` `read`: (`unum`) the number of bytes which have been read
     * when less than len bytes where read either an error occured or end of file/pipe has reached
@@ -389,7 +361,7 @@ every register can also be addressed:
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_OPEN_PIPE` : open element handle pipe
     * value: `18`
-    * elements:
+    * params:
         * `X00` `pipe`: (`char#`) points to the `STRING` which contains the path of the pipe to be opened
     * result values:
         * `X00` `id`: (`num`) the newly opened (PIPE-)ELEMENT-ID or `-1` on error
@@ -397,21 +369,21 @@ every register can also be addressed:
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_OPEN_ELEMENT` : open element handle (any)
     * value: `19`
-    * elements:
+    * params:
         * `X00` `element`: (`char#`) the STRING which contains the path of the element to be opened
     * result values:
         * `X00` `id`: (`num`) the newly opened ELEMENT-ID or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_OPEN_PARENT` : element open parent handle
     * value: `20`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
     * result values:
         * `X00` `parent_id`: (`num`) the newly opened (FOLDER-)ELEMENT-ID or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_GET_CREATE` : get create date
     * value: `21`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
     * result values:
         * `X01` `date`: (`num`) the create date or `-1` on error
@@ -419,31 +391,31 @@ every register can also be addressed:
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_GET_LAST_MOD` : get last mod date
     * value: `22`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
     * result values:
-        * `X01` will be set to the last modified date or `-1` on error
+        * `X01` `date`: (`num`) will be set to the last modified date or `-1` on error
     * note that `-1` may be the last modified date of the element, so check `ERRNO` instead
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_SET_CREATE` : set create date
     * value: `23`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
-        * `X00` `date`: (`num`) the new create date of the element
+        * `X01` `date`: (`num`) the new create date of the element
     * result values:
         * `X01` `success`: (`num`) `1` on success or `0` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_SET_LAST_MOD` : set last modified date
     * value: `24`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
-        * `X00` `date`: (`num`) the new last modified date of the element
+        * `X01` `date`: (`num`) the new last modified date of the element
     * result values:
         * `X01`  `success`: (`num`) `1` on success or `0` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_DELETE` : element delete
     * value: `25`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
     * result values:
         * `X01` `success`: (`num`) `1` on success or `0` on error
@@ -451,7 +423,7 @@ every register can also be addressed:
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_MOVE` : element move
     * value: `26`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
         * `X01` `newName`: (`char#`) points to a STRING which will be the new name or it is set to `-1` if the name should not be changed
         * `X02` `newParentId`: (`num`) contains the ELEMENT-ID of the new parent of `-1` if the new parent should not be changed
@@ -461,7 +433,7 @@ every register can also be addressed:
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_GET_NAME` : element get name
     * value: `27`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
         * `X01` `buffer`: (`char#`) points the the a memory block, which should be used to store the name as a STRING
     * result values:
@@ -472,14 +444,14 @@ every register can also be addressed:
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_GET_FLAGS` : element get flags
     * value: `28`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
     * result values:
         * `X01` `flags`: (`num`) will be set to the flags or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_MODIFY_FLAGS` : element modify flags
     * value: `29`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
         * `X01` `addFlags`: (`udword`) the flags to be added
         * `X02` `remFlags`: (`udword`) the flags to be removed
@@ -489,271 +461,307 @@ every register can also be addressed:
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_CHILD_COUNT` : element folder child count
     * value: `30`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
     * result values:
-        * `X01` `childCount`: (`num`) the number of child elements the folder has or `-1` on error
+        * `X01` `childCount`: (`num`) the number of child params the folder has or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_OPEN_CHILD_OF_NAME` : folder get child of name
     * value: `31`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
-        * `X00` `name`: (`char#`) points to a STRING with the name of the child
+        * `X01` `name`: (`char#`) points to a STRING with the name of the child
     * result values:
         * `X01` `childId`: (`num`) the newly opened ELEMENT-ID for the child or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME` : folder get child folder of name
     * value: `32`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the ELEMENT/FOLDER-ID
-        * `X00` `name`: (`char#`) points to a STRING with the name of the child
+        * `X01` `name`: (`char#`) points to a STRING with the name of the child
     * result values:
-        * `X01` `cildId`: (`num`) the newly opened (FOLDER-)ELEMENT-ID for the child or `-1` on error
+        * `X01` `childId`: (`num`) the newly opened (FOLDER-)ELEMENT-ID for the child or `-1` on error
     * this operation will fail if the child is no folder
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_OPEN_CHILD_FILE_OF_NAME` : folder get child file of name
     * value: `33`
-    * elements:
+    * params:
         * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
-        * `X00` `name`: (`char#`) points to a STRING with the name of the child
+        * `X01` `name`: (`char#`) points to a STRING with the name of the child
     * result values:
-        * `X01` `cildId`: (`num`) the newly opened ELEMENT/FILE-ID for the child or `-1` on error
+        * `X01` `childId`: (`num`) the newly opened (FILE-)ELEMENT-ID for the child or `-1` on error
     * this operation will fail if the child is no file
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME` : folder get child pipe of name
     * value: `34`
-    * `X00` contains the ELEMENT/FOLDER-ID
-    * `X00` points to a STRING with the name of the child
+    * params:
+        * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
+        * `X01` `name`: (`char#`) points to a STRING with the name of the child
+    * result values:
+        * `X01` `childId`: (`num`) the newly opened (PIPE-)ELEMENT-ID for the child or `-1` on error
     * this operation will fail if the child is no pipe
-    * `X01` will be set to a newly opened ELEMENT/PIPE-ID for the child or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_CREATE_CHILD_FOLDER` : folder add child folder
     * value: `35`
-    * `X00` contains the ELEMENT/FOLDER-ID
-    * `X00` points to a STRING with the name of the child
-    * `X01` will be set to a newly opened/created ELEMENT/FOLDER-ID for the child or `-1` on error
+    * params:
+        * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
+        * `X01` `name`: (`char#`) points to a STRING with the name of the child
+    * result values:
+        * `X01` `childId`: (`num`) the newly created/opened (FOLDER-)ELEMENT-ID for the child or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_CREATE_CHILD_FILE` : folder add child file
     * value: `36`
-    * `X00` contains the ELEMENT/FOLDER-ID
-    * `X01` points to the STRING name of the new child element
-    * `X01` will be set to a newly opened/created ELEMENT/FILE-ID for the child or `-1` on error
+    * params:
+        * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
+        * `X01` `name`: (`char#`) points to the STRING name of the new child element
+    * result values:
+        * `X01` `childId`: (`num`) will be set to a newly created/opened (FILE-)ELEMENT-ID for the child or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_CREATE_CHILD_PIPE` : folder add child pipe
     * value: `37`
-    * `X00` contains the ELEMENT/FOLDER-ID
-    * `X01` points to the STRING name of the new child element
-    * `X01` will be set to a newly opened/created ELEMENT/PIPE-ID for the child or `-1` on error
+    * params:
+        * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
+        * `X01` `name`: (`char#`) points to the STRING name of the new child element
+    * result values:
+        * `X01` `childId`: (`num`) will be set to a newly created/opened (PIPE-)ELEMENT-ID for the child or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FOLDER_OPEN_ITER`: open child iterator of folder
     * value: `38`
-    * `X00` contains the ELEMENT/FOLDER-ID
-    * `X01` is set to `0` if hidden files should be skipped and any other value if not
-    * `X01` will be set to the FOLDER-ITER-ID or `-1` on error
+    * params:
+        * `X00` `id`: (`num`) the (FOLDER-)ELEMENT-ID
+        * `X01` `showHidden`: (`num`) is set to `0` if hidden files should be skipped and any other value if not
+    * result values:
+        * `X01` `iterId`: (`num`) will be set to the FOLDER-ITER-ID or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FILE_LENGTH` : get the length of a file
     * value: `39`
-    * `X00` contains the ELEMENT/FILE-ID
-    * `X01` will be set to the file length in bytes or `-1` on error
+    * params:
+        * `X00` `id`: (`num`) the (FILE-)ELEMENT-ID
+    * result values:
+        * `X01` `len`: (`num`) the file length in bytes or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_FILE_TRUNCATE` : set the length of a file
     * value: `40`
-    * `X00` contains the ELEMENT/FILE-ID
-    * `X01` is set to the new length of the file
-    * this interrupt will append zeros to the file when the new length is larger than the old length or remove all content after the new length
-    * `X01` will be set `1` on success or `0` on error
+    * params:
+        * `X00` `id`: (`num`) the (FILE-)ELEMENT-ID
+        * `X01` `len`: (`num`) the new length of the file
+    * result values:
+        * `X01` `success`: (`num`) will be set `1` on success or `0` on error
+    * this will append zeros to the file when the new length is larger than the old length or remove all content after the new length
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_HANDLE_OPEN_STREAM` : opens a stream from a file or pipe handle
     * value: `41`
-    * `X00` contains the ELEMENT/FILE/PIPE-ID
-        * note that this interrupt works for both files and pipes, but will fail for folders
-    * `X01` is set to the open flags
-        * note that the high 32-bit of the flags are ignored
-    * `X01` will be set to the STREAM-ID or `-1` on error
+    * params:
+        * `X00` `id`: (`num`) the (FILE-/PIPE-)ELEMENT-ID
+        * `X01` `flags`: (`udword`) the open flags (see the `STREAM_*` constants)
+    * result values:
+        * `X01` `streamId`: (`num`) the STREAM-ID or `-1` on error
+    * note that this interrupt works for both files and pipes, but will fail for folders
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_PIPE_LENGTH` : get the length of a pipe
     * value: `42`
-    * `X00` contains the ELEMENT/PIPE-ID
-    * `X01` will be set to the pipe length in bytes or `-1` on error
+    * params:
+        * `X00` `id`: (`num`) the (PIPE-)ELEMENT-ID
+    * result values:
+        * `X01` `len`: (`num`) the pipe length in bytes or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_TIME_GET` : get the current system time
     * value: `43`
-    * `X00` will be set to `1` on success and `0` on error
-    * `X01` will be set to the curent system time in seconds since the epoch
-    * `X02` will be set to the additional curent system time in nanoseconds
+    * result values:
+        * `X00` `secs`: (`num`) the curent system time in seconds since the epoch
+        * `X01` `nanos`: (`num`) the current additional nanoseconds system time
+        * `X02` `success`: (`num`) `1` on success and `0` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_TIME_RES` : get the system time resolution
     * value: `44`
-    * `X00` will be set to `1` on success and `0` on error
-    * `X01` will be set to the resolution in seconds
-    * `X02` will be set to the additional resolution in nanoseconds
+        * `X00` `secs`: (`num`) the resolution in seconds
+        * `X01` `nanos`: (`num`) the additional nanoseconds resulution
+        * `X02` `success`: (`num`) `1` on success and `0` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_TIME_SLEEP` : to sleep the given time in nanoseconds
     * value: `45`
-    * `X00` contain the number of nanoseconds to wait (only values from `0` to `999999999` are allowed)
-    * `X01` contain the number of seconds to wait (only values greather or equal to `0` are allowed)
-    * `X00` and `X01` will contain the remaining time (both `0` if it finished waiting)
-    * `X02` will be `1` if the call was successfully and `0` if something went wrong
-    * `X00` will not be negative if the progress waited too long
+    * params:
+        * `X00` `secs`: (`num`) the number of seconds to wait (only values GREATER or equal to `0` are allowed)
+        * `X01` `nanos`: (`num`) the number of nanoseconds to wait (only values from `0` to `999999999` are allowed)
+    * result values:
+        * `X00` `remainSecs`: (`num`) the remaining number of seconds to wait
+        * `X01` `remainNanos`: (`num`) the remaining number of nanoseconds to wait
+        * `X02` `success`: (`num`) `1` on success and `0` on error
+    * note that `X00` will not be negative if the progress waited too long
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_TIME_WAIT` : to wait the given time in nanoseconds
     * value: `46`
-    * `X00` contain the number of seconds since the epoch
-    * `X01` contain the additional number of nanoseconds
+    * params:
+        * `X00` `secs`: (`num`) the number of seconds since the epoch (only values GREATER or equal to `0` are allowed)
+        * `X01` `nanos`: (`num`) the additional number of nanoseconds (only values from `0` to `999999999` are allowed)
+    * result values:
+        * `X02` `success`: (`num`) `1` on success and `0` on error
     * this interrupt will wait until the current system time is equal or after the given absolute time.
-    * `X00` and `X01` will contain the remaining time (both `0` if it finished waiting)
-    * `X02` will be `1` if the call was successfully and `0` if something went wrong
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_RND_OPEN` : open a read stream which delivers random values
     * value: `47`
-    * `X00` will be set to the STREAM-ID or `-1` on error
-        * the stream will only support read operations
-            * not write/append or seek/setpos operations
+    * result values:
+        * `X00` `id`: (`num`) the (PIPE-)STREAM-ID or `-1` on error
+    * the stream will only support read operations
+        * not write/append or seek/setpos operations
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_RND_NUM` : sets `X00` to a random number
     * value: `48`
-    * `X00` will be set to a random non negative number or `-1` on error
+    * result values:
+        * `X00` `rnd`: (`num`) a random non negative number or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEM_CMP` : memory compare
     * value: `49`
+    * params:
+        * `X00` `memA`: (`ubyte#`) points to the first memory block
+        * `X01` `memB`: (`ubyte#`) points to the second memory block
+        * `X02` `len`: (`num`) has the length in bytes of both memory blocks
+    * result values:
+        * `STATUS` `cmpRes`: (`LOWER`, `GREATER`, `EQUAL`) if `memA` is lower/greater/equal than/to `memB`
     * compares two blocks of memory
-    * `X00` points to the target memory block
-    * `X01` points to the source memory block
-    * `X02` has the length in bytes of both memory blocks
-    * the `STATUS` register `LOWER` `GREATHER` and `EQUAL` flags will be set after this interrupt
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEM_CPY` : memory copy
     * value: `50`
+    * params:
+        * `X00` `dstMem`: (`ubyte#`) points to the target memory block
+        * `X01` `srcMem`: (`ubyte#`) points to the source memory block
+        * `X02` `len`: (`num`) has the length of bytes to be copied
     * copies a block of memory
     * this function has undefined behavior if the two blocks overlap
-    * `X00` points to the target memory block
-    * `X01` points to the source memory block
-    * `X02` has the length of bytes to bee copied
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEM_MOV` : memory move
     * value: `51`
+    * params:
+        * `X00` `srcMem`: (`ubyte#`) points to the target memory block
+        * `X01` `dstMem`: (`ubyte#`) points to the source memory block
+        * `X02` `len`: (`num`) has the length of bytes to be copied
     * copies a block of memory
     * this function makes sure, that the original values of the source block are copied to the target block (even if the two block overlap)
-    * `X00` points to the target memory block
-    * `X01` points to the source memory block
-    * `X02` has the length of bytes to bee copied
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEM_BSET` : memory byte set
     * value: `52`
+    * params:
+        * `X00` `mem`: (`ubyte#`) points to the block
+        * `X01` `val`: (`ubyte`) the first byte contains the value to be written to each byte
+        * `X02` `len`: (`num`) contains the length in bytes
     * sets a memory block to the given byte-value
-    * `X00` points to the block
-    * `X01` the first byte contains the value to be written to each byte
-    * `X02` contains the length in bytes
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_LEN` : string length
     * value: `53`
-    * `X00` points to the STRING
-    * `X00` will be set to the length of the string/ the (byte-)offset of the first byte from the `'\0'` character
+    * params:
+        * `X00` `str`: (`char#`) points to the STRING
+    * result values:
+        * `X00` `len`: (`num`) the length of the string the (byte-)offset of the first byte from the `'\0'` character
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_CMP` : string compare
     * value: `54`
-    * `X00` points to the first STRING
-    * `X01` points to the second STRING
-    * the `STATUS` register `LOWER` `GREATHER` and `EQUAL` flags will be set after this interrupt
+    * params:
+        * `X00` `strA`: (`char#`) points to the first STRING
+        * `X01` `strB`: (`char#`) points to the second STRING
+    * result values:
+        * `STATUS` `cmpRes`: (`LOWER`, `GREATER`, `EQUAL`) if `memA` is lower/greater/equal than/to `memB`
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_NUM` : number to string
     * value: `55`
-    * `X00` is set to the number to convert
-    * `X01` is points to the buffer to be filled with the number in a STRING format
-    * `X02` contains the base of the number system
-        * the minimum base is `2`
-        * the maximum base is `36`
-    * `X03` is set to the length of the buffer
-        * `0` when the buffer should be allocated by this interrupt
-    * `X00` will be set to the size of the STRING (without the `\0` terminating character)
-    * `X01` will be set to the new buffer
-    * `X03` will be set to the new size of the buffer
-        * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
-    * on error `X01` will be set to `-1`
+    * params:
+        * `X00` `val`: (`num`) is set to the number to convert
+        * `X01` `buf`: (`char#`) is points to the buffer to be filled with the number in a STRING representation
+        * `X02` `base`: (`num`) contains the base of the number system (must be between `2` and `36` (both inclusive))
+        * `X03` `bufLen`: (`unum`) is set to the length of the buffer or `0` if the buffer should be allocated
+    * result values:
+        * `X00` `strLen`: (`num`) will be set to the size of the STRING (without the `\0` terminating character)
+        * `X01` `str`: (`char#`) will be set to the new buffer
+        * `X03` `newBufLen`: (`num`) will be set to the new size of the buffer or `-1` on error
+    * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_FPNUM` : floating point number to string
     * value: `56`
-    * `X00` is set to the floating point number to convert
-    * `X01` points to the buffer to be filled with the number in a STRING format
-    * `X02` is set to the current size of the buffer
-        * `0` when the buffer should be allocated by this interrupt
-    * `X00` will be set to the size of the STRING
-    * `X01` will be set to the new buffer
-    * `X02` will be set to the new size of the buffer
-        * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
-    * on error `X01` will be set to `-1`
+    * params:
+        * `X00` `val`: (`fpnum`) is set to the floating point number to convert
+        * `X01` `buf`: (`char#`) points to the buffer to be filled with the number in a STRING format
+        * `X02` `bufLen`: (`unum`) is set to the current length of the buffer or `0` when the buffer should be allocated
+    * result values:
+        * `X00` `strLen`: (`num`) will be set to the size of the STRING (without the `\0` terminator)
+        * `X01` `str`: (`char#`) will be set to the new buffer or `-1` on error
+        * `X02` `bufLen`: (`num`) will be set to the new size of the buffer
+    * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_NUM` : string to number
     * value: `57`
-    * `X00` points to the STRING
-    * `X01` points to the base of the number system
-        * (for example `10` for the decimal system or `2` for the binary system)
-        * the minimum base is `2`
-        * the maximum base is `36`
-    * `X00` will be set to the converted number
-    * on success `X01` will be set to `1`
-    * on error `X01` will be set to `0`
-        * the STRING contains illegal characters
-        * or the base is not valid
-        * if `ERRNO` is set to out of range, the string value displayed a value outside of the 64-bit number range and `X00` will either be min or max value
+    * params:
+        * `X00` `str`: (`char#`) points to the STRING
+        * `X01` `base`: (`num`) the base of the number system (between `2` and `36` (both inclusive))
+    * result values:
+        * `X00` `val`: (`num`) will be set to the converted number
+        * `X01` `success`: (`num`) `1` on success and `0` on error
+    * if the STRING represents a value out of the 64-bit number range `X00` will be min or max value and `ERRNO` will be set to `ERR_OUT_OF_RANGE`
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_FPNUM` : string to floating point number
     * value: `58`
-    * `X00` points to the STRING
-    * `X00` will be set to the converted number
-    * on success `X01` will be set to `1`
-    * on error `X01` will be set to `0`
-        * the STRING contains illegal characters
-        * or the base is not valid
+    * params:
+        * `X00` `str`: (`char#`) points to the STRING
+    * result values:
+        * `X00` `val`: (`fpnum`) the converted number
+        * `X01` `success`: (`num`) `1` on success and `0` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_U16STR` : STRING to U16-STRING
     * value: `59`
-    * `X00` points to the STRING (`UTF-8`)
-    * `X01` points to the buffer to be filled with the to `UTF-16` converted string
-    * `X02` is set to the length of the buffer
-    * `X00` points to the start of the unconverted sequenze (or behind the `\0` terminator)
-    * `X01` points to the start of the unmodified space of the target buffer
-    * `X02` will be set to unmodified space at the end of the buffer
-    * `X03` will be set to the number of converted characters or `-1` on error
+    * params:
+        * `X00` `u8str`: (`char#`) points to the STRING (`UTF-8`)
+        * `X01` `u16str`: (`uword#`) points to the buffer to be filled with the to `UTF-16` converted string
+        * `X02` `bufLen`: (`num`) the length of the buffer (in bytes)
+    * result values:
+        * `X00` `u8strUnconcStart`: (`char#`) points to the start of the unconverted sequenze (or behind the `\0` terminator)
+        * `X01` `u16strUnconvStart`: (`uword#`) points to the start of the unmodified space of the target buffer
+        * `X02` `remBufLen`: (`num`) will be set to unmodified space at the end of the buffer
+        * `X03` `remU8Len`: (`num`) will be set to the number of converted characters or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_U32STR` : STRING to U32-STRING
     * value: `60`
-    * `X00` points to the STRING (`UTF-8`)
-    * `X01` points to the buffer to be filled with the to `UTF-32` converted string
-    * `X02` is set to the length of the buffer
-    * `X00` points to the start of the unconverted sequenze (or behind the `\0` terminator)
-    * `X01` points to the start of the unmodified space of the target buffer
-    * `X02` will be set to unmodified space at the end of the buffer
-    * `X03` will be set to the number of converted characters or `-1` on error
+    * params:
+        * `X00` `u8str`: (`char#`) points to the STRING (`UTF-8`)
+        * `X01` `u32str`: (`udword#`) points to the buffer to be filled with the to `UTF-32` converted string
+        * `X02` `bufLen`: (`num`) the length of the buffer (in bytes)
+    * result values:
+        * `X00` `u8strUnconcStart`: (`char#`) points to the start of the unconverted sequenze (or behind the `\0` terminator)
+        * `X01` `u32strUnconvStart`: (`udword#`) points to the start of the unmodified space of the target buffer
+        * `X02` `remBufLen`: (`num`) will be set to unmodified space at the end of the buffer
+        * `X03` `remU8Len`: (`num`) will be set to the number of converted characters or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_U16STR` : U16-STRING to STRING
     * value: `61`
-    * `X00` points to the `UTF-16` STRING
-    * `X01` points to the buffer to be filled with the converted STRING (`UTF-8`)
-    * `X02` is set to the length of the buffer
-    * `X00` points to the start of the unconverted sequenze (or behind the `\0` terminator (note that the `\0` char needs two bytes))
-    * `X01` points to the start of the unmodified space of the target buffer
-    * `X02` will be set to unmodified space at the end of the buffer
-    * `X03` will be set to the number of converted characters or `-1` on error
+    * params:
+        * `X00` `u16str`: (`uword#`) points to the `UTF-16` STRING
+        * `X01` `u8str`: (`char#`) points to the buffer to be filled with the converted STRING (`UTF-8`)
+        * `X02` `bufLen`: (`num`) the length of the buffer (in bytes)
+    * result values:
+        * `X00` `u16strUnconcStart`: (`uword#`) points to the start of the unconverted sequenze (or behind the `\0` terminator)
+        * `X01` `u8strUnconvStart`: (`char#`) points to the start of the unmodified space of the target buffer
+        * `X02` `remBufLen`: (`num`) will be set to unmodified space at the end of the buffer
+        * `X03` `remU8Len`: (`num`) will be set to the number of converted characters or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_U32STR` : U32-STRING to STRING
     * value: `62`
-    * `X00` points to the `UTF-32` STRING
-    * `X01` points to the buffer to be filled with the converted STRING (`UTF-8`)
-    * `X02` is set to the length of the buffer
-    * `X00` points to the start of the unconverted sequenze (or behind the `\0` terminator (note that the `\0` char needs four bytes))
-    * `X01` points to the start of the unmodified space of the target buffer
-    * `X02` will be set to unmodified space at the end of the buffer
-    * `X03` will be set to the number of converted characters or `-1` on error
+    * params:
+        * `X00` `u32str`: (`uword#`) points to the `UTF-32` STRING
+        * `X01` `u8str`: (`char#`) points to the buffer to be filled with the converted STRING (`UTF-8`)
+        * `X02` `bufLen`: (`num`) the length of the buffer (in bytes)
+    * result values:
+        * `X00` `u32strUnconcStart`: (`uword#`) points to the start of the unconverted sequenze (or behind the `\0` terminator)
+        * `X01` `u8strUnconvStart`: (`char#`) points to the start of the unmodified space of the target buffer
+        * `X02` `remBufLen`: (`num`) will be set to unmodified space at the end of the buffer
+        * `X03` `remU8Len`: (`num`) will be set to the number of converted characters or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FORMAT` : format string
     * value: `63`
-    * `X00` is set to the STRING input
-    * `X01` contains the buffer for the STRING output
-    * `X02` is the size of the buffer in bytes
-    * the register `X03` points to the formatting arguments
-    * `X00` will be set to the length of the output string (the offset of the `\0` character) or `-1` on error
-        * if `X00` is larger or equal to `X02`, only the first `X02` bytes will be written to the buffer
+    * params:
+        * `X00` `frmtStr`: (`char#`) is set to the STRING input
+        * `X01` `outStr`: (`char#`) contains the buffer for the STRING output
+        * `X02` `bufLen`: (`num`) the length of the buffer
+        * `X03` `args`: (`num#`) points to the formatting arguments (note that every argument will consume 64 bits)
+    * result values:
+        * `X00` `outLen`: (`num`) will be set to the length of the output string (the offset of the `\0` character) or `-1` on error
+    * if `outLne` is larger or equal to `bufLen`, only the first `bufLen` bytes will be written to the buffer
     * formatting:
         * `%%`: to escape an `%` character (only one `%` will be in the formatted STRING)
         * `%s`: the next argument points to a STRING, which should be inserted here
@@ -763,41 +771,45 @@ every register can also be addressed:
             1. the next argument contains a number in the range of `2..36`.
                 * if the first argument is less than `2` or larger than `36` the interrupt will fail
             2. which should be converted to a STRING using the number system with the basoe of the first argument and than be inserted here
-        * `%d`: the next argument contains a number, which should be converted to a STRING using the decimal number system and than be inserted here
+        * `%d`: the next argument contains a number, which should be converted to a STRING using the decimal number system (`10`) and than be inserted here
         * `%f`: the next argument contains a floating point number, which should be converted to a STRING and than be inserted here
         * `%p`: the next argument contains a pointer, which should be converted to a STRING
-            * if the pointer is not `-1` the pointer will be converted by placing a `"p-"` and then the unsigned pointer-number converted to a STRING using the hexadecimal number system
+            * if the pointer is not `-1` the pointer will be converted by placing a `"p-"` and then the unsigned pointer-number converted to a STRING using the hexadecimal number system (`16`)
             * if the pointer is `-1` it will be converted to the STRING `"p-inval"`
-        * `%h`: the next argument contains a number, which should be converted to a STRING using the hexadecimal number system and than be inserted here
-        * `%b`: the next argument contains a number, which should be converted to a STRING using the binary number system and than be inserted here
-        * `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system and than be inserted here
+        * `%h`: the next argument contains a number, which should be converted to a STRING using the hexadecimal number system (`16`) and than be inserted here
+        * `%b`: the next argument contains a number, which should be converted to a STRING using the binary number system (`2`) and than be inserted here
+        * `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system (`8`) and than be inserted here
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_LOAD_FILE` : load a file
     * value: `64`
-    * `X00` is set to the path (inclusive name) of the file
-    * `X00` will point to the memory block, in which the file has been loaded or `-1` on error
-    * `X01` will be set to the length of the file (and the memory block)
+    * params:
+        * `X00` `file`: (`char#`) is set to the path (inclusive name) of the file
+    * result values:
+        * `X00` `data`: (`ubyte#`) points to the memory block, in which the file has been loaded or `-1` on error
+        * `X01` `len`: (`num`) the length of the file (and the memory block)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_LOAD_LIB` : load a library file 
     * value: `65`
+    * params:
+        * `X00` `file`: (`char#`) is set to the path (inclusive name) of the file
+    * result values:
+        * `X00` `data`: (`ubyte#`) points to the memory block, in which the file has been loaded
+        * `X01` `len`: (`num`) the length of the file (and the memory block)
+        * `X02` `loaded`: (`num`) `1` if the file has been loaded as result of this interrupt and `0` if the file was already loaded
     * similar like the load file interrupt loads a file for the program.
-        * the difference is that this interrupt may remember which files has been loaded
-            * there are no guarantees, when the same memory block is reused and when a new memory block is created
+        * the difference is that this interrupt remembers which files has been loaded
         * the other difference is that the file may only be unloaded with the unload lib interrupt (not with the free interrupt)
             * the returned memory block also can not be resized
         * if the interrupt is executed multiple times with the same file, it will return every time the same memory block.
         * this interrupt does not recognize files loaded with the `64` (`INT_LOAD_FILE`) interrupt.
-    * `X00` is set to the path (inclusive name) of the file
-    * `X00` will point to the memory block, in which the file has been loaded
-    * `X01` will be set to the length of the file (and the memory block)
-    * `X02` will be set to `1` if the file has been loaded as result of this interrupt and `0` if the file was previously loaded
     * when an error occurred `X01` will be set to `-1`, `X00` will be unmodified and `ERRNO` will be set to a non-zero value
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_UNLOAD_LIB` : unload a library file 
     * value: `66`
+    * params:
+        * `X00` `data`: (`ubyte#`) points to the start of the memory block loaded with `INT_LOAD_LIB`
     * unloads a library previously loaded with the load lib interrupt
-    * this interrupt will ensure that the given memory block will be freed and never again be returned from the load lib interrupt
-    * `X00` points to the (start of the) memory block
+    * this interrupt will ensure that the given memory block will be freed and not again be returned from the load lib interrupt
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INTERRUPT_COUNT` : the number of interrupts
     * value: `67`
@@ -879,7 +891,7 @@ every register can also be addressed:
     * value: `1`
     * this error value is used when there occurred some unknown error
     * this error value is the least helpful value for error handling
-* `ERR_NO_MORE_ELEMENTS` : indicates that there are no more elements
+* `ERR_NO_MORE_ELEMENTS` : indicates that there are no more params
     * value: `2`
     * this error value is used when an iterator was used too often
 * `ERR_ELEMENT_WRONG_TYPE` : indicates that the element has not the wanted/allowed type
@@ -939,7 +951,7 @@ every register can also be addressed:
 * `FLAG_EXECUTABLE` : flag for executables
     * value: `UHEX-00000100`
     * this flag is used to indicate, that a file can be executed
-* `FLAG_HIDDEN` : flag for hidden elements
+* `FLAG_HIDDEN` : flag for hidden params
     * value: `UHEX-01000000`
     * this flag is used to indicate, that an element should be hidden
 * `STREAM_ONLY_CREATE` : create the element for the stream
@@ -978,6 +990,33 @@ every register can also be addressed:
     * value: `UHEX-00020000`
     * when used the stream will not start at the start of the file, but its end
     * this flag can be used only with file streams
+* `STATUS_LOWER`: indicates that the last compare of A and B resulted in `A` is lower than `B`
+    * value: `UHEX-0000000000000001`
+    * this value is used for the `STATUS` register
+* `STATUS_GREATER`: indicates that the last compare of A and B resulted in `A` is greater than `B`
+    * value: `UHEX-0000000000000002`
+    * this value is used for the `STATUS` register
+* `STATUS_EQUAL`: indicates that the last compare of A and B resulted in `A` is equal to `B`
+    * value: `UHEX-0000000000000004`
+    * this value is used for the `STATUS` register
+* `STATUS_OVERFLOW`: indicates that an overflow was detected
+    * value: `UHEX-0000000000000008`
+    * this value is used for the `STATUS` register
+* `STATUS_ZERO`: indicates that the result of the operation was zero
+    * value: `UHEX-0000000000000010`
+    * this value is used for the `STATUS` register
+* `STATUS_NAN`: indicates that the result of the operation was a NAN value
+    * value: `UHEX-0000000000000020`
+    * this value is used for the `STATUS` register
+* `STATUS_ALL_BITS`: indicates that the last bit compare all bits were set
+    * value: `UHEX-0000000000000040`
+    * this value is used for the `STATUS` register
+* `STATUS_SOME_BITS`: indicates that the last bit compare some bits were set
+    * value: `UHEX-0000000000000080`
+    * this value is used for the `STATUS` register
+* `STATUS_NONE_BITS`: indicates that the last bit compare no bits were set
+    * value: `UHEX-0000000000000100`
+    * this value is used for the `STATUS` register
 
 ## STRINGS
 * a string is an array of multiple characters of the `UTF-8` encoding
@@ -1647,15 +1686,15 @@ the pre-commands ar executed at assemble time, not runtime
 * compares the two values and stores the result in the status register
 * definition:
     * `if p1 > p2`
-        * `GREATHER <- 1`
+        * `GREATER <- 1`
         * `LOWER <- 0`
         * `EQUAL <- 0`
     * `else if p1 < p2`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 1`
         * `EQUAL <- 0`
     * `else`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 0`
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
@@ -1692,23 +1731,23 @@ the pre-commands ar executed at assemble time, not runtime
 * compares the two floating point values and stores the result in the status register
 * definition:
     * `if p1 > p2`
-        * `GREATHER <- 1`
+        * `GREATER <- 1`
         * `LOWER <- 0`
         * `NaN <- 0`
         * `EQUAL <- 0`
     * `else if p1 < p2`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 1`
         * `NaN <- 0`
         * `EQUAL <- 0`
     * `else if p1 is NaN | p2 is NaN`
         * `LOWER <- 0`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `NaN <- 1`
         * `EQUAL <- 0`
     * `else`
         * `LOWER <- 0`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `NaN <- 0`
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
@@ -1723,23 +1762,23 @@ the pre-commands ar executed at assemble time, not runtime
 * checks if the floating point param is a positive, negative infinity, NaN or normal value
 * definition:
     * `if p1 is positive-infinity`
-        * `GREATHER <- 1`
+        * `GREATER <- 1`
         * `LOWER <- 0`
         * `NAN <- 0`
         * `EQUAL <- 0`
     * `else if p1 is negative-infinity`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 1`
         * `NAN <- 0`
         * `EQUAL <- 0`
     * `else if p1 is NaN`
         * `LOWER <- 0`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `NAN <- 1`
         * `EQUAL <- 0`
     * `else`
         * `LOWER <- 0`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `NAN <- 0`
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
@@ -1752,15 +1791,15 @@ the pre-commands ar executed at assemble time, not runtime
 * compares the two unsigned values and stores the result in the status register
 * definition:
     * `if p1 > p2`
-        * `GREATHER <- 1`
+        * `GREATER <- 1`
         * `LOWER <- 0`
         * `EQUAL <- 0`
     * `else if p1 < p2`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 1`
         * `EQUAL <- 0`
     * `else`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 0`
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
@@ -1775,15 +1814,15 @@ the pre-commands ar executed at assemble time, not runtime
 * compares the two 128 bit values and stores the result in the status register
 * definition:
     * `if p1 > p2`
-        * `GREATHER <- 1`
+        * `GREATER <- 1`
         * `LOWER <- 0`
         * `EQUAL <- 0`
     * `else if p1 < p2`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 1`
         * `EQUAL <- 0`
     * `else`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 0`
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
@@ -1799,15 +1838,15 @@ the pre-commands ar executed at assemble time, not runtime
 * this command is like `CMP PARAM , 0`
 * definition:
     * `if p1 > 0`
-        * `GREATHER <- 1`
+        * `GREATER <- 1`
         * `LOWER <- 0`
         * `EQUAL <- 0`
     * `else if p1 < 0`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 1`
         * `EQUAL <- 0`
     * `else`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 0`
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
@@ -1821,22 +1860,22 @@ the pre-commands ar executed at assemble time, not runtime
 * this command is like `CMPFP PARAM , 0.0`
 * definition:
     * `if p1 > 0.0`
-        * `GREATHER <- 1`
+        * `GREATER <- 1`
         * `LOWER <- 0`
         * `NaN <- 0`
         * `EQUAL <- 0`
     * `else if p1 < 0.0`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 1`
         * `NaN <- 0`
         * `EQUAL <- 0`
     * `else if p1 is NaN`
         * `LOWER <- 0`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `NaN <- 1`
         * `EQUAL <- 0`
     * `else`
-        * `GREATHER <- 0`
+        * `GREATER <- 0`
         * `LOWER <- 0`
         * `NaN <- 0`
         * `EQUAL <- 1`
@@ -1881,7 +1920,7 @@ the pre-commands ar executed at assemble time, not runtime
 `JMPGT <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was greater
 * definition:
-    * `if GREATHER`
+    * `if GREATER`
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`
@@ -1891,7 +1930,7 @@ the pre-commands ar executed at assemble time, not runtime
 `JMPGE <LABEL>`
 * sets the instruction pointer to position of the command after the label if the last compare result was not lower
 * definition:
-    * `if GREATHER | EQUAL`
+    * `if GREATER | EQUAL`
         * `IP <- IP + RELATIVE_LABEL`
     * `else`
         * `IP <- IP + CMD_LEN`

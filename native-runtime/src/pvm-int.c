@@ -15,7 +15,7 @@
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <https://www.gnu.org/licenses/>.
 #ifndef PVM
-#error "this file should be included insice of pvm-virtual-mashine.c"
+#error "this file should be included inside of pvm-virtual-mashine.c"
 #endif
 
 #define check_string_len0(XNN_OFFSET, mem, name, max_len, error_reg, error_value) \
@@ -23,7 +23,7 @@
 	char* name = mem->offset + pvm.x[XNN_OFFSET]; \
 	num name##_len = strnlen(name, max_len); \
 	if (name##_len == max_len) { \
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0); \
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0); \
 		pvm.x[error_reg] = error_value;  \
 		return;  \
 	}
@@ -38,21 +38,19 @@ static inline void write_error(const char *msg) {
 #endif
 }
 
-// TODO set pvm.err to a nonzero value on error
-
-static void int_errors_illegal_interrupt( INT_PARAMS) /* 0 */{
+static void int_error_illegal_interrupt( INT_PARAMS) /* 0 */{
 	write_error("illegal interrupt\n");
 	exit(128 + pvm.x[0]);
 }
-static void int_errors_unknown_command( INT_PARAMS) /* 1 */{
+static void int_error_unknown_command( INT_PARAMS) /* 1 */{
 	write_error("illegal command\n");
 	exit(7);
 }
-static void int_errors_illegal_memory( INT_PARAMS) /* 2 */{
+static void int_error_illegal_memory( INT_PARAMS) /* 2 */{
 	write_error("illegal memory\n");
 	exit(6);
 }
-static void int_errors_arithmetic_error( INT_PARAMS) /* 3 */{
+static void int_error_arithmetic_error( INT_PARAMS) /* 3 */{
 	write_error("arithmetic error\n");
 	exit(5);
 }
@@ -62,7 +60,7 @@ static void int_exit( INT_PARAMS) /* 4 */{
 static void int_memory_alloc( INT_PARAMS) /* 5 */{
 	if (pvm.x[0] <= 0) {
 		if (pvm.x[0] != 0) {
-			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+			interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		} else {
 			pvm.x[0] = -1;
 		}
@@ -95,7 +93,7 @@ static void int_memory_realloc( INT_PARAMS) /* 6 */{
 static void int_memory_free( INT_PARAMS) /* 7 */{
 	free_memory(pvm.x[0]);
 }
-static void int_open_stream( INT_PARAMS) /* 8 */{
+static void int_stream_open( INT_PARAMS) /* 8 */{
 	struct memory *mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
 		pvm.x[1] = 0;
@@ -104,7 +102,7 @@ static void int_open_stream( INT_PARAMS) /* 8 */{
 	check_string_len(0, 1, 0)
 	pvm.x[0] = pfs_stream(name, pvm.x[1]);
 }
-static void int_streams_write( INT_PARAMS) /* 9 */{
+static void int_stream_write( INT_PARAMS) /* 9 */{
 	if (pvm.x[1] < 0) {
 		pvm.x[1] = 0;
 		pvm.err = PE_ILLEGAL_ARG;
@@ -116,7 +114,7 @@ static void int_streams_write( INT_PARAMS) /* 9 */{
 	}
 	pvm.x[1] = pfs_stream_write(pvm.x[0], mem->offset + pvm.x[2], pvm.x[1]);
 }
-static void int_streams_read( INT_PARAMS) /* 10 */{
+static void int_stream_read( INT_PARAMS) /* 10 */{
 	if (pvm.x[1] < 0) {
 		pvm.x[1] = 0;
 		pvm.err = PE_ILLEGAL_ARG;
@@ -128,19 +126,19 @@ static void int_streams_read( INT_PARAMS) /* 10 */{
 	}
 	pvm.x[1] = pfs_stream_read(pvm.x[0], mem->offset + pvm.x[2], pvm.x[1]);
 }
-static void int_streams_close( INT_PARAMS) /* 11 */{
+static void int_stream_close( INT_PARAMS) /* 11 */{
 	pvm.x[0] = pfs_stream_close(pvm.x[0]);
 }
-static void int_streams_file_get_pos( INT_PARAMS) /* 12 */{
+static void int_stream_file_get_pos( INT_PARAMS) /* 12 */{
 	pvm.x[1] = pfs_stream_get_pos(pvm.x[0]);
 }
-static void int_streams_file_set_pos( INT_PARAMS) /* 13 */{
+static void int_stream_file_set_pos( INT_PARAMS) /* 13 */{
 	pvm.x[1] = pfs_stream_set_pos(pvm.x[0], pvm.x[1]);
 }
-static void int_streams_file_add_pos( INT_PARAMS) /* 14 */{
+static void int_stream_file_add_pos( INT_PARAMS) /* 14 */{
 	pvm.x[1] = pfs_stream_add_pos(pvm.x[0], pvm.x[1]);
 }
-static void int_streams_file_seek_eof( INT_PARAMS) /* 15 */{
+static void int_stream_file_seek_eof( INT_PARAMS) /* 15 */{
 	pvm.x[1] = pfs_stream_seek_eof(pvm.x[0]);
 }
 static void int_open_file( INT_PARAMS) /* 16 */{
@@ -251,7 +249,7 @@ static void int_element_get_name( INT_PARAMS) /* 27 */{
 			num maxsize = mem->end - pvm.x[1];
 			if (maxsize > size) {
 				free(buf);
-				interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+				interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 				return;
 			}
 			memcpy(mem->offset + pvm.x[1], buf, size);
@@ -263,7 +261,7 @@ static void int_element_get_flags( INT_PARAMS) /* 28 */{
 	pvm.x[1] = pfs_element_get_flags(pvm.x[0]);
 }
 static void int_element_modify_flags( INT_PARAMS) /* 29 */{
-	pvm.x[1] = pfs_element_modify_flags(pvm.x[0], pvm.x[1], pvm.x[2]);
+	pvm.x[1] = pfs_element_modify_flags(pvm.x[0], 0xFFFF & pvm.x[1], 0xFFFF & pvm.x[2]);
 }
 static void int_folder_child_count( INT_PARAMS) /* 30 */{
 	pvm.x[1] = pfs_folder_child_count(pvm.x[0]);
@@ -278,7 +276,7 @@ static void int_folder_open_child_of_name( INT_PARAMS) /* 31 */{
 	const char *name = mem->offset + pvm.x[1];
 	num name_len = strnlen(name, max_len);
 	if (name_len == max_len) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	pvm.x[1] = pfs_folder_child(pvm.x[0], name);
@@ -346,31 +344,27 @@ static void int_handle_open_stream( INT_PARAMS) /* 41 */{
 static void int_pipe_length( INT_PARAMS) /* 42 */{
 	pvm.x[1] = pfs_pipe_length(pvm.x[0]);
 }
+_Static_assert(offsetof(struct timespec, tv_sec) == 0, "Error!");
+_Static_assert(offsetof(struct timespec, tv_nsec) == 8, "Error!");
 static void int_time_get( INT_PARAMS) /* 43 */{
-	struct timespec spec;
-	if (clock_gettime(CLOCK_REALTIME, &spec) == -1) {
+	struct timespec *pntr = (struct timespec*) &pvm.x[0];
+	if (clock_gettime(CLOCK_REALTIME, pntr) == -1) {
 		pvm.x[0] = 0;
 	} else {
-		pvm.x[0] = 1;
-		pvm.x[1] = spec.tv_sec;
-		pvm.x[2] = spec.tv_nsec;
+		pvm.x[2] = 1;
 	}
 }
 static void int_time_res( INT_PARAMS) /* 44 */{
-	struct timespec spec;
-	if (clock_getres(CLOCK_REALTIME, &spec) == -1) {
+	struct timespec *pntr = (struct timespec*) &pvm.x[0];
+	if (clock_getres(CLOCK_REALTIME, pntr) == -1) {
 		pvm.x[0] = 0;
 	} else {
-		pvm.x[0] = 1;
-		pvm.x[1] = spec.tv_sec;
-		pvm.x[2] = spec.tv_nsec;
+		pvm.x[2] = 1;
 	}
 }
 static void int_time_sleep( INT_PARAMS) /* 45 */{
-	struct timespec want, remain;
-	want.tv_nsec = pvm.x[0];
-	want.tv_sec = pvm.x[1];
-	if (nanosleep(&want, &remain) == -1) {
+	struct timespec *pntr = (struct timespec*) &pvm.x[0];
+	if (nanosleep(pntr, pntr) == -1) {
 		switch (errno) {
 		case EINVAL:
 			pvm.err = PE_ILLEGAL_ARG;
@@ -384,10 +378,8 @@ static void int_time_sleep( INT_PARAMS) /* 45 */{
 	}
 }
 static void int_time_wait( INT_PARAMS) /* 46 */{
-	struct timespec want;
-	want.tv_nsec = pvm.x[0];
-	want.tv_sec = pvm.x[1];
-	if (clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, &want, NULL) == -1) {
+	struct timespec *pntr = (struct timespec*) &pvm.x[0];
+	if (clock_nanosleep(CLOCK_REALTIME, TIMER_ABSTIME, pntr, NULL) == -1) {
 		switch (errno) {
 		case EINVAL:
 			pvm.err = PE_ILLEGAL_ARG;
@@ -414,16 +406,19 @@ static void int_rnd_open( INT_PARAMS) /* 47 */{
 	pvm.x[0] = sh;
 }
 static void int_rnd_num( INT_PARAMS) /* 48 */{
-	long int r = random();
+	num r = random();
 	if (r < 0) {
-		r = -1;
+		pvm.x[0] = -1;
 		pvm.err = PE_UNKNOWN_ERROR;
+	} else {
+		r |= random() << 31;
+		r |= (1 & random()) << 63;
+		pvm.x[0] = r;
 	}
-	pvm.x[0] = r;
 }
 static void int_mem_cmp( INT_PARAMS) /* 49 */{
 	if (pvm.x[2] < 0) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	struct memory *mem_a = chk(pvm.x[0], pvm.x[2]).mem;
@@ -443,7 +438,7 @@ static void int_mem_cmp( INT_PARAMS) /* 49 */{
 	num max_a_len = mem_a->end - pvm.x[0];
 	num max_b_len = mem_b.mem->end - pvm.x[1];
 	if (max_a_len < pvm.x[2] || max_b_len < pvm.x[2]) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	pvm.x[2] = memcmp(mem_a->offset + pvm.x[0], mem_b.mem->offset + pvm.x[1],
@@ -451,7 +446,7 @@ static void int_mem_cmp( INT_PARAMS) /* 49 */{
 }
 static void int_mem_cpy( INT_PARAMS) /* 50 */{
 	if (pvm.x[2] < 0) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	struct memory *src = chk(pvm.x[0], pvm.x[2]).mem;
@@ -477,7 +472,7 @@ static void int_mem_cpy( INT_PARAMS) /* 50 */{
 }
 static void int_mem_mov( INT_PARAMS) /* 51 */{
 	if (pvm.x[2] < 0) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	struct memory *src = chk(pvm.x[0], pvm.x[2]).mem;
@@ -495,14 +490,14 @@ static void int_mem_mov( INT_PARAMS) /* 51 */{
 }
 static void int_mem_bset( INT_PARAMS) /* 52 */{
 	if (pvm.x[2] < 0) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	struct memory *src = chk(pvm.x[0], pvm.x[2]).mem;
 	if (!src) {
 		return;
 	}
-	memset(src->offset + pvm.x[0], pvm.x[1], pvm.x[2]);
+	memset(src->offset + pvm.x[0], 0xFF & pvm.x[1], pvm.x[2]);
 }
 static void int_str_len( INT_PARAMS) /* 53 */{
 	struct memory *str = chk(pvm.x[0], 1).mem;
@@ -512,7 +507,7 @@ static void int_str_len( INT_PARAMS) /* 53 */{
 	num maxlen = str->end - pvm.x[0];
 	num len = strnlen(str->offset + pvm.x[0], maxlen);
 	if (len == maxlen) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 	} else {
 		pvm.x[0] = len;
 	}
@@ -536,7 +531,7 @@ static void int_str_cmp( INT_PARAMS) /* 54 */{
 	num max_b_len = str_b.mem->end - pvm.x[1];
 	if (strnlen(str_a->offset + pvm.x[0], max_a_len) == max_a_len
 			|| strnlen(str_b.mem->offset + pvm.x[1], max_b_len) == max_b_len) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	int cmp = strcmp(str_a->offset + pvm.x[0], str_b.mem->offset + pvm.x[1]);
@@ -618,7 +613,7 @@ static void int_str_from_num( INT_PARAMS) /* 55 */{
 		}
 		if (len <= strlen) {
 			if (pvm.x[1] != mem->start) {
-				interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+				interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 				return;
 			}
 			mem = realloc_memory(pvm.x[1], strlen + 1, 0);
@@ -660,7 +655,7 @@ static void int_str_from_fpnum( INT_PARAMS) /* 56 */{
 		}
 		if (len <= strlen) {
 			if (pvm.x[1] != mem->start) {
-				interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+				interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 				return;
 			}
 			mem = realloc_memory(pvm.x[1], strlen + 1, 0);
@@ -695,7 +690,7 @@ static void int_str_to_num( INT_PARAMS) /* 57 */{
 	}
 	num str_len = strnlen(str, max_len);
 	if (str_len == max_len) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	char *end;
@@ -732,7 +727,7 @@ static void int_str_to_fpnum( INT_PARAMS) /* 58 */{
 	}
 	num str_len = strnlen(str, max_len);
 	if (str_len == max_len) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	char *end;
@@ -771,15 +766,9 @@ static inline num simple_len(const char *string, num max_len, int size) {
 	}
 }
 static inline void conv_unicode_strings(const char *to_identy,
-		const char *from_identy, int size) {
+		const char *from_identy, int from_size) {
 	if (pvm.x[2] < 0) {
 		pvm.err = PE_ILLEGAL_ARG;
-		pvm.x[1] = -1;
-		return;
-	}
-	iconv_t cd = iconv_open(to_identy, from_identy);
-	if (cd == (iconv_t) -1) {
-		pvm.err = PE_UNKNOWN_ERROR;
 		pvm.x[1] = -1;
 		return;
 	}
@@ -789,9 +778,9 @@ static inline void conv_unicode_strings(const char *to_identy,
 	}
 	num max_in_len = in_mem->end - pvm.x[0];
 	char *in_str = in_mem->offset + pvm.x[0];
-	num in_len = simple_len(in_str, max_in_len, size);
+	num in_len = simple_len(in_str, max_in_len, from_size);
 	if (in_len == max_in_len) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	struct memory_check out_mem = chk(pvm.x[1], pvm.x[2]);
@@ -805,14 +794,20 @@ static inline void conv_unicode_strings(const char *to_identy,
 		}
 		max_in_len = in_mem->end - pvm.x[0];
 		in_str = in_mem->offset + pvm.x[0];
-		in_len = simple_len(in_str, max_in_len, size);
+		in_len = simple_len(in_str, max_in_len, from_size);
 		if (in_len == max_in_len) {
-			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+			interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 			return;
 		}
 	}
 	char *out_str = out_mem.mem->offset + pvm.x[1];
 	in_len++; // include \0
+	iconv_t cd = iconv_open(to_identy, from_identy);
+	if (cd == (iconv_t) -1) {
+		pvm.err = PE_UNKNOWN_ERROR;
+		pvm.x[1] = -1;
+		return;
+	}
 	pvm.x[3] = iconv(cd, &in_str, &in_len, &out_str, &pvm.x[2]);
 	iconv_close(cd);
 }
@@ -877,7 +872,7 @@ static void int_str_format( INT_PARAMS) /* 63 */{
 	num max_in_len = input_mem->end - pvm.x[0];
 	num in_len = strnlen(in, max_in_len);
 	if (in_len == max_in_len) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	num remain_args = (arg_mem.mem->end - pvm.x[3]) >> 3;
@@ -900,7 +895,7 @@ static void int_str_format( INT_PARAMS) /* 63 */{
 			continue;
 		}
 		if (!remain_args) {
-			interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+			interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 			return;
 		}
 		switch (*in) {
@@ -928,7 +923,7 @@ static void int_str_format( INT_PARAMS) /* 63 */{
 			char *str_pntr = str_mem.mem->offset + pntr_num;
 			num str_len = strnlen(str_pntr, max_str_len);
 			if (str_len == max_str_len) {
-				interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+				interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 				return;
 			}
 			len += str_len;
@@ -949,7 +944,7 @@ static void int_str_format( INT_PARAMS) /* 63 */{
 			remain_args--;
 			arg_pntr += sizeof(num);
 			if (!remain_args) {
-				interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+				interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 				return;
 			}
 			if (base < 2 || base > 36) {
@@ -1067,7 +1062,7 @@ static void int_load_file( INT_PARAMS) /* 64 */{
 	const char *name = name_mem->offset + pvm.x[0];
 	num name_len = strnlen(name, max_name_len);
 	if (name_len == max_name_len) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	int sh = pfs_stream(name, PFS_SO_FILE | PFS_SO_READ);
@@ -1133,7 +1128,7 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 	char *name = name_mem->offset + pvm.x[0];
 	num name_len = strnlen(name, max_name_len);
 	if (name_len == max_name_len) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	struct loaded_libs_entry tmp_entry;
@@ -1197,7 +1192,7 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 static void int_unload_lib( INT_PARAMS) /* 66 */{
 	struct memory *mem = chk(pvm.x[0], 0).mem;
 	if ((mem->flags & MEM_LIB) == 0) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	for (int i = 0;; i++) {

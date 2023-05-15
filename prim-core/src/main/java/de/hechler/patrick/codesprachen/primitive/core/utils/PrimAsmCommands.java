@@ -778,19 +778,19 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 1</code></li>
+	 * <li><code>GREATER &lt;- 1</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else if p1 &lt; p2</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
 	 * </ul></li>
@@ -839,14 +839,14 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 1</code></li>
+	 * <li><code>GREATER &lt;- 1</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>NaN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else if p1 &lt; p2</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>NaN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
@@ -854,14 +854,14 @@ public class PrimAsmCommands {
 	 * <li><code>else if p1 is NaN | p2 is NaN</code>
 	 * <ul>
 	 * <li><code>LOWER &lt;- 0</code></li>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>NaN &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>LOWER &lt;- 0</code></li>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>NaN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
 	 * </ul></li>
@@ -880,14 +880,14 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>if p1 is positive-infinity</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 1</code></li>
+	 * <li><code>GREATER &lt;- 1</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>NAN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else if p1 is negative-infinity</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>NAN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
@@ -895,14 +895,14 @@ public class PrimAsmCommands {
 	 * <li><code>else if p1 is NaN</code>
 	 * <ul>
 	 * <li><code>LOWER &lt;- 0</code></li>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>NAN &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>LOWER &lt;- 0</code></li>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>NAN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
 	 * </ul></li>
@@ -921,19 +921,19 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 1</code></li>
+	 * <li><code>GREATER &lt;- 1</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else if p1 &lt; p2</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
 	 * </ul></li>
@@ -952,19 +952,19 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>if p1 &gt; p2</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 1</code></li>
+	 * <li><code>GREATER &lt;- 1</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else if p1 &lt; p2</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
 	 * </ul></li>
@@ -984,19 +984,19 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>if p1 &gt; 0</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 1</code></li>
+	 * <li><code>GREATER &lt;- 1</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else if p1 &lt; 0</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
 	 * </ul></li>
@@ -1016,14 +1016,14 @@ public class PrimAsmCommands {
 	 * <ul>
 	 * <li><code>if p1 &gt; 0.0</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 1</code></li>
+	 * <li><code>GREATER &lt;- 1</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>NaN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else if p1 &lt; 0.0</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 1</code></li>
 	 * <li><code>NaN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
@@ -1031,13 +1031,13 @@ public class PrimAsmCommands {
 	 * <li><code>else if p1 is NaN</code>
 	 * <ul>
 	 * <li><code>LOWER &lt;- 0</code></li>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>NaN &lt;- 1</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
-	 * <li><code>GREATHER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
 	 * <li><code>LOWER &lt;- 0</code></li>
 	 * <li><code>NaN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 1</code></li>
@@ -1115,7 +1115,7 @@ public class PrimAsmCommands {
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
-	 * <li><code>if GREATHER</code>
+	 * <li><code>if GREATER</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
 	 * </ul></li>
@@ -1135,7 +1135,7 @@ public class PrimAsmCommands {
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
-	 * <li><code>if GREATHER | EQUAL</code>
+	 * <li><code>if GREATER | EQUAL</code>
 	 * <ul>
 	 * <li><code>IP &lt;- IP + RELATIVE_LABEL</code></li>
 	 * </ul></li>

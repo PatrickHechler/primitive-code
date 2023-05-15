@@ -1,19 +1,19 @@
-//This file is part of the Primitive Code Project
-//DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-//Copyright (C) 2023  Patrick Hechler
+// This file is part of the Primitive Code Project
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+// Copyright (C) 2023 Patrick Hechler
 //
-//This program is free software: you can redistribute it and/or modify
-//it under the terms of the GNU General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-//This program is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU General Public License for more details.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
 //
-//You should have received a copy of the GNU General Public License
-//along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 package de.hechler.patrick.codesprachen.simple.symbol.objects.types;
 
 import static de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable.exportVars;
@@ -41,6 +41,13 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 		this.name    = name;
 		this.members = members;
 		this.export  = export;
+		long off = 0;
+		for (SimpleOffsetVariable sv : members) {
+			long bc = sv.type.byteCount();
+			off = align(off, bc);
+			sv.init(off, this);
+			off += bc;
+		}
 	}
 	
 	@Override
@@ -75,11 +82,10 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 	
 	@Override
 	public long byteCount() {
-		long bytes = 0;
-		for (SimpleVariable sv : members) {
-			bytes += sv.type.byteCount();
-		}
-		return bytes;
+		if (members.length == 0) return 0;
+		SimpleOffsetVariable mem = members[members.length - 1];
+		long                 len = mem.offset() + mem.type.byteCount();
+		return align(len, len);
 	}
 	
 	@Override
@@ -138,27 +144,32 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 	}
 	
 	public static long align(long addr, long bc) {
-		if (Long.bitCount(bc) != 1) {
-			bc = Long.highestOneBit(bc) << 1;
+		int ibc;
+		if (bc > 4) ibc = 8;
+		else {
+			int val = (int) bc;
+			switch (val) {
+			case 0 -> throw new AssertionError("bc is zero");
+			case 1, 2, 4 -> ibc = val;
+			case 3 -> ibc = 4;
+			default -> ibc = 8;
+			}
 		}
-		if (bc >= 8) {
-			bc = 8;
-		}
-		long and = bc - 1;
+		int and = ibc - 1;
 		if ((addr & and) == 0) return addr;
-		else return addr + bc - (addr & and);
+		return addr + ibc - (addr & and);
 	}
 	
 	public static long align(long addr, int bc) {
-		if (Integer.bitCount(bc) != 1) {
-			bc = Integer.highestOneBit(bc);
-		}
-		if (bc >= 8) {
-			bc = 8;
+		switch (bc) {
+		case 0 -> throw new AssertionError("bc is zero");
+		case 1, 2, 4 -> {/**/}
+		case 3 -> bc = 4;
+		default -> bc = 8;
 		}
 		int and = bc - 1;
 		if ((addr & and) == 0) return addr;
-		else return addr + bc - (addr & and);
+		return addr + bc - (addr & and);
 	}
 	
 }

@@ -22,7 +22,7 @@ static void int_exit(INT_PARAMS); /* 4 */
 static void int_memory_alloc(INT_PARAMS); /* 5 */
 static void int_memory_realloc(INT_PARAMS); /* 6 */
 static void int_memory_free(INT_PARAMS); /* 7 */
-static void int_open_stream(INT_PARAMS); /* 8 */
+static void int_stream_open(INT_PARAMS); /* 8 */
 static void int_stream_write(INT_PARAMS); /* 9 */
 static void int_stream_read(INT_PARAMS); /* 10 */
 static void int_stream_close(INT_PARAMS); /* 11 */
@@ -90,7 +90,7 @@ static void int_unload_lib(INT_PARAMS); /* 66 */
 #define INT_MEMORY_ALLOC 5
 #define INT_MEMORY_REALLOC 6
 #define INT_MEMORY_FREE 7
-#define INT_OPEN_STREAM 8
+#define INT_STREAM_OPEN 8
 #define INT_STREAM_WRITE 9
 #define INT_STREAM_READ 10
 #define INT_STREAM_CLOSE 11
@@ -160,7 +160,7 @@ static void (*(ints[]))(INT_PARAMS) = {
 	int_memory_alloc, /* 5 */
 	int_memory_realloc, /* 6 */
 	int_memory_free, /* 7 */
-	int_open_stream, /* 8 */
+	int_stream_open, /* 8 */
 	int_stream_write, /* 9 */
 	int_stream_read, /* 10 */
 	int_stream_close, /* 11 */

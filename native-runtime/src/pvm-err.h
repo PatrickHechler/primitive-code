@@ -29,7 +29,7 @@ enum perr {
 	// this code-block is automatic generated, do not modify
 	PE_NONE                          = 0, /* indicates no error */
 	PE_UNKNOWN_ERROR                 = 1, /* indicates an unknown error */
-	PE_NO_MORE_ELEMENTS              = 2, /* indicates that there are no more elements */
+	PE_NO_MORE_ELEMENTS              = 2, /* indicates that there are no more params */
 	PE_ELEMENT_WRONG_TYPE            = 3, /* indicates that the element has not the wanted/allowed type */
 	PE_ELEMENT_NOT_EXIST             = 4, /* indicates that the element does not exist */
 	PE_ELEMENT_ALREADY_EXIST         = 5, /* indicates that the element already exists */

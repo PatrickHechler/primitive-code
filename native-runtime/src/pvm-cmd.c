@@ -19,7 +19,7 @@
 #endif // PVM
 
 static void c_ill() /* --- */{
-	interrupt(INT_ERRORS_UNKNOWN_COMMAND, 0);
+	interrupt(INT_ERROR_UNKNOWN_COMMAND, 0);
 }
 
 #define check_chaged(arg0, arg1) \
@@ -116,7 +116,7 @@ static void c_mvad() {
 	}
 	num old_num_index = param_num_value_index;
 	if (remain_instruct_space <= ((old_num_index) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	check_chaged(1, 8)
@@ -336,7 +336,7 @@ static void c_div() {
 	num a = *p1.p.np;
 	num b = *p2.p.np;
 	if (!b) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
 	*p1.p.np = a / b;
@@ -582,7 +582,7 @@ static void c_iret() {
 		return;
 	}
 	if ((mem.mem->flags & MEM_INT) == 0) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 	}
 	memcpy(&pvm, mem.mem->offset + p1.p.n, 128);
 	free_memory(p1.p.n);
@@ -602,7 +602,7 @@ static void c_calo() {
 		return;
 	}
 	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	struct memory_check mem = chk(pvm.sp, 8);
@@ -657,7 +657,7 @@ static void c_pushblk() {
 		return;
 	}
 	if (p2.p.n < 0) {
-		interrupt(INT_ERRORS_UNKNOWN_COMMAND, 0);
+		interrupt(INT_ERROR_UNKNOWN_COMMAND, 0);
 		return;
 	}
 	struct memory *mem = chk(pvm.sp, p2.p.n).mem;
@@ -683,7 +683,7 @@ static void c_popblk() {
 		return;
 	}
 	if (p1.p.n < 0) {
-		interrupt(INT_ERRORS_UNKNOWN_COMMAND, 0);
+		interrupt(INT_ERROR_UNKNOWN_COMMAND, 0);
 		return;
 	}
 	struct p p2 = param(0, 8);
@@ -705,7 +705,7 @@ static void c_popblk() {
 		}
 	}
 	if (p2.p.n > pvm.sp - smem->start) {
-		interrupt(INT_ERRORS_ILLEGAL_MEMORY, 0);
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
 	pvm.sp -= p2.p.n;
@@ -866,7 +866,7 @@ static void c_fptn() {
 		return;
 	}
 	if (isnormal(*p1.p.fpnp)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
 	*p1.p.np = *p1.p.fpnp;
@@ -890,7 +890,7 @@ static void c_addfp() {
 	}
 	check_chaged(1, 8)
 	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
 	*p1.p.fpnp += p2.p.fpn;
@@ -906,7 +906,7 @@ static void c_subfp() {
 	}
 	check_chaged(1, 8)
 	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
 	*p1.p.fpnp -= p2.p.fpn;
@@ -922,7 +922,7 @@ static void c_mulfp() {
 	}
 	check_chaged(1, 8)
 	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
 	*p1.p.fpnp *= p2.p.fpn;
@@ -938,7 +938,7 @@ static void c_divfp() {
 	}
 	check_chaged(1, 8)
 	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
 	*p1.p.fpnp /= p2.p.fpn;
@@ -949,7 +949,7 @@ static void c_negfp() {
 		return;
 	}
 	if (isnan(*p1.p.fpnp)) {
-		interrupt(INT_ERRORS_ARITHMETIC_ERROR, 0);
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
 	*p1.p.fpnp = -*p1.p.fpnp;
