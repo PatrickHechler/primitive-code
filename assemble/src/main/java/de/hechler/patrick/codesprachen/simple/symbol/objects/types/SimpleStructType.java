@@ -81,6 +81,11 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 	}
 	
 	@Override
+	public SimpleExportable changeRelative(Object relative) {
+		return this;
+	}
+	
+	@Override
 	public long byteCount() {
 		if (members.length == 0) return 0;
 		SimpleOffsetVariable mem = members[members.length - 1];

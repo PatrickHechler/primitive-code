@@ -39,6 +39,11 @@ public record SimpleConstant(String name, long value, boolean export) implements
 	}
 	
 	@Override
+	public SimpleExportable changeRelative(Object relative) {
+		return this;
+	}
+	
+	@Override
 	public int hashCode() {
 		return ((int) value) | (int) (value >> 32);
 	}

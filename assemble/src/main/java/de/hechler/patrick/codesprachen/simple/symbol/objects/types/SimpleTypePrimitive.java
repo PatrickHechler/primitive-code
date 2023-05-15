@@ -37,9 +37,6 @@ public enum SimpleTypePrimitive implements SimpleType {
 		}
 		
 	},
-	// bool gets sometimes special handling (just like pointers)
-	@Deprecated(forRemoval = true)
-	pt_bool(64, false),
 	pt_inval(-1, false) {
 		
 		@Override
@@ -158,7 +155,7 @@ public enum SimpleTypePrimitive implements SimpleType {
 		case pt_word -> build.append(PRIM_WORD);
 		case pt_ubyte -> build.append(PRIM_UBYTE);
 		case pt_byte -> build.append(PRIM_BYTE);
-		case pt_inval, pt_bool -> throw new InternalError("the primitive type inval and bool is only for intern use, thus it can not be exported!");
+		case pt_inval -> throw new AssertionError("the primitive type inval and bool is only for intern use, thus it can not be exported!");
 		default -> throw new InternalError("unknown primitive type: " + name());
 		}
 	}

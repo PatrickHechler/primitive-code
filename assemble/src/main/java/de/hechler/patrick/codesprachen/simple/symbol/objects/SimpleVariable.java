@@ -71,6 +71,12 @@ public abstract class SimpleVariable implements SimpleExportable {
 		}
 		
 		@Override
+		public SimpleExportable changeRelative(Object relative) {
+			if (this.addr == -1L) { throw new AssertionError("not yet initilized"); }
+			return new SimpleOffsetVariable(this.addr, relative, this.type, this.name, this.export);
+		}
+		
+		@Override
 		public String toExportString() {
 			if (this.addr == -1) { throw new AssertionError("not yet initilized"); }
 			if (!this.export) { throw new IllegalStateException("this is not marked as export!"); }
@@ -137,6 +143,11 @@ public abstract class SimpleVariable implements SimpleExportable {
 		@Override
 		public String toExportString() throws IllegalStateException {
 			throw new AssertionError();
+		}
+		
+		@Override
+		public SimpleExportable changeRelative(Object relative) {
+			return this;
 		}
 		
 	}

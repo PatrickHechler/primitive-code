@@ -91,6 +91,8 @@ public interface SimpleExportable extends SimpleNameable {
 	 */
 	String toExportString() throws IllegalStateException;
 	
+	SimpleExportable changeRelative(Object relative);
+	
 	public static SimpleExportable[] correctImports(Map<String, SimpleStructType> structs, List<SimpleExportable> imps) {
 		int                impcnt = imps.size();
 		SimpleExportable[] result = new SimpleExportable[impcnt];

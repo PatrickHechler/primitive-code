@@ -72,6 +72,13 @@ public class SimpleFunctionSymbol implements SimpleExportable {
 	}
 	
 	@Override
+	public SimpleExportable changeRelative(Object relative) {
+		if (this.address == -1) { throw new AssertionError("address is not initilized!"); }
+		if (this.relative == null) { throw new AssertionError("relative is not initilized!"); }
+		return new SimpleFunctionSymbol(this.address, relative, this.export, this.name, this.type);
+	}
+	
+	@Override
 	public String toExportString() {
 		if (!this.export) throw new IllegalStateException("this is not marked as export!");
 		if (this.address == -1L) throw new AssertionError("address is not initilized!");
