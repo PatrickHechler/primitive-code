@@ -343,7 +343,7 @@ every register can also be addressed:
         * `X01` `pos`: (`num`) the new position of the stream or `-1` on error
     * sets the position of the stream to the end of the file (the file length)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_OPEN_FILE` : open element handle file
+* `INT_STREAM_FILE` : open element handle file
     * value: `16`
     * params:
         * `X00` `file`: (`char#`) points to the STRING which contains the path of the file to be opened
@@ -351,7 +351,7 @@ every register can also be addressed:
         * `X00` `id`: (`num`) the newly opened (FILE-)ELEMENT-ID or `-1` on error
     * this operation will fail if the element is no file
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_OPEN_FOLDER` : open element handle folder
+* `INT_STREAM_FOLDER` : open element handle folder
     * value: `17`
     * params:
         * `X00` `folder`: (`char#`) points to the STRING which contains the path of the folder to be opened
@@ -359,7 +359,7 @@ every register can also be addressed:
         * `X00` `id`: (`num`) the newly opened (FOLDER-)ELEMENT-ID or `-1` on error
     * this operation will fail if the element is no folder
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_OPEN_PIPE` : open element handle pipe
+* `INT_STREAM_PIPE` : open element handle pipe
     * value: `18`
     * params:
         * `X00` `pipe`: (`char#`) points to the `STRING` which contains the path of the pipe to be opened
@@ -367,7 +367,7 @@ every register can also be addressed:
         * `X00` `id`: (`num`) the newly opened (PIPE-)ELEMENT-ID or `-1` on error
     * this operation will fail if the element is no pipe
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_OPEN_ELEMENT` : open element handle (any)
+* `INT_STREAM_ELEMENT` : open element handle (any)
     * value: `19`
     * params:
         * `X00` `element`: (`char#`) the STRING which contains the path of the element to be opened
@@ -683,7 +683,7 @@ every register can also be addressed:
     * result values:
         * `X00` `strLen`: (`num`) will be set to the size of the STRING (without the `\0` terminator)
         * `X01` `str`: (`char#`) will be set to the new buffer or `-1` on error
-        * `X02` `bufLen`: (`num`) will be set to the new size of the buffer
+        * `X02` `newBufLen`: (`num`) will be set to the new size of the buffer
     * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_NUM` : string to number
@@ -954,39 +954,39 @@ every register can also be addressed:
 * `FLAG_HIDDEN` : flag for hidden params
     * value: `UHEX-01000000`
     * this flag is used to indicate, that an element should be hidden
-* `STREAM_ONLY_CREATE` : create the element for the stream
+* `OPEN_ONLY_CREATE` : create the element for the stream
     * value: `UHEX-00000001`
     * used when a stream is opened, when the element should be created during the open operation
     * when used the open operation will fail, if the element already exists
-    * when used the `STREAM_FILE` or `STREAM_PIPE` flag has to be set
-* `STREAM_ALSO_CREATE` : possibly create the element for the stream
+    * when used the `OPEN_FILE` or `OPEN_PIPE` flag has to be set
+* `OPEN_ALSO_CREATE` : possibly create the element for the stream
     * value: `UHEX-00000002`
     * used when a stream is opened, when the element should be created during the open operation if it doesn't exists already
-    * when used the `STREAM_FILE` or `STREAM_PIPE` flag has to be set
-* `STREAM_FILE` : create a file stream
+    * when used the `OPEN_FILE` or `OPEN_PIPE` flag has to be set
+* `OPEN_FILE` : create a file stream
     * value: `UHEX-00000004`
     * used when the stream should be used for a file, will fail if the existing element is a pipe
-    * when used the `STREAM_PIPE` flag is not allowed
-* `STREAM_PIPE` : create a pipe stream
+    * when used the `OPEN_PIPE` flag is not allowed
+* `OPEN_PIPE` : create a pipe stream
     * value: `UHEX-00000008`
     * used when the stream should be used for a pipe, will fail if the existing element is a file
-    * when used the `STREAM_FILE` flag is not allowed
-* `STREAM_READ` : create a readable stream
+    * when used the `OPEN_FILE` flag is not allowed
+* `OPEN_READ` : create a readable stream
     * value: `UHEX-00000100`
     * used to open a stream, which support the use of the read operations
-* `STREAM_WRITE` : create a writable stream
+* `OPEN_WRITE` : create a writable stream
     * value: `UHEX-00000200`
     * used to open a stream, which support the use of the write operations
-* `STREAM_APPEND` : create a writable stream in append mode
+* `OPEN_APPEND` : create a writable stream in append mode
     * value: `UHEX-00000400`
     * used to open a stream, which support the use of the write operations
     * the given stream will seek the file/pipe end before every write operation
-    * for pipes the `STREAM_WRITE` flag is equally to this flag
-* `STREAM_FILE_TRUNC` : truncate the file
+    * for pipes the `OPEN_WRITE` flag is equally to this flag
+* `OPEN_FILE_TRUNC` : truncate the file
     * value: `UHEX-00010000`
     * truncate the files content during the open operation
     * this flag can be used only with file streams
-* `STREAM_FILE_EOF` : start at end of file
+* `OPEN_FILE_EOF` : start at end of file
     * value: `UHEX-00020000`
     * when used the stream will not start at the start of the file, but its end
     * this flag can be used only with file streams

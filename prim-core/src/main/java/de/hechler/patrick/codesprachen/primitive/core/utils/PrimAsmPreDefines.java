@@ -252,7 +252,7 @@ public class PrimAsmPreDefines {
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
 	public static final long INT_STREAM_FILE_SEEK_EOF = 15L;
 	/**
-	 * <b>INT_OPEN_FILE</b>: open element handle file<br>
+	 * <b>INT_STREAM_FILE</b>: open element handle file<br>
 	 * value: <code>16</code>
 	 * <p>
 	 * params:
@@ -265,9 +265,9 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * this operation will fail if the element is no file<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_OPEN_FILE = 16L;
+	public static final long INT_STREAM_FILE = 16L;
 	/**
-	 * <b>INT_OPEN_FOLDER</b>: open element handle folder<br>
+	 * <b>INT_STREAM_FOLDER</b>: open element handle folder<br>
 	 * value: <code>17</code>
 	 * <p>
 	 * params:
@@ -280,9 +280,9 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * this operation will fail if the element is no folder<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_OPEN_FOLDER = 17L;
+	public static final long INT_STREAM_FOLDER = 17L;
 	/**
-	 * <b>INT_OPEN_PIPE</b>: open element handle pipe<br>
+	 * <b>INT_STREAM_PIPE</b>: open element handle pipe<br>
 	 * value: <code>18</code>
 	 * <p>
 	 * params:
@@ -295,9 +295,9 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * this operation will fail if the element is no pipe<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_OPEN_PIPE = 18L;
+	public static final long INT_STREAM_PIPE = 18L;
 	/**
-	 * <b>INT_OPEN_ELEMENT</b>: open element handle (any)<br>
+	 * <b>INT_STREAM_ELEMENT</b>: open element handle (any)<br>
 	 * value: <code>19</code>
 	 * <p>
 	 * params:
@@ -309,7 +309,7 @@ public class PrimAsmPreDefines {
 	 * <li><code>X00</code> <code>id</code>: (<code>num</code>) the newly opened ELEMENT-ID or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_OPEN_ELEMENT = 19L;
+	public static final long INT_STREAM_ELEMENT = 19L;
 	/**
 	 * <b>INT_ELEMENT_OPEN_PARENT</b>: element open parent handle<br>
 	 * value: <code>20</code>
@@ -866,7 +866,7 @@ public class PrimAsmPreDefines {
 	 * <ul>
 	 * <li><code>X00</code> <code>strLen</code>: (<code>num</code>) will be set to the size of the STRING (without the <code>\0</code> terminator)</li>
 	 * <li><code>X01</code> <code>str</code>: (<code>char#</code>) will be set to the new buffer or <code>-1</code> on error</li>
-	 * <li><code>X02</code> <code>bufLen</code>: (<code>num</code>) will be set to the new size of the buffer</li>
+	 * <li><code>X02</code> <code>newBufLen</code>: (<code>num</code>) will be set to the new size of the buffer</li>
 	 * </ul>
 	 * the new length will be the old length or if the old length is smaller than the size of the STRING (with <code>\0</code>) than the size of the STRING (with <code>\0</code>)<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
@@ -1351,68 +1351,68 @@ public class PrimAsmPreDefines {
 	 * this flag is used to indicate, that an element should be hidden	 */
 	public static final long FLAG_HIDDEN = 0x01000000L;
 	/**
-	 * <b>STREAM_ONLY_CREATE</b>: create the element for the stream<br>
+	 * <b>OPEN_ONLY_CREATE</b>: create the element for the stream<br>
 	 * value: <code>0x00000001</code>
 	 * <p>
 	 * used when a stream is opened, when the element should be created during the open operation<br>
 	 * when used the open operation will fail, if the element already exists<br>
-	 * when used the <code>STREAM_FILE</code> or <code>STREAM_PIPE</code> flag has to be set	 */
-	public static final long STREAM_ONLY_CREATE = 0x00000001L;
+	 * when used the <code>OPEN_FILE</code> or <code>OPEN_PIPE</code> flag has to be set	 */
+	public static final long OPEN_ONLY_CREATE = 0x00000001L;
 	/**
-	 * <b>STREAM_ALSO_CREATE</b>: possibly create the element for the stream<br>
+	 * <b>OPEN_ALSO_CREATE</b>: possibly create the element for the stream<br>
 	 * value: <code>0x00000002</code>
 	 * <p>
 	 * used when a stream is opened, when the element should be created during the open operation if it doesn't exists already<br>
-	 * when used the <code>STREAM_FILE</code> or <code>STREAM_PIPE</code> flag has to be set	 */
-	public static final long STREAM_ALSO_CREATE = 0x00000002L;
+	 * when used the <code>OPEN_FILE</code> or <code>OPEN_PIPE</code> flag has to be set	 */
+	public static final long OPEN_ALSO_CREATE = 0x00000002L;
 	/**
-	 * <b>STREAM_FILE</b>: create a file stream<br>
+	 * <b>OPEN_FILE</b>: create a file stream<br>
 	 * value: <code>0x00000004</code>
 	 * <p>
 	 * used when the stream should be used for a file, will fail if the existing element is a pipe<br>
-	 * when used the <code>STREAM_PIPE</code> flag is not allowed	 */
-	public static final long STREAM_FILE = 0x00000004L;
+	 * when used the <code>OPEN_PIPE</code> flag is not allowed	 */
+	public static final long OPEN_FILE = 0x00000004L;
 	/**
-	 * <b>STREAM_PIPE</b>: create a pipe stream<br>
+	 * <b>OPEN_PIPE</b>: create a pipe stream<br>
 	 * value: <code>0x00000008</code>
 	 * <p>
 	 * used when the stream should be used for a pipe, will fail if the existing element is a file<br>
-	 * when used the <code>STREAM_FILE</code> flag is not allowed	 */
-	public static final long STREAM_PIPE = 0x00000008L;
+	 * when used the <code>OPEN_FILE</code> flag is not allowed	 */
+	public static final long OPEN_PIPE = 0x00000008L;
 	/**
-	 * <b>STREAM_READ</b>: create a readable stream<br>
+	 * <b>OPEN_READ</b>: create a readable stream<br>
 	 * value: <code>0x00000100</code>
 	 * <p>
 	 * used to open a stream, which support the use of the read operations	 */
-	public static final long STREAM_READ = 0x00000100L;
+	public static final long OPEN_READ = 0x00000100L;
 	/**
-	 * <b>STREAM_WRITE</b>: create a writable stream<br>
+	 * <b>OPEN_WRITE</b>: create a writable stream<br>
 	 * value: <code>0x00000200</code>
 	 * <p>
 	 * used to open a stream, which support the use of the write operations	 */
-	public static final long STREAM_WRITE = 0x00000200L;
+	public static final long OPEN_WRITE = 0x00000200L;
 	/**
-	 * <b>STREAM_APPEND</b>: create a writable stream in append mode<br>
+	 * <b>OPEN_APPEND</b>: create a writable stream in append mode<br>
 	 * value: <code>0x00000400</code>
 	 * <p>
 	 * used to open a stream, which support the use of the write operations<br>
 	 * the given stream will seek the file/pipe end before every write operation<br>
-	 * for pipes the <code>STREAM_WRITE</code> flag is equally to this flag	 */
-	public static final long STREAM_APPEND = 0x00000400L;
+	 * for pipes the <code>OPEN_WRITE</code> flag is equally to this flag	 */
+	public static final long OPEN_APPEND = 0x00000400L;
 	/**
-	 * <b>STREAM_FILE_TRUNC</b>: truncate the file<br>
+	 * <b>OPEN_FILE_TRUNC</b>: truncate the file<br>
 	 * value: <code>0x00010000</code>
 	 * <p>
 	 * truncate the files content during the open operation<br>
 	 * this flag can be used only with file streams	 */
-	public static final long STREAM_FILE_TRUNC = 0x00010000L;
+	public static final long OPEN_FILE_TRUNC = 0x00010000L;
 	/**
-	 * <b>STREAM_FILE_EOF</b>: start at end of file<br>
+	 * <b>OPEN_FILE_EOF</b>: start at end of file<br>
 	 * value: <code>0x00020000</code>
 	 * <p>
 	 * when used the stream will not start at the start of the file, but its end<br>
 	 * this flag can be used only with file streams	 */
-	public static final long STREAM_FILE_EOF = 0x00020000L;
+	public static final long OPEN_FILE_EOF = 0x00020000L;
 	/**
 	 * <b>STATUS_LOWER</b>: indicates that the last compare of A and B resulted in `A` is lower than `B`<br>
 	 * value: <code>0x0000000000000001</code>

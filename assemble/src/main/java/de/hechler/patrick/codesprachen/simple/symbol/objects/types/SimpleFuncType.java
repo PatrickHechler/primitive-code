@@ -1,19 +1,19 @@
-//This file is part of the Primitive Code Project
-//DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-//Copyright (C) 2023  Patrick Hechler
+// This file is part of the Primitive Code Project
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+// Copyright (C) 2023 Patrick Hechler
 //
-//This program is free software: you can redistribute it and/or modify
-//it under the terms of the GNU General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-//This program is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU General Public License for more details.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
 //
-//You should have received a copy of the GNU General Public License
-//along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 package de.hechler.patrick.codesprachen.simple.symbol.objects.types;
 
 import static de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable.FUNC;
@@ -24,6 +24,7 @@ import java.util.List;
 
 import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants;
 import de.hechler.patrick.codesprachen.simple.symbol.objects.SimpleVariable.SimpleOffsetVariable;
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 @SuppressWarnings("javadoc")
 public class SimpleFuncType implements SimpleType {
@@ -57,7 +58,7 @@ public class SimpleFuncType implements SimpleType {
 	
 	private static void checkDoubleName(SimpleOffsetVariable[] vals, int startIndex, String name) {
 		for (int i = startIndex; i < vals.length; i++) {
-			if (vals[i].name.equals(name)) { throw new IllegalArgumentException("same name is used multiple times: " + name); }
+			if (vals[i].name.equals(name)) { throw new IllegalArgumentException("same name is used multiple times: " + name + " vals: " + Arrays.toString(vals)); }
 		}
 	}
 	
@@ -92,12 +93,16 @@ public class SimpleFuncType implements SimpleType {
 	
 	public SimpleOffsetVariable member(String name) {
 		for (SimpleOffsetVariable sv : this.arguments) {
-			if (sv.name.equals(name)) { return sv; }
+			if (sv.name.equals(name)) {
+				return sv;
+			}
 		}
-		for (SimpleOffsetVariable sv : this.arguments) {
-			if (sv.name.equals(name)) { return sv; }
+		for (SimpleOffsetVariable sv : this.results) {
+			if (sv.name.equals(name)) {
+				return sv;
+			}
 		}
-		throw new IllegalArgumentException("there is no member with the name: " + name);
+		throw new IllegalArgumentException("there is no member with the name: " + name + " me: " + this);
 	}
 	
 	@Override

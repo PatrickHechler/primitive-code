@@ -30,10 +30,10 @@ static void int_stream_file_get_pos(INT_PARAMS); /* 12 */
 static void int_stream_file_set_pos(INT_PARAMS); /* 13 */
 static void int_stream_file_add_pos(INT_PARAMS); /* 14 */
 static void int_stream_file_seek_eof(INT_PARAMS); /* 15 */
-static void int_open_file(INT_PARAMS); /* 16 */
-static void int_open_folder(INT_PARAMS); /* 17 */
-static void int_open_pipe(INT_PARAMS); /* 18 */
-static void int_open_element(INT_PARAMS); /* 19 */
+static void int_stream_file(INT_PARAMS); /* 16 */
+static void int_stream_folder(INT_PARAMS); /* 17 */
+static void int_stream_pipe(INT_PARAMS); /* 18 */
+static void int_stream_element(INT_PARAMS); /* 19 */
 static void int_element_open_parent(INT_PARAMS); /* 20 */
 static void int_element_get_create(INT_PARAMS); /* 21 */
 static void int_element_get_last_mod(INT_PARAMS); /* 22 */
@@ -98,10 +98,10 @@ static void int_unload_lib(INT_PARAMS); /* 66 */
 #define INT_STREAM_FILE_SET_POS 13
 #define INT_STREAM_FILE_ADD_POS 14
 #define INT_STREAM_FILE_SEEK_EOF 15
-#define INT_OPEN_FILE 16
-#define INT_OPEN_FOLDER 17
-#define INT_OPEN_PIPE 18
-#define INT_OPEN_ELEMENT 19
+#define INT_STREAM_FILE 16
+#define INT_STREAM_FOLDER 17
+#define INT_STREAM_PIPE 18
+#define INT_STREAM_ELEMENT 19
 #define INT_ELEMENT_OPEN_PARENT 20
 #define INT_ELEMENT_GET_CREATE 21
 #define INT_ELEMENT_GET_LAST_MOD 22
@@ -168,10 +168,10 @@ static void (*(ints[]))(INT_PARAMS) = {
 	int_stream_file_set_pos, /* 13 */
 	int_stream_file_add_pos, /* 14 */
 	int_stream_file_seek_eof, /* 15 */
-	int_open_file, /* 16 */
-	int_open_folder, /* 17 */
-	int_open_pipe, /* 18 */
-	int_open_element, /* 19 */
+	int_stream_file, /* 16 */
+	int_stream_folder, /* 17 */
+	int_stream_pipe, /* 18 */
+	int_stream_element, /* 19 */
 	int_element_open_parent, /* 20 */
 	int_element_get_create, /* 21 */
 	int_element_get_last_mod, /* 22 */
