@@ -711,7 +711,7 @@ returns [Param p, AssembleRuntimeException are]
 			(
 				sr
 				{
-	 				builder.art = ParamBuilder.A_SR;
+	 				builder.art = ParamBuilder.A_XX;
 	 				builder.v1 = $sr.srnum;
 	 			}
 
@@ -744,7 +744,7 @@ returns [Param p, AssembleRuntimeException are]
 					(
 						sr
 						{
-							build.art |= ParamBuilder.A_SR;
+							build.art |= ParamBuilder.A_XX;
 							build.v1 = $sr.srnum;
 						}
 
@@ -768,7 +768,7 @@ returns [Param p, AssembleRuntimeException are]
 						(
 							sr
 							{
-								build.art |= ParamBuilder.B_SR;
+								build.art |= ParamBuilder.B_XX;
 								build.v2 = $sr.srnum;
 							}
 

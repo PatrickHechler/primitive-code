@@ -148,7 +148,7 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 		return b.toString();
 	}
 	
-	public static long align(long addr, long bc) {
+	public static long align(long addr, long bc) { // TODO redirect to SimpleCompiler.align
 		int ibc;
 		if (bc > 4) ibc = 8;
 		else {

@@ -47,7 +47,7 @@ public class PrimitiveDisassemblerMain {
 	private static InputStream           binary;
 	private static long                  pos;
 	private static FS                    fs;
-	
+	static final int val = 56;
 	public static void main(String[] args) {
 		setup(args);
 		int exitCode = 0;

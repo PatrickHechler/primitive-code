@@ -66,21 +66,24 @@ public class Command {
 	}
 	
 	public String toString(long pos) {
-		StringBuilder build = new StringBuilder(cmd.toString());
-		switch (cmd.art) {
+		StringBuilder build = new StringBuilder(this.cmd.toString());
+		switch (this.cmd.art) {
 		case LABEL_OR_CONST:
-			build.append(' ').append(lng.generateName(pos + relativeLabel));
+			build.append(' ').append(this.lng.generateName(pos + this.relativeLabel));
 			break;
 		case NO_PARAMS:
 			break;
 		case ONE_PARAM_ALLOW_CONST, ONE_PARAM_NO_CONST:
-			build.append(' ').append(p1);
+			build.append(' ').append(this.p1);
 			break;
-		case TWO_PARAMS_ALLOW_CONSTS, TWO_PARAMS_NO_CONSTS, TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST:
-			build.append(' ').append(p1).append(", ").append(p2);
+		case TWO_PARAMS_ALLOW_CONSTS, TWO_PARAMS_NO_CONSTS, TWO_PARAMS_P1_NO_CONST_P2_ALLOW_CONST, TWO_PARAMS_P1_NO_CONST_P2_COMPILE_CONST:
+			build.append(' ').append(this.p1).append(", ").append(this.p2);
+			break;
+		case THREE_PARAMS_P1_NO_CONST_P2_ALLOW_CONST_P3_COMPILE_CONST:
+			build.append(' ').append(this.p1).append(", ").append(this.p2).append(", ").append(this.p3);
 			break;
 		default:
-			break;
+			throw new AssertionError("unknown art: "+ this.cmd.art);
 		}
 		return build.toString();
 	}

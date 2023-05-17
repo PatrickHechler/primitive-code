@@ -1,19 +1,19 @@
-//This file is part of the Primitive Code Project
-//DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-//Copyright (C) 2023  Patrick Hechler
+// This file is part of the Primitive Code Project
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+// Copyright (C) 2023 Patrick Hechler
 //
-//This program is free software: you can redistribute it and/or modify
-//it under the terms of the GNU General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-//This program is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU General Public License for more details.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
 //
-//You should have received a copy of the GNU General Public License
-//along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
@@ -39,9 +39,9 @@ public class Param {
 	
 	private Param(String label, long num, long off, int art) {
 		this.label = label;
-		this.num = num;
-		this.off = off;
-		this.art = art;
+		this.num   = num;
+		this.off   = off;
+		this.art   = art;
 	}
 	
 	public static Param createLabel(String label) {
@@ -49,7 +49,7 @@ public class Param {
 	}
 	
 	/**
-	 * can Build all non Label {@link Param}s.
+	 * can Build all non Label {@link Param parameters}.
 	 */
 	public static class ParamBuilder {
 		
@@ -62,19 +62,19 @@ public class Param {
 		public static final int SR_X_ADD  = X_ADD;
 		
 		public static final int A_NUM = 0x00000001;
-		public static final int A_SR  = 0x00000002;
+		public static final int A_XX  = 0x00000002;
 		public static final int B_REG = 0x00000010;
 		public static final int B_NUM = 0x00000020;
-		public static final int B_SR  = 0x00000040;
+		public static final int B_XX  = 0x00000040;
 		
 		private static final int BUILD_ANUM      = A_NUM;
-		private static final int BUILD_ASR       = A_SR;
+		private static final int BUILD_AXX       = A_XX;
 		private static final int BUILD_ANUM_BREG = A_NUM | B_REG;
-		private static final int BUILD_ASR_BREG  = A_SR | B_REG;
+		private static final int BUILD_AXX_BREG  = A_XX | B_REG;
 		private static final int BUILD_ANUM_BNUM = A_NUM | B_NUM;
-		private static final int BUILD_ASR_BNUM  = A_SR | B_NUM;
-		private static final int BUILD_ANUM_BAX  = A_NUM | B_SR;
-		private static final int BUILD_AAX_BAX   = A_SR | B_SR;
+		private static final int BUILD_AXX_BNUM  = A_XX | B_NUM;
+		private static final int BUILD_ANUM_BXX  = A_NUM | B_XX;
+		private static final int BUILD_AXX_BXX   = A_XX | B_XX;
 		
 		public int  art = 0;
 		public long v1  = 0L;
@@ -86,20 +86,54 @@ public class Param {
 			try {
 				build();
 				return true;
-			} catch (IllegalStateException e) {
+			} catch (@SuppressWarnings("unused") IllegalStateException e) {
 				return false;
 			}
 		}
 		
 		public Param build() {
-			return build(art, v1, v2);
+			return build(this.art, this.v1, this.v2);
+		}
+		
+		public Param build2() {
+			return build2(this.art, this.v1, this.v2);
 		}
 		
 		public static Param build(int art, long v1) {
-			if ((art & (B_NUM | B_SR)) != 0) {
+			if ((art & (B_NUM | B_XX)) != 0) {
 				throw new IllegalArgumentException("type specifies the use of v2, but i do not have a v2 value!");
 			}
 			return build(art, v1, 0L);
+		}
+		
+		public static Param build2(int art, long v1) {
+			if ((art & (B_NUM | B_XX)) != 0) {
+				throw new IllegalArgumentException("type specifies the use of v2, but i do not have a v2 value!");
+			}
+			return build2(art, v1, 0L);
+		}
+		
+		public static Param build2(int art, long v1, long v2) {
+			switch (art) {
+			case BUILD_ANUM, BUILD_ANUM_BREG, BUILD_AXX, BUILD_AXX_BREG, BUILD_AXX_BXX:
+				return build(art, v1, v2);
+			case BUILD_ANUM_BNUM:
+				throw new IllegalStateException("ANUM BNUM on build2");
+			case BUILD_AXX_BNUM:
+				Param.checkSR(v1);
+				if (v2 == 0L) {
+					return build(BUILD_AXX_BREG, v1, 0L);
+				}
+				return new Param(null, v1, v2, Param.ART_AREG_BNUM);
+			case BUILD_ANUM_BXX:
+				Param.checkSR(v2);
+				if (v1 == 0L) {
+					return build(BUILD_AXX_BREG, v2, 0L);
+				}
+				return new Param(null, v1, v2, Param.ART_ANUM_BREG);
+			default:
+				throw new IllegalStateException("art=" + Integer.toHexString(art));
+			}
 		}
 		
 		public static Param build(int art, long v1, long v2) {
@@ -110,23 +144,23 @@ public class Param {
 			case BUILD_ANUM_BREG:
 				Param.checkZero(v2);
 				return new Param(null, v1, 0, Param.ART_ANUM_BADR);
-			case BUILD_ASR:
+			case BUILD_AXX:
 				Param.checkSR(v1);
 				Param.checkZero(v2);
 				return new Param(null, v1, 0, Param.ART_AREG);
-			case BUILD_ASR_BREG:
+			case BUILD_AXX_BREG:
 				Param.checkSR(v1);
 				Param.checkZero(v2);
 				return new Param(null, v1, 0, Param.ART_AREG_BADR);
 			case BUILD_ANUM_BNUM:
 				return new Param(null, v1, v2, Param.ART_ANUM_BNUM);
-			case BUILD_ASR_BNUM:
+			case BUILD_AXX_BNUM:
 				Param.checkSR(v1);
 				return new Param(null, v1, v2, Param.ART_AREG_BNUM);
-			case BUILD_ANUM_BAX:
+			case BUILD_ANUM_BXX:
 				Param.checkSR(v2);
 				return new Param(null, v1, v2, Param.ART_ANUM_BREG);
-			case BUILD_AAX_BAX:
+			case BUILD_AXX_BXX:
 				Param.checkSR(v1);
 				Param.checkSR(v2);
 				return new Param(null, v1, v2, Param.ART_AREG_BREG);
@@ -194,10 +228,10 @@ public class Param {
 	
 	@Override
 	public String toString() {
-		if (label != null) {
-			return label;
+		if (this.label != null) {
+			return this.label;
 		}
-		switch (art) {
+		switch (this.art) {
 		case ART_ANUM:
 			return Long.toString(this.num);
 		case ART_AREG:
@@ -215,7 +249,7 @@ public class Param {
 		case ART_AREG_BREG:
 			return "[" + toSRString(this.num) + "+" + toSRString(this.off) + "]";
 		default:
-			throw new InternalError("unknown param art: " + art);
+			throw new InternalError("unknown param art: " + this.art);
 		}
 	}
 	
