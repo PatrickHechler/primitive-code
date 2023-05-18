@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 
 import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
 
+@SuppressWarnings("javadoc")
 public class PrimAsmConstants {
 	
 	private PrimAsmConstants() {}

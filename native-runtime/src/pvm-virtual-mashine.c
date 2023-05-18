@@ -449,17 +449,23 @@ static void pvm_dbcmd_disasm(struct sok_data *sd, char *buffer);
 static inline void init_debug_cmds_set() {
 	struct debug_cmd *dc;
 	set_debug_cmd(help)
+	set_debug_cmd0(help, "h")
 	set_debug_cmd(version)
 	set_debug_cmd(detach)
 	set_debug_cmd(exit)
 	set_debug_cmd(state)
 	set_debug_cmd(wait)
 	set_debug_cmd(run)
+	set_debug_cmd0(run, "r")
 	set_debug_cmd0(step_in, "step-in")
+	set_debug_cmd0(step_in, "si")
 	set_debug_cmd(step)
+	set_debug_cmd0(step, "s")
 	set_debug_cmd0(step_out, "step-out")
+	set_debug_cmd0(step_out, "so")
 	set_debug_cmd0(step_dep, "step-dep")
 	set_debug_cmd(break)
+	set_debug_cmd0(break, "b")
 	set_debug_cmd(pvm)
 	set_debug_cmd(regs)
 	set_debug_cmd(mem)
@@ -1553,12 +1559,9 @@ static void pvm_dbcmd_mem(struct sok_data *sd, char *buffer) {
 	ui8 buf[17];
 	buf[16] = '\0';
 	for (; len; len -= 8, addr += 8) {
-		if (len > 8) {
+		if (len >= 8) {
 			num n = *(num*) (mem_chk.mem->offset + addr);
-			for (int i = 16; i--;) {
-				buf[i] = to_hex(0xF & (n >> (60 - (4 * i))));
-			}
-			fprintf(sd->write, "p-%lX : %s\n", addr, buf);
+			fprintf(sd->write, "p-%lX : %.16lX\n", addr, n);
 		} else {
 			ui8 *p = mem_chk.mem->offset + addr;
 			for (int i = 0; i < (8 - len); i++) {
@@ -1566,8 +1569,8 @@ static void pvm_dbcmd_mem(struct sok_data *sd, char *buffer) {
 				buf[(i << 1) + 1] = ' ';
 			}
 			for (int i = 0; len > 0; len--, p++, i += 2) {
-				buf[15 - i] = to_hex(0xF & (*p >> 4));
-				buf[14 - i] = to_hex(0xF & *p);
+				buf[15 - i] = to_hex(0xF & *p);
+				buf[14 - i] = to_hex(0xF & (*p >> 4));
 			}
 			fprintf(sd->write, "p-%lX : %s\n", addr, buf);
 			break;

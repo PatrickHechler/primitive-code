@@ -64,6 +64,7 @@ import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
 import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants;
 import de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable;
 
+@SuppressWarnings("javadoc")
 public class PrimitiveAssembler {
 	
 	private static final String UNWANTED_LABEL_IN_PARAMS = "I don't need a label in my params!";
@@ -156,13 +157,13 @@ public class PrimitiveAssembler {
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
 		boolean bailError, ANTLRErrorListener errorListener) throws AssembleError {
-		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {//
 		});
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
 		boolean bailError, ANTLRErrorListener errorListener, long pos) throws AssembleError {
-		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {
+		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {//
 		}, pos);
 	}
 	
@@ -201,7 +202,7 @@ public class PrimitiveAssembler {
 		if (errorHandler != null) { parser.setErrorHandler(errorHandler); }
 		if (errorListener != null) { parser.addErrorListener(errorListener); }
 		try {
-			return parser.parse(path, pos, defaultAlign, predefinedConstants, bailError, errorHandler, errorListener, enterConstPool, this, antlrin, thisFile,
+			return parser.parse(path, pos, this.defaultAlign, predefinedConstants, bailError, errorHandler, errorListener, enterConstPool, this, antlrin, thisFile,
 				readFiles);
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
@@ -328,10 +329,9 @@ public class PrimitiveAssembler {
 				if (be) {
 					throw new AssembleError(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - startIndex, startIndex,
 						"is source set to false, but path is set to [THIS]");
-				} else {
-					throw new AssembleRuntimeException(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - startIndex, startIndex,
-						"is source set to false, but path is set to [THIS]");
 				}
+				return new AssembleRuntimeException(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - startIndex, startIndex,
+					"is source set to false, but path is set to [THIS]");
 			}
 			bytes    = antlrin.getText(new Interval(0, antlrin.size() - 1)).getBytes(StandardCharsets.UTF_8);
 			isSource = Boolean.TRUE;
@@ -341,8 +341,7 @@ public class PrimitiveAssembler {
 		if (isSource != null) {
 			isPrimSourceCode = isSource.booleanValue();
 		} else {
-			FileTypes type = FileTypes.getTypeFromName(readFile, FileTypes.PRIMITIVE_MASHINE_CODE); // here used as magic
-																									 // for illegal
+			FileTypes type = FileTypes.getTypeFromName(readFile, FileTypes.PRIMITIVE_MASHINE_CODE); // here used as magic for illegal
 			switch (type) {
 			case PRIMITIVE_SOURCE_CODE -> isPrimSourceCode = true;
 			case PRIMITIVE_SYMBOL_FILE -> isPrimSourceCode = false;
@@ -384,7 +383,7 @@ public class PrimitiveAssembler {
 			if (isPrimSourceCode) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				ParseContext          pc   = preassemble(path, new ANTLRInputStream(new InputStreamReader(in, StandardCharsets.UTF_8)), startConsts,
-					be ? new BailErrorStrategy() : null, be, null, (line, charPos) -> {
+					be ? new BailErrorStrategy() : null, be, null, (line, charPos) -> {//
 												},
 					readFile, readFiles);
 				PrimAsmConstants.export(pc.exports, new PrintStream(baos, true, "UTF-8"));
@@ -409,11 +408,10 @@ public class PrimitiveAssembler {
 						throw new AssembleError(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - startIndex + 1, startIndex,
 							"loop detected! started again with the same start consts: in file='" + thisFile + "' read symbols of file='" + rf + "' constants: "
 								+ startConsts);
-					} else {
-						throw new AssembleRuntimeException(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - startIndex + 1, startIndex,
-							"loop detected! started again with the same start consts: in file='" + thisFile + "' read symbols of file='" + rf + "' constants: "
-								+ startConsts);
 					}
+					throw new AssembleRuntimeException(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - startIndex + 1, startIndex,
+						"loop detected! started again with the same start consts: in file='" + thisFile + "' read symbols of file='" + rf + "' constants: "
+							+ startConsts);
 				}
 			}
 			newValue = new ArrayList<>(oldValue);
@@ -424,13 +422,13 @@ public class PrimitiveAssembler {
 	
 	private static Map<String, Long> convertPrimConstMapToLongMap(Map<String, PrimitiveConstant> startConsts) {
 		Map<String, Long> nv = new LinkedHashMap<>();
-		startConsts.forEach((n, pc) -> nv.put(n, pc.value()));
+		startConsts.forEach((n, pc) -> nv.put(n, Long.valueOf(pc.value())));
 		return nv;
 	}
 	
 	public void assemble(List<Command> cmds, Map<String, Long> labels) throws IOException {
 		long    pos       = 0;
-		boolean alignMode = defaultAlign;
+		boolean alignMode = this.defaultAlign;
 		boolean alignable = false;
 		long    index     = -1;
 		for (Command cmd : cmds) {
@@ -443,7 +441,7 @@ public class PrimitiveAssembler {
 					asmCommand(pos, labels, cmd);
 				} else if (cmd instanceof ConstantPoolCommand cpc) {
 					alignable = true;
-					cpc.write(out);
+					cpc.write(this.out);
 				} else if (cmd instanceof CompilerCommandCommand ccc) {
 					switch (ccc.directive) {
 					case align:
@@ -485,7 +483,7 @@ public class PrimitiveAssembler {
 		if (mod != 0) {
 			int    add   = 8 - mod;
 			byte[] bytes = new byte[add];
-			out.write(bytes, 0, bytes.length);
+			this.out.write(bytes, 0, bytes.length);
 			pos += add;
 		}
 		return pos;
@@ -527,14 +525,14 @@ public class PrimitiveAssembler {
 				if (numobj == null) {
 					throw new NullPointerException("label not found! label: '" + cmd.p1.label + "' known labels: '" + labels + "'");
 				}
-				num = numobj - pos;
+				num = numobj.longValue() - pos;
 			} else if (cmd.p1.art == Param.ART_ANUM) {
 				num = cmd.p1.num;
 			} else {
 				throw new IllegalStateException(PARAM_MUST_BE_A_CONSTANT_CMD + cmd.cmd.name() + ')');
 			}
 			fillJumpAddr(bytes, num);
-			out.write(bytes, 0, bytes.length);
+			this.out.write(bytes, 0, bytes.length);
 		}
 		default -> throw new AssertionError(UNKNOWN_NOCONST_PARAM_COUNT + cmd.cmd.name());
 		}
@@ -563,7 +561,7 @@ public class PrimitiveAssembler {
 				if (cmd.p2.art != Param.ART_ANUM) { throw new IllegalStateException(PARAM_MUST_BE_A_CONSTANT_CMD + cmd.cmd.name() + ')'); }
 				writeOneParam(cmd, bytes);
 				fillJumpAddr(bytes, cmd.p2.num);
-				out.write(bytes, 0, bytes.length);
+				this.out.write(bytes, 0, bytes.length);
 			}
 			default -> throw new AssertionError(UNKNOWN_NOCONST_PARAM_COUNT + cmd.cmd.name());
 			}
@@ -578,7 +576,7 @@ public class PrimitiveAssembler {
 		noConstCheck(cmd.p2, cmd);
 		writeTwoParam(cmd, bytes);
 		convertLongToByteArr(bytes, cmd.p3.num);
-		out.write(bytes, 0, bytes.length);
+		this.out.write(bytes, 0, bytes.length);
 	}
 	
 	private static void nullCheck(Param nullParam, Command cmd) {
@@ -605,9 +603,9 @@ public class PrimitiveAssembler {
 		bytes[7] = (byte) (num >> 40);
 	}
 
-	private void writeNullParam(Command cmd, byte[] bytes) throws IOException {
+	private void writeNullParam(@SuppressWarnings("unused") Command cmd, byte[] bytes) throws IOException {
 		assert bytes.length == 8;
-		out.write(bytes, 0, 8);
+		this.out.write(bytes, 0, 8);
 	}
 
 	private void writeOneParam(Command cmd, byte[] bytes) throws IOException {
@@ -618,9 +616,9 @@ public class PrimitiveAssembler {
 		long num = cmd.p1.num;
 		long off = cmd.p1.off;
 		int  art = cmd.p1.art;
-		addRegs(bytes, num, off, art, art);
+		addRegs(bytes, num, off, art, 7);
 		addNums(bytes, num, off, art);
-		out.write(bytes, 0, 8);
+		this.out.write(bytes, 0, 8);
 	}
 	
 	private void writeTwoParam(Command cmd, byte[] bytes) throws IOException {
@@ -641,34 +639,34 @@ public class PrimitiveAssembler {
 		addRegs(bytes, p2num, p2off, p2art, index);
 		addNums(bytes, p1num, p1off, p1art);
 		addNums(bytes, p2num, p2off, p2art);
-		out.write(bytes, 0, 8);
+		this.out.write(bytes, 0, 8);
 	}
 	
 	private void addNums(byte[] bytes, final long pnum, final long poff, final int part) throws IOException, AssertionError {
 		switch (part) {
 		case Param.ART_ANUM -> {
-			out.write(bytes, 0, 8);
+			this.out.write(bytes, 0, 8);
 			convertLongToByteArr(bytes, pnum);
 		}
 		case Param.ART_ANUM_BNUM -> {
-			if (!supressWarn) { LOG.warning(ADD_CONSTANTS_RUNTIME_WARN); }
-			out.write(bytes, 0, 8);
+			if (!this.supressWarn) { LOG.warning(ADD_CONSTANTS_RUNTIME_WARN); }
+			this.out.write(bytes, 0, 8);
 			convertLongToByteArr(bytes, pnum);
-			out.write(bytes, 0, 8);
+			this.out.write(bytes, 0, 8);
 			convertLongToByteArr(bytes, poff);
 		}
 		case Param.ART_ANUM_BADR -> {
-			if (!supressWarn) { LOG.warning(CONSTANT_MEMORY_POINTER_WARN); }
-			out.write(bytes, 0, 8);
+			if (!this.supressWarn) { LOG.warning(CONSTANT_MEMORY_POINTER_WARN); }
+			this.out.write(bytes, 0, 8);
 			convertLongToByteArr(bytes, pnum);
 		}
 		case Param.ART_ANUM_BREG -> {
-			out.write(bytes, 0, 8);
+			this.out.write(bytes, 0, 8);
 			convertLongToByteArr(bytes, pnum);
 		}
 		case Param.ART_AREG -> {/**/}
 		case Param.ART_AREG_BNUM -> {
-			out.write(bytes, 0, 8);
+			this.out.write(bytes, 0, 8);
 			convertLongToByteArr(bytes, poff);
 		}
 		case Param.ART_AREG_BADR -> {/**/}
@@ -680,8 +678,8 @@ public class PrimitiveAssembler {
 	private int addRegs(byte[] bytes, final long pnum, final long poff, final int part, int index) throws AssertionError {
 		switch (part) {
 		case Param.ART_ANUM -> { /**/ }
-		case Param.ART_ANUM_BNUM -> { if (!supressWarn) { LOG.warning(ADD_CONSTANTS_RUNTIME_WARN); } }
-		case Param.ART_ANUM_BADR -> { if (!supressWarn) { LOG.warning(CONSTANT_MEMORY_POINTER_WARN); } }
+		case Param.ART_ANUM_BNUM -> { if (!this.supressWarn) { LOG.warning(ADD_CONSTANTS_RUNTIME_WARN); } }
+		case Param.ART_ANUM_BADR -> { if (!this.supressWarn) { LOG.warning(CONSTANT_MEMORY_POINTER_WARN); } }
 		case Param.ART_ANUM_BREG -> {
 			Param.checkSR(poff);
 			bytes[index--] = (byte) poff;

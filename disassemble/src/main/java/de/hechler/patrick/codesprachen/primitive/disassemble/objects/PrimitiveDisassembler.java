@@ -17,7 +17,8 @@
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertByteArrToHexString;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.*;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertByteArrToLong;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertLongToByteArr;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertLongToHexString;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
 
@@ -95,8 +96,6 @@ public class PrimitiveDisassembler implements Closeable {
 		case executable:
 			this.out.write("$not-align\n");
 			break;
-		default:
-			throw new InternalError(UNKNOWN_MODE + this.mode.name());
 		}
 		for (int i = 0; i < cmds.size(); i++) {
 			if (labels.contains(Long.valueOf(pos))) {
@@ -107,13 +106,13 @@ public class PrimitiveDisassembler implements Closeable {
 					this.out.write(this.lng.generateName(pos));
 					this.out.write('\n');
 				}
-				default -> throw new InternalError(UNKNOWN_MODE + this.mode.name());
+				default -> throw new AssertionError(UNKNOWN_MODE + this.mode.name());
 				}
 			} else {
 				switch (this.mode) {
 				case analysable -> this.out.write("   ");
 				case executable -> {/**/}
-				default -> throw new InternalError(UNKNOWN_MODE + this.mode.name());
+				default -> throw new AssertionError(UNKNOWN_MODE + this.mode.name());
 				}
 			}
 			Command cmd = cmds.get(i);
@@ -148,7 +147,7 @@ public class PrimitiveDisassembler implements Closeable {
 					this.out.write('\n');
 					pos += cp.length();
 				}
-				default -> throw new InternalError(UNKNOWN_MODE + this.mode.name());
+				default -> throw new AssertionError(UNKNOWN_MODE + this.mode.name());
 				}
 				continue;
 			}
@@ -184,7 +183,7 @@ public class PrimitiveDisassembler implements Closeable {
 					this.out.write(cmd.toString());
 					this.out.write('\n');
 					long ipos = pos + 8;
-					if ((cmd.p1.art & PARAM_A_REG) != PARAM_A_REG) {
+					if ((cmd.p1.art & PARAM_A_NUM) == PARAM_A_NUM) {
 						this.out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p-num]\n")));
 						ipos += 8;
 					}
@@ -213,19 +212,19 @@ public class PrimitiveDisassembler implements Closeable {
 					this.out.write(cmd.toString());
 					this.out.write('\n');
 					long ipos = pos;
-					if ((cmd.p1.art & PARAM_A_REG) != PARAM_A_REG) {
+					if ((cmd.p1.art & PARAM_A_NUM) == PARAM_A_NUM) {
 						ipos += 8;
 						this.out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p1-num]\n")));
 					}
-					if ((cmd.p1.art & PARAM_B_REG) == PARAM_B_NUM) {
+					if ((cmd.p1.art & PARAM_B_NUM) == PARAM_B_NUM) {
 						ipos += 8;
 						this.out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p1-offset]\n")));
 					}
-					if ((cmd.p2.art & PARAM_A_REG) != PARAM_A_REG) {
+					if ((cmd.p2.art & PARAM_A_NUM) == PARAM_A_NUM) {
 						ipos += 8;
 						this.out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.num, "   | [p2-num]\n")));
 					}
-					if ((cmd.p2.art & PARAM_B_REG) == PARAM_B_NUM) {
+					if ((cmd.p2.art & PARAM_B_NUM) == PARAM_B_NUM) {
 						ipos += 8;
 						this.out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.off, "   | [p2-offset]\n")));
 					}
@@ -251,7 +250,7 @@ public class PrimitiveDisassembler implements Closeable {
 					this.out.write(cmd.toString());
 					this.out.write('\n');
 					long ipos = pos;
-					if ((cmd.p1.art & PARAM_A_REG) != PARAM_A_REG) {
+					if ((cmd.p1.art & PARAM_A_NUM) == PARAM_A_NUM) {
 						ipos += 8;
 						this.out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.num, "   | [p1-num]\n")));
 					}
@@ -259,11 +258,11 @@ public class PrimitiveDisassembler implements Closeable {
 						ipos += 8;
 						this.out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p1.off, "   | [p1-offset]\n")));
 					}
-					if ((cmd.p2.art & PARAM_A_REG) != PARAM_A_REG) {
+					if ((cmd.p2.art & PARAM_A_NUM) == PARAM_A_NUM) {
 						ipos += 8;
 						this.out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.num, "   | [p2-num]\n")));
 					}
-					if ((cmd.p2.art & PARAM_B_REG) == PARAM_B_NUM) {
+					if ((cmd.p2.art & PARAM_B_NUM) == PARAM_B_NUM) {
 						ipos += 8;
 						this.out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p2.off, "   | [p2-offset]\n")));
 					}
@@ -271,8 +270,6 @@ public class PrimitiveDisassembler implements Closeable {
 					this.out.write(convertLongToHexString("   ", ipos, convertLongToHexString(" -> ", cmd.p3.num, "   | [p3-num]\n")));
 					break;
 				}
-				default:
-					throw new InternalError("unknown cmdart: " + cmd.cmd.art);
 				}
 			}
 			case executable -> {
@@ -280,7 +277,7 @@ public class PrimitiveDisassembler implements Closeable {
 				this.out.write(cmd.toString(pos));
 				this.out.write('\n');
 			}
-			default -> throw new InternalError("unknown DisasmMode: " + this.mode.name());
+			default -> throw new AssertionError("unknown DisasmMode: " + this.mode.name());
 			}
 			pos += cmd.length();
 		}
@@ -307,7 +304,7 @@ public class PrimitiveDisassembler implements Closeable {
 		return b.append('"').toString();
 	}
 	
-	private void read(long pos, InputStream in, List<Command> cmds, Set<Long> labels) throws IOException, InternalError {
+	private void read(long pos, InputStream in, List<Command> cmds, Set<Long> labels) throws IOException, AssertionError {
 		byte[]          bytes = new byte[8];
 		ConstantPoolCmd cp    = new ConstantPoolCmd();
 		while (true) {
@@ -377,14 +374,18 @@ public class PrimitiveDisassembler implements Closeable {
 					break;
 				}
 				default:
-					throw new InternalError("the command '" + cmd.name() + "' does not have a known 'art' value! art=" + cmd.art.name());
+					throw new AssertionError("the command '" + cmd.name() + "' does not have a known 'art' value! art=" + cmd.art.name());
 				}
 				if (cp.length() > command.length()) {
 					cp.truncate(cp.length() - command.length());
 					cmds.add(cp);
 					pos += cp.length();
+					cp   = new ConstantPoolCmd();
+				} else if (cp.length() == command.length()) {
+					cp.truncate(0);
+				} else {
+					throw new AssertionError();
 				}
-				cp   = new ConstantPoolCmd();
 				pos += command.length();
 				cmds.add(command);
 			} catch (@SuppressWarnings("unused") NoCommandException nce) { /* (handled on next success or end) */ }
