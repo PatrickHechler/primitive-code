@@ -62,7 +62,7 @@
 
 #ifdef PVM_DEBUG
 static FILE *old_stderr;
-#endif
+#endif // PVM_DEBUG
 
 static int param_param_type_index;
 static int param_byte_value_index;
@@ -148,7 +148,7 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	for (; argc; argv++, argc--) {
 		num len = strlen(*argv) + 1;
 		struct memory *arg_mem = alloc_memory2(*argv, len,
-		MEM_NO_FREE | MEM_NO_RESIZE);
+		/*		*/MEM_NO_FREE | MEM_NO_RESIZE);
 		if (!arg_mem) {
 			abort();
 		}
@@ -474,44 +474,6 @@ static inline void init_debug_cmds_set() {
 #undef set_debug_cmd0
 #undef set_debug_cmd
 
-static inline void create_pipes(int stdin_pipe[2], int stdout_pipe[2],
-		int stderr_pipe[2]) {
-	if (pipe2(stdin_pipe, O_NONBLOCK | O_CLOEXEC) == -1) {
-		fprintf(old_stderr, "could not open a debug pipe!: %s\n",
-				strerror(errno));
-		exit(1);
-	}
-	if (pipe2(stdout_pipe, O_NONBLOCK | O_CLOEXEC) == -1) {
-		fprintf(old_stderr, "could not open a debug pipe!: %s\n",
-				strerror(errno));
-		exit(1);
-	}
-	if (pipe2(stderr_pipe, O_NONBLOCK | O_CLOEXEC) == -1) {
-		fprintf(old_stderr, "could not open a debug pipe!: %s\n",
-				strerror(errno));
-		exit(1);
-	}
-}
-
-static inline void overwrite_std(int new_stdin, int new_stdout, int new_stderr) {
-	// std streams are overwritten between fork and exec
-	if (dup2(new_stdin, STDIN_FILENO) == -1) {
-		fprintf(old_stderr, "could not set stdin!: %s\n", strerror(errno));
-		exit(1);
-	}
-	if (dup2(new_stdout, STDOUT_FILENO) == -1) {
-		fprintf(old_stderr, "could not set stdout!: %s\n", strerror(errno));
-		exit(1);
-	}
-	if (dup2(new_stderr, STDERR_FILENO) == -1) {
-		fprintf(old_stderr, "could not set stderr!: %s\n", strerror(errno));
-		exit(1);
-	}
-	set_fd_flag(STDIN_FILENO, "NONBLOCK", O_NONBLOCK, 1);
-	set_fd_flag(STDOUT_FILENO, "NONBLOCK", O_NONBLOCK, 1);
-	set_fd_flag(STDERR_FILENO, "NONBLOCK", O_NONBLOCK, 1);
-}
-
 //static void at_fork_child(void) {
 //	pthread_mutex_destroy(&debug_mutex);
 //}
@@ -576,20 +538,13 @@ void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 		input = stderr_dup;
 		break;
 	}
-	// save to do this not atomic, because here the programm is still single threaded
+	// save to do this not atomic, because here the program is still single threaded
 	set_fd_flag(stdin_dup, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	set_fd_flag(stdout_dup, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	set_fd_flag(stderr_dup, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	int stderr_dup2 = dup(STDERR_FILENO);
 	set_fd_flag(stderr_dup2, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	old_stderr = fdopen(stderr_dup2, "w");
-
-	int stdin_pipe[2];
-	int stdout_pipe[2];
-	int stderr_pipe[2];
-	create_pipes(stdin_pipe, stdout_pipe, stderr_pipe);
-
-	overwrite_std(stdin_pipe[0], stdout_pipe[1], stderr_pipe[1]);
 
 	init_syncronisation();
 	pvm_lock();
