@@ -1015,7 +1015,7 @@ PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size, unsigned flags) 
 			memory[index].end = memory[index].start + size;
 			memory[index].offset = adr - memory[index].start;
 			memory[index].flags = flags;
-			next_adress = memory[index].end + ADRESS_HOLE_DEFAULT_SIZE;
+			next_adress = (memory[index].end + ADRESS_HOLE_DEFAULT_SIZE) & ~7;
 			if (memory[index].end < 0) {
 				// overflow
 				abort();
@@ -1132,7 +1132,7 @@ PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize,
 			// overflow
 			abort();
 		}
-		next_adress = mem->end + ADRESS_HOLE_DEFAULT_SIZE;
+		next_adress = (mem->end + ADRESS_HOLE_DEFAULT_SIZE) & ~7;
 		mem->offset = new_pntr - mem->start;
 		return mem;
 	}
