@@ -1,26 +1,30 @@
-//This file is part of the Primitive Code Project
-//DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-//Copyright (C) 2023  Patrick Hechler
+// This file is part of the Primitive Code Project
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+// Copyright (C) 2023 Patrick Hechler
 //
-//This program is free software: you can redistribute it and/or modify
-//it under the terms of the GNU General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-//This program is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU General Public License for more details.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
 //
-//You should have received a copy of the GNU General Public License
-//along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 package de.hechler.patrick.codesprachen.primitive.disassemble.objects;
 
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertByteArrToHexString;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertByteArrToLong;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertLongToByteArr;
 import static de.hechler.patrick.codesprachen.primitive.core.utils.Convert.convertLongToHexString;
-import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.*;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_ART_ANUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_A_NUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_A_REG;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_B_NUM;
+import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants.PARAM_B_REG;
 
 import java.io.ByteArrayInputStream;
 import java.io.Closeable;
@@ -28,10 +32,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
+import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
+import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants;
 import de.hechler.patrick.codesprachen.primitive.disassemble.PrimitiveDisassemblerMain;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.Commands;
 import de.hechler.patrick.codesprachen.primitive.disassemble.enums.DisasmMode;
@@ -46,6 +54,16 @@ public class PrimitiveDisassembler implements Closeable {
 	
 	private static final String NO_VALID_CMD_ART = "the command has no valid art";
 	private static final String UNKNOWN_MODE     = "unknown mode: ";
+	
+	private static final Map<Long, String> INTERRUPT_NUMS = new HashMap<>();
+	
+	static {
+		for (PrimitiveConstant pc : PrimAsmConstants.START_CONSTANTS.values()) {
+			if (!pc.name().startsWith("INT_")) continue;
+			String old = INTERRUPT_NUMS.put(Long.valueOf(pc.value()), pc.name());
+			if (old != null) throw new AssertionError("multiple interrupts with same value: " + pc.value() + " names: " + old + " and " + pc.name());
+		}
+	}
 	
 	private final Writer             out;
 	private final LabelNameGenerator lng;
@@ -181,6 +199,10 @@ public class PrimitiveDisassembler implements Closeable {
 					}
 					this.out.write(convertLongToHexString(pos, convertByteArrToHexString(" -> ", bytes, " = ")));
 					this.out.write(cmd.toString());
+					if (cmd.cmd == Commands.CMD_INT && cmd.p1.art == PARAM_ART_ANUM) {
+						this.out.write(" = ");
+						this.out.write(INTERRUPT_NUMS.get(Long.valueOf(cmd.p1.num)));
+					}
 					this.out.write('\n');
 					long ipos = pos + 8;
 					if ((cmd.p1.art & PARAM_A_NUM) == PARAM_A_NUM) {
@@ -394,8 +416,7 @@ public class PrimitiveDisassembler implements Closeable {
 	
 	private static void checkedReadBytes(InputStream in, byte[] bytes, ConstantPoolCmd cp) throws IOException, NoCommandException {
 		PrimitiveDisassemblerMain.LOG.finer(() -> "read now " + bytes.length + " bytes ");
-		for (int read = 0,
-				add = in.read(bytes, read, bytes.length - read); read < bytes.length; read += add, add = in.read(bytes, read, bytes.length - read)) {
+		for (int read = 0, add = in.read(bytes, read, bytes.length - read); read < bytes.length; read += add, add = in.read(bytes, read, bytes.length - read)) {
 			if (add != -1) continue;
 			if (read > 0) {
 				cp.add(bytes, read);
