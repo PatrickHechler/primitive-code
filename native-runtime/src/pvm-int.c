@@ -255,7 +255,8 @@ static void int_element_get_flags( INT_PARAMS) /* 28 */{
 	pvm.x[1] = pfs_element_get_flags(pvm.x[0]);
 }
 static void int_element_modify_flags( INT_PARAMS) /* 29 */{
-	pvm.x[1] = pfs_element_modify_flags(pvm.x[0], 0xFFFF & pvm.x[1], 0xFFFF & pvm.x[2]);
+	pvm.x[1] = pfs_element_modify_flags(pvm.x[0], 0xFFFF & pvm.x[1],
+			0xFFFF & pvm.x[2]);
 }
 static void int_folder_child_count( INT_PARAMS) /* 30 */{
 	pvm.x[1] = pfs_folder_child_count(pvm.x[0]);
@@ -1092,12 +1093,35 @@ static void int_load_file( INT_PARAMS) /* 64 */{
 int loaded_libs_equal(const void *a, const void *b) {
 	const struct loaded_libs_entry *ea = a, *eb = b;
 	return strcmp(ea->name, eb->name) == 0;
-}
-unsigned int loaded_libs_hash(const void *f) {
-	unsigned res = 0;
-	const unsigned char *c = ((struct loaded_libs_entry*) f)->name;
-	for (int i = 0; *c; i = (i + 1) & 3) {
-		res ^= (*c) << i;
+} // hashes a structure which starts with a pointer to a string
+static uint64_t string_hash(const void *a) {
+	const unsigned char *cs = *(unsigned char**) a;
+	uint64_t res = 0;
+	while (1) {
+		if (*cs == '\0')
+			break;
+		res ^= *(cs++);
+		if (*cs == '\0')
+			break;
+		res ^= (*(cs++)) << 8;
+		if (*cs == '\0')
+			break;
+		res ^= (*(cs++)) << 16;
+		if (*cs == '\0')
+			break;
+		res ^= (*(cs++)) << 24;
+		if (*cs == '\0')
+			break;
+		res ^= (int64_t) (*(cs++)) << 32;
+		if (*cs == '\0')
+			break;
+		res ^= (int64_t) (*(cs++)) << 40;
+		if (*cs == '\0')
+			break;
+		res ^= (int64_t) (*(cs++)) << 48;
+		if (*cs == '\0')
+			break;
+		res ^= (int64_t) (*(cs++)) << 56;
 	}
 	return res;
 }
@@ -1115,7 +1139,7 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 	}
 	struct loaded_libs_entry tmp_entry;
 	tmp_entry.name = name;
-	void *old = hashset_get(&loaded_libs, loaded_libs_hash(&tmp_entry),
+	void *old = hashset_get(&loaded_libs, string_hash(&tmp_entry),
 			&tmp_entry);
 	if (old) {
 		struct loaded_libs_entry *entry = old;
@@ -1157,7 +1181,8 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 	if (name_len < MAX_LIB_NAME_LEN) {
 		char *name_cpy = malloc(name_len + 1);
 		if (name_cpy) {
-			struct loaded_libs_entry *new_entry = malloc(sizeof(struct loaded_libs_entry));
+			struct loaded_libs_entry *new_entry = malloc(
+					sizeof(struct loaded_libs_entry));
 			if (new_entry) {
 				memcpy(name_cpy, name, name_len + 1);
 				new_entry->name = name;
@@ -1165,7 +1190,8 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 			} else {
 				free(name_cpy);
 			}
-			old = hashset_put(&loaded_libs, loaded_libs_hash(&new_entry), &new_entry);
+			old = hashset_put(&loaded_libs, string_hash(&new_entry),
+					&new_entry);
 			if (old) {
 				abort();
 			}
@@ -1175,24 +1201,25 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 	pvm.x[1] = eof;
 	pvm.x[2] = 1;
 }
+int unload_lib(void *arg0, void *element) {
+	struct memory *mem = (struct memory*) arg0;
+	struct loaded_libs_entry *entry = element;
+	if (entry->pntr != mem->start) {
+		return 1;
+	}
+	if (hashset_remove(&loaded_libs, string_hash(entry), entry) != entry) {
+		abort();
+	}
+	free(entry->name);
+	free(entry);
+	free_mem_impl(mem);
+	return 0;
+}
 static void int_unload_lib( INT_PARAMS) /* 66 */{
 	struct memory *mem = chk(pvm.x[0], 0).mem;
 	if ((mem->flags & MEM_LIB) == 0) {
 		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
-	for (int i = 0;; i++) {
-		if (!loaded_libs.entries[i] || loaded_libs.entries[i] == &illegal) {
-			continue;
-		}
-		struct loaded_libs_entry *e = loaded_libs.entries[i];
-		if (e->pntr != mem->start) {
-			continue;
-		}
-		hashset_remove(&loaded_libs, loaded_libs_hash(e), e);
-		free(e->name);
-		free(e);
-		break;
-	}
-	free_mem_impl(mem);
+	hashset_for_each(&loaded_libs, unload_lib, (void*) mem->start);
 }

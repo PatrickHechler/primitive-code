@@ -143,7 +143,7 @@ enum param_type {
 #	ifdef PVM
 
 static int pvm_same_address(const void *a, const void *b);
-static unsigned int pvm_address_hash(const void *a);
+static uint64_t pvm_address_hash(const void *a);
 
 #	endif // PVM
 

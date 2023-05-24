@@ -61,6 +61,8 @@
 #include <sys/wait.h>
 #endif // PVM_DEBUG
 
+static uint64_t string_hash(const void *_a);
+
 static int param_param_type_index;
 static int param_byte_value_index;
 static int param_num_value_index;
@@ -157,16 +159,16 @@ extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
 }
 
 int loaded_libs_equal(const void *a, const void *b);
-unsigned int loaded_libs_hash(const void *f);
 struct loaded_libs_entry {
 	char *name;
 	num pntr;
 };
+static_assert(offsetof(struct loaded_libs_entry, name) == 0, "Error");
 static struct hashset loaded_libs = { //
 		/*	  */.entrycount = 0, //
 				.maxi = 0, //
 				.equalizer = loaded_libs_equal, //
-				.hashmaker = loaded_libs_hash, //
+				.hashmaker = string_hash, //
 				.entries = NULL, //
 		};
 
@@ -252,7 +254,7 @@ extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
 					abort();
 				}
 				void *old = hashset_put(&loaded_libs,
-						loaded_libs_hash(&new_entry), &new_entry);
+						string_hash(&new_entry), &new_entry);
 				if (old) {
 					abort();
 				}
@@ -287,7 +289,7 @@ extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
 			} else {
 				abort();
 			}
-			void *old = hashset_put(&loaded_libs, loaded_libs_hash(&new_entry),
+			void *old = hashset_put(&loaded_libs, string_hash(&new_entry),
 					&new_entry);
 			if (old) {
 				abort();
@@ -386,6 +388,11 @@ static void* pvm_delegate_func(void *_arg) {
 			return NULL;
 		}
 		pvm_lock();
+		struct pvm_wtd_arg wtd_arg = {
+				.data = buffer,
+				.len = reat
+		};
+		hashset_for_each(&arg.dst_fds, write_to_delegate, &wtd_arg);
 		for (int i = arg.dst_fds->setsize; i;) {
 			if (!arg.dst_fds->entries[i]
 					|| arg.dst_fds->entries[i] == &illegal) {
@@ -527,37 +534,18 @@ struct debug_cmd {
 	void (*func)(struct sok_data *sd, char *buffer);
 };
 
+static_assert(offsetof(struct debug_cmd, name) == 0, "Error!");
+
 static int debug_cmds_equal(const void *_a, const void *_b) {
 	const struct debug_cmd *a = _a, *b = _b;
 	return strcmp(a->name, b->name) == 0;
-}
-
-static unsigned debug_cmds_hash(const void *_a) {
-	const struct debug_cmd *a = _a;
-	const unsigned char *cs = a->name;
-	unsigned res = 0;
-	while (1) {
-		if (*cs == '\0')
-			break;
-		res ^= *(cs++);
-		if (*cs == '\0')
-			break;
-		res ^= (*(cs++)) << 8;
-		if (*cs == '\0')
-			break;
-		res ^= (*(cs++)) << 16;
-		if (*cs == '\0')
-			break;
-		res ^= (*(cs++)) << 24;
-	}
-	return res;
 }
 
 static struct hashset debug_commands = { //
 		/*	  */.entrycount = 0, //
 				.maxi = 0, //
 				.equalizer = debug_cmds_equal, //
-				.hashmaker = debug_cmds_hash, //
+				.hashmaker = string_hash, //
 				.entries = NULL, //
 		};
 
@@ -586,7 +574,7 @@ static void pvm_dbcmd_disasm(struct sok_data *sd, char *buffer);
 		} \
 		dc->name = str; \
 		dc->func = pvm_dbcmd_##name0; \
-		hashset_put(&debug_commands, debug_cmds_hash(dc), dc);
+		hashset_put(&debug_commands, string_hash(dc), dc);
 static inline void init_debug_cmds_set() {
 	struct debug_cmd *dc;
 	set_debug_cmd(help)
@@ -1867,7 +1855,7 @@ static void* pvm_debug_thread_func(void *_arg) {
 			exit(1);
 		}
 		struct debug_cmd *debug_cmd = hashset_get(&debug_commands,
-				debug_cmds_hash(&buffer), &buffer);
+				string_hash(&buffer), &buffer);
 		if (debug_cmd) {
 			debug_cmd->func(sd, buffer);
 		} else {
