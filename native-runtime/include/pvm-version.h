@@ -46,6 +46,6 @@
 #define PVM_MIN_VERS(a) (PVM_VERSION_HEX  >= a)
 #define PVM_MAX_VERS(a) (PVM_VERSION_HEX  <= a)
 
-void print_version(FILE *file);
+extern void print_version(FILE *file);
 
 #endif /* PVM_VERSION_H_ */

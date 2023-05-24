@@ -14,6 +14,7 @@
 //
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <https://www.gnu.org/licenses/>.
+
 /*
  * pvm-setup.c
  *
@@ -40,15 +41,77 @@
 #include <stdint.h>
 #include <fcntl.h>
 
-static inline void setup(int argc, char **argv);
-static inline void print_help(void);
-static inline void print_version0(void);
+#define print_version0() print_version(stdout)
 
 #ifdef PVM_DEBUG
 static _Bool wait;
 static int input;
 static _Bool input_is_pipe;
 #endif
+
+static inline void print_help(void) {
+	printf(
+#ifdef PVM_DEBUG
+			"Usage: db-pvm [Options] --pmf=[EXECUTE_FILE] [ARGUMENTS]\n"
+#else // PVM_DEBUG
+			"Usage: pvm [Options] --pmf=[EXECUTE_FILE] [ARGUMENTS]\n"
+#endif // PVM_DEBUG
+					"Options-Rules:\n"
+					"  --pfs=[PFS_FILE]\n"
+					"    this Option is NOT optional!\n"
+					"  --pmf=[EXECUTE_FILE]\n"
+#ifdef PVM_DEBUG
+			"    this Option is only optional when --wait is set!\n"
+			"  --wait\n"
+			"    load the program, but do not start the execution\n"
+			"    when this option is set --port=[PORT] or --pipe=[PIPE]\n"
+			"    has to be specified.\n"
+			"  --port=[PORT]\n"
+			"    if this option is set --pipe=[PIPE] is not allowed\n"
+			"  --pipe=[PIPE]\n"
+			"    if this option is set --port=[PORT] is not allowed\n"
+#else // PVM_DEBUG
+			"    this Option is NOT optional!\n"
+#endif // PVM_DEBUG
+			"Options:\n"
+			"  --help\n"
+			"    print this message and exit\n"
+			"  --version\n"
+			"    print the version and exit\n"
+#ifdef PVM_DEBUG
+			"  --port=[PORT]\n"
+			"    set the debug port\n"
+			"  --pipe=[PIPE]\n"
+			"    set the debug pipe\n"
+			"  --wait\n"
+			"    to not start the execution of the program\n"
+			"    wait until an attached debugger commands to execute\n"
+			"    (with a normal continue or step command).\n"
+#endif // PVM_DEBUG
+			"  --cwd=[FOLDER]\n"
+			"    set the current working directory for the program\n"
+			"  --pfs=[PFS_FILE]\n"
+			"    set the file which contains the Patr-File-System\n"
+			"  --pmf=[EXECUTE_FILE]\n"
+			"    set the file to executed.\n"
+			"    all arguments after this option will be passed to the\n"
+			"    program as program arguments.\n"
+			"    the first argument will be [EXECUTE_FILE], the following\n"
+			"    program arguments will be the following arguments.\n"
+#ifdef PVM_DEBUG
+			"    it is recommended to specify this option even when\n"
+			"    --wait is specified.\n"
+#endif // PVM_DEBUG
+			"");
+}
+
+extern void print_version(FILE *file) {
+	fprintf(file,
+#ifdef PVM_DEBUG
+			"debug-"
+#endif
+					"primitive-virtual-mashine " PVM_VERSION_STR "\n");
+}
 
 static inline void setup(int argc, char **argv) {
 #ifdef PVM_DEBUG
@@ -170,7 +233,8 @@ static inline void setup(int argc, char **argv) {
 				int fd = open(*argv, O_RDONLY);
 				if (fd == -1) {
 					fprintf(stderr,
-							"could not open primitive machine file: %s\n", strerror(errno));
+							"could not open primitive machine file: %s\n",
+							strerror(errno));
 					exit(1);
 				}
 				exe_size = lseek(fd, 0, SEEK_END);
@@ -203,7 +267,8 @@ static inline void setup(int argc, char **argv) {
 				int fh = pfs_handle_file(*argv);
 				if (fh == -1) {
 					fprintf(stderr,
-							"could not open the primitive machine file: %s\n", pfs_error());
+							"could not open the primitive machine file: %s\n",
+							pfs_error());
 					exit(1);
 				}
 				exe_size = pfs_file_length(fh);
@@ -249,74 +314,6 @@ static inline void setup(int argc, char **argv) {
 	fprintf(stderr, "no binary set!\n");
 	exit(1);
 #endif
-}
-
-static inline void print_help(void) {
-	printf(
-#ifdef PVM_DEBUG
-			"Usage: db-pvm [Options] --pmf=[EXECUTE_FILE] [ARGUMENTS]\n"
-#else // PVM_DEBUG
-			"Usage: pvm [Options] --pmf=[EXECUTE_FILE] [ARGUMENTS]\n"
-#endif // PVM_DEBUG
-					"Options-Rules:\n"
-					"  --pfs=[PFS_FILE]\n"
-					"    this Option is NOT optional!\n"
-					"  --pmf=[EXECUTE_FILE]\n"
-#ifdef PVM_DEBUG
-			"    this Option is only optional when --wait is set!\n"
-			"  --wait\n"
-			"    load the program, but do not start the execution\n"
-			"    when this option is set --port=[PORT] or --pipe=[PIPE]\n"
-			"    has to be specified.\n"
-			"  --port=[PORT]\n"
-			"    if this option is set --pipe=[PIPE] is not allowed\n"
-			"  --pipe=[PIPE]\n"
-			"    if this option is set --port=[PORT] is not allowed\n"
-#else // PVM_DEBUG
-			"    this Option is NOT optional!\n"
-#endif // PVM_DEBUG
-			"Options:\n"
-			"  --help\n"
-			"    print this message and exit\n"
-			"  --version\n"
-			"    print the version and exit\n"
-#ifdef PVM_DEBUG
-			"  --port=[PORT]\n"
-			"    set the debug port\n"
-			"  --pipe=[PIPE]\n"
-			"    set the debug pipe\n"
-			"  --wait\n"
-			"    to not start the execution of the program\n"
-			"    wait until an attached debugger commands to execute\n"
-			"    (with a normal continue or step command).\n"
-#endif // PVM_DEBUG
-			"  --cwd=[FOLDER]\n"
-			"    set the current working directory for the program\n"
-			"  --pfs=[PFS_FILE]\n"
-			"    set the file which contains the Patr-File-System\n"
-			"  --pmf=[EXECUTE_FILE]\n"
-			"    set the file to executed.\n"
-			"    all arguments after this option will be passed to the\n"
-			"    program as program arguments.\n"
-			"    the first argument will be [EXECUTE_FILE], the following\n"
-			"    program arguments will be the following arguments.\n"
-#ifdef PVM_DEBUG
-			"    it is recommended to specify this option even when\n"
-			"    --wait is specified.\n"
-#endif // PVM_DEBUG
-			"");
-}
-
-static inline void print_version0() {
-	print_version(stdout);
-}
-
-void print_version(FILE *file) {
-	fprintf(file,
-#ifdef PVM_DEBUG
-			"debug-"
-#endif
-					"primitive-virtual-mashine " PVM_VERSION_STR "\n");
 }
 
 int main(int argc, char **argv) {
