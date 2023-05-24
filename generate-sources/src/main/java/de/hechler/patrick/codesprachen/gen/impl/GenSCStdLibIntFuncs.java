@@ -198,8 +198,8 @@ public class GenSCStdLibIntFuncs implements SrcGen {
 	}
 	
 	private static void start(Writer out) throws IOException {
-		out.write("\tprivate static Map<String, StdLibIntFunc> allInts() {\n"//
-				+ "\t\tMap<String, StdLibIntFunc> res = new HashMap<>();\n");
+		out.write("\tprivate static Map<String, StdLibFunc> allInts() {\n"//
+				+ "\t\tMap<String, StdLibFunc> res = new HashMap<>();\n");
 	}
 	
 }

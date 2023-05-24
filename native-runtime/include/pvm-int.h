@@ -11,19 +11,7 @@
 #else // SRC_PVM_INT_H_
 #define SRC_PVM_INT_H_
 
-#ifdef PVM_DEBUG
-#	define callInt(intnum) ints[intnum](intnum)
-#else
-#	define callInt(intnum) ints[intnum]()
-#endif
-
 #ifdef PVM
-
-#ifdef PVM_DEBUG
-#	define INT_PARAMS int intnum
-#else
-#	define INT_PARAMS
-#endif
 
 static void int_error_illegal_interrupt(INT_PARAMS); /* 0 */
 static void int_error_unknown_command(INT_PARAMS); /* 1 */
@@ -241,5 +229,3 @@ EXT void (*(ints[]))(INT_PARAMS)
 #ifdef PVM
 _Static_assert((sizeof(void (*)(INT_PARAMS)) * INTERRUPT_COUNT) == sizeof(ints), "Error!");
 #endif // PVM
-
-#endif // SRC_PVM_INT_H_
