@@ -154,7 +154,7 @@ EXT struct hashset breakpoints
 		.entrycount = 0,
 		.equalizer = pvm_same_address,
 		.hashmaker = pvm_address_hash,
-		.setsize = 0,
+		.maxi = 0,
 }
 #endif // PVM
 ;

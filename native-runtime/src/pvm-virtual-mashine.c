@@ -164,7 +164,7 @@ struct loaded_libs_entry {
 };
 static struct hashset loaded_libs = { //
 		/*	  */.entrycount = 0, //
-				.setsize = 0, //
+				.maxi = 0, //
 				.equalizer = loaded_libs_equal, //
 				.hashmaker = loaded_libs_hash, //
 				.entries = NULL, //
@@ -336,8 +336,8 @@ static inline void wait5ms() {
 static int pvm_same_address(const void *a, const void *b) {
 	return a == b;
 }
-static unsigned int pvm_address_hash(const void *a) {
-	return (unsigned) (long) a;
+static uint64_t pvm_address_hash(const void *a) {
+	return (uint64_t) a;
 }
 
 struct pvm_delegate_arg {
@@ -348,7 +348,7 @@ struct pvm_delegate_arg {
 static struct hashset delegate_set_stdout = { //
 		/*	  */.entries = NULL, //
 				.entrycount = 0, //
-				.setsize = 0, //
+				.maxi = 0, //
 				.equalizer = pvm_same_address, //
 				.hashmaker = pvm_address_hash, //
 		};
@@ -356,7 +356,7 @@ static struct hashset delegate_set_stdout = { //
 static struct hashset delegate_set_stderr = { //
 		/*	  */.entries = NULL, //
 				.entrycount = 0, //
-				.setsize = 0, //
+				.maxi = 0, //
 				.equalizer = pvm_same_address, //
 				.hashmaker = pvm_address_hash, //
 		};
@@ -555,7 +555,7 @@ static unsigned debug_cmds_hash(const void *_a) {
 
 static struct hashset debug_commands = { //
 		/*	  */.entrycount = 0, //
-				.setsize = 0, //
+				.maxi = 0, //
 				.equalizer = debug_cmds_equal, //
 				.hashmaker = debug_cmds_hash, //
 				.entries = NULL, //
@@ -1597,7 +1597,7 @@ static void pvm_dbcmd_break(struct sok_data *sd, char *buffer) {
 		return;
 	}
 	pvm_lock();
-	hashset_put(&breakpoints, (unsigned) addr, (void*) addr);
+	hashset_put(&breakpoints, (uint64_t) addr, (void*) addr);
 	pvm_unlock();
 }
 static void pvm_dbcmd_pvm(struct sok_data *sd, char *buf) {
@@ -1840,8 +1840,8 @@ static void* pvm_debug_thread_func(void *_arg) {
 		exit(1);
 	}
 	pvm_lock();
-	hashset_put(&delegate_set_stdout, (unsigned) sd->fd, (void*) (long) sd->fd);
-	hashset_put(&delegate_set_stderr, (unsigned) sd->fd, (void*) (long) sd->fd);
+	hashset_put(&delegate_set_stdout, (uint64_t) sd->fd, (void*) (long) sd->fd);
+	hashset_put(&delegate_set_stderr, (uint64_t) sd->fd, (void*) (long) sd->fd);
 	pvm_unlock();
 	char *buffer = malloc(128);
 	if (!buffer) {
@@ -1883,7 +1883,7 @@ static inline void d_wait() {
 		pvm_state = pvm_next_state;
 		switch (pvm_state) {
 		case pvm_ds_running:
-			void *b = hashset_get(&breakpoints, (unsigned) pvm.ip,
+			void *b = hashset_get(&breakpoints, (uint64_t) pvm.ip,
 					(void*) pvm.ip);
 			if (b) {
 				pvm_state = pvm_next_state = pvm_ds_waiting;

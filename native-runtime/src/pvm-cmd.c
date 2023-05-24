@@ -18,7 +18,7 @@
 #	error "this file should be included inside of pvm-virtual-mashine.c"
 #endif // PVM
 
-static void c_ill() /* --- */{
+static void c_ill() {
 	interrupt(INT_ERROR_UNKNOWN_COMMAND, 0);
 }
 

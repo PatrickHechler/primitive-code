@@ -630,7 +630,7 @@ static void int_str_from_fpnum( INT_PARAMS) /* 56 */{
 		pvm.err = PE_ILLEGAL_ARG;
 		return;
 	}
-	num strlen = snprintf(NULL, 0, "%.10lg", pvm.fpx[0]);
+	num strlen = snprintf(NULL, 0, "%.10g", pvm.fpx[0]);
 	if (len == 0) {
 		struct memory2 mem = alloc_memory(strlen + 1, 0);
 		if (!mem.mem) {
@@ -638,7 +638,7 @@ static void int_str_from_fpnum( INT_PARAMS) /* 56 */{
 			pvm.err = PE_OUT_OF_MEMORY;
 			return;
 		}
-		sprintf(mem.adr, "%.10lg", pvm.fpx[0]);
+		sprintf(mem.adr, "%.10g", pvm.fpx[0]);
 		pvm.x[0] = strlen;
 		pvm.x[1] = mem.mem->start;
 		pvm.x[3] = strlen + 1;
@@ -660,7 +660,7 @@ static void int_str_from_fpnum( INT_PARAMS) /* 56 */{
 			}
 			pvm.x[1] = mem->start;
 		}
-		sprintf(mem->offset + pvm.x[1], "%.10lg", pvm.fpx[0]);
+		sprintf(mem->offset + pvm.x[1], "%.10g", pvm.fpx[0]);
 		pvm.x[0] = strlen;
 		pvm.x[3] = strlen + 1;
 	}

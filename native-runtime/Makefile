@@ -1,5 +1,12 @@
 PROJECT_ROOT = $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
+ifeq ($(CC),)
+	CC = gcc
+endif
+ifeq ($(AR),)
+	AR = ar
+endif
+
 PFS_CORE_FOLDER = $(PROJECT_ROOT)../../PatrFileSys/pfs-core/
 
 PFS_CORE_EXP_FOLDER = $(PFS_CORE_FOLDER)exports/
@@ -29,10 +36,6 @@ LIB_DEBUG_TARGET = libdb-pvm
 LDFLAGS = -L$(PFS_LIB_FOLDER) -lpfs-core
 
 DEBUG_LDFLAGS = -lpthread
-
-CC = gcc
-
-AR = ar
 
 CFLAGS += -I$(PFS_LIB_INCLUDE)
 
