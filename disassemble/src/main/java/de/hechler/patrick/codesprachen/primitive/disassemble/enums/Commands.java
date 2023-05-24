@@ -114,6 +114,7 @@ public enum Commands {
 	CMD_CALL(ParamArt.LABEL_OR_CONST, CALL),
 	
 	// Params: none 
+	CMD_EXTERN(ParamArt.NO_PARAMS, EXTERN),
 	CMD_IRET(ParamArt.NO_PARAMS, IRET),
 	CMD_RET(ParamArt.NO_PARAMS, RET),
 	

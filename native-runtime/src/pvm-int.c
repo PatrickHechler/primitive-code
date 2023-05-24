@@ -30,13 +30,7 @@
 
 #define check_string_len(XNN_OFFSET, error_reg, error_value) check_string_len0(XNN_OFFSET, mem, name, max_len, error_reg, error_value)
 
-static inline void write_error(const char *msg) {
-#ifdef PVM_DEBUG
-	fputs(msg, old_stderr);
-#else
-	write(STDERR_FILENO, msg, strlen(msg));
-#endif
-}
+#define write_error(msg) write(STDERR_FILENO, msg, strlen(msg))
 
 static void int_error_illegal_interrupt( INT_PARAMS) /* 0 */{
 	write_error("illegal interrupt\n");
@@ -1095,10 +1089,6 @@ static void int_load_file( INT_PARAMS) /* 64 */{
 }
 
 #define MAX_LIB_NAME_LEN 512 /* library with a path larger than this value will always be reloaded */
-struct loaded_libs_entry {
-	char *name;
-	num pntr;
-};
 int loaded_libs_equal(const void *a, const void *b) {
 	const struct loaded_libs_entry *ea = a, *eb = b;
 	return strcmp(ea->name, eb->name) == 0;
@@ -1111,14 +1101,6 @@ unsigned int loaded_libs_hash(const void *f) {
 	}
 	return res;
 }
-static struct hashset loaded_libs = { //
-		/*	  */.entrycount = 0, //
-				.setsize = 0, //
-				.equalizer = loaded_libs_equal, //
-				.hashmaker = loaded_libs_hash, //
-				.entries = NULL, //
-		};
-
 static void int_load_lib( INT_PARAMS) /* 65 */{
 	struct memory *name_mem = chk(pvm.x[0], 1).mem;
 	if (!name_mem) {
@@ -1141,6 +1123,7 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 		pvm.x[0] = old_mem->start;
 		pvm.x[1] = old_mem->end - old_mem->start;
 		pvm.x[2] = 0;
+		return;
 	}
 	int sh = pfs_stream(name, PFS_SO_FILE | PFS_SO_READ);
 	if (sh == -1) {
@@ -1174,14 +1157,17 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 	if (name_len < MAX_LIB_NAME_LEN) {
 		char *name_cpy = malloc(name_len + 1);
 		if (name_cpy) {
-			struct loaded_libs_entry *new_entry = malloc(
-					sizeof(struct loaded_libs_entry));
+			struct loaded_libs_entry *new_entry = malloc(sizeof(struct loaded_libs_entry));
 			if (new_entry) {
 				memcpy(name_cpy, name, name_len + 1);
 				new_entry->name = name;
 				new_entry->pntr = lib_mem.mem->start;
 			} else {
 				free(name_cpy);
+			}
+			old = hashset_put(&loaded_libs, loaded_libs_hash(&new_entry), &new_entry);
+			if (old) {
+				abort();
 			}
 		}
 	}

@@ -90,7 +90,9 @@ public class PrimitiveCodeAssembleMain {
 				appendAsmRunExep(b, sp2s, are);
 			} else if (t instanceof AssembleError ae) {
 				appendAsmErr(b, sp2s, ae);
-			} else if (t instanceof InputMismatchException ime) { appedInputMissmatch(b, sp2s, ime); }
+			} else if (t instanceof InputMismatchException ime) {
+				appedInputMissmatch(b, sp2s, ime);
+			}
 			b.append(sp2s).append("stack trace:\n");
 			for (StackTraceElement ste : t.getStackTrace()) {
 				b.append(sp2s).append("  at ").append(ste).append('\n');
@@ -198,7 +200,7 @@ public class PrimitiveCodeAssembleMain {
 	}
 	
 	private static void doSetup(String[] args, Charset charset, String inFile, String outFile, boolean suppressWarn, boolean noExport, boolean force)
-			throws IOException {
+		throws IOException {
 		@SuppressWarnings("resource")
 		FS outFS = PrimitiveCodeAssembleMain.fileSys == null ? JAVA_FS : PrimitiveCodeAssembleMain.fileSys;
 		try (File in = JAVA_FS.file(inFile)) {
@@ -214,7 +216,8 @@ public class PrimitiveCodeAssembleMain {
 						} else {
 							crash(args, -1, "out file already exists use --force to overwrite");
 						}
-					} catch (@SuppressWarnings("unused") NoSuchFileException e) { /* ignore */ }
+					} catch (@SuppressWarnings("unused") NoSuchFileException e) {
+						/* ignore */ }
 					try (File of = parent.createFile(outFile)) {
 						out = of.openWrite();
 					}
@@ -228,7 +231,8 @@ public class PrimitiveCodeAssembleMain {
 							} else {
 								crash(args, -1, "out file already exists use --force to overwrite");
 							}
-						} catch (@SuppressWarnings("unused") NoSuchFileException e) { /* ignore */ }
+						} catch (@SuppressWarnings("unused") NoSuchFileException e) {
+							/* ignore */ }
 						try (File eof = parent.createFile(outFile + SYMBOL_FILE_POSSIX)) {
 							expOut = eof.openWrite();
 						}
@@ -338,23 +342,23 @@ public class PrimitiveCodeAssembleMain {
 	
 	private static void help() {
 		LOG.info( //
-				/*     */ "primitive-assembler help:\n" //
-						+ "    usage: prim-asm [OPTIONS]\n" //
-						+ "    \n" //
-						+ "    Options:\n" //
-						+ "        --help, -h, -?                   to print this message and exit\n" //
-						+ "        --charset, --cs [CHARSET]        to set the charset for input and output files\n" //
-						+ "                                         the default charset is 'UTF-8'\n" //
-						+ "        --in, --input [FILE]             to set the input file\n" //
-						+ "                                         this option is non optional\n" //
-						+ "        --out, --output [FILE]           to set the output file\n" //
-						+ "                                         the default depends on the input\n" //
-						+ "        --rfs, --real-file-system        to use the linux file system\n" //
-						+ "        --pfs, --patr-file-system [FILE] to set the patr-file-system file\n" //
-						+ "        --suppress-warn, -s              to suppresss warnings\n" //
-						+ "        --no-export, -n                  to suppress the generation of the export file\n" //
-						+ "        --force, -f                      to overwrite output files if they exist already\n" //
-						+ "");
+			/*     */ "primitive-assembler help:\n" //
+				+ "    usage: prim-asm [OPTIONS]\n" //
+				+ "    \n" //
+				+ "    Options:\n" //
+				+ "        --help, -h, -?                   to print this message and exit\n" //
+				+ "        --charset, --cs [CHARSET]        to set the charset for input and output files\n" //
+				+ "                                         the default charset is 'UTF-8'\n" //
+				+ "        --in, --input [FILE]             to set the input file\n" //
+				+ "                                         this option is non optional\n" //
+				+ "        --out, --output [FILE]           to set the output file\n" //
+				+ "                                         the default depends on the input\n" //
+				+ "        --rfs, --real-file-system        to use the linux file system\n" //
+				+ "        --pfs, --patr-file-system [FILE] to set the patr-file-system file\n" //
+				+ "        --suppress-warn, -s              to suppresss warnings\n" //
+				+ "        --no-export, -n                  to suppress the generation of the export file\n" //
+				+ "        --force, -f                      to overwrite output files if they exist already\n" //
+				+ "");
 	}
 	
 }

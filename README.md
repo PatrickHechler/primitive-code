@@ -245,7 +245,7 @@ every register can also be addressed:
 * `INT_EXIT` : exit
     * value: `4`
     * params:
-        * `X00` `exitnum`: (`num`) the exit number this progress will have
+        * `X00` `exitnum`: (`ubyte`) the exit number this progress will have
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEMORY_ALLOC` : allocate a memory-block
     * value: `5`
@@ -1097,6 +1097,23 @@ the pre-commands ar executed at assemble time, not runtime
 ### 00.. : data
 
 #### 000. : move data
+
+`EXTERN`
+* executes an extern function identified by the current address of the instruction pointer (the `IP` register) and then returns
+* this command can be used to create libaries which operate outside of the virtual mashine
+* note that for this command to work, the PVMs extern functions must be initilized
+* note that this command is not supported by the assembler
+* definition:
+    * `func a = extern_func_from_addr(IP)`
+    * `if ther is a extern function at the IP address`
+        * `tmp <-- IP`
+        * `execute the extern code`
+        * `if tmp = IP`
+            * `RET`
+    * `else`
+        * `act as if the comand was not known (see INT_ERROR_UNKNOWN_COMMAND)`
+* binary:
+    * `00 00 00 00 00 00 00 00`
 
 `MVB <NO_CONST_PARAM> , <PARAM>`
 * copies the byte value of the second parameter to the first byte parameter

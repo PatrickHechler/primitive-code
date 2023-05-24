@@ -288,7 +288,9 @@ public class PrimitiveAssembler {
 		throw new AssembleError(line, posInLine, len, charPos, t.getClass().getName() + ": " + t.getMessage(), t);
 	}
 	
-	public void assemble(Path path) throws IOException, AssembleError { assemble(preassemble(path)); }
+	public void assemble(Path path) throws IOException, AssembleError {
+		assemble(preassemble(path));
+	}
 	
 	public void assemble(Path path, InputStream in) throws IOException, AssembleError {
 		assemble(preassemble(path, in));
@@ -298,7 +300,9 @@ public class PrimitiveAssembler {
 		assemble(preassemble(path, in, cs));
 	}
 	
-	public void assemble(Path path, Reader in) throws IOException, AssembleError { assemble(preassemble(path, in)); }
+	public void assemble(Path path, Reader in) throws IOException, AssembleError {
+		assemble(preassemble(path, in));
+	}
 	
 	public void assemble(Path path, ANTLRInputStream antlrin) throws IOException, AssembleError {
 		assemble(preassemble(path, antlrin));
@@ -602,12 +606,12 @@ public class PrimitiveAssembler {
 		bytes[6] = (byte) (num >> 32);
 		bytes[7] = (byte) (num >> 40);
 	}
-
+	
 	private void writeNullParam(@SuppressWarnings("unused") Command cmd, byte[] bytes) throws IOException {
 		assert bytes.length == 8;
 		this.out.write(bytes, 0, 8);
 	}
-
+	
 	private void writeOneParam(Command cmd, byte[] bytes) throws IOException {
 		assert cmd.p1 != null : "I need a first Param!";
 		assert cmd.p1.label == null : UNWANTED_LABEL_IN_PARAMS;

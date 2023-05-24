@@ -35,7 +35,7 @@ import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandArray;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandFuncs;
 import de.hechler.patrick.codesprachen.gen.impl.GenCErrEnum;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunIntHeader;
-import de.hechler.patrick.codesprachen.gen.impl.GenSCStdLibFuncs;
+import de.hechler.patrick.codesprachen.gen.impl.GenSCStdLibIntFuncs;
 
 @SuppressWarnings("javadoc")
 public class GenSourceMain {
@@ -54,10 +54,10 @@ public class GenSourceMain {
 	private static final String DISASM_COMMANDS_ENUM = SrcGen.PRIMITIVE_CODE_DIR
 			+ "disassemble/src/main/java/de/hechler/patrick/codesprachen/primitive/disassemble/enums/Commands.java";
 	private static final String SC_SDTLIB_FUNCS      = SrcGen.SIMPLE_COMPILE_DIR + "src/main/java/de/hechler/patrick/codesprachen/simple/compile/utils/StdLib.java";
-	private static final String RUN_COMMAND_FUNCS    = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-cmd.h";
-	private static final String RUN_COMMAND_ARRAY    = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-cmd-cmds-gen.h";
-	private static final String RUN_INT_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-int.h";
-	private static final String RUN_ERR_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/src/pvm-err.h";
+	private static final String RUN_COMMAND_FUNCS    = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/include/pvm-cmd.h";
+	private static final String RUN_COMMAND_ARRAY    = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/include/pvm-cmd-cmds-gen.h";
+	private static final String RUN_INT_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/include/pvm-int.h";
+	private static final String RUN_ERR_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/include/pvm-err.h";
 	private static final String PFS_ERR_HEADER       = SrcGen.PATR_FILE_SYS_DIR + "pfs-core/src/include/pfs-err.h";
 	
 	public static void main(String[] args) throws IOException, IOError {
@@ -71,7 +71,7 @@ public class GenSourceMain {
 		generate0(Path.of(RUN_INT_HEADER), new GenRunIntHeader());
 		generate(Path.of(RUN_ERR_HEADER), "\t", new GenCErrEnum("PE_"));
 		generate(Path.of(PFS_ERR_HEADER), "\t", new GenCErrEnum("PFS_ERRNO_"));
-		generate(Path.of(SC_SDTLIB_FUNCS), "\t", new GenSCStdLibFuncs());
+		generate(Path.of(SC_SDTLIB_FUNCS), "\t", new GenSCStdLibIntFuncs());
 		System.out.println("finish");
 	}
 	

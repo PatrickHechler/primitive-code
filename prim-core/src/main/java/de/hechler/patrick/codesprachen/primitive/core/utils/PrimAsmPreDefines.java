@@ -70,7 +70,7 @@ public class PrimAsmPreDefines {
 	 * <p>
 	 * params:
 	 * <ul>
-	 * <li><code>X00</code> <code>exitnum</code>: (<code>num</code>) the exit number this progress will have</li>
+	 * <li><code>X00</code> <code>exitnum</code>: (<code>ubyte</code>) the exit number this progress will have</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
 	public static final long INT_EXIT = 4L;

@@ -4,16 +4,27 @@
  */
 
 
-#if defined SRC_PVM_INT_H_ | !defined PVM
-#error "multpile includes of pvm-int.h or PVM is not defined!"
-#endif
+#ifdef SRC_PVM_INT_H_
+#	ifdef PVM
+#		error "Multiple includes of pvm-cmd-cmds-gen.h and PVM is defined!"
+#	endif
+#else // SRC_PVM_INT_H_
 #define SRC_PVM_INT_H_
 
 #ifdef PVM_DEBUG
-#	define INT_PARAMS num int_num
+#	define callInt(intnum) ints[intnum](intnum)
+#else
+#	define callInt(intnum) ints[intnum]()
+#endif
+
+#ifdef PVM
+
+#ifdef PVM_DEBUG
+#	define INT_PARAMS int intnum
 #else
 #	define INT_PARAMS
-#endif // PVM_DEBUG
+#endif
+
 static void int_error_illegal_interrupt(INT_PARAMS); /* 0 */
 static void int_error_unknown_command(INT_PARAMS); /* 1 */
 static void int_error_illegal_memory(INT_PARAMS); /* 2 */
@@ -81,6 +92,8 @@ static void int_str_format(INT_PARAMS); /* 63 */
 static void int_load_file(INT_PARAMS); /* 64 */
 static void int_load_lib(INT_PARAMS); /* 65 */
 static void int_unload_lib(INT_PARAMS); /* 66 */
+
+#endif // PVM
 
 #define INT_ERROR_ILLEGAL_INTERRUPT 0
 #define INT_ERROR_UNKNOWN_COMMAND 1
@@ -151,7 +164,9 @@ static void int_unload_lib(INT_PARAMS); /* 66 */
 #define INT_UNLOAD_LIB 66
 #define INTERRUPT_COUNT 67
 
-static void (*(ints[]))(INT_PARAMS) = {
+EXT void (*(ints[]))(INT_PARAMS)
+#ifdef PVM
+ = {
 	int_error_illegal_interrupt, /* 0 */
 	int_error_unknown_command, /* 1 */
 	int_error_illegal_memory, /* 2 */
@@ -219,6 +234,12 @@ static void (*(ints[]))(INT_PARAMS) = {
 	int_load_file, /* 64 */
 	int_load_lib, /* 65 */
 	int_unload_lib, /* 66 */
-};
+}
+#endif // PVM
+;
 
+#ifdef PVM
 _Static_assert((sizeof(void (*)(INT_PARAMS)) * INTERRUPT_COUNT) == sizeof(ints), "Error!");
+#endif // PVM
+
+#endif // SRC_PVM_INT_H_

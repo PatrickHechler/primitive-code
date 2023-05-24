@@ -29,8 +29,8 @@
 #include <pfs-file.h>
 #include <pfs-err.h>
 
-#include "pvm-version.h"
-#include "pvm-virtual-mashine.h"
+#include "../include/pvm-version.h"
+#include "../include/pvm-virtual-mashine.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -231,7 +231,7 @@ static inline void setup(int argc, char **argv) {
 				}
 				pfs_stream_close(sh);
 			}
-			pvm_init(argv, argc, exe_data, exe_size);
+			pvm_init_execute(argv, argc, exe_data, exe_size);
 			return;
 		} else {
 			fprintf(stderr, "unknown argument: '%s'\n", *argv);
@@ -244,7 +244,7 @@ static inline void setup(int argc, char **argv) {
 				"no binary set! only allowed if wait and debug input is set!\n");
 		exit(1);
 	}
-	pvm_init(argv, 0, NULL, -1);
+	pvm_init_execute(argv, 0, NULL, -1);
 #else
 	fprintf(stderr, "no binary set!\n");
 	exit(1);

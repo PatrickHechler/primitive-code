@@ -14,19 +14,24 @@
 //
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#if defined SRC_PVM_CMD_CMDS_GEN_H_ | !defined SRC_PVM_CMD_H_
-#	error "Multiple includes of pvm-cmd-cmds-gen.h or SRC_PVM_CMD_H_ is not defined!"
-#endif
+
+#ifdef SRC_PVM_CMD_CMDS_GEN_H_
+#	ifdef PVM
+#		error "Multiple includes of pvm-cmd-cmds-gen.h and PVM is defined!"
+#	endif
+#else // SRC_PVM_CMD_CMDS_GEN_H_
 #define SRC_PVM_CMD_CMDS_GEN_H_
 
 #define ILL_1    c_ill,
 #define ILL_10   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1   ILL_1
 #define ILL_100  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10  ILL_10
 #define ILL_1000 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100 ILL_100
-static void(*cmds[])() = {
+static void(*cmds[])()
+#ifdef PVM
+= {
 // GENERATED-CODE-START
 // this code-block is automatic generated, do not modify
-	ILL_1
+	c_extern, /* 0000 */
 	c_mvb, /* 0001 */
 	c_mvw, /* 0002 */
 	c_mvdw, /* 0003 */
@@ -330,8 +335,16 @@ static void(*cmds[])() = {
 
 // here is the end of the automatic generated code-block
 // GENERATED-CODE-END
-};
+}
+#endif // PVM
+;
 #undef ILL_1
 #undef ILL_10
 #undef ILL_100
 #undef ILL_1000
+
+#ifdef PVM
+_Static_assert((sizeof(void(*)()) * (1 << 16)) == sizeof(cmds), "Error!");
+#endif // PVM
+
+#endif // SRC_PVM_CMD_CMDS_GEN_H_

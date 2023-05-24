@@ -32,11 +32,11 @@
 #include <pfs-pipe.h>
 #include <pfs-err.h>
 
-#include "pvm-virtual-mashine.h"
-#include "pvm-err.h"
+#include "../include/pvm-virtual-mashine.h"
+#include "../include/pvm-err.h"
 
-#include "pvm-int.h"
-#include "pvm-cmd.h"
+#include "../include/pvm-int.h"
+#include "../include/pvm-cmd.h"
 
 #include <string.h>
 #include <stdint.h>
@@ -47,8 +47,9 @@
 #include <fcntl.h>
 #include <ctype.h>
 #include <iconv.h>
+#include <stdarg.h>
 #ifdef PVM_DEBUG
-#include "pvm-version.h"
+#include "../include/pvm-version.h"
 // not really usable here: #include <readline/readline.h>
 #include <pthread.h>
 #include <signal.h>
@@ -58,10 +59,6 @@
 #include <linux/membarrier.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
-#endif // PVM_DEBUG
-
-#ifdef PVM_DEBUG
-static FILE *old_stderr;
 #endif // PVM_DEBUG
 
 static int param_param_type_index;
@@ -85,7 +82,7 @@ static void close_pfs_on_exit(int status, void *ignore) {
 	}
 }
 
-void pvm_init(char **argv, num argc, void *exe, num exe_size) {
+extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
 	if (next_adress != REGISTER_START) {
 		abort();
 	}
@@ -159,26 +156,170 @@ void pvm_init(char **argv, num argc, void *exe, num exe_size) {
 	on_exit(close_pfs_on_exit, NULL);
 }
 
+int loaded_libs_equal(const void *a, const void *b);
+unsigned int loaded_libs_hash(const void *f);
+struct loaded_libs_entry {
+	char *name;
+	num pntr;
+};
+static struct hashset loaded_libs = { //
+		/*	  */.entrycount = 0, //
+				.setsize = 0, //
+				.equalizer = loaded_libs_equal, //
+				.hashmaker = loaded_libs_hash, //
+				.entries = NULL, //
+		};
+
+static jmp_buf call_pvm_env;
+
+extern int call_pvm(num addr) {
+	int ret_val = setjmp(call_pvm_env);
+	if (ret_val) {
+		return ret_val - 1;
+	}
+	pvm.ip = addr;
+	execute();
+}
+
+extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
+		... /* blockN, NULL, struct pvm_call_mem *mem0, ... , memM, NULL */) {
+	if (next_adress != REGISTER_START) {
+		abort();
+	}
+
+	pfs_err_loc = (ui32*) &pvm.err;
+
+	if (pfs_stream_open_delegate(STDIN_FILENO, PFS_SO_PIPE | PFS_SO_READ)
+			!= 0) {
+		abort();
+	}
+	if (pfs_stream_open_delegate(STDOUT_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
+			!= 1) {
+		abort();
+	}
+	if (pfs_stream_open_delegate(STDERR_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
+			!= 2) {
+		abort();
+	}
+
+	struct memory *pvm_mem = alloc_memory2(&pvm, sizeof(pvm),
+	/*		*/MEM_NO_FREE | MEM_NO_RESIZE);
+	if (!pvm_mem) {
+		abort();
+	}
+	memset(&pvm, 0, sizeof(pvm));
+
+	struct memory2 stack_mem = alloc_memory(256,
+	/*		*/MEM_AUTO_GROW | (8 << MEM_AUTO_GROW_SHIFT));
+	if (!stack_mem.adr) {
+		abort();
+	}
+	stack_mem.mem->grow_size = 256;
+	stack_mem.mem->change_pntr = &pvm.sp;
+	pvm.sp = stack_mem.mem->start;
+
+	struct memory2 int_mem = alloc_memory(INTERRUPT_COUNT << 3, 0U);
+	if (!int_mem.mem) {
+		abort();
+	}
+	memset(int_mem.adr, 0xFF, INTERRUPT_COUNT << 3);
+	pvm.intp = int_mem.mem->start;
+	pvm.intcnt = INTERRUPT_COUNT;
+
+	va_list val;
+	va_start(val, block0);
+	if (block0) {
+		do {
+			unsigned flags;
+			if (block0->lib_name) {
+				flags = MEM_LIB | MEM_NO_FREE | MEM_NO_RESIZE;
+			} else {
+				flags = 0;
+			}
+			struct memory *mem = alloc_memory2(block0->data, block0->len,
+					flags);
+			if (!mem) {
+				abort();
+			}
+			block0->addr = mem->start;
+			if (block0->lib_name) {
+				struct loaded_libs_entry *new_entry = malloc(
+						sizeof(struct loaded_libs_entry));
+				if (new_entry) {
+					new_entry->name = block0->lib_name;
+					new_entry->pntr = mem->start;
+				} else {
+					abort();
+				}
+				void *old = hashset_put(&loaded_libs,
+						loaded_libs_hash(&new_entry), &new_entry);
+				if (old) {
+					abort();
+				}
+			}
+			block0 = va_arg(val, struct pvm_simple_mem_block*);
+		} while (block0);
+	}
+	struct pvm_call_mem *call;
+	while (654) {
+		call = va_arg(val, struct pvm_call_mem*);
+		if (!call)
+			break;
+		unsigned flags;
+		if (call->data.lib_name) {
+			flags = MEM_EXTERN | MEM_LIB | MEM_NO_FREE | MEM_NO_RESIZE;
+		} else {
+			flags = MEM_EXTERN;
+		}
+		struct memory *mem = alloc_memory2(call->data.data, call->data.len,
+				flags);
+		if (!mem) {
+			abort();
+		}
+		mem->externs = call->funcs;
+		call->data.addr = mem->start;
+		if (call->data.lib_name) {
+			struct loaded_libs_entry *new_entry = malloc(
+					sizeof(struct loaded_libs_entry));
+			if (new_entry) {
+				new_entry->name = call->data.lib_name;
+				new_entry->pntr = mem->start;
+			} else {
+				abort();
+			}
+			void *old = hashset_put(&loaded_libs, loaded_libs_hash(&new_entry),
+					&new_entry);
+			if (old) {
+				abort();
+			}
+		}
+	}
+
+	// TODO redirect exit
+
+	on_exit(close_pfs_on_exit, NULL);
+}
+
 #ifdef PVM_DEBUG
 
 static pthread_mutex_t debug_mutex;
 
 static inline void pvm_lock() {
 	if (pthread_mutex_lock(&debug_mutex) == -1) {
-		fprintf(old_stderr, "could not lock the debug mutex: %s\n",
+		fprintf(stderr, "could not lock the debug mutex: %s\n",
 				strerror(errno));
 		exit(1);
 	}
 	if (syscall(SYS_membarrier, MEMBARRIER_CMD_PRIVATE_EXPEDITED, 0U, 0)
 			== -1) {
-		fprintf(old_stderr, "membarrier failed: %s\n", strerror(errno));
+		fprintf(stderr, "membarrier failed: %s\n", strerror(errno));
 		exit(1);
 	}
 }
 
 static inline void pvm_unlock() {
 	if (pthread_mutex_unlock(&debug_mutex) == -1) {
-		fprintf(old_stderr, "could not unlock the debug mutex: %s\n",
+		fprintf(stderr, "could not unlock the debug mutex: %s\n",
 				strerror(errno));
 		exit(1);
 	}
@@ -225,7 +366,7 @@ static void* pvm_delegate_func(void *_arg) {
 	free(_arg);
 	void *buffer = malloc(128);
 	if (!buffer) {
-		fprintf(old_stderr, "could not allocate delegate buffer\n");
+		fprintf(stderr, "could not allocate delegate buffer\n");
 		exit(1);
 	}
 	while (1) {
@@ -239,7 +380,7 @@ static void* pvm_delegate_func(void *_arg) {
 				errno = 0;
 				continue;
 			}
-			fprintf(old_stderr, "error on read: %s\n", strerror(errno));
+			fprintf(stderr, "error on read: %s\n", strerror(errno));
 			exit(1);
 		} else if (read == 0) {
 			return NULL;
@@ -260,7 +401,7 @@ static void* pvm_delegate_func(void *_arg) {
 						errno = 0;
 						continue;
 					}
-					fprintf(old_stderr, "error on write: %s\n",
+					fprintf(stderr, "error on write: %s\n",
 							strerror(errno));
 					goto big_break;
 				}
@@ -275,19 +416,19 @@ static void* pvm_delegate_func(void *_arg) {
 static inline void set_fd_flag(int fd, char *name, int flags, _Bool set_flag) {
 	int cur_flags = fcntl(fd, F_GETFD);
 	if (cur_flags == -1) {
-		fprintf(old_stderr, "could not get the fd flags: %s\n",
+		fprintf(stderr, "could not get the fd flags: %s\n",
 				strerror(errno));
 		exit(1);
 	}
 	if (set_flag && (cur_flags & flags) != flags) {
 		if (fcntl(fd, F_SETFD, cur_flags | flags) == -1) {
-			fprintf(old_stderr, "could not set the %s fd flag: %s\n", name,
+			fprintf(stderr, "could not set the %s fd flag: %s\n", name,
 					strerror(errno));
 			exit(1);
 		}
 	} else if (!set_flag && (cur_flags & flags) != 0) {
 		if (fcntl(fd, F_SETFD, cur_flags & ~flags) == -1) {
-			fprintf(old_stderr, "could not clear the %s flag: %s\n", name,
+			fprintf(stderr, "could not clear the %s flag: %s\n", name,
 					strerror(errno));
 			exit(1);
 		}
@@ -339,16 +480,16 @@ static void* pvm_debug_thread_deamon(void *_arg) {
 			};
 	int server_sok = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
 	if (server_sok == -1) {
-		fprintf(old_stderr, "could not create my socket: %s\n",
+		fprintf(stderr, "could not create my socket: %s\n",
 				strerror(errno));
 		exit(1);
 	}
 	if (bind(server_sok, &my_sock_adr.sa, sizeof(struct sockaddr_in)) == -1) {
-		fprintf(old_stderr, "could not bind my socket: %s\n", strerror(errno));
+		fprintf(stderr, "could not bind my socket: %s\n", strerror(errno));
 		exit(1);
 	}
 	if (listen(server_sok, DEBUG_SOCKET_BACKLOG) == -1) {
-		fprintf(old_stderr, "could not open my socket for listening: %s\n",
+		fprintf(stderr, "could not open my socket for listening: %s\n",
 				strerror(errno));
 		exit(1);
 	}
@@ -356,14 +497,14 @@ static void* pvm_debug_thread_deamon(void *_arg) {
 	while (1) {
 		int sok = accept4(server_sok, NULL, NULL, SOCK_CLOEXEC);
 		if (sok == -1) {
-			fprintf(old_stderr, "could not accept a debug connection: %s\n",
+			fprintf(stderr, "could not accept a debug connection: %s\n",
 					strerror(errno));
 			exit(1);
 		}
 
 		struct sok_data *child_arg = malloc(sizeof(struct sok_data));
 		if (!child_arg) {
-			fprintf(old_stderr,
+			fprintf(stderr,
 					"could not allocate the argument for the thread\n");
 			close(sok);
 			exit(1);
@@ -487,7 +628,7 @@ static inline void init_syncronisation() {
 
 	if (syscall(SYS_membarrier, MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED, 0U,
 			0) == -1) {
-		fprintf(old_stderr,
+		fprintf(stderr,
 				"could not register myself for the memory barrier syscall: %s\n",
 				strerror(errno));
 		exit(1);
@@ -512,18 +653,17 @@ static void return_command_wrapper() {
 }
 
 static inline void init_debug_cmds() {
-	for (int i = CALL_COMMANDS_COUNT-1; i--;) {
+	for (int i = CALL_COMMANDS_COUNT - 1; i--;) {
 		do_calls[i] = cmds[CALL_COMMANDS_START + i];
 		cmds[CALL_COMMANDS_START + i] = call_command_wrapper;
 	}
-	for (int i = RETURN_COMMANDS_COUNT-1; i --;) {
+	for (int i = RETURN_COMMANDS_COUNT - 1; i--;) {
 		do_returns[i] = cmds[RETURN_COMMANDS_START + i];
 		cmds[RETURN_COMMANDS_START + i] = return_command_wrapper;
 	}
 }
 
-void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
-	old_stderr = stderr;
+extern void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 	int stdin_dup = dup(STDIN_FILENO);
 	int stdout_dup = dup(STDOUT_FILENO);
 	int stderr_dup = dup(STDERR_FILENO);
@@ -542,9 +682,6 @@ void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 	set_fd_flag(stdin_dup, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	set_fd_flag(stdout_dup, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	set_fd_flag(stderr_dup, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
-	int stderr_dup2 = dup(STDERR_FILENO);
-	set_fd_flag(stderr_dup2, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
-	old_stderr = fdopen(stderr_dup2, "w");
 
 	init_syncronisation();
 	pvm_lock();
@@ -563,7 +700,7 @@ void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 	pthread_t some_other_thread;
 	int *deamon_arg = malloc(sizeof(int));
 	if (!deamon_arg) {
-		fprintf(old_stderr, "could not allocate the argument for the thread\n");
+		fprintf(stderr, "could not allocate the argument for the thread\n");
 		exit(1);
 	}
 	*deamon_arg = input; // debug deamon/thread
@@ -574,7 +711,7 @@ void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 	struct pvm_delegate_arg *delegate_arg = malloc(
 			sizeof(struct pvm_delegate_arg));
 	if (!delegate_arg) {
-		fprintf(old_stderr, "could not allocate the argument for the thread\n");
+		fprintf(stderr, "could not allocate the argument for the thread\n");
 		exit(1);
 	}
 	delegate_arg->srcfd = stdout_dup; // stdout delegate
@@ -582,7 +719,7 @@ void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 
 	delegate_arg = malloc(sizeof(struct pvm_delegate_arg));
 	if (!delegate_arg) {
-		fprintf(old_stderr, "could not allocate the argument for the thread\n");
+		fprintf(stderr, "could not allocate the argument for the thread\n");
 		exit(1);
 	}
 	delegate_arg->srcfd = stderr_dup; // stderr delegate
@@ -618,11 +755,6 @@ static inline struct memory_check chk(num pntr, num size);
 #endif // PVM_DEBUG
 
 static inline void interrupt(num intnum, num incIPVal) {
-#ifdef PVM_DEBUG
-#	define callInt ints[intnum](intnum);
-#else // PVM_DEBUG
-#	define callInt ints[intnum]();
-#endif // PVM_DEBUG
 	static _Bool in_illegal_mem = 0;
 	if (intnum != INT_ERROR_ILLEGAL_MEMORY) {
 		in_illegal_mem = 0;
@@ -638,7 +770,7 @@ static inline void interrupt(num intnum, num incIPVal) {
 		}
 		if (pvm.intp == -1) {
 			pvm.x[0] = intnum;
-			callInt;
+			callInt(intnum);
 		} else {
 			num adr = pvm.intp + (INT_ERROR_ILLEGAL_INTERRUPT << 3);
 			struct memory *mem = chk(adr, 8).mem;
@@ -648,7 +780,7 @@ static inline void interrupt(num intnum, num incIPVal) {
 			}
 			num deref = *(num*) (mem->offset + adr);
 			if (-1 == deref) {
-				callInt;
+				callInt(intnum);
 			} else {
 				int_init();
 				pvm.x[0] = intnum;
@@ -661,7 +793,7 @@ static inline void interrupt(num intnum, num incIPVal) {
 			pvm.x[0] = intnum;
 			intnum = INT_ERROR_ILLEGAL_INTERRUPT;
 		}
-		callInt;
+		callInt(intnum);
 	} else {
 		num adr = pvm.intp + (intnum << 3);
 		struct memory *mem = chk(adr, 8).mem;
@@ -672,14 +804,13 @@ static inline void interrupt(num intnum, num incIPVal) {
 		if (incIPVal) {pvm.ip += incIPVal;}
 		num deref = *(num*) (mem->offset + adr);
 		if (-1 == deref) {
-			callInt;
+			callInt(intnum);
 		} else {
 			int_init();
 			pvm.ip = deref;
 		}
 	}
 	in_illegal_mem = 0;
-#undef callInt
 }
 
 #ifdef PVM_DEBUG
@@ -1004,7 +1135,7 @@ static inline void exec_cmd() {
 	cmds[*ia.wp]();
 }
 
-PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size, unsigned flags) {
+extern struct memory* alloc_memory2(void *adr, num size, unsigned flags) {
 	if (mem_size && memory[mem_size - 1].start == -1) {
 		for (num index = mem_size; index;) {
 			if (memory[--index].start == -1) {
@@ -1043,7 +1174,7 @@ PVM_SI_PREFIX struct memory* alloc_memory2(void *adr, num size, unsigned flags) 
 	next_adress = memory[oms].end + ADRESS_HOLE_DEFAULT_SIZE;
 	return memory + oms;
 }
-PVM_SI_PREFIX struct memory2 alloc_memory(num size, unsigned flags) {
+extern struct memory2 alloc_memory(num size, unsigned flags) {
 	struct memory2 r;
 	void *mem = malloc(size);
 	if (!mem) {
@@ -1061,7 +1192,7 @@ PVM_SI_PREFIX struct memory2 alloc_memory(num size, unsigned flags) {
 	}
 	return r;
 }
-PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize,
+extern struct memory* realloc_memory(num adr, num newsize,
 		_Bool auto_growing) {
 	struct memory_check mem_chk = chk(adr, 0);
 	struct memory *mem = mem_chk.mem;
@@ -1142,7 +1273,7 @@ static inline void free_mem_impl(struct memory *mem) {
 	memset(mem, 0xFF, sizeof(struct memory));
 }
 
-PVM_SI_PREFIX void free_memory(num adr) {
+extern void free_memory(num adr) {
 	struct memory *mem = chk(adr, 0).mem;
 	if (!mem) {
 		return;
@@ -1643,7 +1774,7 @@ static void pvm_dbcmd_disasm(struct sok_data *sd, char *buffer) {
 		int val = snprintf(buffer, 128, "HEX-%lX", len);
 		if (val == -1 || val >= 128) {
 			arg3 = NULL;
-			fprintf(old_stderr, "could not convert the length to a string.\n");
+			fprintf(stderr, "could not convert the length to a string.\n");
 			fflush(stderr);
 			exit(1);
 		} else {
@@ -1653,7 +1784,7 @@ static void pvm_dbcmd_disasm(struct sok_data *sd, char *buffer) {
 				val = snprintf(buffer + 64, 64, "HEX-%lX", addr);
 				if (val == -1 || val >= 64) {
 					arg5 = NULL;
-					fprintf(old_stderr,
+					fprintf(stderr,
 							"could not convert the address to a string, discard --pos argument\n");
 					fflush(stderr);
 				} else {
@@ -1672,7 +1803,7 @@ static void* pvm_debug_thread_func(void *_arg) {
 	struct sok_data *sd = _arg;
 	if (syscall(SYS_membarrier, MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED, 0U,
 			0) == -1) {
-		fprintf(old_stderr,
+		fprintf(stderr,
 				"could not register a debug thread for the memory barrier syscall: %s\n",
 				strerror(errno));
 		exit(1);
@@ -1680,7 +1811,7 @@ static void* pvm_debug_thread_func(void *_arg) {
 	set_fd_flag(sd->fd, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	int read_fd = dup(sd->fd);
 	if (read_fd == -1) {
-		fprintf(old_stderr,
+		fprintf(stderr,
 				"could not duplicate my socket file descriptor: %s\n",
 				strerror(errno));
 		exit(1);
@@ -1688,7 +1819,7 @@ static void* pvm_debug_thread_func(void *_arg) {
 	set_fd_flag(read_fd, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	int write_fd = dup(sd->fd);
 	if (write_fd == -1) {
-		fprintf(old_stderr,
+		fprintf(stderr,
 				"could not duplicate my socket file descriptor: %s\n",
 				strerror(errno));
 		exit(1);
@@ -1696,14 +1827,14 @@ static void* pvm_debug_thread_func(void *_arg) {
 	set_fd_flag(write_fd, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	sd->read = fdopen(read_fd, "r");
 	if (!sd->read) {
-		fprintf(old_stderr,
+		fprintf(stderr,
 				"could not open a FILE* from my file descriptor: %s\n",
 				strerror(errno));
 		exit(1);
 	}
 	sd->write = fdopen(write_fd, "w");
 	if (!sd->write) {
-		fprintf(old_stderr,
+		fprintf(stderr,
 				"could not open a FILE* from my file descriptor: %s\n",
 				strerror(errno));
 		exit(1);
@@ -1714,7 +1845,7 @@ static void* pvm_debug_thread_func(void *_arg) {
 	pvm_unlock();
 	char *buffer = malloc(128);
 	if (!buffer) {
-		fprintf(old_stderr, "could not allocate my debug string buffer\n");
+		fprintf(stderr, "could not allocate my debug string buffer\n");
 		exit(1);
 	}
 	while (1) {
@@ -1731,7 +1862,7 @@ static void* pvm_debug_thread_func(void *_arg) {
 				errno = 0;
 				continue;
 			}
-			fprintf(old_stderr, "could not scanf the debug input: %s\n",
+			fprintf(stderr, "could not scanf the debug input: %s\n",
 					strerror(errno));
 			exit(1);
 		}

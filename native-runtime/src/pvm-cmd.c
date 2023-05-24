@@ -40,6 +40,29 @@ static void c_ill() /* --- */{
 
 #define doJmp pvm.ip += *ia.np >> 16;
 
+static void c_extern() {
+	struct memory *mem = chk(pvm.ip, 0).mem;
+	struct pvm_extern_call *ext = mem->externs;
+	if ((mem->flags & MEM_EXTERN) && ext) {
+		num val = pvm.ip - mem->start;
+		for (;ext->offset != -1; ext++) {
+			if (val == ext->offset) {
+				num oldip = pvm.ip;
+				int exitnum = ext->func();
+				if (exitnum != -1) {
+					exitnum &= 0xFF;
+					longjmp(call_pvm_env, exitnum + 1);
+				}
+				if (pvm.ip == oldip) {
+					c_ret();
+				}
+				return;
+			}
+		}
+	}
+	c_ill();
+}
+
 static void c_mvb() {
 	struct p p1 = param(1, 1);
 	if (!p1.valid) {

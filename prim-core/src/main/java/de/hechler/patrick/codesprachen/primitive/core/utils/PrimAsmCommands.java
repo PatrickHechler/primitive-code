@@ -23,6 +23,35 @@ public class PrimAsmCommands {
 	// GENERATED-CODE-START
 	// this code-block is automatic generated, do not modify
 	/**
+	 * <b>EXTERN</b> <code>(00 00)</code><br>
+	 * <i>Parameter: none</i>
+	 * <p>
+	 * executes an extern function identified by the current address of the instruction pointer (the <code>IP</code> register) and then returns<br>
+	 * this command can be used to create libaries which operate outside of the virtual mashine<br>
+	 * note that for this command to work, the PVMs extern functions must be initilized<br>
+	 * note that this command is not supported by the assembler
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>func a = extern_func_from_addr(IP)</code></li>
+	 * <li><code>if ther is a extern function at the IP address</code>
+	 * <ul>
+	 * <li><code>tmp &lt;-- IP</code></li>
+	 * <li><code>execute the extern code</code></li>
+	 * <li><code>if tmp = IP</code>
+	 * <ul>
+	 * <li><code>RET</code></li>
+	 * </ul></li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>act as if the comand was not known (see INT_ERROR_UNKNOWN_COMMAND)</code></li>
+	 * </ul></li>
+	 * </ul>
+
+	 */
+	public static final int EXTERN  = 0x0000;
+	/**
 	 * <b>MVB</b> <code>(00 01)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>

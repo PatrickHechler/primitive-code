@@ -127,6 +127,7 @@ public enum Commands {
 	
 	// PARAMS:
 	
+	CMD_EXTERN(EXTERN, 0, 0),
 	CMD_IRET(IRET, 0, 0),
 	CMD_RET(RET, 0, 0),
 	

@@ -15,7 +15,7 @@
 //You should have received a copy of the GNU General Public License
 //along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /*
- * pvm-virtual-mashine.h
+ * PVM-virtual-mashine.h
  *
  *  Created on: Nov 2, 2022
  *      Author: pat
@@ -27,12 +27,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>
+#include <setjmp.h>
 
 #ifdef PVM
 #	define EXT
-#else
+#else // PVM
 #	define EXT extern
-#endif
+#endif // PVM
 
 typedef int64_t num;
 typedef uint64_t unum;
@@ -41,12 +42,49 @@ typedef uint8_t byte;
 typedef uint16_t word;
 typedef uint32_t double_word;
 
-void execute() __attribute__ ((__noreturn__));
+extern void execute() __attribute__ ((__noreturn__));
 
-void pvm_init(char **argv, num argc_ount, void *exe, num exe_size);
+/**
+ * Initialize the PVM so that execute() can be called
+ *
+ * note that this function will fail if the PVM is already initialized
+ * note that the PVM can not be initialized for both (execute() and call_pvm())
+ */
+extern void pvm_init_execute(char **argv, num argc_ount, void *exe, num exe_size);
+
+struct pvm_extern_call {
+	num offset;
+	int (*func)(); // the exit code or -1 if the program should continue execution
+};
+
+struct pvm_simple_mem_block {
+	num len;
+	void *data;
+	char *lib_name; // the library name (used by the INT_LOAD_LIB interrupt) or NULL
+	num addr; // will be set to the address where the PVM program can see the memory block
+};
+
+struct pvm_call_mem {
+	struct pvm_simple_mem_block data;
+	struct pvm_extern_call funcs[]; // ends when offset is -1
+};
+
+/**
+ * executes the program, until it would terminate or returns from the given address
+ * returns the exit code or 0 if the PVM returned
+ */
+extern int call_pvm(num addr);
+
+/**
+ * Initialize the PVM so that call_pvm() can be called
+ *
+ * note that this function will fail if the PVM is already initialized
+ * note that the PVM can not be initialized for both (execute() and call_pvm())
+ */
+extern void pvm_init_calls(struct pvm_simple_mem_block *block0, ... /* blockN, NULL, struct pvm_call_mem *mem0, ... , memM, NULL */);
 
 #ifdef PVM_DEBUG
-void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait);
+extern void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait);
 #endif // PVM_DEBUG
 
 _Static_assert(sizeof(num) == 8, "Error!");
@@ -100,21 +138,27 @@ enum param_type {
 #define NUM_MAX_VALUE 0x7FFFFFFFFFFFFFFF
 #define NUM_MIN_VALUE 0x8000000000000000
 
-#ifdef PVM
+#ifdef PVM_DEBUG
 
-#	ifdef PVM_DEBUG
+#	ifdef PVM
 
 static int pvm_same_address(const void *a, const void *b);
 static unsigned int pvm_address_hash(const void *a);
 
-static struct hashset breakpoints = {
+#	endif // PVM
+
+EXT struct hashset breakpoints
+#ifdef PVM
+= {
 		.entries = NULL,
 		.entrycount = 0,
 		.equalizer = pvm_same_address,
 		.hashmaker = pvm_address_hash,
 		.setsize = 0,
-};
-static enum pvm_db_state {
+}
+#endif // PVM
+;
+EXT enum pvm_db_state {
 	pvm_ds_running,
 
 	pvm_ds_new_running,
@@ -128,11 +172,11 @@ static enum pvm_db_state {
 	pvm_ds_init = pvm_ds_waiting,
 } pvm_state, pvm_next_state;
 
-static int pvm_depth;
+EXT int pvm_depth;
 
-#	endif // PVM_DEBUG
+#endif // PVM_DEBUG
 
-#endif // PVM
+#if defined PVM || defined PVM_DEBUG || defined PVM_MEM
 
 #define MEM_NO_RESIZE       0x00000001U
 #define MEM_NO_FREE         0x00000002U
@@ -141,6 +185,7 @@ static int pvm_depth;
 #define MEM_AUTO_GROW_SHIFT 24
 #define MEM_INT             0x00000008U
 #define MEM_LIB             0x00000010U
+#define MEM_EXTERN          0x00000020U
 
 struct memory {
 	num start;
@@ -148,13 +193,18 @@ struct memory {
 	void *offset;
 	unsigned flags;
 	unsigned grow_size;
-	num *change_pntr;
+	union {
+		num *change_pntr;
+		struct pvm_extern_call *externs;
+	};
 };
 
 struct memory2 {
 	struct memory *mem;
 	void *adr;
 };
+
+#endif // PVM || PVM_DEBUG || PVM_MEM
 
 #ifdef PVM
 
@@ -185,17 +235,9 @@ static num next_adress = REGISTER_START;
 
 #endif // PVM
 
-#if defined PVM | defined PVM_DEBUG
-#	if defined PVM & !defined PVM_DEBUG
-#		define PVM_SI_PREFIX static inline
-#	else
-#		define PVM_SI_PREFIX
-#	endif
-
-PVM_SI_PREFIX struct memory2 alloc_memory(num size, unsigned flags);
-PVM_SI_PREFIX struct memory* alloc_memory2(void *mem, num size, unsigned flags);
-PVM_SI_PREFIX struct memory* realloc_memory(num adr, num newsize, _Bool auto_growing);
-PVM_SI_PREFIX void free_memory(num adr);
-#endif /* defined PVM | defined PVM_DEBUG */
+extern struct memory2 alloc_memory(num size, unsigned flags);
+extern struct memory* alloc_memory2(void *mem, num size, unsigned flags);
+extern struct memory* realloc_memory(num adr, num newsize, _Bool auto_growing);
+extern void free_memory(num adr);
 
 #endif /* SRC_PVM_VIRTUAL_MASHINE_H_ */

@@ -21,10 +21,15 @@
  *  CreateD on: Nov 9, 2022
  *      Author: pat
  */
-#if defined SRC_PVM_CMD_H_ | !defined PVM
-#error "Multiple includes of pvm-cmd.h or PVM is not defined!"
-#endif
+
+#ifdef SRC_PVM_CMD_H_
+#	ifdef PVM
+#		error "Multiple includes of pvm-cmd.h and PVM is defined!"
+#	endif
+#else // SRC_PVM_CMD_H_
 #define SRC_PVM_CMD_H_
+
+#ifdef PVM
 
 static void c_ill();
 
@@ -33,6 +38,7 @@ static void c_ill();
 
 /* 00.. : data */
 /* 000. : move data */
+	/* 0000 */ static void c_extern();
 	/* 0001 */ static void c_mvb();
 	/* 0002 */ static void c_mvw();
 	/* 0003 */ static void c_mvdw();
@@ -133,4 +139,8 @@ static void c_ill();
 // here is the end of the automatic generated code-block
 // GENERATED-CODE-END
 
+#endif // PVM
+
 #include "pvm-cmd-cmds-gen.h"
+
+#endif // SRC_PVM_CMD_H_

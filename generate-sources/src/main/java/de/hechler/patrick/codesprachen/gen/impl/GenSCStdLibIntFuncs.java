@@ -13,7 +13,7 @@ import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmPreDefines;
 
 
 @SuppressWarnings("javadoc")
-public class GenSCStdLibFuncs implements SrcGen {
+public class GenSCStdLibIntFuncs implements SrcGen {
 	
 	private record Var(int reg, String name, String type, int pointerCnt, long flags, String doc) {
 		
@@ -198,8 +198,8 @@ public class GenSCStdLibFuncs implements SrcGen {
 	}
 	
 	private static void start(Writer out) throws IOException {
-		out.write("\tprivate static Map<String, StdLibFunc> allInts() {\n"//
-				+ "\t\tMap<String, StdLibFunc> res = new HashMap<>();\n");
+		out.write("\tprivate static Map<String, StdLibIntFunc> allInts() {\n"//
+				+ "\t\tMap<String, StdLibIntFunc> res = new HashMap<>();\n");
 	}
 	
 }
