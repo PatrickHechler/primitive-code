@@ -327,14 +327,6 @@ static inline void pvm_unlock() {
 	}
 }
 
-static inline void wait5ms() {
-	struct timespec wait_time = { //
-			/*	  */.tv_sec = 0, // 0 sec
-					.tv_nsec = 5000000 // 5 ms
-			};
-	nanosleep(&wait_time, NULL);
-}
-
 static int pvm_same_address(const void *a, const void *b) {
 	return a == b;
 }
