@@ -363,6 +363,37 @@ static struct hashset delegate_set_stderr = { //
 				.hashmaker = pvm_address_hash, //
 		};
 
+struct wtd_arg {
+	const void const *data;
+	const size_t len;
+};
+
+int write_to_delegate(void*arg0, void*element) {
+	struct wtd_arg *arg = arg0;
+	int dstfd = (int) (long) element;
+	for (size_t wrote = 0; wrote < arg->len;) {
+		size_t w = write(dstfd, arg->data + wrote, arg->len - wrote);
+		if (w == -1) {
+			switch (errno) {
+#if EWOULDBLOCK != EAGAIN
+			case EWOULDBLOCK:
+#endif
+			case EAGAIN:
+				wait5ms();
+				/* no break */
+			case EINTR:
+				errno = 0;
+				continue;
+			}
+			fprintf(stderr, "error on write: %s\n",
+					strerror(errno));
+			return 1;
+		}
+		wrote += w;
+	}
+	return 1;
+}
+
 static void* pvm_delegate_func(void *_arg) {
 	struct pvm_delegate_arg arg = *(struct pvm_delegate_arg*) _arg;
 	free(_arg);
@@ -372,9 +403,12 @@ static void* pvm_delegate_func(void *_arg) {
 		exit(1);
 	}
 	while (1) {
-		ssize_t reat = read(arg.srcfd, buffer, 128);
+		size_t reat = read(arg.srcfd, buffer, 128);
 		if (reat == -1) {
 			switch (errno) {
+#if EWOULDBLOCK != EAGAIN
+			case EWOULDBLOCK:
+#endif
 			case EAGAIN:
 				wait5ms();
 				/* no break */
@@ -388,34 +422,11 @@ static void* pvm_delegate_func(void *_arg) {
 			return NULL;
 		}
 		pvm_lock();
-		struct pvm_wtd_arg wtd_arg = {
+		struct wtd_arg wtd_arg = {
 				.data = buffer,
 				.len = reat
 		};
-		hashset_for_each(&arg.dst_fds, write_to_delegate, &wtd_arg);
-		for (int i = arg.dst_fds->setsize; i;) {
-			if (!arg.dst_fds->entries[i]
-					|| arg.dst_fds->entries[i] == &illegal) {
-				continue;
-			}
-			int dstfd = ((int) (arg.dst_fds->entries[i] - NULL)) - 1;
-			for (ssize_t wrote = 0; wrote < reat;) {
-				ssize_t w = write(dstfd, buffer + wrote, reat - wrote);
-				if (w == -1) {
-					switch (errno) {
-					case EAGAIN:
-					case EINTR:
-						errno = 0;
-						continue;
-					}
-					fprintf(stderr, "error on write: %s\n",
-							strerror(errno));
-					goto big_break;
-				}
-				wrote += w;
-			}
-			big_break: ;
-		}
+		hashset_for_each(arg.dst_fds, write_to_delegate, &wtd_arg);
 		pvm_unlock();
 	}
 }
@@ -1360,6 +1371,9 @@ static inline _Bool scahnf_help(struct sok_data *sd, char *buffer,
 		int e = errno;
 		errno = 0;
 		switch (e) {
+#if EWOULDBLOCK != EAGAIN
+		case EWOULDBLOCK:
+#endif
 		case EAGAIN:
 			wait5ms();
 			continue;
@@ -1696,7 +1710,12 @@ static void pvm_dbcmd_disasm(struct sok_data *sd, char *buffer) {
 			if (wrote == -1) {
 				int e = errno;
 				switch (e) {
+#if EWOULDBLOCK != EAGAIN
+				case EWOULDBLOCK:
+#endif
 				case EAGAIN:
+					wait5ms();
+					/* no break */
 				case EINTR:
 					continue;
 				default:
@@ -1843,6 +1862,9 @@ static void* pvm_debug_thread_func(void *_arg) {
 		fflush(sd->write);
 		if (fscanf(sd->read, "%127s%1c", buffer, &white) == -1) {
 			switch (errno) {
+#if EWOULDBLOCK != EAGAIN
+			case EWOULDBLOCK:
+#endif
 			case EAGAIN:
 				wait5ms();
 				/* no break */
