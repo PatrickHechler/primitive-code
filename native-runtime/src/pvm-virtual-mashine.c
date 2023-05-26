@@ -230,8 +230,7 @@ extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
 
 	va_list val;
 	va_start(val, block0);
-	if (block0) {
-		do {
+	while (block0) {
 			unsigned flags;
 			if (block0->lib_name) {
 				flags = MEM_LIB | MEM_NO_FREE | MEM_NO_RESIZE;
@@ -260,7 +259,6 @@ extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
 				}
 			}
 			block0 = va_arg(val, struct pvm_simple_mem_block*);
-		} while (block0);
 	}
 	struct pvm_call_mem *call;
 	while (654) {
@@ -296,6 +294,7 @@ extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
 			}
 		}
 	}
+	va_end(val);
 
 	// TODO redirect exit
 
