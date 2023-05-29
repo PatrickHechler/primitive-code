@@ -84,32 +84,42 @@ static void close_pfs_on_exit(int status, void *ignore) {
 	}
 }
 
-extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
+static inline void pvm_basic_init() {
 	if (next_adress != REGISTER_START) {
 		abort();
 	}
-
 	pfs_err_loc = (ui32*) &pvm.err;
-
-	if (pfs_stream_open_delegate(STDIN_FILENO, PFS_SO_PIPE | PFS_SO_READ)
-			!= 0) {
+#ifdef PORTABLE_BUILD
+	if (pfs_stream_open_delegate(stdin, PFS_SO_PIPE | PFS_SO_READ) != 0) {
 		abort();
 	}
-	if (pfs_stream_open_delegate(STDOUT_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
-			!= 1) {
+	if (pfs_stream_open_delegate(stdout, PFS_SO_PIPE | PFS_SO_APPEND) != 1) {
 		abort();
 	}
-	if (pfs_stream_open_delegate(STDERR_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
-			!= 2) {
+	if (pfs_stream_open_delegate(stderr, PFS_SO_PIPE | PFS_SO_APPEND) != 2) {
 		abort();
 	}
+#else
+	if (pfs_stream_open_delegate_fd(STDIN_FILENO, PFS_SO_PIPE | PFS_SO_READ) != 0) {
+		abort();
+	}
+	if (pfs_stream_open_delegate_fd(STDOUT_FILENO, PFS_SO_PIPE | PFS_SO_APPEND) != 1) {
+		abort();
+	}
+	if (pfs_stream_open_delegate_fd(STDERR_FILENO, PFS_SO_PIPE | PFS_SO_APPEND) != 2) {
+		abort();
+	}
+#endif
 
 	struct memory *pvm_mem = alloc_memory2(&pvm, sizeof(pvm),
 	/*		*/MEM_NO_FREE | MEM_NO_RESIZE);
 	if (!pvm_mem) {
 		abort();
 	}
-	memset(&pvm, 0, sizeof(pvm));
+}
+
+extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
+	pvm_basic_init();
 
 	struct memory2 stack_mem = alloc_memory(256,
 	/*		*/MEM_AUTO_GROW | (8 << MEM_AUTO_GROW_SHIFT));
@@ -185,31 +195,7 @@ extern int call_pvm(num addr) {
 
 extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
 		... /* blockN, NULL, struct pvm_call_mem *mem0, ... , memM, NULL */) {
-	if (next_adress != REGISTER_START) {
-		abort();
-	}
-
-	pfs_err_loc = (ui32*) &pvm.err;
-
-	if (pfs_stream_open_delegate(STDIN_FILENO, PFS_SO_PIPE | PFS_SO_READ)
-			!= 0) {
-		abort();
-	}
-	if (pfs_stream_open_delegate(STDOUT_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
-			!= 1) {
-		abort();
-	}
-	if (pfs_stream_open_delegate(STDERR_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
-			!= 2) {
-		abort();
-	}
-
-	struct memory *pvm_mem = alloc_memory2(&pvm, sizeof(pvm),
-	/*		*/MEM_NO_FREE | MEM_NO_RESIZE);
-	if (!pvm_mem) {
-		abort();
-	}
-	memset(&pvm, 0, sizeof(pvm));
+	pvm_basic_init();
 
 	struct memory2 stack_mem = alloc_memory(256,
 	/*		*/MEM_AUTO_GROW | (8 << MEM_AUTO_GROW_SHIFT));

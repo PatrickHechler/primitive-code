@@ -50,7 +50,8 @@ extern void execute() __attribute__ ((__noreturn__));
  * note that this function will fail if the PVM is already initialized
  * note that the PVM can not be initialized for both (execute() and call_pvm())
  */
-extern void pvm_init_execute(char **argv, num argc_ount, void *exe, num exe_size);
+extern void pvm_init_execute(char **argv, num argc_ount, void *exe,
+		num exe_size);
 
 struct pvm_extern_call {
 	num offset;
@@ -81,7 +82,8 @@ extern int call_pvm(num addr);
  * note that this function will fail if the PVM is already initialized
  * note that the PVM can not be initialized for both (execute() and call_pvm())
  */
-extern void pvm_init_calls(struct pvm_simple_mem_block *block0, ... /* blockN, NULL, struct pvm_call_mem *mem0, ... , memM, NULL */);
+extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
+		... /* blockN, NULL, struct pvm_call_mem *mem0, ... , memM, NULL */);
 
 #ifdef PVM_DEBUG
 extern void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait);
@@ -102,7 +104,11 @@ EXT struct pvm {
 	num err; // regs[6]
 	fpnum fpx[0]; // reg[7..255]
 	num x[256 - 6]; // reg[7..255]
-} pvm;
+} pvm
+#ifdef PVM
+ = { }
+#endif
+;
 
 _Static_assert((sizeof(num) * 256) == sizeof(struct pvm), "Error!");
 

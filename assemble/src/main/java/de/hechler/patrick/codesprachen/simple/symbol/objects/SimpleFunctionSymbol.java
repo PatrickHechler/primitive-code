@@ -32,7 +32,7 @@ public class SimpleFunctionSymbol implements SimpleExportable {
 	public final SimpleFuncType type;
 	
 	public SimpleFunctionSymbol(boolean export, String name, List<SimpleOffsetVariable> args, List<SimpleOffsetVariable> results) {
-		this(-1L, export, name, new SimpleFuncType(args, results));
+		this(-1L, null, export, name, new SimpleFuncType(args, results));
 	}
 	
 	public SimpleFunctionSymbol(long address, Object relative, String name, SimpleFuncType type) {

@@ -387,17 +387,42 @@ static void int_time_wait( INT_PARAMS) /* 46 */{
 		pvm.x[2] = 1;
 	}
 }
+static i64 rnd_read(struct delegate_stream *str, void *buf, const i64 len) {
+	static_assert(sizeof(int16_t) == 2, "Error!");
+	static_assert(sizeof(int8_t) == 1, "Error!");
+	for (i64 i = len - 1; i > 0; i -= 2, buf += 2) {
+		long val = random();
+		if (val < 0) {
+			(*pfs_err_loc) = PFS_ERRNO_UNKNOWN_ERROR;
+			return (len - i) - 1;
+		}
+		*((int16_t*)buf) = val;
+	}
+	if (len & 1) {
+		long val = random();
+		if (val < 0) {
+			(*pfs_err_loc) = PFS_ERRNO_UNKNOWN_ERROR;
+			return len - 1;
+		}
+		*((int8_t*)buf) = val;
+	}
+	return len;
+}
+static struct delegate_stream rnd_str = { .read = rnd_read };
 static void int_rnd_open( INT_PARAMS) /* 47 */{
-	int fd = open("/dev/urandom", O_RDONLY);
-	if (fd == -1) {
-		pvm.err = PE_UNKNOWN_ERROR;
-		pvm.x[0] = -1;
-		return;
-	}
-	int sh = pfs_stream_open_delegate(fd, PFS_SO_PIPE | PFS_SO_READ);
-	if (sh == -1) {
+	int sh;
+#ifndef PORTABLE_BUILD // this approach fails when no devfs is mounted at /dev
+	int fd = bm_fd_open_ro("/dev/random");
+	if (fd != -1) {
+		sh = pfs_stream_open_delegate_fd(fd, PFS_SO_PIPE | PFS_SO_READ);
+	} else {
+		errno = 0; // ignore errno, fall back to the portable solution
 		close(fd);
+#endif
+		sh = pfs_stream_open_delegate(&rnd_str);
+#ifndef PORTABLE_BUILD
 	}
+#endif
 	pvm.x[0] = sh;
 }
 static void int_rnd_num( INT_PARAMS) /* 48 */{
@@ -1139,8 +1164,7 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 	}
 	struct loaded_libs_entry tmp_entry;
 	tmp_entry.name = name;
-	void *old = hashset_get(&loaded_libs, string_hash(&tmp_entry),
-			&tmp_entry);
+	void *old = hashset_get(&loaded_libs, string_hash(&tmp_entry), &tmp_entry);
 	if (old) {
 		struct loaded_libs_entry *entry = old;
 		struct memory *old_mem = chk(entry->pntr, 0).mem;
