@@ -201,16 +201,11 @@ static inline void setup(int argc, char **argv) {
 				exit(1);
 			}
 			pfs_set = 1;
-			int fd = open(*argv + 6, O_RDWR);
-			if (fd == -1) {
-				perror("open");
-				fprintf(stderr, "could not open the PFS!\n", *argv);
+			struct bm_block_manager *bm = bm_new_file_block_manager_path(*argv + 6, 0);
+			if (!bm) {
+				fprintf(stderr, "could not create the block manger (for the PFS) (%s)!\n", pfs_error());
 				exit(1);
 			}
-			struct bm_block_manager *bm;
-			new_file_bm0(bm, fd,
-					fprintf(stderr, "the PFS has an invalid magic start!\n"); exit(1);,
-					perror("io"); fprintf(stderr, "could not open the PFS block manager!\n"); exit(1);)
 			if (!pfs_load(bm, cwd)) {
 				fprintf(stderr, "could not load the PFS (%s)!\n", pfs_error());
 				exit(1);
