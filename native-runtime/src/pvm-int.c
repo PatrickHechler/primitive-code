@@ -18,6 +18,8 @@
 #error "this file should be included inside of pvm-virtual-mashine.c"
 #endif
 
+#include <pfs-err.h>
+
 #define check_string_len0(XNN_OFFSET, mem, name, max_len, error_reg, error_value) \
 	num max_len = mem->end - pvm.x[XNN_OFFSET]; \
 	char* name = mem->offset + pvm.x[XNN_OFFSET]; \
