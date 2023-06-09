@@ -185,7 +185,7 @@ static void int_element_set_last_mod( INT_PARAMS) /* 24 */{
 	pvm.x[1] = pfs_element_set_last_modify_time(pvm.x[0], pvm.x[1]);
 }
 static void int_element_delete( INT_PARAMS) /* 25 */{
-	pvm.x[0] = pfs_element_delete(pvm.x[0]);
+	pvm.x[0] = pfs_element_delete(pvm.x[0], pvm.x[1]);
 }
 static void int_element_move( INT_PARAMS) /* 26 */{
 	if (pvm.x[1] != -1) {

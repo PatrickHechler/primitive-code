@@ -282,7 +282,7 @@ every register can also be addressed:
     * value: `9`
     * params:
         * `X00` `id`: (`num`) the STREAM-ID
-        * `X01` `len`: (`unum`) the number of bytes to write
+7        * `X01` `len`: (`unum`) the number of bytes to write
         * `X02` `data`: (`ubyte#`) points to the params to write
     * result values:
         * `X01` `wrote`: (`num`) will be set to the number of written bytes
@@ -417,9 +417,11 @@ every register can also be addressed:
     * value: `25`
     * params:
         * `X00` `id`: (`num`) the ELEMENT-ID
+        * `X01` `force`: (`num`) always try to delete the element
     * result values:
         * `X01` `success`: (`num`) `1` on success or `0` on error
-    * this operation automatically closes the given ELEMENT-ID, even when it fails
+    * this operation always closes the given ELEMENT-ID, even when it fails
+    * if `force` has a non-zero value, delete the element, even if it is still loaded somewhere else
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_ELEMENT_MOVE` : element move
     * value: `26`
