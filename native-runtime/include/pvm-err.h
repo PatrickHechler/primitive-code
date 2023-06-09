@@ -37,13 +37,14 @@ enum perr {
 	PE_OUT_OF_SPACE                  = 6, /* indicates that there is not enough space on the device */
 	PE_IO_ERR                        = 7, /* indicates an IO error */
 	PE_ILLEGAL_ARG                   = 8, /* indicates an illegal argument */
-	PE_ILLEGAL_MAGIC                 = 9, /* indicates that some magic value is invalid */
+	PE_ILLEGAL_STATE                 = 9, /* indicates that some state is invalid */
 	PE_OUT_OF_MEMORY                 = 10, /* indicates that the system is out of memory */
 	PE_ROOT_FOLDER                   = 11, /* indicates that the root folder does not support this operation */
 	PE_PARENT_IS_CHILD               = 12, /* indicates that the parent can't be made to it's own child */
 	PE_ELEMENT_USED                  = 13, /* indicates the element is still used somewhere else */
 	PE_OUT_OF_RANGE                  = 14, /* indicates that some value was outside of the allowed range */
-	PE_FOLDER_NOT_EMPTY              = 15, /* indicates that the operation was canceled, because only empty folders can be deleted */
+	PE_FOLDER_NOT_EMPTY              = 15, /* indicates that the operation failed, because only empty folders can be deleted */
+	PE_ELEMENT_DELETED               = 16, /* indicates that the operation failed, because the element was deleted */
 	
 	// here is the end of the automatic generated code-block
 	// GENERATED-CODE-END

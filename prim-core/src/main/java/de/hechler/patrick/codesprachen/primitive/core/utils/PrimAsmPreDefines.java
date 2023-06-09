@@ -391,12 +391,14 @@ public class PrimAsmPreDefines {
 	 * params:
 	 * <ul>
 	 * <li><code>X00</code> <code>id</code>: (<code>num</code>) the ELEMENT-ID</li>
+	 * <li><code>X01</code> <code>force</code>: (<code>num</code>) always try to delete the element</li>
 	 * </ul>
 	 * result values:
 	 * <ul>
 	 * <li><code>X01</code> <code>success</code>: (<code>num</code>) <code>1</code> on success or <code>0</code> on error</li>
 	 * </ul>
-	 * this operation automatically closes the given ELEMENT-ID, even when it fails<br>
+	 * this operation always closes the given ELEMENT-ID, even when it fails<br>
+	 * if <code>force</code> has a non-zero value, delete the element, even if it is still loaded somewhere else<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
 	public static final long INT_ELEMENT_DELETE = 25L;
 	/**
@@ -1271,11 +1273,11 @@ public class PrimAsmPreDefines {
 	 * this error value indicates that some argument has an illegal value	 */
 	public static final long ERR_ILLEGAL_ARG = 8L;
 	/**
-	 * <b>ERR_ILLEGAL_MAGIC</b>: indicates that some magic value is invalid<br>
+	 * <b>ERR_ILLEGAL_STATE</b>: indicates that some state is invalid<br>
 	 * value: <code>9</code>
 	 * <p>
-	 * this error value indicates that a magic value was invalid	 */
-	public static final long ERR_ILLEGAL_MAGIC = 9L;
+	 * this error value indicates that a state is invalid, for example an invalid/unknown magic value	 */
+	public static final long ERR_ILLEGAL_STATE = 9L;
 	/**
 	 * <b>ERR_OUT_OF_MEMORY</b>: indicates that the system is out of memory<br>
 	 * value: <code>10</code>
@@ -1307,12 +1309,19 @@ public class PrimAsmPreDefines {
 	 * this error value indicates that some value was outside of the allowed range	 */
 	public static final long ERR_OUT_OF_RANGE = 14L;
 	/**
-	 * <b>ERR_FOLDER_NOT_EMPTY</b>: indicates that the operation was canceled, because only empty folders can be deleted<br>
+	 * <b>ERR_FOLDER_NOT_EMPTY</b>: indicates that the operation failed, because only empty folders can be deleted<br>
 	 * value: <code>15</code>
 	 * <p>
-	 * this error value indicates that the operation was canceled, because only empty folders can be deleted<br>
+	 * this error value indicates that the operation failed, because only empty folders can be deleted<br>
 	 * this error will occur, when a non empty folder is tried to be deleted	 */
 	public static final long ERR_FOLDER_NOT_EMPTY = 15L;
+	/**
+	 * <b>ERR_ELEMENT_DELETED</b>: indicates that the operation failed, because the element was deleted<br>
+	 * value: <code>16</code>
+	 * <p>
+	 * this error value indicates that the operation failed, because the element was deleted<br>
+	 * this error will occur, when a non empty folder is tried to be deleted	 */
+	public static final long ERR_ELEMENT_DELETED = 16L;
 	/**
 	 * <b>UNMODIFIABLE_FLAGS</b>: element flags that can not be modified<br>
 	 * value: <code>0x000000ff</code>

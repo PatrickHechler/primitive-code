@@ -282,7 +282,7 @@ every register can also be addressed:
     * value: `9`
     * params:
         * `X00` `id`: (`num`) the STREAM-ID
-7        * `X01` `len`: (`unum`) the number of bytes to write
+        * `X01` `len`: (`unum`) the number of bytes to write
         * `X02` `data`: (`ubyte#`) points to the params to write
     * result values:
         * `X01` `wrote`: (`num`) will be set to the number of written bytes
@@ -915,9 +915,9 @@ every register can also be addressed:
 * `ERR_ILLEGAL_ARG` : indicates an illegal argument
     * value: `8`
     * this error value indicates that some argument has an illegal value
-* `ERR_ILLEGAL_MAGIC` : indicates that some magic value is invalid
+* `ERR_ILLEGAL_STATE` : indicates that some state is invalid
     * value: `9`
-    * this error value indicates that a magic value was invalid
+    * this error value indicates that a state is invalid, for example an invalid/unknown magic value
 * `ERR_OUT_OF_MEMORY` : indicates that the system is out of memory
     * value: `10`
     * this error value indicates that the system could not allocate the needed memory
@@ -933,9 +933,13 @@ every register can also be addressed:
 * `ERR_OUT_OF_RANGE` : indicates that some value was outside of the allowed range
     * value: `14`
     * this error value indicates that some value was outside of the allowed range
-* `ERR_FOLDER_NOT_EMPTY` : indicates that the operation was canceled, because only empty folders can be deleted
+* `ERR_FOLDER_NOT_EMPTY` : indicates that the operation failed, because only empty folders can be deleted
     * value: `15`
-    * this error value indicates that the operation was canceled, because only empty folders can be deleted
+    * this error value indicates that the operation failed, because only empty folders can be deleted
+    * this error will occur, when a non empty folder is tried to be deleted
+* `ERR_ELEMENT_DELETED` : indicates that the operation failed, because the element was deleted
+    * value: `16`
+    * this error value indicates that the operation failed, because the element was deleted
     * this error will occur, when a non empty folder is tried to be deleted
 * `UNMODIFIABLE_FLAGS` : element flags that can not be modified
     * value: `UHEX-000000FF`
