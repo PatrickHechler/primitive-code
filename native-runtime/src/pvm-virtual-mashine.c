@@ -22,6 +22,8 @@
  */
 #define PVM
 
+#include "../include/pvm.h"
+
 #include <pfs.h>
 #include <pfs-constants.h>
 #include <pfs-stream.h>
@@ -173,7 +175,7 @@ struct loaded_libs_entry {
 	char *name;
 	num pntr;
 };
-static_assert(offsetof(struct loaded_libs_entry, name) == 0, "Error");
+_Static_assert(offsetof(struct loaded_libs_entry, name) == 0, "Error");
 static struct hashset loaded_libs = { //
 		/*	  */.entrycount = 0, //
 				.maxi = 0, //
@@ -522,7 +524,7 @@ struct debug_cmd {
 	void (*func)(struct sok_data *sd, char *buffer);
 };
 
-static_assert(offsetof(struct debug_cmd, name) == 0, "Error!");
+_Static_assert(offsetof(struct debug_cmd, name) == 0, "Error!");
 
 static int debug_cmds_equal(const void *_a, const void *_b) {
 	const struct debug_cmd *a = _a, *b = _b;

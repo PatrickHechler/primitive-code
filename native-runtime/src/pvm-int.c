@@ -390,8 +390,8 @@ static void int_time_wait( INT_PARAMS) /* 46 */{
 	}
 }
 static i64 rnd_read(struct delegate_stream *str, void *buf, const i64 len) {
-	static_assert(sizeof(int16_t) == 2, "Error!");
-	static_assert(sizeof(int8_t) == 1, "Error!");
+	_Static_assert(sizeof(int16_t) == 2, "Error!");
+	_Static_assert(sizeof(int8_t) == 1, "Error!");
 	for (i64 i = len - 1; i > 0; i -= 2, buf += 2) {
 		long val = random();
 		if (val < 0) {
