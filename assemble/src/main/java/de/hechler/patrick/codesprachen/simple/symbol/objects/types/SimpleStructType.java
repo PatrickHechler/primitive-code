@@ -154,8 +154,8 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 		else {
 			int val = (int) bc;
 			switch (val) {
-			case 0 -> throw new AssertionError("bc is zero");
-			case 1, 2, 4 -> ibc = val;
+			case 0, 1 -> { return addr; }
+			case 2, 4 -> ibc = val;
 			case 3 -> ibc = 4;
 			default -> ibc = 8;
 			}
@@ -167,8 +167,8 @@ public class SimpleStructType implements SimpleType, SimpleExportable {
 	
 	public static long align(long addr, int bc) {
 		switch (bc) {
-		case 0 -> throw new AssertionError("bc is zero");
-		case 1, 2, 4 -> {/**/}
+		case 0, 1 -> { return addr; }
+		case 2, 4 -> {/**/}
 		case 3 -> bc = 4;
 		default -> bc = 8;
 		}

@@ -62,7 +62,7 @@ public abstract class SimpleVariable implements SimpleExportable {
 		
 		public Object relative() {
 			if (this.addr == -1L) { throw new AssertionError("not yet initilized"); }
-			return relative;
+			return this.relative;
 		}
 		
 		public long offset() {
@@ -109,12 +109,14 @@ public abstract class SimpleVariable implements SimpleExportable {
 		}
 		
 		public void setWantsPointer() {
-			checkNoInit();
-			wantsPointer = true;
+			// after init used by the compiler
+			if (this.reg != -1) {
+				this.wantsPointer = true;
+			}
 		}
 		
 		public boolean watsPointer() {
-			return wantsPointer;
+			return this.wantsPointer;
 		}
 		
 		private void checkNoInit() throws AssertionError {
@@ -127,17 +129,17 @@ public abstract class SimpleVariable implements SimpleExportable {
 		
 		public boolean hasOffset() {
 			checkInit();
-			return offset != -1L;
+			return this.offset != -1L;
 		}
 		
 		public long offset() {
-			if (offset == -1L) { throw new AssertionError(); }
-			return offset;
+			if (this.offset == -1L) { throw new AssertionError(); }
+			return this.offset;
 		}
 		
 		public int reg() {
-			if (reg == -1) { throw new AssertionError(); }
-			return reg;
+			if (this.reg == -1) { throw new AssertionError(); }
+			return this.reg;
 		}
 		
 		@Override
@@ -173,9 +175,9 @@ public abstract class SimpleVariable implements SimpleExportable {
 	@Override
 	public String toString() {
 		StringBuilder b = new StringBuilder();
-		b.append(type);
+		b.append(this.type);
 		b.append(' ');
-		b.append(name);
+		b.append(this.name);
 		return b.toString();
 	}
 	
@@ -183,9 +185,9 @@ public abstract class SimpleVariable implements SimpleExportable {
 	public int hashCode() {
 		final int prime  = 31;
 		int       result = 1;
-		result = prime * result + (export ? 1231 : 1237);
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		result = prime * result + (this.export ? 1231 : 1237);
+		result = prime * result + ((this.name == null) ? 0 : this.name.hashCode());
+		result = prime * result + ((this.type == null) ? 0 : this.type.hashCode());
 		return result;
 	}
 	
@@ -195,13 +197,13 @@ public abstract class SimpleVariable implements SimpleExportable {
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
 		SimpleVariable other = (SimpleVariable) obj;
-		if (export != other.export) return false;
-		if (name == null) {
+		if (this.export != other.export) return false;
+		if (this.name == null) {
 			if (other.name != null) return false;
-		} else if (!name.equals(other.name)) return false;
-		if (type == null) {
+		} else if (!this.name.equals(other.name)) return false;
+		if (this.type == null) {
 			if (other.type != null) return false;
-		} else if (!type.equals(other.type)) return false;
+		} else if (!this.type.equals(other.type)) return false;
 		return true;
 	}
 	
