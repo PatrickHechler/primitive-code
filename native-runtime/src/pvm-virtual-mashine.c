@@ -58,12 +58,15 @@
 #include <sys/socket.h>
 #include <netinet/ip.h>
 #include <sys/un.h>
-#include <linux/membarrier.h>
+#include <asm/shmbuf.h>
 #include <sys/syscall.h>
 #include <sys/wait.h>
+#include <linux/membarrier.h>
 #endif // PVM_DEBUG
 
 static uint64_t string_hash(const void *_a);
+
+static void (*pvm_exit) (int status) __attribute__ ((__noreturn__));
 
 static int param_param_type_index;
 static int param_byte_value_index;
@@ -87,6 +90,7 @@ static void close_pfs_on_exit(int status, void *ignore) {
 }
 
 static inline void pvm_basic_init() {
+	srand(time(NULL));
 	if (next_adress != REGISTER_START) {
 		abort();
 	}
@@ -166,6 +170,8 @@ extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
 		*(num*) argv = arg_mem->start;
 	}
 	*(num*) argv = -1;
+
+	pvm_exit = exit;
 
 	on_exit(close_pfs_on_exit, NULL);
 }
@@ -284,7 +290,7 @@ extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
 	}
 	va_end(val);
 
-	// TODO redirect exit
+	pvm_exit = exit;
 
 	on_exit(close_pfs_on_exit, NULL);
 }
@@ -708,7 +714,7 @@ extern void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 static inline void int_init() {
 	struct memory2 mem = alloc_memory(128, MEM_INT | MEM_NO_RESIZE);
 	if (!mem.mem) {
-		exit(127);
+		pvm_exit(127);
 	}
 	memcpy(mem.adr, &pvm, 128);
 	pvm.x[0x09] = mem.mem->start;
@@ -738,13 +744,13 @@ static inline void interrupt(num intnum, num incIPVal) {
 		in_illegal_mem = 0;
 	} else {
 		if (in_illegal_mem) {
-			exit(127);
+			pvm_exit(127);
 		}
 		in_illegal_mem = 1;
 	}
 	if (pvm.intcnt < intnum || intnum < 0) {
 		if (pvm.intcnt <= INT_ERROR_ILLEGAL_INTERRUPT) {
-			exit(128);
+			pvm_exit(128);
 		}
 		if (pvm.intp == -1) {
 			pvm.x[0] = intnum;

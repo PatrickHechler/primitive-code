@@ -653,10 +653,19 @@ every register can also be addressed:
     * params:
         * `X00` `str`: (`char#`) points to the STRING
     * result values:
-        * `X00` `len`: (`num`) the length of the string the (byte-)offset of the first byte from the `'\0'` character
+        * `X00` `len`: (`num`) the length of the string the/(byte-)offset of the first byte from the `'\0'` character
+    * this value can be used by the `INT` command to indicate that this interrupt should be called
+* `INT_STR_INDEX` : string index of
+    * value: `54`
+    * params:
+        * `X00` `str`: (`char#`) points to the STRING
+        * `X01` `chr`: (`char`) the character to search
+    * result values:
+        * `X00` `index`: (`num`) the index of the character/the (byte-)offset of the first byte equal to the given character
+    * if the given character could not be found, `index` will be `-1`
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_CMP` : string compare
-    * value: `54`
+    * value: `55`
     * params:
         * `X00` `strA`: (`char#`) points to the first STRING
         * `X01` `strB`: (`char#`) points to the second STRING
@@ -664,7 +673,7 @@ every register can also be addressed:
         * `STATUS` `cmpRes`: (`LOWER`, `GREATER`, `EQUAL`) if `memA` is lower/greater/equal than/to `memB`
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_NUM` : number to string
-    * value: `55`
+    * value: `56`
     * params:
         * `X00` `val`: (`num`) is set to the number to convert
         * `X01` `buf`: (`char#`) is points to the buffer to be filled with the number in a STRING representation
@@ -677,7 +686,7 @@ every register can also be addressed:
     * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_FPNUM` : floating point number to string
-    * value: `56`
+    * value: `57`
     * params:
         * `X00` `val`: (`fpnum`) is set to the floating point number to convert
         * `X01` `buf`: (`char#`) points to the buffer to be filled with the number in a STRING format
@@ -689,7 +698,7 @@ every register can also be addressed:
     * the new length will be the old length or if the old length is smaller than the size of the STRING (with `\0`) than the size of the STRING (with `\0`)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_NUM` : string to number
-    * value: `57`
+    * value: `58`
     * params:
         * `X00` `str`: (`char#`) points to the STRING
         * `X01` `base`: (`num`) the base of the number system (between `2` and `36` (both inclusive))
@@ -699,7 +708,7 @@ every register can also be addressed:
     * if the STRING represents a value out of the 64-bit number range `X00` will be min or max value and `ERRNO` will be set to `ERR_OUT_OF_RANGE`
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_FPNUM` : string to floating point number
-    * value: `58`
+    * value: `59`
     * params:
         * `X00` `str`: (`char#`) points to the STRING
     * result values:
@@ -707,7 +716,7 @@ every register can also be addressed:
         * `X01` `success`: (`num`) `1` on success and `0` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_U16STR` : STRING to U16-STRING
-    * value: `59`
+    * value: `60`
     * params:
         * `X00` `u8str`: (`char#`) points to the STRING (`UTF-8`)
         * `X01` `u16str`: (`uword#`) points to the buffer to be filled with the to `UTF-16` converted string
@@ -719,7 +728,7 @@ every register can also be addressed:
         * `X03` `remU8Len`: (`num`) will be set to the number of converted characters or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_TO_U32STR` : STRING to U32-STRING
-    * value: `60`
+    * value: `61`
     * params:
         * `X00` `u8str`: (`char#`) points to the STRING (`UTF-8`)
         * `X01` `u32str`: (`udword#`) points to the buffer to be filled with the to `UTF-32` converted string
@@ -731,7 +740,7 @@ every register can also be addressed:
         * `X03` `remU8Len`: (`num`) will be set to the number of converted characters or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_U16STR` : U16-STRING to STRING
-    * value: `61`
+    * value: `62`
     * params:
         * `X00` `u16str`: (`uword#`) points to the `UTF-16` STRING
         * `X01` `u8str`: (`char#`) points to the buffer to be filled with the converted STRING (`UTF-8`)
@@ -743,7 +752,7 @@ every register can also be addressed:
         * `X03` `remU8Len`: (`num`) will be set to the number of converted characters or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FROM_U32STR` : U32-STRING to STRING
-    * value: `62`
+    * value: `63`
     * params:
         * `X00` `u32str`: (`uword#`) points to the `UTF-32` STRING
         * `X01` `u8str`: (`char#`) points to the buffer to be filled with the converted STRING (`UTF-8`)
@@ -755,7 +764,7 @@ every register can also be addressed:
         * `X03` `remU8Len`: (`num`) will be set to the number of converted characters or `-1` on error
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_STR_FORMAT` : format string
-    * value: `63`
+    * value: `64`
     * params:
         * `X00` `frmtStr`: (`char#`) is set to the STRING input
         * `X01` `outStr`: (`char#`) contains the buffer for the STRING output
@@ -783,7 +792,7 @@ every register can also be addressed:
         * `%o`: the next argument contains a number, which should be converted to a STRING using the octal number system (`8`) and than be inserted here
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_LOAD_FILE` : load a file
-    * value: `64`
+    * value: `65`
     * params:
         * `X00` `file`: (`char#`) is set to the path (inclusive name) of the file
     * result values:
@@ -791,7 +800,7 @@ every register can also be addressed:
         * `X01` `len`: (`num`) the length of the file (and the memory block)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_LOAD_LIB` : load a library file 
-    * value: `65`
+    * value: `66`
     * params:
         * `X00` `file`: (`char#`) is set to the path (inclusive name) of the file
     * result values:
@@ -807,14 +816,14 @@ every register can also be addressed:
     * when an error occurred `X01` will be set to `-1`, `X00` will be unmodified and `ERRNO` will be set to a non-zero value
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_UNLOAD_LIB` : unload a library file 
-    * value: `66`
+    * value: `67`
     * params:
         * `X00` `data`: (`ubyte#`) points to the start of the memory block loaded with `INT_LOAD_LIB`
     * unloads a library previously loaded with the load lib interrupt
     * this interrupt will ensure that the given memory block will be freed and not again be returned from the load lib interrupt
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INTERRUPT_COUNT` : the number of interrupts
-    * value: `67`
+    * value: `68`
     * the number of interrupts supported by default
     * the `INTCNT` register is initialed with this value
 * `FP_NAN` : not a number

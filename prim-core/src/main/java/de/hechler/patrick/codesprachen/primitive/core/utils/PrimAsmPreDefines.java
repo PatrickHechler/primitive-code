@@ -815,13 +815,28 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * result values:
 	 * <ul>
-	 * <li><code>X00</code> <code>len</code>: (<code>num</code>) the length of the string the (byte-)offset of the first byte from the <code>'\0'</code> character</li>
+	 * <li><code>X00</code> <code>len</code>: (<code>num</code>) the length of the string the/(byte-)offset of the first byte from the <code>'\0'</code> character</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
 	public static final long INT_STR_LEN = 53L;
 	/**
-	 * <b>INT_STR_CMP</b>: string compare<br>
+	 * <b>INT_STR_INDEX</b>: string index of<br>
 	 * value: <code>54</code>
+	 * <p>
+	 * params:
+	 * <ul>
+	 * <li><code>X00</code> <code>str</code>: (<code>char#</code>) points to the STRING</li>
+	 * <li><code>X01</code> <code>chr</code>: (<code>char</code>) the character to search</li>
+	 * </ul>
+	 * result values:
+	 * <ul>
+	 * <li><code>X00</code> <code>index</code>: (<code>num</code>) the index of the character/the (byte-)offset of the first byte equal to the given character character</li>
+	 * </ul>
+	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
+	public static final long INT_STR_INDEX = 54L;
+	/**
+	 * <b>INT_STR_CMP</b>: string compare<br>
+	 * value: <code>55</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -833,10 +848,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>STATUS</code> <code>cmpRes</code>: (<code>LOWER</code>, <code>GREATER</code>, <code>EQUAL</code>) if <code>memA</code> is lower/greater/equal than/to <code>memB</code></li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_CMP = 54L;
+	public static final long INT_STR_CMP = 55L;
 	/**
 	 * <b>INT_STR_FROM_NUM</b>: number to string<br>
-	 * value: <code>55</code>
+	 * value: <code>56</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -853,10 +868,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * the new length will be the old length or if the old length is smaller than the size of the STRING (with <code>\0</code>) than the size of the STRING (with <code>\0</code>)<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_FROM_NUM = 55L;
+	public static final long INT_STR_FROM_NUM = 56L;
 	/**
 	 * <b>INT_STR_FROM_FPNUM</b>: floating point number to string<br>
-	 * value: <code>56</code>
+	 * value: <code>57</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -872,10 +887,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * the new length will be the old length or if the old length is smaller than the size of the STRING (with <code>\0</code>) than the size of the STRING (with <code>\0</code>)<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_FROM_FPNUM = 56L;
+	public static final long INT_STR_FROM_FPNUM = 57L;
 	/**
 	 * <b>INT_STR_TO_NUM</b>: string to number<br>
-	 * value: <code>57</code>
+	 * value: <code>58</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -889,10 +904,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * if the STRING represents a value out of the 64-bit number range <code>X00</code> will be min or max value and <code>ERRNO</code> will be set to <code>ERR_OUT_OF_RANGE</code><br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_TO_NUM = 57L;
+	public static final long INT_STR_TO_NUM = 58L;
 	/**
 	 * <b>INT_STR_TO_FPNUM</b>: string to floating point number<br>
-	 * value: <code>58</code>
+	 * value: <code>59</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -904,10 +919,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>success</code>: (<code>num</code>) <code>1</code> on success and <code>0</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_TO_FPNUM = 58L;
+	public static final long INT_STR_TO_FPNUM = 59L;
 	/**
 	 * <b>INT_STR_TO_U16STR</b>: STRING to U16-STRING<br>
-	 * value: <code>59</code>
+	 * value: <code>60</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -923,10 +938,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_TO_U16STR = 59L;
+	public static final long INT_STR_TO_U16STR = 60L;
 	/**
 	 * <b>INT_STR_TO_U32STR</b>: STRING to U32-STRING<br>
-	 * value: <code>60</code>
+	 * value: <code>61</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -942,10 +957,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_TO_U32STR = 60L;
+	public static final long INT_STR_TO_U32STR = 61L;
 	/**
 	 * <b>INT_STR_FROM_U16STR</b>: U16-STRING to STRING<br>
-	 * value: <code>61</code>
+	 * value: <code>62</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -961,10 +976,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_FROM_U16STR = 61L;
+	public static final long INT_STR_FROM_U16STR = 62L;
 	/**
 	 * <b>INT_STR_FROM_U32STR</b>: U32-STRING to STRING<br>
-	 * value: <code>62</code>
+	 * value: <code>63</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -980,10 +995,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_FROM_U32STR = 62L;
+	public static final long INT_STR_FROM_U32STR = 63L;
 	/**
 	 * <b>INT_STR_FORMAT</b>: format string<br>
-	 * value: <code>63</code>
+	 * value: <code>64</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1025,10 +1040,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>%o</code>: the next argument contains a number, which should be converted to a STRING using the octal number system (<code>8</code>) and than be inserted here</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_FORMAT = 63L;
+	public static final long INT_STR_FORMAT = 64L;
 	/**
 	 * <b>INT_LOAD_FILE</b>: load a file<br>
-	 * value: <code>64</code>
+	 * value: <code>65</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1040,10 +1055,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>len</code>: (<code>num</code>) the length of the file (and the memory block)</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_LOAD_FILE = 64L;
+	public static final long INT_LOAD_FILE = 65L;
 	/**
 	 * <b>INT_LOAD_LIB</b>: load a library file<br>
-	 * value: <code>65</code>
+	 * value: <code>66</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1067,10 +1082,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * when an error occurred <code>X01</code> will be set to <code>-1</code>, <code>X00</code> will be unmodified and <code>ERRNO</code> will be set to a non-zero value<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_LOAD_LIB = 65L;
+	public static final long INT_LOAD_LIB = 66L;
 	/**
 	 * <b>INT_UNLOAD_LIB</b>: unload a library file<br>
-	 * value: <code>66</code>
+	 * value: <code>67</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1079,14 +1094,14 @@ public class PrimAsmPreDefines {
 	 * unloads a library previously loaded with the load lib interrupt<br>
 	 * this interrupt will ensure that the given memory block will be freed and not again be returned from the load lib interrupt<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_UNLOAD_LIB = 66L;
+	public static final long INT_UNLOAD_LIB = 67L;
 	/**
 	 * <b>INTERRUPT_COUNT</b>: the number of interrupts<br>
-	 * value: <code>67</code>
+	 * value: <code>68</code>
 	 * <p>
 	 * the number of interrupts supported by default<br>
 	 * the <code>INTCNT</code> register is initialed with this value	 */
-	public static final long INTERRUPT_COUNT = 67L;
+	public static final long INTERRUPT_COUNT = 68L;
 	/**
 	 * <b>FP_NAN</b>: not a number<br>
 	 * value: <code>0x7ffe000000000000</code>

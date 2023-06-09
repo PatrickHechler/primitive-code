@@ -144,8 +144,7 @@ static inline void setup(int argc, char **argv) {
 				exit(1);
 			}
 			if (val > UINT16_MAX || val < 0) {
-				fprintf(stderr, "illegal port %ld (MAX=%d MIN=0)", val,
-				UINT16_MAX);
+				fprintf(stderr, "illegal port %ld (MAX=%d MIN=0)", val, UINT16_MAX);
 				exit(1);
 			}
 			input = val;

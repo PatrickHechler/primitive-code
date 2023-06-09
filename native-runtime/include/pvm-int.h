@@ -95,19 +95,20 @@ static void int_mem_cpy(INT_PARAMS); /* 50 */
 static void int_mem_mov(INT_PARAMS); /* 51 */
 static void int_mem_bset(INT_PARAMS); /* 52 */
 static void int_str_len(INT_PARAMS); /* 53 */
-static void int_str_cmp(INT_PARAMS); /* 54 */
-static void int_str_from_num(INT_PARAMS); /* 55 */
-static void int_str_from_fpnum(INT_PARAMS); /* 56 */
-static void int_str_to_num(INT_PARAMS); /* 57 */
-static void int_str_to_fpnum(INT_PARAMS); /* 58 */
-static void int_str_to_u16str(INT_PARAMS); /* 59 */
-static void int_str_to_u32str(INT_PARAMS); /* 60 */
-static void int_str_from_u16str(INT_PARAMS); /* 61 */
-static void int_str_from_u32str(INT_PARAMS); /* 62 */
-static void int_str_format(INT_PARAMS); /* 63 */
-static void int_load_file(INT_PARAMS); /* 64 */
-static void int_load_lib(INT_PARAMS); /* 65 */
-static void int_unload_lib(INT_PARAMS); /* 66 */
+static void int_str_index(INT_PARAMS); /* 54 */
+static void int_str_cmp(INT_PARAMS); /* 55 */
+static void int_str_from_num(INT_PARAMS); /* 56 */
+static void int_str_from_fpnum(INT_PARAMS); /* 57 */
+static void int_str_to_num(INT_PARAMS); /* 58 */
+static void int_str_to_fpnum(INT_PARAMS); /* 59 */
+static void int_str_to_u16str(INT_PARAMS); /* 60 */
+static void int_str_to_u32str(INT_PARAMS); /* 61 */
+static void int_str_from_u16str(INT_PARAMS); /* 62 */
+static void int_str_from_u32str(INT_PARAMS); /* 63 */
+static void int_str_format(INT_PARAMS); /* 64 */
+static void int_load_file(INT_PARAMS); /* 65 */
+static void int_load_lib(INT_PARAMS); /* 66 */
+static void int_unload_lib(INT_PARAMS); /* 67 */
 
 #endif // PVM
 
@@ -165,20 +166,21 @@ static void int_unload_lib(INT_PARAMS); /* 66 */
 #define INT_MEM_MOV 51
 #define INT_MEM_BSET 52
 #define INT_STR_LEN 53
-#define INT_STR_CMP 54
-#define INT_STR_FROM_NUM 55
-#define INT_STR_FROM_FPNUM 56
-#define INT_STR_TO_NUM 57
-#define INT_STR_TO_FPNUM 58
-#define INT_STR_TO_U16STR 59
-#define INT_STR_TO_U32STR 60
-#define INT_STR_FROM_U16STR 61
-#define INT_STR_FROM_U32STR 62
-#define INT_STR_FORMAT 63
-#define INT_LOAD_FILE 64
-#define INT_LOAD_LIB 65
-#define INT_UNLOAD_LIB 66
-#define INTERRUPT_COUNT 67
+#define INT_STR_INDEX 54
+#define INT_STR_CMP 55
+#define INT_STR_FROM_NUM 56
+#define INT_STR_FROM_FPNUM 57
+#define INT_STR_TO_NUM 58
+#define INT_STR_TO_FPNUM 59
+#define INT_STR_TO_U16STR 60
+#define INT_STR_TO_U32STR 61
+#define INT_STR_FROM_U16STR 62
+#define INT_STR_FROM_U32STR 63
+#define INT_STR_FORMAT 64
+#define INT_LOAD_FILE 65
+#define INT_LOAD_LIB 66
+#define INT_UNLOAD_LIB 67
+#define INTERRUPT_COUNT 68
 
 EXT void (*(ints[]))(INT_PARAMS)
 #ifdef PVM
@@ -237,19 +239,20 @@ EXT void (*(ints[]))(INT_PARAMS)
 	int_mem_mov, /* 51 */
 	int_mem_bset, /* 52 */
 	int_str_len, /* 53 */
-	int_str_cmp, /* 54 */
-	int_str_from_num, /* 55 */
-	int_str_from_fpnum, /* 56 */
-	int_str_to_num, /* 57 */
-	int_str_to_fpnum, /* 58 */
-	int_str_to_u16str, /* 59 */
-	int_str_to_u32str, /* 60 */
-	int_str_from_u16str, /* 61 */
-	int_str_from_u32str, /* 62 */
-	int_str_format, /* 63 */
-	int_load_file, /* 64 */
-	int_load_lib, /* 65 */
-	int_unload_lib, /* 66 */
+	int_str_index, /* 54 */
+	int_str_cmp, /* 55 */
+	int_str_from_num, /* 56 */
+	int_str_from_fpnum, /* 57 */
+	int_str_to_num, /* 58 */
+	int_str_to_fpnum, /* 59 */
+	int_str_to_u16str, /* 60 */
+	int_str_to_u32str, /* 61 */
+	int_str_from_u16str, /* 62 */
+	int_str_from_u32str, /* 63 */
+	int_str_format, /* 64 */
+	int_load_file, /* 65 */
+	int_load_lib, /* 66 */
+	int_unload_lib, /* 67 */
 }
 #endif // PVM
 ;

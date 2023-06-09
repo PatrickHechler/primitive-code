@@ -36,22 +36,22 @@
 
 static void int_error_illegal_interrupt( INT_PARAMS) /* 0 */{
 	write_error("illegal interrupt\n");
-	exit(128 + pvm.x[0]);
+	pvm_exit(128 + pvm.x[0]);
 }
 static void int_error_unknown_command( INT_PARAMS) /* 1 */{
 	write_error("illegal command\n");
-	exit(7);
+	pvm_exit(7);
 }
 static void int_error_illegal_memory( INT_PARAMS) /* 2 */{
 	write_error("illegal memory\n");
-	exit(6);
+	pvm_exit(6);
 }
 static void int_error_arithmetic_error( INT_PARAMS) /* 3 */{
 	write_error("arithmetic error\n");
-	exit(5);
+	pvm_exit(5);
 }
 static void int_exit( INT_PARAMS) /* 4 */{
-	exit(pvm.x[0]);
+	pvm_exit(pvm.x[0]);
 }
 static void int_memory_alloc( INT_PARAMS) /* 5 */{
 	if (pvm.x[0] <= 0) {
@@ -341,8 +341,10 @@ static void int_handle_open_stream( INT_PARAMS) /* 41 */{
 static void int_pipe_length( INT_PARAMS) /* 42 */{
 	pvm.x[1] = pfs_pipe_length(pvm.x[0]);
 }
-_Static_assert(offsetof(struct timespec, tv_sec) == 0, "Error!");
+_Static_assert(offsetof(struct timespec, tv_sec)
+== 0, "Error!");
 _Static_assert(offsetof(struct timespec, tv_nsec) == 8, "Error!");
+
 static void int_time_get( INT_PARAMS) /* 43 */{
 	struct timespec *pntr = (struct timespec*) &pvm.x[0];
 	if (clock_gettime(CLOCK_REALTIME, pntr) == -1) {
@@ -398,7 +400,7 @@ static i64 rnd_read(struct delegate_stream *str, void *buf, const i64 len) {
 			(*pfs_err_loc) = PFS_ERRNO_UNKNOWN_ERROR;
 			return (len - i) - 1;
 		}
-		*((int16_t*)buf) = val;
+		*((int16_t*) buf) = val;
 	}
 	if (len & 1) {
 		long val = random();
@@ -406,7 +408,7 @@ static i64 rnd_read(struct delegate_stream *str, void *buf, const i64 len) {
 			(*pfs_err_loc) = PFS_ERRNO_UNKNOWN_ERROR;
 			return len - 1;
 		}
-		*((int8_t*)buf) = val;
+		*((int8_t*) buf) = val;
 	}
 	return len;
 }
@@ -534,7 +536,30 @@ static void int_str_len( INT_PARAMS) /* 53 */{
 		pvm.x[0] = len;
 	}
 }
-static void int_str_cmp( INT_PARAMS) /* 54 */{
+static void int_str_index( INT_PARAMS) /* 54 */{
+	struct memory *str = chk(pvm.x[0], 1).mem;
+	if (!str) {
+		return;
+	}
+	num maxlen = str->end - pvm.x[0];
+	num len = strnlen(str->offset + pvm.x[0], maxlen);
+	if (len == maxlen) {
+		void *found = memchr(str->offset + pvm.x[0], pvm.x[1], maxlen);
+		if (found) { // lucky code
+			pvm.x[0] = found - (str->offset + pvm.x[0]);
+		} else { // unlucky code
+			interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
+		}
+	} else {
+		void *found = strchr(str->offset + pvm.x[0], pvm.x[1]);
+		if (found) { // lucky code
+			pvm.x[0] = found - (str->offset + pvm.x[0]);
+		} else {
+			pvm.x[0] = -1;
+		}
+	}
+}
+static void int_str_cmp( INT_PARAMS) /* 55 */{
 	struct memory *str_a = chk(pvm.x[0], 1).mem;
 	if (!str_a) {
 		return;
@@ -604,7 +629,7 @@ static inline num num_to_str(char *dest, num maxlen, num number, int base) {
 #undef nts_add
 #undef nts_add0
 }
-static void int_str_from_num( INT_PARAMS) /* 55 */{
+static void int_str_from_num( INT_PARAMS) /* 56 */{
 	num len = pvm.x[3];
 	if (len < 0) {
 		pvm.x[1] = -1;
@@ -651,7 +676,7 @@ static void int_str_from_num( INT_PARAMS) /* 55 */{
 		pvm.x[3] = strlen + 1;
 	}
 }
-static void int_str_from_fpnum( INT_PARAMS) /* 56 */{
+static void int_str_from_fpnum( INT_PARAMS) /* 57 */{
 	num len = pvm.x[3];
 	if (len < 0) {
 		pvm.x[1] = -1;
@@ -693,7 +718,7 @@ static void int_str_from_fpnum( INT_PARAMS) /* 56 */{
 		pvm.x[3] = strlen + 1;
 	}
 }
-static void int_str_to_num( INT_PARAMS) /* 57 */{
+static void int_str_to_num( INT_PARAMS) /* 58 */{
 	if (pvm.x[2] < 2 || pvm.x[2] > 23) {
 		pvm.err = PE_ILLEGAL_ARG;
 		pvm.x[1] = 0;
@@ -735,7 +760,7 @@ static void int_str_to_num( INT_PARAMS) /* 57 */{
 	}
 	pvm.x[0] = val;
 }
-static void int_str_to_fpnum( INT_PARAMS) /* 58 */{
+static void int_str_to_fpnum( INT_PARAMS) /* 59 */{
 	struct memory *mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
 		return;
@@ -836,22 +861,22 @@ static inline void conv_unicode_strings(const char *to_identy,
 #define identy_str_std "UTF-8"
 #define identy_str_u16 "UTF-16"
 #define identy_str_u32 "UTF-32"
-static void int_str_to_u16str( INT_PARAMS) /* 59 */{
+static void int_str_to_u16str( INT_PARAMS) /* 60 */{
 	conv_unicode_strings(identy_str_u16, identy_str_std, 1);
 }
-static void int_str_to_u32str( INT_PARAMS) /* 60 */{
+static void int_str_to_u32str( INT_PARAMS) /* 61 */{
 	conv_unicode_strings(identy_str_u32, identy_str_std, 1);
 }
-static void int_str_from_u16str( INT_PARAMS) /* 61 */{
+static void int_str_from_u16str( INT_PARAMS) /* 62 */{
 	conv_unicode_strings(identy_str_std, identy_str_u16, 2);
 }
-static void int_str_from_u32str( INT_PARAMS) /* 62 */{
+static void int_str_from_u32str( INT_PARAMS) /* 63 */{
 	conv_unicode_strings(identy_str_std, identy_str_u32, 4);
 }
 #undef identy_str_std
 #undef identy_str_u16
 #undef identy_str_u32
-static void int_str_format( INT_PARAMS) /* 63 */{
+static void int_str_format( INT_PARAMS) /* 64 */{
 	struct memory *input_mem = chk(pvm.x[0], 1).mem;
 	if (!input_mem) {
 		return;
@@ -1075,7 +1100,7 @@ static void int_str_format( INT_PARAMS) /* 63 */{
 #undef add
 #undef add0
 }
-static void int_load_file( INT_PARAMS) /* 64 */{
+static void int_load_file( INT_PARAMS) /* 65 */{
 	struct memory *name_mem = chk(pvm.x[0], 1).mem;
 	if (!name_mem) {
 		return;
@@ -1116,7 +1141,6 @@ static void int_load_file( INT_PARAMS) /* 64 */{
 	pvm.x[1] = eof;
 }
 
-#define MAX_LIB_NAME_LEN 512 /* library with a path larger than this value will always be reloaded */
 int loaded_libs_equal(const void *a, const void *b) {
 	const struct loaded_libs_entry *ea = a, *eb = b;
 	return strcmp(ea->name, eb->name) == 0;
@@ -1152,7 +1176,7 @@ static uint64_t string_hash(const void *a) {
 	}
 	return res;
 }
-static void int_load_lib( INT_PARAMS) /* 65 */{
+static void int_load_lib( INT_PARAMS) /* 66 */{
 	struct memory *name_mem = chk(pvm.x[0], 1).mem;
 	if (!name_mem) {
 		return;
@@ -1204,23 +1228,20 @@ static void int_load_lib( INT_PARAMS) /* 65 */{
 		}
 		return;
 	}
-	if (name_len < MAX_LIB_NAME_LEN) {
-		char *name_cpy = malloc(name_len + 1);
-		if (name_cpy) {
-			struct loaded_libs_entry *new_entry = malloc(
-					sizeof(struct loaded_libs_entry));
-			if (new_entry) {
-				memcpy(name_cpy, name, name_len + 1);
-				new_entry->name = name;
-				new_entry->pntr = lib_mem.mem->start;
-			} else {
-				free(name_cpy);
-			}
-			old = hashset_put(&loaded_libs, string_hash(&new_entry),
-					&new_entry);
-			if (old) {
-				abort();
-			}
+	char *name_cpy = malloc(name_len + 1);
+	if (name_cpy) {
+		struct loaded_libs_entry *new_entry = malloc(
+				sizeof(struct loaded_libs_entry));
+		if (new_entry) {
+			memcpy(name_cpy, name, name_len + 1);
+			new_entry->name = name;
+			new_entry->pntr = lib_mem.mem->start;
+		} else {
+			free(name_cpy);
+		}
+		old = hashset_put(&loaded_libs, string_hash(&new_entry), &new_entry);
+		if (old) {
+			abort();
 		}
 	}
 	pvm.x[0] = lib_mem.mem->start;
@@ -1241,7 +1262,7 @@ int unload_lib(void *arg0, void *element) {
 	free_mem_impl(mem);
 	return 0;
 }
-static void int_unload_lib( INT_PARAMS) /* 66 */{
+static void int_unload_lib( INT_PARAMS) /* 67 */{
 	struct memory *mem = chk(pvm.x[0], 0).mem;
 	if ((mem->flags & MEM_LIB) == 0) {
 		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
