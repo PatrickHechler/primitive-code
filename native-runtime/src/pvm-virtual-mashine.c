@@ -66,7 +66,7 @@
 
 static uint64_t string_hash(const void *_a);
 
-static void (*pvm_exit) (int status) __attribute__ ((__noreturn__));
+static void (*pvm_exit)(int status) __attribute__ ((__noreturn__));
 
 static int param_param_type_index;
 static int param_byte_value_index;
@@ -91,9 +91,6 @@ static void close_pfs_on_exit(int status, void *ignore) {
 
 static inline void pvm_basic_init() {
 	srand(time(NULL));
-	if (next_adress != REGISTER_START) {
-		abort();
-	}
 	pfs_err_loc = (ui32*) &pvm.err;
 #ifdef PORTABLE_BUILD
 	if (pfs_stream_open_delegate(stdin, PFS_SO_PIPE | PFS_SO_READ) != 0) {
@@ -106,20 +103,24 @@ static inline void pvm_basic_init() {
 		abort();
 	}
 #else
-	if (pfs_stream_open_delegate_fd(STDIN_FILENO, PFS_SO_PIPE | PFS_SO_READ) != 0) {
+	if (pfs_stream_open_delegate_fd(STDIN_FILENO, PFS_SO_PIPE | PFS_SO_READ)
+			!= 0) {
 		abort();
 	}
-	if (pfs_stream_open_delegate_fd(STDOUT_FILENO, PFS_SO_PIPE | PFS_SO_APPEND) != 1) {
+	if (pfs_stream_open_delegate_fd(STDOUT_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
+			!= 1) {
 		abort();
 	}
-	if (pfs_stream_open_delegate_fd(STDERR_FILENO, PFS_SO_PIPE | PFS_SO_APPEND) != 2) {
+	if (pfs_stream_open_delegate_fd(STDERR_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
+			!= 2) {
 		abort();
 	}
 #endif
 
 	struct memory *pvm_mem = alloc_memory2(&pvm, sizeof(pvm),
 	/*		*/MEM_NO_FREE | MEM_NO_RESIZE);
-	if (!pvm_mem) {
+	if (!pvm_mem || pvm_mem->start != REGISTER_START
+			|| pvm_mem->end != REGISTER_END) {
 		abort();
 	}
 }
@@ -154,7 +155,7 @@ extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
 	}
 
 	struct memory *args_mem = alloc_memory2(argv, (argc + 1) * sizeof(char*),
-	MEM_NO_FREE | MEM_NO_RESIZE);
+	/*		*/MEM_NO_FREE | MEM_NO_RESIZE);
 	if (!args_mem) {
 		abort();
 	}
@@ -225,34 +226,33 @@ extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
 	va_list val;
 	va_start(val, block0);
 	while (block0) {
-			unsigned flags;
-			if (block0->lib_name) {
-				flags = MEM_LIB | MEM_NO_FREE | MEM_NO_RESIZE;
+		unsigned flags;
+		if (block0->lib_name) {
+			flags = MEM_LIB | MEM_NO_FREE | MEM_NO_RESIZE;
+		} else {
+			flags = 0;
+		}
+		struct memory *mem = alloc_memory2(block0->data, block0->len, flags);
+		if (!mem) {
+			abort();
+		}
+		block0->addr = mem->start;
+		if (block0->lib_name) {
+			struct loaded_libs_entry *new_entry = malloc(
+					sizeof(struct loaded_libs_entry));
+			if (new_entry) {
+				new_entry->name = block0->lib_name;
+				new_entry->pntr = mem->start;
 			} else {
-				flags = 0;
-			}
-			struct memory *mem = alloc_memory2(block0->data, block0->len,
-					flags);
-			if (!mem) {
 				abort();
 			}
-			block0->addr = mem->start;
-			if (block0->lib_name) {
-				struct loaded_libs_entry *new_entry = malloc(
-						sizeof(struct loaded_libs_entry));
-				if (new_entry) {
-					new_entry->name = block0->lib_name;
-					new_entry->pntr = mem->start;
-				} else {
-					abort();
-				}
-				void *old = hashset_put(&loaded_libs,
-						string_hash(&new_entry), &new_entry);
-				if (old) {
-					abort();
-				}
+			void *old = hashset_put(&loaded_libs, string_hash(&new_entry),
+					&new_entry);
+			if (old) {
+				abort();
 			}
-			block0 = va_arg(val, struct pvm_simple_mem_block*);
+		}
+		block0 = va_arg(val, struct pvm_simple_mem_block*);
 	}
 	struct pvm_call_mem *call;
 	while (654) {
@@ -353,7 +353,7 @@ struct wtd_arg {
 	const size_t len;
 };
 
-int write_to_delegate(void*arg0, void*element) {
+int write_to_delegate(void *arg0, void *element) {
 	struct wtd_arg *arg = arg0;
 	int dstfd = (int) (long) element;
 	for (size_t wrote = 0; wrote < arg->len;) {
@@ -364,14 +364,14 @@ int write_to_delegate(void*arg0, void*element) {
 			case EWOULDBLOCK:
 #endif
 			case EAGAIN:
-				wait5ms();
+				wait5ms()
+				;
 				/* no break */
 			case EINTR:
 				errno = 0;
 				continue;
 			}
-			fprintf(stderr, "error on write: %s\n",
-					strerror(errno));
+			fprintf(stderr, "error on write: %s\n", strerror(errno));
 			return 1;
 		}
 		wrote += w;
@@ -395,7 +395,8 @@ static void* pvm_delegate_func(void *_arg) {
 			case EWOULDBLOCK:
 #endif
 			case EAGAIN:
-				wait5ms();
+				wait5ms()
+				;
 				/* no break */
 			case EINTR:
 				errno = 0;
@@ -407,10 +408,7 @@ static void* pvm_delegate_func(void *_arg) {
 			return NULL;
 		}
 		pvm_lock();
-		struct wtd_arg wtd_arg = {
-				.data = buffer,
-				.len = reat
-		};
+		struct wtd_arg wtd_arg = { .data = buffer, .len = reat };
 		hashset_for_each(arg.dst_fds, write_to_delegate, &wtd_arg);
 		pvm_unlock();
 	}
@@ -419,8 +417,7 @@ static void* pvm_delegate_func(void *_arg) {
 static inline void set_fd_flag(int fd, char *name, int flags, _Bool set_flag) {
 	int cur_flags = fcntl(fd, F_GETFD);
 	if (cur_flags == -1) {
-		fprintf(stderr, "could not get the fd flags: %s\n",
-				strerror(errno));
+		fprintf(stderr, "could not get the fd flags: %s\n", strerror(errno));
 		exit(1);
 	}
 	if (set_flag && (cur_flags & flags) != flags) {
@@ -483,8 +480,7 @@ static void* pvm_debug_thread_deamon(void *_arg) {
 			};
 	int server_sok = socket(AF_INET, SOCK_STREAM | SOCK_CLOEXEC, 0);
 	if (server_sok == -1) {
-		fprintf(stderr, "could not create my socket: %s\n",
-				strerror(errno));
+		fprintf(stderr, "could not create my socket: %s\n", strerror(errno));
 		exit(1);
 	}
 	if (bind(server_sok, &my_sock_adr.sa, sizeof(struct sockaddr_in)) == -1) {
@@ -507,8 +503,7 @@ static void* pvm_debug_thread_deamon(void *_arg) {
 
 		struct sok_data *child_arg = malloc(sizeof(struct sok_data));
 		if (!child_arg) {
-			fprintf(stderr,
-					"could not allocate the argument for the thread\n");
+			fprintf(stderr, "could not allocate the argument for the thread\n");
 			close(sok);
 			exit(1);
 		}
@@ -772,7 +767,9 @@ static inline void interrupt(num intnum, num incIPVal) {
 			}
 		}
 	} else if (pvm.intp == -1) {
-		if (incIPVal) {pvm.ip += incIPVal;}
+		if (incIPVal) {
+			pvm.ip += incIPVal;
+		}
 		if (intnum >= INTERRUPT_COUNT) {
 			pvm.x[0] = intnum;
 			intnum = INT_ERROR_ILLEGAL_INTERRUPT;
@@ -785,11 +782,16 @@ static inline void interrupt(num intnum, num incIPVal) {
 			in_illegal_mem = 0;
 			return;
 		}
-		if (incIPVal) {pvm.ip += incIPVal;}
 		num deref = *(num*) (mem->offset + adr);
 		if (-1 == deref) {
 			callInt(intnum);
+			if (incIPVal) {
+				pvm.ip += incIPVal;
+			}
 		} else {
+			if (incIPVal) {
+				pvm.ip += incIPVal;
+			}
 			int_init();
 			pvm.ip = deref;
 		}
@@ -798,7 +800,6 @@ static inline void interrupt(num intnum, num incIPVal) {
 }
 
 #ifdef PVM_DEBUG
-#undef chk
 static inline struct memory_check chk0(num pntr, num size, _Bool use_valid) {
 #else
 static inline struct memory_check chk(num pntr, num size) {
@@ -814,15 +815,13 @@ static inline struct memory_check chk(num pntr, num size) {
 			}
 #endif // PVM_DEBUG
 			if (m != memory) {
-				m--;
-				while (m->start == -1) {
+				while ((--m)->start == -1) {
 					if (m == memory) {
 						interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 						struct memory_check result;
 						result.mem = NULL;
 						return result;
 					}
-					m--;
 				}
 				check_grow: if (m->flags & MEM_AUTO_GROW) {
 					num auto_grow_end = m->end
@@ -832,14 +831,15 @@ static inline struct memory_check chk(num pntr, num size) {
 						abort(); // num overflow
 					}
 					if (pntr < auto_grow_end) {
-						num grow_size = (size / m->grow_size) + m->grow_size;
+						num grow_size = (((pntr + size - m->end) / m->grow_size)
+								* m->grow_size) + m->grow_size;
 						num new_size = m->end - m->start + grow_size;
 						num old_start = m->start;
 						struct memory *new_mem = realloc_memory(m->start,
 								new_size, 1);
 						if (new_mem) {
 							struct memory_check result;
-							result.changed = new_mem->start != old_start;
+							result.changed = 1;
 							result.mem = new_mem;
 #ifdef PVM_DEBUG
 							result.valid = 1;
@@ -884,10 +884,6 @@ static inline struct memory_check chk(num pntr, num size) {
 	result.mem = NULL;
 	return result;
 }
-
-#ifdef PVM_DEBUG
-#define chk(pntr, size) chk0(pntr, size, 0)
-#endif // PVM_DEBUG
 
 union param {
 	void *pntr;
@@ -1102,8 +1098,13 @@ static inline struct p param(int pntr, num size) {
 }
 
 static inline void exec_cmd() {
+	static long cnt = 0;
+	cnt++;
+	printf("%ld\n", cnt - 1);
 	struct memory_check ipmem = chk(pvm.ip, 8);
 	if (!ipmem.mem) {
+		printf("%ld\n", cnt - 1);
+		fflush(stdout);
 		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
@@ -1125,6 +1126,20 @@ extern struct memory* alloc_memory2(void *adr, num size, unsigned flags) {
 			if (memory[--index].start == -1) {
 				continue;
 			}
+			num next_adress;
+			{
+				for (num index2 = index; --index2;) {
+					if (memory[index2].end == -1) {
+						continue;
+					}
+					next_adress =
+							(memory[index2].end + ADRESS_HOLE_DEFAULT_SIZE)
+									& ~7L;
+					goto na_end;
+				}
+				next_adress = REGISTER_START;
+				na_end: ;
+			}
 			index++;
 			memory[index].start = next_adress;
 			memory[index].end = memory[index].start + size;
@@ -1139,6 +1154,20 @@ extern struct memory* alloc_memory2(void *adr, num size, unsigned flags) {
 		}
 	}
 	num oms = mem_size;
+	num next_adress;
+	if (memory) {
+		for (num index2 = oms; --index2;) {
+			if (memory[index2].end == -1) {
+				continue;
+			}
+			next_adress = (memory[index2].end + ADRESS_HOLE_DEFAULT_SIZE) & ~7L;
+			goto na_end2;
+		}
+		next_adress = REGISTER_START;
+		na_end2: ;
+	} else {
+		next_adress = REGISTER_START;
+	}
 	mem_size += 16;
 	memory = realloc(memory, mem_size * sizeof(struct memory));
 	memset(memory + oms + 1, -1, 15 * sizeof(struct memory));
@@ -1155,7 +1184,6 @@ extern struct memory* alloc_memory2(void *adr, num size, unsigned flags) {
 		// overflow
 		abort();
 	}
-	next_adress = memory[oms].end + ADRESS_HOLE_DEFAULT_SIZE;
 	return memory + oms;
 }
 extern struct memory2 alloc_memory(num size, unsigned flags) {
@@ -1176,8 +1204,7 @@ extern struct memory2 alloc_memory(num size, unsigned flags) {
 	}
 	return r;
 }
-extern struct memory* realloc_memory(num adr, num newsize,
-		_Bool auto_growing) {
+extern struct memory* realloc_memory(num adr, num newsize, _Bool auto_growing) {
 	struct memory_check mem_chk = chk(adr, 0);
 	struct memory *mem = mem_chk.mem;
 	if (!mem) {
@@ -1222,8 +1249,14 @@ extern struct memory* realloc_memory(num adr, num newsize,
 						- (ADRESS_HOLE_MINIMUM_SIZE << 1);
 				if (maxsize >= newsize) {
 					num new_start = (maxsize - newsize) >> 1;
+					new_start += memory[ii].end + ADRESS_HOLE_MINIMUM_SIZE;
+					new_start &= ~7L;
+					if (new_start
+							< (memory[ii].end + ADRESS_HOLE_MINIMUM_SIZE)) {
+						goto no_next_addr;
+					}
 					if (auto_growing) {
-						mem->change_pntr += new_start - mem->start;
+						*mem->change_pntr += new_start - mem->start;
 					}
 					mem->start = new_start;
 					mem->end = new_start + newsize;
@@ -1239,18 +1272,15 @@ extern struct memory* realloc_memory(num adr, num newsize,
 				return res;
 			}
 		}
-		goto no_next_adr;
-	} else {
-		no_next_adr: ;
-		mem->end = mem->start + newsize;
-		if (mem->end < 0) {
-			// overflow
-			abort();
-		}
-		next_adress = (mem->end + ADRESS_HOLE_DEFAULT_SIZE) & ~7;
-		mem->offset = new_pntr - mem->start;
-		return mem;
 	}
+	no_next_addr: ;
+	mem->end = mem->start + newsize;
+	if (mem->end < 0) {
+		// overflow
+		abort();
+	}
+	mem->offset = new_pntr - mem->start;
+	return mem;
 }
 static inline void free_mem_impl(struct memory *mem) {
 	free(mem->offset + mem->start);
@@ -1360,7 +1390,8 @@ static inline _Bool scahnf_help(struct sok_data *sd, char *buffer,
 		case EWOULDBLOCK:
 #endif
 		case EAGAIN:
-			wait5ms();
+			wait5ms()
+			;
 			continue;
 		case EINTR:
 			continue;
@@ -1699,7 +1730,8 @@ static void pvm_dbcmd_disasm(struct sok_data *sd, char *buffer) {
 				case EWOULDBLOCK:
 #endif
 				case EAGAIN:
-					wait5ms();
+					wait5ms()
+					;
 					/* no break */
 				case EINTR:
 					continue;
@@ -1803,31 +1835,27 @@ static void* pvm_debug_thread_func(void *_arg) {
 	set_fd_flag(sd->fd, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	int read_fd = dup(sd->fd);
 	if (read_fd == -1) {
-		fprintf(stderr,
-				"could not duplicate my socket file descriptor: %s\n",
+		fprintf(stderr, "could not duplicate my socket file descriptor: %s\n",
 				strerror(errno));
 		exit(1);
 	}
 	set_fd_flag(read_fd, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	int write_fd = dup(sd->fd);
 	if (write_fd == -1) {
-		fprintf(stderr,
-				"could not duplicate my socket file descriptor: %s\n",
+		fprintf(stderr, "could not duplicate my socket file descriptor: %s\n",
 				strerror(errno));
 		exit(1);
 	}
 	set_fd_flag(write_fd, "NONBLOCK | CLOEXEC", O_NONBLOCK | O_CLOEXEC, 1);
 	sd->read = fdopen(read_fd, "r");
 	if (!sd->read) {
-		fprintf(stderr,
-				"could not open a FILE* from my file descriptor: %s\n",
+		fprintf(stderr, "could not open a FILE* from my file descriptor: %s\n",
 				strerror(errno));
 		exit(1);
 	}
 	sd->write = fdopen(write_fd, "w");
 	if (!sd->write) {
-		fprintf(stderr,
-				"could not open a FILE* from my file descriptor: %s\n",
+		fprintf(stderr, "could not open a FILE* from my file descriptor: %s\n",
 				strerror(errno));
 		exit(1);
 	}
@@ -1851,7 +1879,8 @@ static void* pvm_debug_thread_func(void *_arg) {
 			case EWOULDBLOCK:
 #endif
 			case EAGAIN:
-				wait5ms();
+				wait5ms()
+				;
 				/* no break */
 			case EINTR:
 				errno = 0;
@@ -1892,7 +1921,8 @@ static inline void d_wait() {
 		case pvm_ds_waiting:
 			pvm_unlock();
 			state_wait: ;
-			wait5ms();
+			wait5ms()
+			;
 			break;
 		case pvm_ds_stepping:
 			if (pvm_depth <= 0) {

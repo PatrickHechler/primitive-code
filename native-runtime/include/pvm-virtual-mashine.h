@@ -237,7 +237,6 @@ struct memory2 {
 
 static struct memory *memory = NULL;
 static num mem_size = 0;
-static num next_adress = REGISTER_START;
 
 #endif // PVM
 

@@ -397,7 +397,7 @@ static i64 rnd_read(struct delegate_stream *str, void *buf, const i64 len) {
 	for (i64 i = len - 1; i > 0; i -= 2, buf += 2) {
 		long val = random();
 		if (val < 0) {
-			(*pfs_err_loc) = PFS_ERRNO_UNKNOWN_ERROR;
+			pfs_err = PFS_ERRNO_UNKNOWN_ERROR;
 			return (len - i) - 1;
 		}
 		*((int16_t*) buf) = val;
@@ -405,7 +405,7 @@ static i64 rnd_read(struct delegate_stream *str, void *buf, const i64 len) {
 	if (len & 1) {
 		long val = random();
 		if (val < 0) {
-			(*pfs_err_loc) = PFS_ERRNO_UNKNOWN_ERROR;
+			pfs_err = PFS_ERRNO_UNKNOWN_ERROR;
 			return len - 1;
 		}
 		*((int8_t*) buf) = val;

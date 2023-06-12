@@ -45,7 +45,7 @@ static void c_extern() {
 	struct pvm_extern_call *ext = mem->externs;
 	if ((mem->flags & MEM_EXTERN) && ext) {
 		num val = pvm.ip - mem->start;
-		for (;ext->offset != -1; ext++) {
+		for (; ext->offset != -1; ext++) {
 			if (val == ext->offset) {
 				num oldip = pvm.ip;
 				int exitnum = ext->func();
@@ -683,22 +683,28 @@ static void c_pushblk() {
 		interrupt(INT_ERROR_UNKNOWN_COMMAND, 0);
 		return;
 	}
-	struct memory *mem = chk(pvm.sp, p2.p.n).mem;
-	if (!mem) {
+	struct memory *smem = chk(pvm.sp, p2.p.n).mem;
+	if (!smem) {
 		return;
+	}
+	if (pvm.sp < smem->start || pvm.sp > smem->end - p2.p.n) {
+		printf(
+				"error sp=0x%lX=%ld push_size=0x%lX=%ld start=0x%lX=%ld end=0x%lX=%ld mem_len=0x%lX=%ld\n",
+				pvm.sp, pvm.sp, p2.p.n, p2.p.n, smem->start, smem->start,
+				smem->end, smem->end, smem->end - smem->start, smem->end - smem->start);
 	}
 	struct memory_check pmem = chk(p1.p.n, p2.p.n);
 	if (!pmem.mem) {
 		return;
 	}
 	if (pmem.changed) {
-		mem = chk(pvm.sp, p2.p.n).mem;
-		if (!mem) {
+		smem = chk(pvm.sp, p2.p.n).mem;
+		if (!smem) {
 			return;
 		}
 	}
-	memmove(mem->offset + pvm.sp, p2.p.pntr, p1.p.n);
-	pvm.sp += p1.p.n;
+	memmove(smem->offset + pvm.sp, pmem.mem->offset + p1.p.n, p2.p.n);
+	pvm.sp += p2.p.n;
 }
 static void c_popblk() {
 	struct p p1 = param(0, 8);
@@ -713,7 +719,8 @@ static void c_popblk() {
 	if (!p2.valid) {
 		return;
 	}
-	struct memory *smem = chk(pvm.sp, 0).mem;
+	num nsp = pvm.sp - p2.p.n;
+	struct memory *smem = chk(nsp, p2.p.n).mem;
 	if (!smem) {
 		return;
 	}
@@ -727,12 +734,8 @@ static void c_popblk() {
 			return;
 		}
 	}
-	if (p2.p.n > pvm.sp - smem->start) {
-		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
-		return;
-	}
-	pvm.sp -= p2.p.n;
-	memmove(pmem.mem->offset + p1.p.n, smem->offset + pvm.sp, p2.p.n);
+	pvm.sp = nsp;
+	memmove(pmem.mem->offset + p1.p.n, smem->offset + nsp, p2.p.n);
 }
 
 static void c_cmp() {
