@@ -830,8 +830,9 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * result values:
 	 * <ul>
-	 * <li><code>X00</code> <code>index</code>: (<code>num</code>) the index of the character/the (byte-)offset of the first byte equal to the given character character</li>
+	 * <li><code>X00</code> <code>index</code>: (<code>num</code>) the index of the character/the (byte-)offset of the first byte equal to the given character</li>
 	 * </ul>
+	 * if the given character could not be found, <code>index</code> will be <code>-1</code><br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
 	public static final long INT_STR_INDEX = 54L;
 	/**

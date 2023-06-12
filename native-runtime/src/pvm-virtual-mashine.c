@@ -123,10 +123,6 @@ static inline void pvm_basic_init() {
 			|| pvm_mem->end != REGISTER_END) {
 		abort();
 	}
-}
-
-extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
-	pvm_basic_init();
 
 	struct memory2 stack_mem = alloc_memory(256,
 	/*		*/MEM_AUTO_GROW | (8 << MEM_AUTO_GROW_SHIFT));
@@ -144,6 +140,10 @@ extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
 	memset(int_mem.adr, 0xFF, INTERRUPT_COUNT << 3);
 	pvm.intp = int_mem.mem->start;
 	pvm.intcnt = INTERRUPT_COUNT;
+}
+
+extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
+	pvm_basic_init();
 
 	if (exe) {
 		// use different flags in future version?
@@ -205,23 +205,6 @@ extern int call_pvm(num addr) {
 extern void pvm_init_calls(struct pvm_simple_mem_block *block0,
 		... /* blockN, NULL, struct pvm_call_mem *mem0, ... , memM, NULL */) {
 	pvm_basic_init();
-
-	struct memory2 stack_mem = alloc_memory(256,
-	/*		*/MEM_AUTO_GROW | (8 << MEM_AUTO_GROW_SHIFT));
-	if (!stack_mem.adr) {
-		abort();
-	}
-	stack_mem.mem->grow_size = 256;
-	stack_mem.mem->change_pntr = &pvm.sp;
-	pvm.sp = stack_mem.mem->start;
-
-	struct memory2 int_mem = alloc_memory(INTERRUPT_COUNT << 3, 0U);
-	if (!int_mem.mem) {
-		abort();
-	}
-	memset(int_mem.adr, 0xFF, INTERRUPT_COUNT << 3);
-	pvm.intp = int_mem.mem->start;
-	pvm.intcnt = INTERRUPT_COUNT;
 
 	va_list val;
 	va_start(val, block0);
@@ -1098,13 +1081,8 @@ static inline struct p param(int pntr, num size) {
 }
 
 static inline void exec_cmd() {
-	static long cnt = 0;
-	cnt++;
-	printf("%ld\n", cnt - 1);
 	struct memory_check ipmem = chk(pvm.ip, 8);
 	if (!ipmem.mem) {
-		printf("%ld\n", cnt - 1);
-		fflush(stdout);
 		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 		return;
 	}
@@ -1122,24 +1100,12 @@ static inline void exec_cmd() {
 
 extern struct memory* alloc_memory2(void *adr, num size, unsigned flags) {
 	if (mem_size && memory[mem_size - 1].start == -1) {
-		for (num index = mem_size; index;) {
-			if (memory[--index].start == -1) {
+		for (num index = mem_size - 1; index--;) {
+			if (memory[index].start == -1) {
 				continue;
 			}
-			num next_adress;
-			{
-				for (num index2 = index; --index2;) {
-					if (memory[index2].end == -1) {
-						continue;
-					}
-					next_adress =
-							(memory[index2].end + ADRESS_HOLE_DEFAULT_SIZE)
-									& ~7L;
-					goto na_end;
-				}
-				next_adress = REGISTER_START;
-				na_end: ;
-			}
+			num next_adress = (memory[index].end + ADRESS_HOLE_DEFAULT_SIZE)
+					& ~7L;
 			index++;
 			memory[index].start = next_adress;
 			memory[index].end = memory[index].start + size;
@@ -1155,19 +1121,13 @@ extern struct memory* alloc_memory2(void *adr, num size, unsigned flags) {
 	}
 	num oms = mem_size;
 	num next_adress;
-	if (memory) {
-		for (num index2 = oms; --index2;) {
-			if (memory[index2].end == -1) {
-				continue;
-			}
-			next_adress = (memory[index2].end + ADRESS_HOLE_DEFAULT_SIZE) & ~7L;
-			goto na_end2;
-		}
-		next_adress = REGISTER_START;
-		na_end2: ;
+	if (oms) {
+		next_adress = (memory[mem_size - 1].end + ADRESS_HOLE_DEFAULT_SIZE)
+				& ~7L;
 	} else {
 		next_adress = REGISTER_START;
 	}
+	na_end: ;
 	mem_size += 16;
 	memory = realloc(memory, mem_size * sizeof(struct memory));
 	memset(memory + oms + 1, -1, 15 * sizeof(struct memory));

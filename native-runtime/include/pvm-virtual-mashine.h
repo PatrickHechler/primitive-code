@@ -210,10 +210,6 @@ struct memory2 {
 	void *adr;
 };
 
-#endif // PVM || PVM_DEBUG || PVM_MEM
-
-#ifdef PVM
-
 /*
  * the address holes are a security feature.
  * the program should not rely on such holes
@@ -233,12 +229,20 @@ struct memory2 {
 #	define REGISTER_SIZE  0x0000000000000800
 
 // I know that an overflow will occur when the program
-// (executes long enough/allocates (and frees) often enough memory)
+// (executes long enough/allocates often enough memory)
 
+#ifndef PVM
+extern struct memory *memory;
+extern num mem_size;
+#elif defined PVM_MEM || defined PVM_DEBUG
+struct memory *memory = NULL;
+num mem_size = 0;
+#else
 static struct memory *memory = NULL;
 static num mem_size = 0;
+#endif
 
-#endif // PVM
+#endif // PVM || PVM_DEBUG || PVM_MEM
 
 extern struct memory2 alloc_memory(num size, unsigned flags);
 extern struct memory* alloc_memory2(void *mem, num size, unsigned flags);

@@ -692,6 +692,8 @@ static void c_pushblk() {
 				"error sp=0x%lX=%ld push_size=0x%lX=%ld start=0x%lX=%ld end=0x%lX=%ld mem_len=0x%lX=%ld\n",
 				pvm.sp, pvm.sp, p2.p.n, p2.p.n, smem->start, smem->start,
 				smem->end, smem->end, smem->end - smem->start, smem->end - smem->start);
+		fflush(NULL);
+		abort();
 	}
 	struct memory_check pmem = chk(p1.p.n, p2.p.n);
 	if (!pmem.mem) {
