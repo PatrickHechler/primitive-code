@@ -93,30 +93,26 @@ static inline void pvm_basic_init() {
 	srand(time(NULL));
 	pfs_err_loc = (ui32*) &pvm.err;
 #ifdef PORTABLE_BUILD
-	if (pfs_stream_open_delegate(stdin, PFS_SO_PIPE | PFS_SO_READ) != 0) {
-		abort();
-	}
-	if (pfs_stream_open_delegate(stdout, PFS_SO_PIPE | PFS_SO_APPEND) != 1) {
-		abort();
-	}
-	if (pfs_stream_open_delegate(stderr, PFS_SO_PIPE | PFS_SO_APPEND) != 2) {
-		abort();
-	}
+#define STDIN stdin
+#define STDOUT stdout
+#define STDERR stderr
 #else
-	if (pfs_stream_open_delegate_fd(STDIN_FILENO, PFS_SO_PIPE | PFS_SO_READ)
-			!= 0) {
-		abort();
-	}
-	if (pfs_stream_open_delegate_fd(STDOUT_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
-			!= 1) {
-		abort();
-	}
-	if (pfs_stream_open_delegate_fd(STDERR_FILENO, PFS_SO_PIPE | PFS_SO_APPEND)
-			!= 2) {
-		abort();
-	}
+#define STDIN STDIN_FILENO
+#define STDOUT STDOUT_FILENO
+#define STDERR STDERR_FILENO
 #endif
-
+	if (pfs_stream_open_delegate_fd(STDIN, PFS_SO_PIPE | PFS_SO_READ) != 0) {
+		abort();
+	}
+	if (pfs_stream_open_delegate_fd(STDOUT, PFS_SO_PIPE | PFS_SO_APPEND) != 1) {
+		abort();
+	}
+	if (pfs_stream_open_delegate_fd(STDERR, PFS_SO_PIPE | PFS_SO_APPEND) != 2) {
+		abort();
+	}
+#undef STDIN
+#undef STDOUT
+#undef STDERR
 	struct memory *pvm_mem = alloc_memory2(&pvm, sizeof(pvm),
 	/*		*/MEM_NO_FREE | MEM_NO_RESIZE);
 	if (!pvm_mem || pvm_mem->start != REGISTER_START

@@ -28,6 +28,7 @@
 #include <pfs-constants.h>
 #include <pfs-element.h>
 #include <pfs-file.h>
+#include <pfs-folder.h>
 #include <pfs-err.h>
 
 #include "../include/pvm-version.h"
@@ -113,6 +114,39 @@ extern void print_version(FILE *file) {
 					"primitive-virtual-mashine " PVM_VERSION_STR "\n");
 }
 
+static void load_exec_in_pfs(int fh, num *exe_size, void **exe_data) {
+	ui32 flags = pfs_element_get_flags(fh);
+	if (flags == (ui32) -1) {
+		fprintf(stderr,
+				"could not get the flags of the primitive machine file\n");
+		exit(1);
+	}
+	*exe_size = pfs_file_length(fh);
+	*exe_data = malloc(*exe_size);
+	if (!*exe_data) {
+		fprintf(stderr,
+				"could not load the primitive machine file in memory\n");
+		exit(1);
+	}
+	int sh = pfs_open_stream(fh, PFS_SO_READ);
+	pfs_element_close(fh);
+	for (num total_reat = 0; total_reat < *exe_size;) {
+		num reat = pfs_stream_read(sh, *exe_data + total_reat,
+				*exe_size - total_reat);
+		if (reat == -1) {
+			fprintf(stderr, "failed to read the machine file (%s)\n",
+					pfs_error());
+			exit(1);
+		} else if (!reat) {
+			fprintf(stderr, "the machine file has been modified\n");
+			exit(1);
+		}
+
+		total_reat += reat;
+	}
+	pfs_stream_close(sh);
+}
+
 static inline void setup(int argc, char **argv) {
 #ifdef PVM_DEBUG
 	wait = 0;
@@ -120,41 +154,52 @@ static inline void setup(int argc, char **argv) {
 #endif
 	_Bool pmf_in_lfs = 0;
 	_Bool pfs_set = 0;
+	_Bool first_arg = 1;
 	char *cwd = NULL;
-	for (argv++, argc--; *argv; argv++, argc--) {
-		if (!strcmp("--help", *argv)) {
+	for (argv++, argc--; *argv; argv++, argc--, first_arg = 0) {
+		if (!**argv) {
+			illegal_arg: fprintf(stderr, "unknown argument: '%s'\n", *argv);
+			exit(1);
+		}
+		if ((((uint16_t) '-') | (((uint16_t) '-') << 8)) == *(uint16_t*) *argv) {
+			*argv += 2;
+		} else {
+			goto no_arg;
+		}
+		if (!strcmp("help", *argv)) {
 			print_help();
 			exit(1);
-		} else if (!strcmp("--version", *argv)) {
+		} else if (!strcmp("version", *argv)) {
 			print_version0();
 			exit(1);
 #ifdef PVM_DEBUG
-		} else if (!strcmp("--wait", *argv)) {
+		} else if (!strcmp("wait", *argv)) {
 			wait = 1;
-		} else if (!memcmp("--port=", *argv, 7)) {
+		} else if (!memcmp("port=", *argv, 5)) {
 			if (input != -1) {
-				fprintf(stderr, "debug input already set!\n", *argv + 7);
+				fprintf(stderr, "debug input already set!\n");
 				exit(1);
 			}
 			char *end;
-			long val = strtol(*argv + 7, &end, 0);
+			long val = strtol(*argv + 5, &end, 0);
 			if (errno) {
 				perror("strtol");
-				fprintf(stderr, "could not parse the port '%s'\n", *argv + 7);
+				fprintf(stderr, "could not parse the port '%s'\n", *argv + 5);
 				exit(1);
 			}
 			if (val > UINT16_MAX || val < 0) {
-				fprintf(stderr, "illegal port %ld (MAX=%d MIN=0)", val, UINT16_MAX);
+				fprintf(stderr, "illegal port %ld (MAX=%d MIN=0)", val,
+				UINT16_MAX);
 				exit(1);
 			}
 			input = val;
 			input_is_pipe = 0;
-		} else if (!memcmp("--pipe=", *argv, 7)) {
+		} else if (!memcmp("pipe=", *argv, 5)) {
 			if (input != -1) {
-				fprintf(stderr, "debug input already set!\n", *argv + 7);
+				fprintf(stderr, "debug input already set!\n");
 				exit(1);
 			}
-			input = open(*argv + 7, O_RDONLY);
+			input = open(*argv + 5, O_RDONLY);
 			if (input == -1) {
 				perror("open");
 				fprintf(stderr, "could not open the debug input (pipe/file)!\n",
@@ -162,13 +207,13 @@ static inline void setup(int argc, char **argv) {
 				exit(1);
 			}
 			input_is_pipe = 1;
-		} else if (!memcmp("--std=", *argv, 6)) {
+		} else if (!memcmp("std=", *argv, 4)) {
 			if (input != -1) {
-				fprintf(stderr, "debug input already set!\n", *argv + 7);
+				fprintf(stderr, "debug input already set!\n");
 				exit(1);
 			}
 			char *end;
-			long val = strtol((*argv) + 6, &end, 0);
+			long val = strtol((*argv) + 4, &end, 0);
 			input = val;
 			if (val != input || errno) {
 				perror("strtol");
@@ -178,38 +223,41 @@ static inline void setup(int argc, char **argv) {
 			}
 			input_is_pipe = 1;
 #endif // PVM_DEBUG
-		} else if (!strcmp("--pmf-in-lfs", *argv)) {
+		} else if (!strcmp("pmf-in-lfs", *argv)) {
 			pmf_in_lfs = 1;
-		} else if (!strcmp("--pmf-in-pfs", *argv)) {
+		} else if (!strcmp("pmf-in-pfs", *argv)) {
 			pmf_in_lfs = 0;
-		} else if (!memcmp("--cwd=", *argv, 6)) {
+		} else if (!memcmp("cwd=", *argv, 4)) {
 			if (cwd) {
 				fprintf(stderr, "cwd already set!\n", *argv);
 				exit(1);
 			}
-			cwd = *argv + 6;
+			cwd = *argv + 4;
 			if (pfs_set) {
 				if (!pfs_change_working_directoy(cwd)) {
 					fprintf(stderr, "could not set cwd to '%s' (%s)!\n", cwd,
 							pfs_error());
 				}
 			}
-		} else if (!memcmp("--pfs=", *argv, 6)) {
+		} else if (!memcmp("pfs=", *argv, 4)) {
 			if (pfs_set) {
 				fprintf(stderr, "pfs already set!\n", *argv);
 				exit(1);
 			}
 			pfs_set = 1;
-			struct bm_block_manager *bm = bm_new_file_block_manager_path(*argv + 6, 0);
+			struct bm_block_manager *bm = bm_new_file_block_manager_path(
+					*argv + 4, 0);
 			if (!bm) {
-				fprintf(stderr, "could not create the block manger (for the PFS) (%s)!\n", pfs_error());
+				fprintf(stderr,
+						"could not create the block manger (for the PFS) (%s) : %s\n",
+						pfs_error(), *argv + 4);
 				exit(1);
 			}
 			if (!pfs_load(bm, cwd)) {
 				fprintf(stderr, "could not load the PFS (%s)!\n", pfs_error());
 				exit(1);
 			}
-		} else if (!memcmp("--pmf=", *argv, 6)) {
+		} else if (!memcmp("pmf=", *argv, 4)) {
 			if (!pfs_set) {
 				fprintf(stderr, "pfs not set!\n");
 				exit(1);
@@ -220,7 +268,7 @@ static inline void setup(int argc, char **argv) {
 				exit(1);
 			}
 #endif
-			(*argv) += 6;
+			*argv += 4;
 			num exe_size;
 			void *exe_data;
 			if (pmf_in_lfs) {
@@ -265,36 +313,61 @@ static inline void setup(int argc, char **argv) {
 							pfs_error());
 					exit(1);
 				}
-				exe_size = pfs_file_length(fh);
-				exe_data = malloc(exe_size);
-				if (!exe_data) {
-					fprintf(stderr,
-							"could not load the primitive machine file in memory\n");
-					exit(1);
-				}
-				int sh = pfs_open_stream(fh, PFS_SO_READ);
-				pfs_element_close(fh);
-				for (num total_reat = 0; total_reat < exe_size;) {
-					num reat = pfs_stream_read(sh, exe_data + total_reat,
-							exe_size - total_reat);
-					if (reat == -1) {
-						fprintf(stderr,
-								"failed to read the machine file (%s)\n",
-								pfs_error());
-						exit(1);
-					} else if (!reat) {
-						fprintf(stderr, "the machine file has been modified\n");
-						exit(1);
-					}
-					total_reat += reat;
-				}
-				pfs_stream_close(sh);
+				load_exec_in_pfs(fh, &exe_size, &exe_data);
 			}
 			pvm_init_execute(argv, argc, exe_data, exe_size);
 			return;
 		} else {
-			fprintf(stderr, "unknown argument: '%s'\n", *argv);
-			exit(1);
+			no_arg: ;
+			if (!first_arg) {
+				goto illegal_arg;
+			}
+			struct bm_block_manager *bm = bm_new_file_block_manager_path(*argv,
+					0);
+			if (!bm) {
+				fprintf(stderr,
+						"could not create the block manger (for the PFS) (%s) : %s\n",
+						pfs_error(), *argv);
+				exit(1);
+			}
+			if (!pfs_load(bm, NULL)) {
+				fprintf(stderr, "could not load the PFS (%s) : %s\n",
+						pfs_error(), *argv);
+				exit(1);
+			}
+			int bin = pfs_handle("/bin");
+			if (bin == -1) {
+				fprintf(stderr, "could not open /bin in the PFS (%s) : %s\n",
+						pfs_error(), *argv);
+				exit(1);
+			}
+			ui32 flags = pfs_element_get_flags(bin);
+			if (flags == (ui32) -1) {
+				fprintf(stderr, "could not get the flags of /bin (%s) : %s\n",
+						pfs_error(), *argv);
+				exit(1);
+			}
+			if (flags & PFS_F_FOLDER) {
+				int bin_bin = pfs_folder_child_file(bin, "bin");
+				if (bin_bin == -1) {
+					fprintf(stderr,
+							"could not open /bin/bin in the PFS (%s) : %s\n",
+							pfs_error(), *argv);
+					exit(1);
+				}
+				if (!pfs_element_close(bin)) {
+					fprintf(stderr,
+							"could not close /bin in the PFS (%s) : %s\n",
+							pfs_error(), *argv);
+					exit(1);
+				}
+				bin = bin_bin;
+			}
+			num exe_size;
+			void* exe_data;
+			load_exec_in_pfs(bin, &exe_size, &exe_data);
+			pvm_init_execute(argv, argc, exe_data, exe_size);
+			return;
 		}
 	}
 #ifdef PVM_DEBUG
