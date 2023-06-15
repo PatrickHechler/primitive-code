@@ -161,7 +161,8 @@ static inline void setup(int argc, char **argv) {
 			illegal_arg: fprintf(stderr, "unknown argument: '%s'\n", *argv);
 			exit(1);
 		}
-		if ((((uint16_t) '-') | (((uint16_t) '-') << 8)) == *(uint16_t*) *argv) {
+		if ((((uint16_t) '-') | (((uint16_t) '-') << 8))
+				== *(uint16_t*) *argv) {
 			*argv += 2;
 		} else {
 			goto no_arg;
@@ -272,15 +273,20 @@ static inline void setup(int argc, char **argv) {
 			num exe_size;
 			void *exe_data;
 			if (pmf_in_lfs) {
-				int fd = open(*argv, O_RDONLY);
-				if (fd == -1) {
+				bm_fd fd = bm_fd_open_ro(*argv);
+#ifdef PFS_PORTABLE_BUILD
+				if (!fd)
+#else
+				if (fd == -1)
+#endif
+				{
 					fprintf(stderr,
 							"could not open primitive machine file: %s\n",
 							strerror(errno));
 					exit(1);
 				}
-				exe_size = lseek(fd, 0, SEEK_END);
-				lseek(fd, 0, SEEK_SET);
+				exe_size = bm_fd_seek_eof(fd);
+				bm_fd_seek(fd, 0);
 				exe_data = malloc(exe_size);
 				if (!exe_data) {
 					fprintf(stderr,
@@ -288,7 +294,8 @@ static inline void setup(int argc, char **argv) {
 					exit(1);
 				}
 				for (num reat = exe_size; reat < exe_size;) {
-					num reat_ = read(fd, exe_data + reat, exe_size - reat);
+					num reat_ = bm_fd_read(fd, exe_data + reat,
+							exe_size - reat);
 					if (reat_ == -1) {
 						switch (errno) {
 						case EAGAIN:
@@ -305,6 +312,7 @@ static inline void setup(int argc, char **argv) {
 					}
 					reat += reat_;
 				}
+				bm_fd_close(fd);
 			} else {
 				int fh = pfs_handle_file(*argv);
 				if (fh == -1) {
@@ -364,7 +372,7 @@ static inline void setup(int argc, char **argv) {
 				bin = bin_bin;
 			}
 			num exe_size;
-			void* exe_data;
+			void *exe_data;
 			load_exec_in_pfs(bin, &exe_size, &exe_data);
 			pvm_init_execute(argv, argc, exe_data, exe_size);
 			return;

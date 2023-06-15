@@ -92,7 +92,7 @@ static void close_pfs_on_exit(int status, void *ignore) {
 static inline void pvm_basic_init() {
 	srand(time(NULL));
 	pfs_err_loc = (ui32*) &pvm.err;
-#ifdef PORTABLE_BUILD
+#ifdef PVM_PORTABLE_BUILD
 #define STDIN stdin
 #define STDOUT stdout
 #define STDERR stderr

@@ -19,6 +19,9 @@
 #endif
 
 #include <pfs-err.h>
+#if !defined PVM_PORTABLE_BUILD && !defined PVM_HALF_PORTABLE_BUILD
+#include <sys/random.h>
+#endif
 
 #define check_string_len0(XNN_OFFSET, mem, name, max_len, error_reg, error_value) \
 	num max_len = mem->end - pvm.x[XNN_OFFSET]; \
@@ -394,6 +397,7 @@ static void int_time_wait( INT_PARAMS) /* 46 */{
 static i64 rnd_read(struct delegate_stream *str, void *buf, const i64 len) {
 	_Static_assert(sizeof(int16_t) == 2, "Error!");
 	_Static_assert(sizeof(int8_t) == 1, "Error!");
+#if defined PVM_PORTABLE_BUILD || defined PVM_HALF_PORTABLE_BUILD
 	for (i64 i = len - 1; i > 0; i -= 2, buf += 2) {
 		long val = random();
 		if (val < 0) {
@@ -410,13 +414,20 @@ static i64 rnd_read(struct delegate_stream *str, void *buf, const i64 len) {
 		}
 		*((int8_t*) buf) = val;
 	}
+#else
+	if (getrandom(buf, len, 0) == -1) {
+		pvm.err = PE_UNKNOWN_ERROR;
+		return -1;
+	}
+#endif
 	return len;
 }
 static struct delegate_stream rnd_str = { .read = rnd_read };
 static void int_rnd_open( INT_PARAMS) /* 47 */{
 	int sh;
-#ifndef PORTABLE_BUILD // this approach fails when no devfs is mounted at /dev
-	int fd = bm_fd_open_ro("/dev/random");
+#if !defined PVM_PORTABLE_BUILD && !defined PFS_PORTABLE_BUILD
+	// this approach fails when no devfs is mounted at /dev
+	int fd = open64("/dev/random", O_RDONLY);
 	if (fd != -1) {
 		sh = pfs_stream_open_delegate_fd(fd, PFS_SO_PIPE | PFS_SO_READ);
 	} else {
@@ -424,21 +435,28 @@ static void int_rnd_open( INT_PARAMS) /* 47 */{
 		close(fd);
 #endif
 		sh = pfs_stream_open_delegate(&rnd_str);
-#ifndef PORTABLE_BUILD
+#ifndef PVM_PORTABLE_BUILD
 	}
 #endif
 	pvm.x[0] = sh;
 }
 static void int_rnd_num( INT_PARAMS) /* 48 */{
+#if defined PVM_PORTABLE_BUILD || defined PVM_HALF_PORTABLE_BUILD
 	num r = random();
 	if (r < 0) {
-		pvm.x[0] = -1;
 		pvm.err = PE_UNKNOWN_ERROR;
+		pvm.x[0] = -1;
 	} else {
 		r |= random() << 31;
 		r |= (1 & random()) << 63;
 		pvm.x[0] = r;
 	}
+#else
+	if (getrandom(&pvm.x[0], 8, 0) == -1) {
+		pvm.err = PE_UNKNOWN_ERROR;
+		pvm.x[0] = -1;
+	}
+#endif
 }
 static void int_mem_cmp( INT_PARAMS) /* 49 */{
 	if (pvm.x[2] < 0) {
