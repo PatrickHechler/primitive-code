@@ -37,7 +37,7 @@ LDFLAGS = -L$(PFS_LIB_FOLDER) -lpfs-core -luuid
 
 DEBUG_LDFLAGS = -lpthread
 
-CFLAGS += -I$(PFS_LIB_INCLUDE)
+CFLAGS += -I$(PFS_LIB_INCLUDE) -Wstrict-overflow
 
 ifeq ($(BUILD_MODE),debug)
 	CFLAGS += -g -Og

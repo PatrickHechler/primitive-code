@@ -33,6 +33,7 @@
 #include <pfs-file.h>
 #include <pfs-pipe.h>
 #include <pfs-err.h>
+#include <pfs-random.h>
 
 #include "../include/pvm-virtual-mashine.h"
 #include "../include/pvm-err.h"
@@ -90,7 +91,7 @@ static void close_pfs_on_exit(int status, void *ignore) {
 }
 
 static inline void pvm_basic_init() {
-	srand(time(NULL));
+	random_ensure_init();
 	pfs_err_loc = (ui32*) &pvm.err;
 #ifdef PVM_PORTABLE_BUILD
 #define STDIN stdin

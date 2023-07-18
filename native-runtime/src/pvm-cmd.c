@@ -295,7 +295,7 @@ static void c_add() {
 	}
 	check_chaged(0, 8)
 	num op1 = *p1.p.np;
-	*p1.p.np += p2.p.n;
+	*(unum*)p1.p.np += (unum) p2.p.n;
 	if (((*p1.p.np < 0) & (p2.p.n > 0) & (op1 > 0))
 			|| ((*p1.p.np > 0) & (p2.p.n < 0) & (op1 < 0))) {
 		pvm.status = (pvm.status & ~(S_ZERO)) | S_OVERFLOW;

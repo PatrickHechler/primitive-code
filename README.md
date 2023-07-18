@@ -610,7 +610,7 @@ every register can also be addressed:
 * `INT_RND_NUM` : sets `X00` to a random number
     * value: `48`
     * result values:
-        * `X00` `rnd`: (`num`) a random non negative number or `-1` on error
+        * `X00` `rnd`: (`num`) 64 random bits
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEM_CMP` : memory compare
     * value: `49`

@@ -182,7 +182,7 @@ static void int_unload_lib(INT_PARAMS); /* 67 */
 #define INT_UNLOAD_LIB 67
 #define INTERRUPT_COUNT 68
 
-EXT void (*(ints[]))(INT_PARAMS)
+EXT void (*ints[])(INT_PARAMS)
 #ifdef PVM
  = {
 	int_error_illegal_interrupt, /* 0 */
