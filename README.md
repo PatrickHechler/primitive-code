@@ -2249,6 +2249,13 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P1.OFF_NUM]`
 
 ## not (yet) there/supported
+* `CALNO` call no offset (like `CALO` but without a constant offset)
+* `JMPNO` jump no offset (like `JMPO` but wit an absolute target address parameter)
+    * the parameter can be a non constant value
+* `JMPO` jump with offset (like `JMP` but with a constant offset)
+* `REMFP` arithmetic remainder floating point operation
+* silent floating point arithmetic (no interrupt when operating with NaN)
+    * probably also a third instruction set for fpa when the NaNs decide (silent/signaling NaN)
 * support for enviroment-variables
 * Multi-threading
     * maby thread-groups/processes
