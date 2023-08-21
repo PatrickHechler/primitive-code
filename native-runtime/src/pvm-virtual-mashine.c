@@ -51,6 +51,7 @@
 #include <ctype.h>
 #include <iconv.h>
 #include <stdarg.h>
+#include <math.h>
 #ifdef PVM_DEBUG
 #include "../include/pvm-version.h"
 // not really usable here: #include <readline/readline.h>
@@ -64,6 +65,7 @@
 #include <sys/wait.h>
 #include <linux/membarrier.h>
 #endif // PVM_DEBUG
+
 
 static uint64_t string_hash(const void *_a);
 
@@ -139,16 +141,38 @@ static inline void pvm_basic_init() {
 	pvm.intcnt = INTERRUPT_COUNT;
 }
 
+static int loaded_libs_equal(const void *a, const void *b);
+struct loaded_libs_entry {
+	char *name;
+	num pntr;
+};
+_Static_assert(offsetof(struct loaded_libs_entry, name) == 0, "Error");
+static struct hashset loaded_libs = { //
+		/*	  */.entrycount = 0, //
+				.maxi = 0, //
+				.equalizer = loaded_libs_equal, //
+				.hashmaker = string_hash, //
+				.entries = NULL, //
+		};
+
 extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
 	pvm_basic_init();
 
 	if (exe) {
-		// use different flags in future version?
-		struct memory *exe_mem = alloc_memory2(exe, exe_size, 0U);
+		struct memory *exe_mem = alloc_memory2(exe, exe_size,
+		/*		*/MEM_NO_FREE | MEM_NO_RESIZE | MEM_LIB);
 		if (!exe_mem) {
 			abort();
 		}
 		pvm.ip = exe_mem->start;
+		struct loaded_libs_entry *new_entry = malloc(
+				sizeof(struct loaded_libs_entry));
+		if (!new_entry) {
+			abort();
+		}
+		new_entry->name = strdup(*argv);
+		new_entry->pntr = exe_mem->start;
+		hashset_put(&loaded_libs, string_hash(&new_entry), &new_entry);
 	}
 
 	struct memory *args_mem = alloc_memory2(argv, (argc + 1) * sizeof(char*),
@@ -173,20 +197,6 @@ extern void pvm_init_execute(char **argv, num argc, void *exe, num exe_size) {
 
 	on_exit(close_pfs_on_exit, NULL);
 }
-
-int loaded_libs_equal(const void *a, const void *b);
-struct loaded_libs_entry {
-	char *name;
-	num pntr;
-};
-_Static_assert(offsetof(struct loaded_libs_entry, name) == 0, "Error");
-static struct hashset loaded_libs = { //
-		/*	  */.entrycount = 0, //
-				.maxi = 0, //
-				.equalizer = loaded_libs_equal, //
-				.hashmaker = string_hash, //
-				.entries = NULL, //
-		};
 
 static jmp_buf call_pvm_env;
 

@@ -40,8 +40,8 @@ public class GenRunCommandFuncs implements SrcGen {
 				lastHeader = n >>> 8;
 				String h = SrcGen.PrimAsmReadmeCommand.header(lastHeader);
 				out.write("\n/* ");
-				out.write(hex(lastHeader >>> 12));
-				out.write(hex(0xF & (lastHeader >>> 8)));
+				out.write(hex(lastHeader >>> 4));
+				out.write(hex(0xF & lastHeader));
 				out.write(".. : ");
 				out.write(h);
 				out.write(" */\n");
@@ -92,9 +92,9 @@ public class GenRunCommandFuncs implements SrcGen {
 	
 	private static void writeSubHeader(Writer out, int lastSubHeader, String sh) throws IOException {
 		out.write("/* ");
-		out.write(hex(lastSubHeader >>> 12));
-		out.write(hex(0xF & (lastSubHeader >>> 8)));
+		out.write(hex(lastSubHeader >>> 8));
 		out.write(hex(0xF & (lastSubHeader >>> 4)));
+		out.write(hex(0xF & lastSubHeader));
 		out.write(". : ");
 		out.write(sh);
 		out.write(" */\n");

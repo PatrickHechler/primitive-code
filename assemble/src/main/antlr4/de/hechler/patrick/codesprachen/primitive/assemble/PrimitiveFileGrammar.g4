@@ -1531,6 +1531,39 @@ returns [Command c] @init {Commands cmd = null;}
 		| DIVFP
 		{cmd = Commands.CMD_DIVFP;}
 
+		| MODFP
+		{cmd = Commands.CMD_MODFP;}
+
+		| ADDQFP
+		 {cmd = Commands.CMD_ADDQFP;}
+
+		| SUBQFP
+		 {cmd = Commands.CMD_SUBQFP;}
+
+		| MULQFP
+		 {cmd = Commands.CMD_MULQFP;}
+
+		| DIVQFP
+		 {cmd = Commands.CMD_DIVQFP;}
+
+		| MODQFP
+		 {cmd = Commands.CMD_MODQFP;}
+
+		| ADDSFP
+		 {cmd = Commands.CMD_ADDSFP;}
+
+		| SUBSFP
+		 {cmd = Commands.CMD_SUBSFP;}
+
+		| MULSFP
+		 {cmd = Commands.CMD_MULSFP;}
+
+		| DIVSFP
+		 {cmd = Commands.CMD_DIVSFP;}
+
+		| MODSFP
+		 {cmd = Commands.CMD_MODSFP;}
+
 		| UADD
 		{cmd = Commands.CMD_UADD;}
 
@@ -1582,6 +1615,9 @@ returns [Command c] @init {Commands cmd = null;}
 		| CALO
 		{cmd = Commands.CMD_CALO;}
 
+		| JMPO
+		{cmd = Commands.CMD_JMPO;}
+
 	) comment* p1 = param [pos, constants, be] comment* COMMA //
 	comment* p2 = param [pos, constants, be] //
 	{$c = new Command(cmd, $p1.p, $p2.p);}
@@ -1605,6 +1641,12 @@ returns [Command c] @init {Commands cmd = null;}
 
 		| DEC
 		{cmd = Commands.CMD_DEC;}
+
+		| JMPNO
+		{cmd = Commands.CMD_JMPNO;}
+
+		| CALNO
+		{cmd = Commands.CMD_CALNO;}
 
 		| JMPERR
 		{cmd = Commands.CMD_JMPERR;}
@@ -1842,6 +1884,61 @@ DIVFP
 	'DIVFP'
 ;
 
+MODFP
+:
+	'MODFP'
+;
+
+ADDQFP
+:
+	'ADDQFP'
+;
+
+SUBQFP
+:
+	'SUBQFP'
+;
+
+MULQFP
+:
+	'MULQFP'
+;
+
+DIVQFP
+:
+	'DIVQFP'
+;
+
+MODQFP
+:
+	'MODQFP'
+;
+
+ADDSFP
+:
+	'ADDSFP'
+;
+
+SUBSFP
+:
+	'SUBSFP'
+;
+
+MULSFP
+:
+	'MULSFP'
+;
+
+DIVSFP
+:
+	'DIVSFP'
+;
+
+MODSFP
+:
+	'MODSFP'
+;
+
 NEGFP
 :
 	'NEGFP'
@@ -2017,6 +2114,16 @@ JMP
 	'JMP'
 ;
 
+JMPO
+:
+	'JMPO'
+;
+
+JMPNO
+:
+	'JMPNO'
+;
+
 INT
 :
 	'INT'
@@ -2035,6 +2142,11 @@ CALL
 CALO
 :
 	'CALO'
+;
+
+CALNO
+:
+	'CALNO'
 ;
 
 RET

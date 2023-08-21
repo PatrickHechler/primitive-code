@@ -99,6 +99,53 @@ static void(*cmds[])()
 	c_mulfp, /* 0122 */
 	c_divfp, /* 0123 */
 	c_negfp, /* 0124 */
+	c_modfp, /* 0125 */
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	c_addqfp, /* 0130 */
+	c_subqfp, /* 0131 */
+	c_mulqfp, /* 0132 */
+	c_divqfp, /* 0133 */
+	c_negqfp, /* 0134 */
+	c_modqfp, /* 0135 */
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	c_addsfp, /* 0140 */
+	c_subsfp, /* 0141 */
+	c_mulsfp, /* 0142 */
+	c_divsfp, /* 0143 */
+	c_negsfp, /* 0144 */
+	c_modsfp, /* 0145 */
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	ILL_1
+	c_uadd, /* 0150 */
+	c_usub, /* 0151 */
+	c_umul, /* 0152 */
+	c_udiv, /* 0153 */
 	ILL_1
 	ILL_1
 	ILL_1
@@ -110,10 +157,12 @@ static void(*cmds[])()
 	ILL_1
 	ILL_1
 	ILL_1
-	c_uadd, /* 0130 */
-	c_usub, /* 0131 */
-	c_umul, /* 0132 */
-	c_udiv, /* 0133 */
+	ILL_1
+	c_badd, /* 0160 */
+	c_bsub, /* 0161 */
+	c_bmul, /* 0162 */
+	c_bdiv, /* 0163 */
+	c_bneg, /* 0164 */
 	ILL_1
 	ILL_1
 	ILL_1
@@ -125,27 +174,8 @@ static void(*cmds[])()
 	ILL_1
 	ILL_1
 	ILL_1
-	ILL_1
-	c_badd, /* 0140 */
-	c_bsub, /* 0141 */
-	c_bmul, /* 0142 */
-	c_bdiv, /* 0143 */
-	c_bneg, /* 0144 */
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
-	c_fptn, /* 0150 */
-	c_ntfp, /* 0151 */
-	ILL_10
-	ILL_10
+	c_fptn, /* 0170 */
+	c_ntfp, /* 0171 */
 	ILL_10
 	ILL_10
 	ILL_10
@@ -201,8 +231,8 @@ static void(*cmds[])()
 	c_jmpsb, /* 021E */
 	c_jmpnb, /* 021F */
 	c_jmp, /* 0220 */
-	ILL_1
-	ILL_1
+	c_jmpo, /* 0221 */
+	c_jmpno, /* 0222 */
 	ILL_1
 	ILL_1
 	ILL_1
@@ -246,7 +276,7 @@ static void(*cmds[])()
 	ILL_1
 	c_call, /* 0300 */
 	c_calo, /* 0301 */
-	ILL_1
+	c_calno, /* 0302 */
 	ILL_1
 	ILL_1
 	ILL_1

@@ -587,6 +587,24 @@ static void c_jmpnb() {
 static void c_jmp() {
 	doJmp
 }
+static void c_jmpo() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (remain_instruct_space <= ((param_num_value_index + 1) << 3)) {
+		interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
+		return;
+	}
+	pvm.ip += p1.p.n + ia.np[param_num_value_index];
+}
+static void c_jmpno() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	pvm.ip += p1.p.n;
+}
 
 static void c_int() {
 	struct p p1 = param(0, 8);
@@ -635,6 +653,19 @@ static void c_calo() {
 	*(num*) (mem.mem->offset + pvm.sp) = pvm.ip + incIPVal;
 	pvm.sp += 8;
 	pvm.ip += p1.p.n + ia.np[param_num_value_index];
+}
+static void c_calno() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct memory_check mem = chk(pvm.sp, 8);
+	if (!mem.mem) {
+		return;
+	}
+	*(num*) (mem.mem->offset + pvm.sp) = pvm.ip + incIPVal;
+	pvm.sp += 8;
+	pvm.ip += p1.p.n;
 }
 static void c_ret() {
 	struct memory_check mem = chk(pvm.sp - 8, 8);
@@ -907,6 +938,11 @@ static void c_ntfp() {
 	*p1.p.fpnp = *p1.p.np;
 }
 
+#define is_signal_nan(raw) (\
+		(((raw) & 0x7FFFFFFFFFFFFFFFL) > 0x7FF0000000000000L) \
+		&& (((raw) & 0x7FFFFFFFFFFFFFFFL) < 0x7FF8000000000000L) \
+)
+
 static void c_addfp() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
@@ -917,7 +953,7 @@ static void c_addfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -933,7 +969,7 @@ static void c_subfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -949,7 +985,7 @@ static void c_mulfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -965,7 +1001,7 @@ static void c_divfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -982,6 +1018,207 @@ static void c_negfp() {
 	}
 	*p1.p.fpnp = -*p1.p.fpnp;
 }
+static void c_modfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp = fmod(*p1.p.fpnp, p2.p.fpn);
+}
+
+static void c_addqfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		*p1.p.np |= 0x000FFFFFFFFFFFFFL & p2.p.n;
+		return;
+	}
+	*p1.p.fpnp += p2.p.fpn;
+}
+static void c_subqfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		*p1.p.np |= 0x000FFFFFFFFFFFFFL & p2.p.n;
+		return;
+	}
+	*p1.p.fpnp -= p2.p.fpn;
+}
+static void c_mulqfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		*p1.p.np |= 0x000FFFFFFFFFFFFFL & p2.p.n;
+		return;
+	}
+	*p1.p.fpnp *= p2.p.fpn;
+}
+static void c_divqfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		*p1.p.np |= 0x000FFFFFFFFFFFFFL & p2.p.n;
+		return;
+	}
+	*p1.p.fpnp /= p2.p.fpn;
+}
+static void c_negqfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (isnan(*p1.p.fpnp)) {
+		*p1.p.np ^= 0x8000000000000000L;
+		return;
+	}
+	*p1.p.fpnp = -*p1.p.fpnp;
+}
+static void c_modqfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		*p1.p.np |= 0x000FFFFFFFFFFFFFL & p2.p.n;
+		return;
+	}
+	*p1.p.fpnp = fmod(*p1.p.fpnp, p2.p.fpn);
+}
+
+static void c_addsfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp += p2.p.fpn;
+}
+static void c_subsfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp -= p2.p.fpn;
+}
+static void c_mulsfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp *= p2.p.fpn;
+}
+static void c_divsfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp /= p2.p.fpn;
+}
+static void c_negsfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (isnan(*p1.p.fpnp)) {
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp = -*p1.p.fpnp;
+}
+static void c_modsfp() {
+	struct p p1 = param(1, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	check_chaged(1, 8)
+	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+		return;
+	}
+	*p1.p.fpnp = fmod(*p1.p.fpnp, p2.p.fpn);
+}
+
 static void c_uadd() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {

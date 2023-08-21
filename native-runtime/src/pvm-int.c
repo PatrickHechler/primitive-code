@@ -1103,7 +1103,7 @@ static void int_load_file( INT_PARAMS) /* 65 */{
 	pvm.x[1] = eof;
 }
 
-int loaded_libs_equal(const void *a, const void *b) {
+static int loaded_libs_equal(const void *a, const void *b) {
 	const struct loaded_libs_entry *ea = a, *eb = b;
 	return strcmp(ea->name, eb->name) == 0;
 } // hashes a structure which starts with a pointer to a string
@@ -1125,16 +1125,16 @@ static uint64_t string_hash(const void *a) {
 		res ^= (*(cs++)) << 24;
 		if (*cs == '\0')
 			break;
-		res ^= (int64_t) (*(cs++)) << 32;
+		res ^= (uint64_t) (*(cs++)) << 32;
 		if (*cs == '\0')
 			break;
-		res ^= (int64_t) (*(cs++)) << 40;
+		res ^= (uint64_t) (*(cs++)) << 40;
 		if (*cs == '\0')
 			break;
-		res ^= (int64_t) (*(cs++)) << 48;
+		res ^= (uint64_t) (*(cs++)) << 48;
 		if (*cs == '\0')
 			break;
-		res ^= (int64_t) (*(cs++)) << 56;
+		res ^= (uint64_t) (*(cs++)) << 56;
 	}
 	return res;
 }

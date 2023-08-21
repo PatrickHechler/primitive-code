@@ -16,6 +16,11 @@
 //along with this program.  If not, see <https://www.gnu.org/licenses/>.
 package de.hechler.patrick.codesprachen.primitive.core.utils;
 
+/**
+ * this class defines for all commands of the <i>PVM</i> a <code>public static final int</code> value with the commands name and as value the identifier int16 value
+ * 
+ * @author Patrick Hechler
+ */
 public class PrimAsmCommands {
 	
 	private PrimAsmCommands() {}
@@ -546,7 +551,7 @@ public class PrimAsmCommands {
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
-	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is signaling-NAN</li>
 	 * <li><code>p1 &lt;- p1 fp-add p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -561,7 +566,7 @@ public class PrimAsmCommands {
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
-	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is signaling-NAN</li>
 	 * <li><code>p1 &lt;- p1 fp-sub p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -576,7 +581,7 @@ public class PrimAsmCommands {
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
-	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is signaling-NAN</li>
 	 * <li><code>p1 &lt;- p1 fp-mul p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -591,7 +596,7 @@ public class PrimAsmCommands {
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
-	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN</li>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is signaling-NAN</li>
 	 * <li><code>p1 &lt;- p1 fp-div p2</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -606,7 +611,7 @@ public class PrimAsmCommands {
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
-	 * <li>note that the aritmetic error interrupt is executed instead if p1 is NAN</li>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 is signaling-NAN</li>
 	 * <li><code>p1 &lt;- p1 fp-mul -1.0</code></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
@@ -614,7 +619,196 @@ public class PrimAsmCommands {
 	 */
 	public static final int NEGFP   = 0x0124;
 	/**
-	 * <b>UADD</b> <code>(01 30)</code><br>
+	 * <b>MODFP</b> <code>(01 25)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * divides the first fp-parameter with the second fp and stores the fp-result of the remainder in the first fp-parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 or p2 is signaling-NAN</li>
+	 * <li><code>p1 &lt;- p1 fp-mod p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int MODFP   = 0x0125;
+	/**
+	 * <b>ADDQFP</b> <code>(01 30)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * adds the floating point values of both parameters and stores the floating point sum in the first parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>p1 &lt;- p1 fp-quiet-add p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int ADDQFP  = 0x0130;
+	/**
+	 * <b>SUBQFP</b> <code>(01 31)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>p1 &lt;- p1 fp-quiet-sub p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int SUBQFP  = 0x0131;
+	/**
+	 * <b>MULQFP</b> <code>(01 32)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>p1 &lt;- p1 fp-quiet-mul p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int MULQFP  = 0x0132;
+	/**
+	 * <b>DIVQFP</b> <code>(01 33)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>p1 &lt;- p1 fp-quiet-div p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int DIVQFP  = 0x0133;
+	/**
+	 * <b>NEGQFP</b> <code>(01 34)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
+	 * <p>
+	 * multiplies the fp parameter with -1.0
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>p1 &lt;- p1 fp-quiet-mul -1.0</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int NEGQFP  = 0x0134;
+	/**
+	 * <b>MODQFP</b> <code>(01 35)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * divides the first fp-parameter with the second fp and stores the fp-result of the remainder in the first fp-parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>p1 &lt;- p1 fp-quiet-mod p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int MODQFP  = 0x0135;
+	/**
+	 * <b>ADDSFP</b> <code>(01 40)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * adds the floating point values of both parameters and stores the floating point sum in the first parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 is NAN</li>
+	 * <li><code>p1 &lt;- p1 fp-signal-add p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int ADDSFP  = 0x0140;
+	/**
+	 * <b>SUBSFP</b> <code>(01 41)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 is NAN</li>
+	 * <li><code>p1 &lt;- p1 fp-signal-sub p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int SUBSFP  = 0x0141;
+	/**
+	 * <b>MULSFP</b> <code>(01 42)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 is NAN</li>
+	 * <li><code>p1 &lt;- p1 fp-signal-mul p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int MULSFP  = 0x0142;
+	/**
+	 * <b>DIVSFP</b> <code>(01 43)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 is NAN</li>
+	 * <li><code>p1 &lt;- p1 fp-signal-div p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int DIVSFP  = 0x0143;
+	/**
+	 * <b>NEGSFP</b> <code>(01 44)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
+	 * <p>
+	 * multiplies the fp parameter with -1.0
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 is NAN</li>
+	 * <li><code>p1 &lt;- p1 fp-signal-mul -1.0</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int NEGSFP  = 0x0144;
+	/**
+	 * <b>MODSFP</b> <code>(01 45)</code><br>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * divides the first fp-parameter with the second fp and stores the fp-result of the remainder in the first fp-parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li>note that the aritmetic error interrupt is executed instead if p1 is NAN</li>
+	 * <li><code>p1 &lt;- p1 fp-signal-mod p2</code></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int MODSFP  = 0x0145;
+	/**
+	 * <b>UADD</b> <code>(01 50)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
 	 * like ADD, but uses the parameters as unsigned parameters
@@ -626,9 +820,9 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int UADD    = 0x0130;
+	public static final int UADD    = 0x0150;
 	/**
-	 * <b>USUB</b> <code>(01 31)</code><br>
+	 * <b>USUB</b> <code>(01 51)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
 	 * like SUB, but uses the parameters as unsigned parameters
@@ -640,9 +834,9 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int USUB    = 0x0131;
+	public static final int USUB    = 0x0151;
 	/**
-	 * <b>UMUL</b> <code>(01 32)</code><br>
+	 * <b>UMUL</b> <code>(01 52)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
 	 * like MUL, but uses the parameters as unsigned parameters
@@ -654,9 +848,9 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int UMUL    = 0x0132;
+	public static final int UMUL    = 0x0152;
 	/**
-	 * <b>UDIV</b> <code>(01 33)</code><br>
+	 * <b>UDIV</b> <code>(01 53)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * like DIV, but uses the parameters as unsigned parameters
@@ -669,9 +863,9 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int UDIV    = 0x0133;
+	public static final int UDIV    = 0x0153;
 	/**
-	 * <b>BADD</b> <code>(01 40)</code><br>
+	 * <b>BADD</b> <code>(01 60)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * like ADD, but uses the parameters as 128 bit value parameters
@@ -688,9 +882,9 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int BADD    = 0x0140;
+	public static final int BADD    = 0x0160;
 	/**
-	 * <b>BSUB</b> <code>(01 41)</code><br>
+	 * <b>BSUB</b> <code>(01 61)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * like SUB, but uses the parameters as 128 bit value parameters
@@ -707,9 +901,9 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int BSUB    = 0x0141;
+	public static final int BSUB    = 0x0161;
 	/**
-	 * <b>BMUL</b> <code>(01 42)</code><br>
+	 * <b>BMUL</b> <code>(01 62)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * like MUL, but uses the parameters as 128 bit value parameters
@@ -726,9 +920,9 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int BMUL    = 0x0142;
+	public static final int BMUL    = 0x0162;
 	/**
-	 * <b>BDIV</b> <code>(01 43)</code><br>
+	 * <b>BDIV</b> <code>(01 63)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * like DIV, but uses the parameters as 128 bit value parameters
@@ -746,9 +940,9 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int BDIV    = 0x0143;
+	public static final int BDIV    = 0x0163;
 	/**
-	 * <b>BNEG</b> <code>(01 44)</code><br>
+	 * <b>BNEG</b> <code>(01 64)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * like NEG, but uses the parameters as 128 bit value parameters
@@ -765,12 +959,13 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int BNEG    = 0x0144;
+	public static final int BNEG    = 0x0164;
 	/**
-	 * <b>FPTN</b> <code>(01 50)</code><br>
+	 * <b>FPTN</b> <code>(01 70)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * converts the value of the floating point param to a number
+	 * converts the value of the floating point param to a number<br>
+	 * note that there may be some information lost when converting a floating point number to a number
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
@@ -780,12 +975,13 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int FPTN    = 0x0150;
+	public static final int FPTN    = 0x0170;
 	/**
-	 * <b>NTFP</b> <code>(01 51)</code><br>
+	 * <b>NTFP</b> <code>(01 71)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * converts the value of the number param to a floating point
+	 * converts the value of the number param to a floating point<br>
+	 * note that there may be some information lost when converting a number to a floating point number
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
@@ -794,7 +990,7 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int NTFP    = 0x0151;
+	public static final int NTFP    = 0x0171;
 	/**
 	 * <b>CMP</b> <code>(02 00)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
@@ -1408,6 +1604,32 @@ public class PrimAsmCommands {
 	 */
 	public static final int JMP     = 0x0220;
 	/**
+	 * <b>JMPO</b> <code>(02 21)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt; , &lt;CONST_PARAM&gt;</code>
+	 * <p>
+	 * sets the instruction pointer to position of the summ of the parameters
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>IP &lt;- p1 + p2</code></li>
+	 * </ul>
+
+	 */
+	public static final int JMPO    = 0x0221;
+	/**
+	 * <b>JMPNO</b> <code>(02 22)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt;</code>
+	 * <p>
+	 * sets the instruction pointer to position of the parameter
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>IP &lt;- p1</code></li>
+	 * </ul>
+
+	 */
+	public static final int JMPNO   = 0x0222;
+	/**
 	 * <b>INT</b> <code>(02 30)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
@@ -1528,7 +1750,7 @@ public class PrimAsmCommands {
 	 * <b>CALO</b> <code>(03 01)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;CONST_PARAM&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the label<br>
+	 * sets the instruction pointer to position of the summ of the parameters<br>
 	 * and pushes the current instruction pointer to the stack
 	 * <p>
 	 * <b>definition:</b>
@@ -1543,6 +1765,25 @@ public class PrimAsmCommands {
 
 	 */
 	public static final int CALO    = 0x0301;
+	/**
+	 * <b>CALNO</b> <code>(03 02)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt;</code>
+	 * <p>
+	 * sets the instruction pointer to position of the parameter<br>
+	 * and pushes the current instruction pointer to the stack
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>[SP] &lt;- IP</code></li>
+	 * <li><code>SP &lt;- SP + 8</code></li>
+	 * <li><code>IP &lt;- p1</code>
+	 * <ul>
+	 * <li>note that this call is not relative from the current position</li>
+	 * </ul></li>
+	 * </ul>
+
+	 */
+	public static final int CALNO   = 0x0302;
 	/**
 	 * <b>RET</b> <code>(03 10)</code><br>
 	 * <i>Parameter: none</i>

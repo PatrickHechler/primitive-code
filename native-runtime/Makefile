@@ -33,7 +33,7 @@ LIB_TARGET = libpvm
 
 LIB_DEBUG_TARGET = libdb-pvm
 
-LDFLAGS = -L$(PFS_LIB_FOLDER) -lpfs-core -luuid
+LDFLAGS = -L$(PFS_LIB_FOLDER) -lpfs-core -lm
 
 DEBUG_LDFLAGS = -lpthread
 

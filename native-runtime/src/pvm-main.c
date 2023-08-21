@@ -279,7 +279,7 @@ static inline void setup(int argc, char **argv) {
 #else
 				if (fd == -1)
 #endif
-				{
+						{
 					fprintf(stderr,
 							"could not open primitive machine file: %s\n",
 							strerror(errno));
@@ -392,6 +392,13 @@ static inline void setup(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
+	double d = 0.0 / 0.0;
+	long l;
+	memcpy(&l, &d, 8);
+	printf("%lf : %016lX\n", d, l);
+	d = -d;
+	memcpy(&l, &d, 8);
+	printf("%lf : %016lX\n", d, l);
 	setup(argc, argv);
 #ifdef PVM_DEBUG
 	if (input != -1) {

@@ -1519,7 +1519,7 @@ the pre-commands ar executed at assemble time, not runtime
 `ADDFP <NO_CONST_PARAM> , <PARAM>`
 * adds the floating point values of both parameters and stores the floating point sum in the first parameter
 * definition:
-    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is signaling-NAN
     * `p1 <- p1 fp-add p2`
     * `IP <- IP + CMD_LEN`
 * binary:
@@ -1532,7 +1532,7 @@ the pre-commands ar executed at assemble time, not runtime
 `SUBFP <NO_CONST_PARAM> , <PARAM>`
 * subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
 * definition:
-    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is signaling-NAN
     * `p1 <- p1 fp-sub p2`
     * `IP <- IP + CMD_LEN`
 * binary:
@@ -1545,7 +1545,7 @@ the pre-commands ar executed at assemble time, not runtime
 `MULFP <NO_CONST_PARAM> , <PARAM>`
 * multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
 * definition:
-    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is signaling-NAN
     * `p1 <- p1 fp-mul p2`
     * `IP <- IP + CMD_LEN`
 * binary:
@@ -1558,7 +1558,7 @@ the pre-commands ar executed at assemble time, not runtime
 `DIVFP <NO_CONST_PARAM> , <PARAM>`
 * divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
 * definition:
-    * note that the aritmetic error interrupt is executed instead if p1 or p2 is NAN
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is signaling-NAN
     * `p1 <- p1 fp-div p2`
     * `IP <- IP + CMD_LEN`
 * binary:
@@ -1571,7 +1571,7 @@ the pre-commands ar executed at assemble time, not runtime
 `NEGFP <NO_CONST_PARAM>`
 * multiplies the fp parameter with -1.0
 * definition:
-    * note that the aritmetic error interrupt is executed instead if p1 is NAN
+    * note that the aritmetic error interrupt is executed instead if p1 is signaling-NAN
     * `p1 <- p1 fp-mul -1.0`
     * `IP <- IP + CMD_LEN`
 * binary:
@@ -1579,7 +1579,170 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
-#### 013. : unsigned arithmetic
+`MODFP <NO_CONST_PARAM> , <PARAM>`
+* divides the first fp-parameter with the second fp and stores the fp-result of the remainder in the first fp-parameter
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 or p2 is signaling-NAN
+    * `p1 <- p1 fp-mod p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 25 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+#### 013. : floating-point quiet arithmetic
+
+`ADDQFP <NO_CONST_PARAM> , <PARAM>`
+* adds the floating point values of both parameters and stores the floating point sum in the first parameter
+* definition:
+    * `p1 <- p1 fp-quiet-add p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 30 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`SUBQFP <NO_CONST_PARAM> , <PARAM>`
+* subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
+* definition:
+    * `p1 <- p1 fp-quiet-sub p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 31 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`MULQFP <NO_CONST_PARAM> , <PARAM>`
+* multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
+* definition:
+    * `p1 <- p1 fp-quiet-mul p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 32 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`DIVQFP <NO_CONST_PARAM> , <PARAM>`
+* divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
+* definition:
+    * `p1 <- p1 fp-quiet-div p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 33 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`NEGQFP <NO_CONST_PARAM>`
+* multiplies the fp parameter with -1.0
+* definition:
+    * `p1 <- p1 fp-quiet-mul -1.0`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 34 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`MODQFP <NO_CONST_PARAM> , <PARAM>`
+* divides the first fp-parameter with the second fp and stores the fp-result of the remainder in the first fp-parameter
+* definition:
+    * `p1 <- p1 fp-quiet-mod p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 35 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+#### 014. : floating-point quiet arithmetic
+
+`ADDSFP <NO_CONST_PARAM> , <PARAM>`
+* adds the floating point values of both parameters and stores the floating point sum in the first parameter
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 is NAN
+    * `p1 <- p1 fp-signal-add p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 40 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`SUBSFP <NO_CONST_PARAM> , <PARAM>`
+* subtracts the second fp-parameter from the first fp-parameter and stores the fp-result in the first fp-parameter
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 is NAN
+    * `p1 <- p1 fp-signal-sub p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 41 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`MULSFP <NO_CONST_PARAM> , <PARAM>`
+* multiplies the first fp parameter with the second fp and stores the fp result in the first parameter
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 is NAN
+    * `p1 <- p1 fp-signal-mul p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 42 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`DIVSFP <NO_CONST_PARAM> , <PARAM>`
+* divides the first fp-parameter with the second fp and stores the fp-result in the first fp-parameter
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 is NAN
+    * `p1 <- p1 fp-signal-div p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 43 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`NEGSFP <NO_CONST_PARAM>`
+* multiplies the fp parameter with -1.0
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 is NAN
+    * `p1 <- p1 fp-signal-mul -1.0`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 44 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`MODSFP <NO_CONST_PARAM> , <PARAM>`
+* divides the first fp-parameter with the second fp and stores the fp-result of the remainder in the first fp-parameter
+* definition:
+    * note that the aritmetic error interrupt is executed instead if p1 is NAN
+    * `p1 <- p1 fp-signal-mod p2`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `01 45 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+#### 015. : unsigned arithmetic
 
 `UADD <NO_CONST_PARAM> , <PARAM>`
 * like ADD, but uses the parameters as unsigned parameters
@@ -1587,7 +1750,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `p1 <- p1 uadd p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 30 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 50 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1599,7 +1762,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `p1 <- p1 usub p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 31 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 51 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1611,7 +1774,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `p1 <- p1 umul p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 32 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 52 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1624,13 +1787,13 @@ the pre-commands ar executed at assemble time, not runtime
     * `p2 <- oldp1 umod oldp2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 33 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 53 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-#### 014. : big arithmetic
+#### 016. : big arithmetic
 
 `BADD <NO_CONST_PARAM> , <NO_CONST_PARAM>`
 * like ADD, but uses the parameters as 128 bit value parameters
@@ -1640,7 +1803,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `p1 <- p1 big-add p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 40 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 60 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1654,7 +1817,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `p1 <- p1 big-sub p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 41 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 61 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1668,7 +1831,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `p1 <- p1 big-mul p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 42 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 62 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1683,7 +1846,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `p2 <- oldp1 big-mod oldp2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 43 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 63 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1697,30 +1860,32 @@ the pre-commands ar executed at assemble time, not runtime
     * `p1 <- big-neg p1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 44 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `01 64 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
-#### 015. : convert number types
+#### 017. : convert number types
 
 `FPTN <NO_CONST_PARAM>`
 * converts the value of the floating point param to a number
+* note that there may be some information lost when converting a floating point number to a number
 * definition:
     * note that the aritmetic error interrupt is executed instead if p1 is no normal value
     * `p1 <- as_num(p1)`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 50 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `01 70 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
 `NTFP <NO_CONST_PARAM>`
 * converts the value of the number param to a floating point
+* note that there may be some information lost when converting a number to a floating point number
 * definition:
     * `p1 <- as_fp(p1)`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 51 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `01 71 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
@@ -2103,6 +2268,25 @@ the pre-commands ar executed at assemble time, not runtime
 * binary:
     * `02 20 <RELATIVE_LABEL (48-bit)>`
 
+`JMPO <PARAM>, <CONST_PARAM>`
+* sets the instruction pointer to position of the summ of the parameters
+* definition:
+    * `IP <- p1 + p2`
+* binary:
+    * `02 21 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `<P2.NUM_NUM>`
+
+`JMPNO <PARAM>`
+* sets the instruction pointer to position of the parameter
+* definition:
+    * `IP <- p1`
+* binary:
+    * `02 22 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
 #### 023. : interrupt
 
 `INT <PARAM>`
@@ -2191,7 +2375,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `03 00 <RELATIVE_LABEL (48-bit)>`
 
 `CALO <PARAM>, <CONST_PARAM>`
-* sets the instruction pointer to position of the label
+* sets the instruction pointer to position of the summ of the parameters
 * and pushes the current instruction pointer to the stack
 * definition:
     * `[SP] <- IP`
@@ -2203,6 +2387,19 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `<P2.NUM_NUM>`
+
+`CALNO <PARAM>`
+* sets the instruction pointer to position of the parameter
+* and pushes the current instruction pointer to the stack
+* definition:
+    * `[SP] <- IP`
+    * `SP <- SP + 8`
+    * `IP <- p1`
+        * note that this call is not relative from the current position
+* binary:
+    * `03 02 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
 
 #### 031. : return
 
@@ -2263,13 +2460,6 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P1.OFF_NUM]`
 
 ## not (yet) there/supported
-* `CALNO` call no offset (like `CALO` but without a constant offset)
-* `JMPNO` jump no offset (like `JMPO` but wit an absolute target address parameter)
-    * the parameter can be a non constant value
-* `JMPO` jump with offset (like `JMP` but with a constant offset)
-* `REMFP` arithmetic remainder floating point operation
-* silent floating point arithmetic (no interrupt when operating with NaN)
-    * probably also a third instruction set for fpa when the NaNs decide (silent/signaling NaN)
 * support for enviroment-variables
 * Multi-threading
     * maby thread-groups/processes
