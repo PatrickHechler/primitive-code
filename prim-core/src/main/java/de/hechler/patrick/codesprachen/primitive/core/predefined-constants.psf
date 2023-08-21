@@ -969,7 +969,7 @@ INT_LOAD_FILE=UHEX-41
 |   <ul>
 |   <li><code>X00</code> <code>file</code>: (<code>char#</code>) is set to the path (inclusive name) of the file</li>
 |   <li><code>X01</code> <code>initOff</code>: (<code>num</code>) is the offset (from the file start) of the files init function (or <code>-1</code> if there is none)</li>
-|   <li><code>X02</code> <code>initIsPntr</code>: (<code>num</code>) negative if the <code>initOff</code> only holds the offset of the offset of the init function and <code>0</code> or positive if <code>initOff</code> holds the offset of the init function</li>
+|   <li><code>X02</code> <code>initIsPntr</code>: (<code>num</code>) non-<code>0</code> if the <code>initOff</code> only holds the offset of the offset of the init function and <code>0</code> if <code>initOff</code> holds the offset of the init function</li>
 |   </ul>
 |   result values:
 |   <ul>
@@ -993,11 +993,22 @@ INT_LOAD_FILE=UHEX-41
 |   <li>if <code>initOff</code> is <code>-1</code> then <code>initIsPntr</code> is ignored</li>
 |   <li>if <code>initIsPntr</code> is set to <code>0</code>
 |   <ul>
-|   <li>TODO0</li>
+|   <li>a <code>CALL</code> is done with <code>X00 + initOff</code> as target</li>
+|   <li><code>initOff</code> points to the initialisation function (relative from the file start)</li>
 |   </ul></li>
 |   <li>if <code>initIsPntr</code> is set to a value other than <code>0</code>
 |   <ul>
-|   <li>TODO1</li>
+|   <li>if <code>[X00 + initOff]</code> is <code>-1</code> no call is done</li>
+|   <li>otherwise a <code>CALL</code> is done with <code>X00 + [X00 + initOff]</code> as target</li>
+|   <li><code>initOff</code> points to the address where the offset of the initialisation function is stored
+|   <ul>
+|   <li>both are relative from the file start</li>
+|   </ul></li>
+|   </ul></li>
+|   <li>note that the initialisation function may set the result values
+|   <ul>
+|   <li>when this is unacceptable <code>initOff</code> should be set to <code>-1</code></li>
+|   <li>note that only the <code>IP</code> is saved on the stack when calling the initialisation function</li>
 |   </ul></li>
 |   </ol>
 |   when an error occurred <code>X01</code> will be set to <code>-1</code>, <code>X00</code> will be unmodified and <code>ERRNO</code> will be set to a non-zero value<br>
