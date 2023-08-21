@@ -822,7 +822,8 @@ every register can also be addressed:
             * a `CALL` is done with `X00 + initOff` as target
             * `initOff` points to the initialisation function (relative from the file start)
         4. if `initIsPntr` is set to a value other than `0`
-            * a `CALL` is done with `X00 + [X00 + initOff]` as target
+            * if `[X00 + initOff]` is `-1` no call is done
+            * otherwise a `CALL` is done with `X00 + [X00 + initOff]` as target
             * `initOff` points to the address where the offset of the initialisation function is stored
                 * both are relative from the file start
         5. note that the initialisation function can lie to the caller and set the result values

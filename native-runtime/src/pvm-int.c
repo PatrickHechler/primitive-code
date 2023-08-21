@@ -1225,28 +1225,36 @@ static void int_load_lib( INT_PARAMS) /* 66 */{
 			interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 			return;
 		}
+		num new_ip;
+		if (pvm.x[2]) {
+			num offset = *(num*) (lib_mem.adr + pvm.x[1]);
+			if (offset == -1) {
+				goto end;
+			}
+			if ((offset < 0)
+					|| ((lib_mem.mem->end - offset - 8) < lib_mem.mem->start)) {
+				interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
+				return;
+			}
+			new_ip = lib_mem.mem->start + offset;
+		} else {
+			new_ip = lib_mem.mem->start + pvm.x[1];
+		}
 		struct memory *stack_mem = chk(pvm.sp, 8).mem;
-		if (!stack_mem) {// unload the file again, because it could not be initialized
-			hashset_for_each(&loaded_libs, unload_lib, (void*) lib_mem.mem->start);
+		if (!stack_mem) { // unload the file again, because it could not be initialized
+			hashset_for_each(&loaded_libs, unload_lib,
+					(void*) lib_mem.mem->start);
 			return;
 		}
 		*(num*) (stack_mem->offset + pvm.sp) = pvm.ip;
 		pvm.sp += 8;
+		pvm.ip = new_ip;
 		if ((lib_mem.mem->end - pvm.x[1] - 8) < lib_mem.mem->start) {
 			interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
 			return;
 		}
-		if (pvm.x[2]) {
-			num offset = *(num*) (lib_mem.adr + pvm.x[1]);
-			if ((offset < 0) || ((lib_mem.mem->end - offset - 8) < lib_mem.mem->start)) {
-				interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
-				return;
-			}
-			pvm.ip = lib_mem.mem->start + offset;
-		} else {
-			pvm.ip = lib_mem.mem->start + pvm.x[1];
-		}
 	}
+	end: ;
 	pvm.x[0] = lib_mem.mem->start;
 	pvm.x[1] = eof;
 	pvm.x[2] = 1;
