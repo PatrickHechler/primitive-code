@@ -743,7 +743,7 @@ public class PrimAsmPreDefines {
 	 * <p>
 	 * result values:
 	 * <ul>
-	 * <li><code>X00</code> <code>rnd</code>: (<code>num</code>) a random non negative number or <code>-1</code> on error</li>
+	 * <li><code>X00</code> <code>rnd</code>: (<code>num</code>) 64 random bits</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
 	public static final long INT_RND_NUM = 48L;
@@ -1064,6 +1064,8 @@ public class PrimAsmPreDefines {
 	 * params:
 	 * <ul>
 	 * <li><code>X00</code> <code>file</code>: (<code>char#</code>) is set to the path (inclusive name) of the file</li>
+	 * <li><code>X01</code> <code>initOff</code>: (<code>num</code>) is the offset (from the file start) of the files init function (or <code>-1</code> if there is none)</li>
+	 * <li><code>X02</code> <code>initIsPntr</code>: (<code>num</code>) negative if the <code>initOff</code> only holds the offset of the offset of the init function and <code>0</code> or positive if <code>initOff</code> holds the offset of the init function</li>
 	 * </ul>
 	 * result values:
 	 * <ul>
@@ -1081,6 +1083,19 @@ public class PrimAsmPreDefines {
 	 * <li>if the interrupt is executed multiple times with the same file, it will return every time the same memory block.</li>
 	 * <li>this interrupt does not recognize files loaded with the <code>64</code> (<code>INT_LOAD_FILE</code>) interrupt.</li>
 	 * </ul>
+	 * file initialisation:
+	 * <ol>
+	 * <li>if the file was already loaded <code>initOff</code> and <code>initIsPntr</code> are ignored (see <code>loaded</code>)</li>
+	 * <li>if <code>initOff</code> is <code>-1</code> then <code>initIsPntr</code> is ignored</li>
+	 * <li>if <code>initIsPntr</code> is set to <code>0</code>
+	 * <ul>
+	 * <li>TODO0</li>
+	 * </ul></li>
+	 * <li>if <code>initIsPntr</code> is set to a value other than <code>0</code>
+	 * <ul>
+	 * <li>TODO1</li>
+	 * </ul></li>
+	 * </ol>
 	 * when an error occurred <code>X01</code> will be set to <code>-1</code>, <code>X00</code> will be unmodified and <code>ERRNO</code> will be set to a non-zero value<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
 	public static final long INT_LOAD_LIB = 66L;

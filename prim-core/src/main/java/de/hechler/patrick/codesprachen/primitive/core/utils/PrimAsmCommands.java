@@ -770,8 +770,7 @@ public class PrimAsmCommands {
 	 * <b>FPTN</b> <code>(01 50)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * converts the value of the floating point param to a number<br>
-	 * the value after the
+	 * converts the value of the floating point param to a number
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
@@ -786,8 +785,7 @@ public class PrimAsmCommands {
 	 * <b>NTFP</b> <code>(01 51)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
-	 * converts the value of the number param to a floating point<br>
-	 * the value after the
+	 * converts the value of the number param to a floating point
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>

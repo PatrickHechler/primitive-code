@@ -33,7 +33,7 @@ public class GenCorePredefined implements SrcGen {
 	public void generate(Writer out) throws IOException {
 		for (PrimAsmConstant cnst : SrcGen.PrimAsmConstant.ALL_CONSTANTS) {
 			String start;
-			if (generateClass) {
+			if (this.generateClass) {
 				out.write("\t/**\n");
 				out.write("\t * ");
 				start = "\t * ";
@@ -43,7 +43,7 @@ public class GenCorePredefined implements SrcGen {
 			}
 			out.write("<b>" + cnst.name() + "</b>: " + cnst.header() + "<br>\n");
 			out.write(start + "value: <code>" + val(cnst) + "</code>\n");
-			if (generateClass) {
+			if (this.generateClass) {
 				out.write(start);
 				SrcGen.writeJavadocLines(out, "<p>", cnst.docu());
 				out.write("\t */\n");

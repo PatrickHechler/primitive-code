@@ -799,10 +799,12 @@ every register can also be addressed:
         * `X00` `data`: (`ubyte#`) points to the memory block, in which the file has been loaded or `-1` on error
         * `X01` `len`: (`num`) the length of the file (and the memory block)
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_LOAD_LIB` : load a library file 
+* `INT_LOAD_LIB` : load a library file
     * value: `66`
     * params:
         * `X00` `file`: (`char#`) is set to the path (inclusive name) of the file
+        * `X01` `initOff`: (`num`) is the offset (from the file start) of the files init function (or `-1` if there is none)
+        * `X02` `initIsPntr`: (`num`) non-`0` if the `initOff` only holds the offset of the offset of the init function and `0` if `initOff` holds the offset of the init function
     * result values:
         * `X00` `data`: (`ubyte#`) points to the memory block, in which the file has been loaded
         * `X01` `len`: (`num`) the length of the file (and the memory block)
@@ -813,9 +815,21 @@ every register can also be addressed:
             * the returned memory block also can not be resized
         * if the interrupt is executed multiple times with the same file, it will return every time the same memory block.
         * this interrupt does not recognize files loaded with the `64` (`INT_LOAD_FILE`) interrupt.
+    * file initialisation:
+        1. if the file was already loaded `initOff` and `initIsPntr` are ignored (see `loaded`)
+        2. if `initOff` is `-1` then `initIsPntr` is ignored
+        3. if `initIsPntr` is set to `0`
+            * a `CALL` is done with `X00 + initOff` as target
+            * `initOff` points to the initialisation function (relative from the file start)
+        4. if `initIsPntr` is set to a value other than `0`
+            * a `CALL` is done with `X00 + [X00 + initOff]` as target
+            * `initOff` points to the address where the offset of the initialisation function is stored
+                * both are relative from the file start
+        5. note that the initialisation function can lie to the caller and set the result values
+            * when this is unacceptable (when loading untrusted files) `initOff` should be set to `-1`
     * when an error occurred `X01` will be set to `-1`, `X00` will be unmodified and `ERRNO` will be set to a non-zero value
     * this value can be used by the `INT` command to indicate that this interrupt should be called
-* `INT_UNLOAD_LIB` : unload a library file 
+* `INT_UNLOAD_LIB` : unload a library file
     * value: `67`
     * params:
         * `X00` `data`: (`ubyte#`) points to the start of the memory block loaded with `INT_LOAD_LIB`
@@ -831,7 +845,7 @@ every register can also be addressed:
     * this floating point constant holds a NaN value
 * `FP_MAX_VALUE` : floating point maximum finite
     * value: `UHEX-7FEFFFFFFFFFFFFF`
-    * the maximum not infinite floating point value 
+    * the maximum not infinite floating point value
 * `FP_MIN_VALUE` : floating point minimum finite
     * value: `UHEX-0000000000000001`
     * the minimum not infinite floating point value
@@ -1271,7 +1285,7 @@ the pre-commands ar executed at assemble time, not runtime
 
 `NOT <NO_CONST_PARAM>`
 * uses the logical NOT operator with every bit of the parameter and stores the result in the parameter
-* this instruction works like `XOR p1, -1` 
+* this instruction works like `XOR p1, -1`
 * definition:
     * `if p1 = -1`
         * `ZERO <- 1`
@@ -1412,7 +1426,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P2.OFF_NUM]`
 
 `NEG <NO_CONST_PARAM>`
-* uses the arithmetic negation operation with the parameter and stores the result in the parameter 
+* uses the arithmetic negation operation with the parameter and stores the result in the parameter
 * this instruction works like `MUL p1, -1`
 * definition:
     * `if p1 = UHEX-8000000000000000`
@@ -1689,7 +1703,6 @@ the pre-commands ar executed at assemble time, not runtime
 
 `FPTN <NO_CONST_PARAM>`
 * converts the value of the floating point param to a number
-* the value after the 
 * definition:
     * note that the aritmetic error interrupt is executed instead if p1 is no normal value
     * `p1 <- as_num(p1)`
@@ -1701,7 +1714,6 @@ the pre-commands ar executed at assemble time, not runtime
 
 `NTFP <NO_CONST_PARAM>`
 * converts the value of the number param to a floating point
-* the value after the 
 * definition:
     * `p1 <- as_fp(p1)`
     * `IP <- IP + CMD_LEN`

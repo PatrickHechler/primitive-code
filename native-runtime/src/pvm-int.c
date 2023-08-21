@@ -1138,6 +1138,20 @@ static uint64_t string_hash(const void *a) {
 	}
 	return res;
 }
+static int unload_lib(void *arg0, void *element) {
+	struct memory *mem = (struct memory*) arg0;
+	struct loaded_libs_entry *entry = element;
+	if (entry->pntr != mem->start) {
+		return 1;
+	}
+	if (hashset_remove(&loaded_libs, string_hash(entry), entry) != entry) {
+		abort();
+	}
+	free(entry->name);
+	free(entry);
+	free_mem_impl(mem);
+	return 0;
+}
 static void int_load_lib( INT_PARAMS) /* 66 */{
 	struct memory *name_mem = chk(pvm.x[0], 1).mem;
 	if (!name_mem) {
@@ -1206,23 +1220,36 @@ static void int_load_lib( INT_PARAMS) /* 66 */{
 			abort();
 		}
 	}
+	if (pvm.x[1] != -1) {
+		if (pvm.x[1] < 0) {
+			interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
+			return;
+		}
+		struct memory *stack_mem = chk(pvm.sp, 8).mem;
+		if (!stack_mem) {// unload the file again, because it could not be initialized
+			hashset_for_each(&loaded_libs, unload_lib, (void*) lib_mem.mem->start);
+			return;
+		}
+		*(num*) (stack_mem->offset + pvm.sp) = pvm.ip;
+		pvm.sp += 8;
+		if ((lib_mem.mem->end - pvm.x[1] - 8) < lib_mem.mem->start) {
+			interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
+			return;
+		}
+		if (pvm.x[2]) {
+			num offset = *(num*) (lib_mem.adr + pvm.x[1]);
+			if ((offset < 0) || ((lib_mem.mem->end - offset - 8) < lib_mem.mem->start)) {
+				interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
+				return;
+			}
+			pvm.ip = lib_mem.mem->start + offset;
+		} else {
+			pvm.ip = lib_mem.mem->start + pvm.x[1];
+		}
+	}
 	pvm.x[0] = lib_mem.mem->start;
 	pvm.x[1] = eof;
 	pvm.x[2] = 1;
-}
-int unload_lib(void *arg0, void *element) {
-	struct memory *mem = (struct memory*) arg0;
-	struct loaded_libs_entry *entry = element;
-	if (entry->pntr != mem->start) {
-		return 1;
-	}
-	if (hashset_remove(&loaded_libs, string_hash(entry), entry) != entry) {
-		abort();
-	}
-	free(entry->name);
-	free(entry);
-	free_mem_impl(mem);
-	return 0;
 }
 static void int_unload_lib( INT_PARAMS) /* 67 */{
 	struct memory *mem = chk(pvm.x[0], 0).mem;

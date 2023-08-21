@@ -50,7 +50,7 @@ public class GenSourceMain {
 	private static final String CORE_PRE_DEFS_CLS    = SrcGen.PRIMITIVE_CODE_DIR
 			+ "prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/utils/PrimAsmPreDefines.java";
 	private static final String CORE_PRE_DEFS_RES    = SrcGen.PRIMITIVE_CODE_DIR
-			+ "prim-core/src/main/resources/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf";
+			+ "prim-core/src/main/java/de/hechler/patrick/codesprachen/primitive/core/predefined-constants.psf";
 	private static final String DISASM_COMMANDS_ENUM = SrcGen.PRIMITIVE_CODE_DIR
 			+ "disassemble/src/main/java/de/hechler/patrick/codesprachen/primitive/disassemble/enums/Commands.java";
 	private static final String SC_SDTLIB_FUNCS      = SrcGen.SIMPLE_COMPILE_DIR + "src/main/java/de/hechler/patrick/codesprachen/simple/compile/utils/StdLib.java";

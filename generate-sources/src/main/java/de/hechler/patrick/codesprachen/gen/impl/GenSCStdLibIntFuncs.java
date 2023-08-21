@@ -27,6 +27,7 @@ public class GenSCStdLibIntFuncs implements SrcGen {
 	private static final Pattern RESS        = Pattern.compile("^\\*\\s*result\\s*values\\s*:\\s*$");
 	private static final Pattern VAR         = Pattern
 			.compile("^ {4}\\*\\s*`(STATUS|X[A-F0-9]{2})`\\s*`([a-z][a-zA-Z0-9_]+)`\\s*:\\s*\\(`([a-zA-Z, `]+)(#*)`\\)(.*)$");
+	private static final Pattern NO_VAR_SKIP      = Pattern.compile("^ {4} {4}+\\*.*$");
 	private static final Pattern NO_VAR      = Pattern.compile("^\\*.*$");
 	private static final Pattern STATUS_FLAG = Pattern.compile("`([a-zA-Z]+)`");
 	
@@ -176,6 +177,9 @@ public class GenSCStdLibIntFuncs implements SrcGen {
 	private static int processVar(List<Var> args, List<Var> ress, String doc, List<Var> useList, int state) throws AssertionError {
 		Matcher matcher = VAR.matcher(doc);
 		if (!matcher.matches()) {
+			if (NO_VAR_SKIP.matcher(doc).matches()) {
+				return state;
+			}
 			checkNoVal(doc);
 			return fillDocLine(args, ress, STATE_NONE, doc);
 		}

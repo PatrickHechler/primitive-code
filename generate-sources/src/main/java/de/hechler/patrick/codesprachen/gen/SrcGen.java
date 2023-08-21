@@ -64,6 +64,12 @@ public interface SrcGen {
 		return writeJavadocLines(out, "\t * ", firstBreak, lines);
 	}
 	
+	class c {
+		
+		static int cnt = 0;
+		
+	}
+	
 	static String writeJavadocLines(Writer out, String lineStart, String firstBreak, List<String> lines) throws IOException {
 		String br = firstBreak;
 		for (Iterator<String> iter = lines.iterator(); iter.hasNext();) {
@@ -73,7 +79,7 @@ public interface SrcGen {
 				br = "<br>";
 			} else {
 				List<Boolean> stack = new ArrayList<>();
-				out.write("\n" + lineStart + listStart(line.charAt(4), stack) + '\n');
+				out.write("\n" + lineStart + listStart(line.charAt(4), stack, line + ":: cnt=" + c.cnt++) + '\n');
 				javadocNonDirectListLine(out, lineStart, iter, line, stack);
 				br = "<br>";
 				if (!stack.isEmpty()) throw new IllegalStateException("stack is not empty");
@@ -89,27 +95,34 @@ public interface SrcGen {
 		while (true) {
 			if (!line.startsWith(start)) {
 				String leadingWhite = line.substring(0, line.length() - line.stripLeading().length());
-				if (leadingWhite.length() < start.length() - 1) {
-					if (missingEntryEnd) {
-						missingEntryEnd = false;
-						out.write("</li>\n");
-					}
-					do {
-						out.write(lineStart + listEnd(stack) + "</li>\n");
-						deep--;
-						start = start.substring(4);
-					} while (leadingWhite.length() < start.length() - 1);
-				} else if (leadingWhite.length() > start.length() - 1) {
-					if (!missingEntryEnd) { throw new IllegalStateException(); }
-					out.write("\n" + lineStart + listStart(line.charAt(leadingWhite.length()), stack) + '\n');
-					missingEntryEnd = false;
-					deep++;
-					start = "    " + start;
-				} else {
-					throw new IllegalStateException("'" + line + "'");
+				boolean cond = true;
+				if (line.charAt(leadingWhite.length()) != start.charAt(start.length() - 1)) {
+					start = start.substring(0, start.length() - 1) + line.substring(leadingWhite.length(), leadingWhite.length() + 1);
+					cond = !line.startsWith(start);
 				}
-				if (leadingWhite.length() != start.length() - 1 || !leadingWhite.matches("^ *$")) {
-					throw new IllegalStateException("'" + line + "' start='" + start + "'");
+				if (cond) {
+					if (leadingWhite.length() < start.length() - 1) {
+						if (missingEntryEnd) {
+							missingEntryEnd = false;
+							out.write("</li>\n");
+						}
+						do {
+							out.write(lineStart + listEnd(stack) + "</li>\n");
+							deep--;
+							start = start.substring(4);
+						} while (leadingWhite.length() < start.length() - 1);
+					} else if (leadingWhite.length() > start.length() - 1) {
+						if (!missingEntryEnd) { throw new IllegalStateException(); }
+						out.write("\n" + lineStart + listStart(line.charAt(leadingWhite.length()), stack, line) + '\n');
+						missingEntryEnd = false;
+						deep++;
+						start = "    " + start;
+					} else {
+						throw new IllegalStateException("'" + line + "' (start: '" + start + "')");
+					}
+					if (leadingWhite.length() != start.length() - 1 || !leadingWhite.matches("^ *$")) {
+						throw new IllegalStateException("'" + line + "' start='" + start + "'");
+					}
 				}
 			}
 			if (missingEntryEnd) {
@@ -142,7 +155,7 @@ public interface SrcGen {
 		}
 	}
 	
-	static final Pattern MD_LIST_LINE = Pattern.compile("^( {4})+(\\*|[0-9]+.)\\s*(.*)$");
+	static final Pattern MD_LIST_LINE = Pattern.compile("^( {4})+([+*]|[0-9]+.)\\s*(.*)$");
 	
 	static String mdListEntryText(String line) {
 		Matcher matcher = MD_LIST_LINE.matcher(line);
@@ -157,7 +170,7 @@ public interface SrcGen {
 		return "</ul>";
 	}
 	
-	static String listStart(char c, List<Boolean> stack) {
+	static String listStart(char c, List<Boolean> stack, String fullLine) {
 		if (c == '*') {
 			stack.add(Boolean.FALSE);
 			return "<ul>";
@@ -165,7 +178,7 @@ public interface SrcGen {
 			stack.add(Boolean.TRUE);
 			return "<ol>";
 		} else {
-			throw new IllegalStateException("'" + c + "'");
+			throw new IllegalStateException("'" + c + "' fullLine: '" + fullLine + "'");
 		}
 	}
 	
@@ -194,10 +207,10 @@ public interface SrcGen {
 		
 		private static final Pattern ACTIVATION_PATTERN = Pattern.compile("^\\s*##\\s*COMMANDS\\s*$");
 		private static final Pattern CMD_PATTERN = Pattern.compile("^`([A-Z_0-9]+)\\s*(<[A-Z_]+>)?\\s*(,\\s*<[A-Z_]+>)?\\s*(,\\s*<[A-Z_]+>)?`$");
-		private static final Pattern DEFINITION_PATTERN = Pattern.compile("^\\s*\\*\\s*definition\\s*:\\s*$");
-		private static final Pattern BINARY_PATTERN = Pattern.compile("^\\s*\\*\\s*binary\\s*:\\s*$");
-		private static final Pattern NUM_PATTERN = Pattern.compile("^\\s*\\*\\s*`\\s*([0-9A-F][0-9A-F])\\s*([0-9A-F][0-9A-F]).*$");
-		private static final Pattern IGNORE_PATTERN = Pattern.compile("^\\s*\\*\\s*`\\s*[<\\[].*$");
+		private static final Pattern DEFINITION_PATTERN = Pattern.compile("^\\s*[+*]\\s*definition\\s*:\\s*$");
+		private static final Pattern BINARY_PATTERN = Pattern.compile("^\\s*[+*]\\s*binary\\s*:\\s*$");
+		private static final Pattern NUM_PATTERN = Pattern.compile("^\\s*[+*]\\s*`\\s*([0-9A-F][0-9A-F])\\s*([0-9A-F][0-9A-F]).*$");
+		private static final Pattern IGNORE_PATTERN = Pattern.compile("^\\s*[+*]\\s*`\\s*[<\\[].*$");
 		private static final Pattern HEADERS_PATTERN = Pattern.compile("^\\s*###\\s*([0-9A-F][0-9A-F])\\.\\.\\s*:(.*)$");
 		private static final Pattern SUB_HEADERS_PATTERN = Pattern.compile("^\\s*####\\s*([0-9A-F][0-9A-F][0-9A-F])\\.\\s*:(.*)$");
 		private static final Pattern END_PATTERN = Pattern.compile("^\\s*##\\s*not\\s*\\(\\s*yet\\s*\\)\\s*there\\s*/\\s*supported\\s*$");
@@ -235,14 +248,14 @@ public interface SrcGen {
 					
 					@Override
 					public void accept(String line) {
-						if (finish) {/**/} else if (!activated) {
+						if (this.finish) {/**/} else if (!this.activated) {
 							Matcher matcher = ACTIVATION_PATTERN.matcher(line);
 							if (matcher.matches()) {
-								activated = true;
+								this.activated = true;
 							}
 						} else if (line.isBlank()) {
-							if (cmdName != null) { throw new IllegalStateException(cmdName); }
-						} else if (cmdName == null) {
+							if (this.cmdName != null) { throw new IllegalStateException(this.cmdName); }
+						} else if (this.cmdName == null) {
 							Matcher matcher = CMD_PATTERN.matcher(line);
 							if (!matcher.matches()) {
 								matcher = SUB_HEADERS_PATTERN.matcher(line);
@@ -261,42 +274,42 @@ public interface SrcGen {
 											if (!matcher.matches()) {
 												throw new IllegalStateException(line);
 											}
-											finish = true;
+											this.finish = true;
 										}
 									}
 								}
 							} else {
-								cmdName = matcher.group(1);
+								this.cmdName = matcher.group(1);
 								String s1 = matcher.group(2);
 								String s2 = matcher.group(3);
 								String s3 = matcher.group(4);
-								p1      = ParamType.val(s1);
-								p2      = ParamType.val(s2);
-								p3      = ParamType.val(s3);
-								general = new ArrayList<>();
+								this.p1      = ParamType.val(s1);
+								this.p2      = ParamType.val(s2);
+								this.p3      = ParamType.val(s3);
+								this.general = new ArrayList<>();
 							}
-						} else if (definition == null) {
+						} else if (this.definition == null) {
 							Matcher matcher = DEFINITION_PATTERN.matcher(line);
 							if (matcher.matches()) {
-								definition = new ArrayList<>();
+								this.definition = new ArrayList<>();
 							} else {
-								general.add(line);
+								this.general.add(line);
 							}
-						} else if (num == -1) {
+						} else if (this.num == -1) {
 							Matcher matcher = BINARY_PATTERN.matcher(line);
 							if (matcher.matches()) {
-								num = -2;
+								this.num = -2;
 							} else {
-								definition.add(line);
+								this.definition.add(line);
 							}
-						} else if (num == -2) {
+						} else if (this.num == -2) {
 							Matcher matcher = NUM_PATTERN.matcher(line);
 							if (!matcher.matches()) { throw new IllegalStateException(line); }
 							int lb = Integer.parseInt(matcher.group(2), 16);
 							int hb = Integer.parseInt(matcher.group(1), 16);
-							num = (hb << 8) | lb;
-							PrimAsmReadmeCommand parc = new PrimAsmReadmeCommand(cmdName, p1, p2, p3, num, Collections.unmodifiableList(general),
-									Collections.unmodifiableList(definition));
+							this.num = (hb << 8) | lb;
+							PrimAsmReadmeCommand parc = new PrimAsmReadmeCommand(this.cmdName, this.p1, this.p2, this.p3, this.num,
+									Collections.unmodifiableList(this.general), Collections.unmodifiableList(this.definition));
 							result.add(parc);
 							reset();
 						}
@@ -304,14 +317,14 @@ public interface SrcGen {
 					
 					
 					private void reset() {
-						if ((num & 0xFFFF) != num) { throw new IllegalStateException(); }
-						cmdName    = null;
-						p1         = null;
-						p2         = null;
-						p3         = null;
-						num        = -1;
-						general    = null;
-						definition = null;
+						if ((this.num & 0xFFFF) != this.num) { throw new IllegalStateException(); }
+						this.cmdName    = null;
+						this.p1         = null;
+						this.p2         = null;
+						this.p3         = null;
+						this.num        = -1;
+						this.general    = null;
+						this.definition = null;
 					}
 					
 				});
