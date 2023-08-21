@@ -940,7 +940,7 @@ static void c_ntfp() {
 
 #define is_signal_nan(raw) (\
 		(((raw) & 0x7FFFFFFFFFFFFFFFL) > 0x7FF0000000000000L) \
-		&& (((raw) & 0x7FFFFFFFFFFFFFFFL) < 0x7FF8000000000000L) \
+		&& (((raw) & 0x0008000000000000L) == 0) \
 )
 
 static void c_addfp() {
