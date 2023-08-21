@@ -826,8 +826,9 @@ every register can also be addressed:
             * otherwise a `CALL` is done with `X00 + [X00 + initOff]` as target
             * `initOff` points to the address where the offset of the initialisation function is stored
                 * both are relative from the file start
-        5. note that the initialisation function can lie to the caller and set the result values
-            * when this is unacceptable (when loading untrusted files) `initOff` should be set to `-1`
+        5. note that the initialisation function may set the result values
+            * when this is unacceptable `initOff` should be set to `-1`
+            * note that only the `IP` is saved on the stack when calling the initialisation function
     * when an error occurred `X01` will be set to `-1`, `X00` will be unmodified and `ERRNO` will be set to a non-zero value
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_UNLOAD_LIB` : unload a library file
