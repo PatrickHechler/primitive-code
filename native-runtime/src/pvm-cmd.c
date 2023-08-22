@@ -18,6 +18,25 @@
 #	error "this file should be included inside of pvm-virtual-mashine.c"
 #endif // PVM
 
+#define is_non_normal(raw) (((raw) & 0x7FF0000000000000UL) == 0x7FF0000000000000UL)
+
+#define is_normal(raw) (((raw) & 0x7FF0000000000000UL) != 0x7FF0000000000000UL)
+
+#define is_quiet_nan(raw) (((raw) & 0x7FFFFFFFFFFFFFFFUL) >= 0x7FF8000000000000UL)
+
+#define is_quiet_nan_known_non_normal(raw) (((raw) & 0x0008000000000000UL) != 0UL)
+
+#define is_any_nan(raw) (((raw) & 0x7FFFFFFFFFFFFFFFUL) > 0x7FF0000000000000UL)
+
+#define is_any_nan_known_non_normal(raw) (((raw) & 0x000FFFFFFFFFFFFFUL) > 0x0000000000000000UL)
+
+#define is_signal_nan_known_nan(raw) (((raw) & 0x0008000000000000UL) == 0) \
+
+#define is_signal_nan(raw) (\
+		is_any_nan(raw) \
+		&& is_signal_nan_known_nan(raw) \
+)
+
 static void c_ill() {
 	interrupt(INT_ERROR_UNKNOWN_COMMAND, 0);
 }
@@ -295,7 +314,7 @@ static void c_add() {
 	}
 	check_chaged(0, 8)
 	num op1 = *p1.p.np;
-	*(unum*)p1.p.np += (unum) p2.p.n;
+	*(unum*) p1.p.np += (unum) p2.p.n;
 	if (((*p1.p.np < 0) & (p2.p.n > 0) & (op1 > 0))
 			|| ((*p1.p.np > 0) & (p2.p.n < 0) & (op1 < 0))) {
 		pvm.status = (pvm.status & ~(S_ZERO)) | S_OVERFLOW;
@@ -722,7 +741,8 @@ static void c_pushblk() {
 		printf(
 				"error sp=0x%lX=%ld push_size=0x%lX=%ld start=0x%lX=%ld end=0x%lX=%ld mem_len=0x%lX=%ld\n",
 				pvm.sp, pvm.sp, p2.p.n, p2.p.n, smem->start, smem->start,
-				smem->end, smem->end, smem->end - smem->start, smem->end - smem->start);
+				smem->end, smem->end, smem->end - smem->start,
+				smem->end - smem->start);
 		fflush(NULL);
 		abort();
 	}
@@ -816,7 +836,59 @@ static void c_cmpfp() {
 	if (!p2.valid) {
 		return;
 	}
-	if (isnan(p1.p.fpn) || isnan(p2.p.fpn)) {
+	if (is_any_nan(p1.p.n)) {
+		if (is_signal_nan_known_nan(p1.p.n) || is_signal_nan(p2.p.n)) {
+			signal_nan: interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+		} else {
+			quiet_nan: pvm.status = (pvm.status
+					& ~(S_GREATHER | S_EQUAL | S_LOWER)) | S_NAN;
+		}
+	}
+	if (is_any_nan(p2.p.n)) {
+		if (is_signal_nan_known_nan(p2.p.n)) {
+			goto signal_nan;
+		} else {
+			goto quiet_nan;
+		}
+	} else if (p1.p.fpn > p2.p.fpn) {
+		pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_LOWER)) | S_GREATHER;
+	} else if (p1.p.fpn > p2.p.fpn) {
+		pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_GREATHER)) | S_LOWER;
+	} else {
+		pvm.status = (pvm.status & ~(S_NAN | S_GREATHER | S_LOWER)) | S_EQUAL;
+	}
+	incIP
+}
+static void c_cmpsfp() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	if (is_any_nan(p1.p.n) || is_any_nan(p2.p.n)) {
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+	} else if (p1.p.fpn > p2.p.fpn) {
+		pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_LOWER)) | S_GREATHER;
+	} else if (p1.p.fpn > p2.p.fpn) {
+		pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_GREATHER)) | S_LOWER;
+	} else {
+		pvm.status = (pvm.status & ~(S_NAN | S_GREATHER | S_LOWER)) | S_EQUAL;
+	}
+	incIP
+}
+static void c_cmpqfp() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	if (is_any_nan(p1.p.n) || is_any_nan(p2.p.n)) {
 		pvm.status = (pvm.status & ~(S_GREATHER | S_EQUAL | S_LOWER)) | S_NAN;
 	} else if (p1.p.fpn > p2.p.fpn) {
 		pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_LOWER)) | S_GREATHER;
@@ -832,23 +904,64 @@ static void c_chkfp() {
 	if (!p1.valid) {
 		return;
 	}
-	if (isnan(p1.p.fpn)) {
-		pvm.status = (pvm.status & ~(S_GREATHER | S_EQUAL | S_LOWER)) | S_NAN;
-	} else {
-		switch (isinf(p1.p.fpn)) {
-		case 1:
+	if (is_non_normal(p1.p.n)) {
+		if (is_any_nan_known_non_normal(p1.p.n)) {
+			if (is_signal_nan_known_nan(p1.p.n)) {
+				interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+			} else {
+				pvm.status = (pvm.status & ~(S_GREATHER | S_EQUAL | S_LOWER))
+						| S_NAN;
+			}
+		} else if (p1.p.n > 0) {
 			pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_LOWER))
 					| S_GREATHER;
-			break;
-		case -1:
+		} else {
 			pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_GREATHER))
 					| S_LOWER;
-			break;
-		default:
-			pvm.status = (pvm.status & ~(S_NAN | S_GREATHER | S_LOWER))
-					| S_EQUAL;
-			break;
 		}
+	} else {
+		pvm.status = (pvm.status & ~(S_NAN | S_GREATHER | S_LOWER)) | S_EQUAL;
+	}
+	incIP
+}
+static void c_chksfp() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (is_non_normal(p1.p.n)) {
+		if (is_any_nan_known_non_normal(p1.p.n)) {
+			interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+		} else if (p1.p.n > 0) {
+			pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_LOWER))
+					| S_GREATHER;
+		} else {
+			pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_GREATHER))
+					| S_LOWER;
+		}
+	} else {
+		pvm.status = (pvm.status & ~(S_NAN | S_GREATHER | S_LOWER)) | S_EQUAL;
+	}
+	incIP
+}
+static void c_chkqfp() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (is_non_normal(p1.p.n)) {
+		if (is_any_nan_known_non_normal(p1.p.n)) {
+			pvm.status = (pvm.status & ~(S_GREATHER | S_EQUAL | S_LOWER))
+					| S_NAN;
+		} else if (p1.p.n > 0) {
+			pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_LOWER))
+					| S_GREATHER;
+		} else {
+			pvm.status = (pvm.status & ~(S_NAN | S_EQUAL | S_GREATHER))
+					| S_LOWER;
+		}
+	} else {
+		pvm.status = (pvm.status & ~(S_NAN | S_GREATHER | S_LOWER)) | S_EQUAL;
 	}
 	incIP
 }
@@ -908,11 +1021,48 @@ static void c_sgnfp() {
 	if (!p1.valid) {
 		return;
 	}
-	if (isnan(p1.p.fpn)) {
-		pvm.status = (pvm.status & ~(S_GREATHER | S_EQUAL | S_LOWER)) | S_NAN;
-	} else if (p1.p.fpn > 0.0) {
+	if (is_any_nan(p1.p.n)) {
+		if (is_signal_nan_known_nan(p1.p.n)) {
+			interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+		} else {
+			pvm.status = (pvm.status & ~(S_GREATHER | S_EQUAL | S_LOWER))
+					| S_NAN;
+		}
+	} else if (p1.p.n > 0) {
 		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER | S_NAN)) | S_GREATHER;
-	} else if (p1.p.fpn < 0.0) {
+	} else if (p1.p.n < 0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_GREATHER | S_NAN)) | S_LOWER;
+	} else {
+		pvm.status = (pvm.status & ~(S_GREATHER | S_LOWER | S_NAN)) | S_EQUAL;
+	}
+	incIP
+}
+static void c_sgnsfp() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (is_any_nan(p1.p.n)) {
+		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
+	} else if (p1.p.n > 0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER | S_NAN)) | S_GREATHER;
+	} else if (p1.p.n < 0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_GREATHER | S_NAN)) | S_LOWER;
+	} else {
+		pvm.status = (pvm.status & ~(S_GREATHER | S_LOWER | S_NAN)) | S_EQUAL;
+	}
+	incIP
+}
+static void c_sgnqfp() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	if (is_any_nan(p1.p.n)) {
+		pvm.status = (pvm.status & ~(S_GREATHER | S_EQUAL | S_LOWER)) | S_NAN;
+	} else if (p1.p.n > 0) {
+		pvm.status = (pvm.status & ~(S_EQUAL | S_LOWER | S_NAN)) | S_GREATHER;
+	} else if (p1.p.n < 0) {
 		pvm.status = (pvm.status & ~(S_EQUAL | S_GREATHER | S_NAN)) | S_LOWER;
 	} else {
 		pvm.status = (pvm.status & ~(S_GREATHER | S_LOWER | S_NAN)) | S_EQUAL;
@@ -924,7 +1074,7 @@ static void c_fptn() {
 	if (!p1.valid) {
 		return;
 	}
-	if (isnormal(*p1.p.fpnp)) {
+	if (is_non_normal(*p1.p.np)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -937,11 +1087,6 @@ static void c_ntfp() {
 	}
 	*p1.p.fpnp = *p1.p.np;
 }
-
-#define is_signal_nan(raw) (\
-		(((raw) & 0x7FFFFFFFFFFFFFFFL) > 0x7FF0000000000000L) \
-		&& (((raw) & 0x0008000000000000L) == 0) \
-)
 
 static void c_addfp() {
 	struct p p1 = param(1, 8);
@@ -1012,7 +1157,7 @@ static void c_negfp() {
 	if (!p1.valid) {
 		return;
 	}
-	if (isnan(*p1.p.fpnp)) {
+	if (is_signal_nan(*p1.p.np)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -1045,10 +1190,6 @@ static void c_addqfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
-		*p1.p.np |= 0x000FFFFFFFFFFFFFL & p2.p.n;
-		return;
-	}
 	*p1.p.fpnp += p2.p.fpn;
 }
 static void c_subqfp() {
@@ -1061,10 +1202,6 @@ static void c_subqfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
-		*p1.p.np |= 0x000FFFFFFFFFFFFFL & p2.p.n;
-		return;
-	}
 	*p1.p.fpnp -= p2.p.fpn;
 }
 static void c_mulqfp() {
@@ -1077,10 +1214,6 @@ static void c_mulqfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
-		*p1.p.np |= 0x000FFFFFFFFFFFFFL & p2.p.n;
-		return;
-	}
 	*p1.p.fpnp *= p2.p.fpn;
 }
 static void c_divqfp() {
@@ -1093,19 +1226,11 @@ static void c_divqfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
-		*p1.p.np |= 0x000FFFFFFFFFFFFFL & p2.p.n;
-		return;
-	}
 	*p1.p.fpnp /= p2.p.fpn;
 }
 static void c_negqfp() {
 	struct p p1 = param(1, 8);
 	if (!p1.valid) {
-		return;
-	}
-	if (isnan(*p1.p.fpnp)) {
-		*p1.p.np ^= 0x8000000000000000L;
 		return;
 	}
 	*p1.p.fpnp = -*p1.p.fpnp;
@@ -1120,10 +1245,6 @@ static void c_modqfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
-		*p1.p.np |= 0x000FFFFFFFFFFFFFL & p2.p.n;
-		return;
-	}
 	*p1.p.fpnp = fmod(*p1.p.fpnp, p2.p.fpn);
 }
 
@@ -1137,7 +1258,7 @@ static void c_addsfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+	if (is_any_nan(*p1.p.np) || is_any_nan(p2.p.n)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -1153,7 +1274,7 @@ static void c_subsfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+	if (is_any_nan(*p1.p.np) || is_any_nan(p2.p.n)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -1169,7 +1290,7 @@ static void c_mulsfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+	if (is_any_nan(*p1.p.np) || is_any_nan(p2.p.n)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -1185,7 +1306,7 @@ static void c_divsfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+	if (is_any_nan(*p1.p.np) || is_any_nan(p2.p.n)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -1196,7 +1317,7 @@ static void c_negsfp() {
 	if (!p1.valid) {
 		return;
 	}
-	if (isnan(*p1.p.fpnp)) {
+	if (is_any_nan(*p1.p.np)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}
@@ -1212,7 +1333,7 @@ static void c_modsfp() {
 		return;
 	}
 	check_chaged(1, 8)
-	if (isnan(*p1.p.fpnp) || isnan(p2.p.fpn)) {
+	if (is_any_nan(*p1.p.np) || is_any_nan(p2.p.n)) {
 		interrupt(INT_ERROR_ARITHMETIC_ERROR, 0);
 		return;
 	}

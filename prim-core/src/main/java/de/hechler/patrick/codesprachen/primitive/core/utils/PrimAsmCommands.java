@@ -1074,6 +1074,10 @@ public class PrimAsmCommands {
 	 * <li><code>NaN &lt;- 0</code></li>
 	 * <li><code>EQUAL &lt;- 0</code></li>
 	 * </ul></li>
+	 * <li><code>else if p1 is signal-NaN | p2 is signal-NaN</code>
+	 * <ul>
+	 * <li>execute the aritmetic error interrupt</li>
+	 * </ul></li>
 	 * <li><code>else if p1 is NaN | p2 is NaN</code>
 	 * <ul>
 	 * <li><code>LOWER &lt;- 0</code></li>
@@ -1094,7 +1098,128 @@ public class PrimAsmCommands {
 	 */
 	public static final int CMPFP   = 0x0202;
 	/**
-	 * <b>CHKFP</b> <code>(02 03)</code><br>
+	 * <b>CMPSFP</b> <code>(02 03)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * compares the two floating point values and stores the result in the status register
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>if p1 &gt; p2</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 1</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 &lt; p2</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 1</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 is NaN | p2 is NaN</code>
+	 * <ul>
+	 * <li>execute the aritmetic error interrupt</li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 1</code></li>
+	 * </ul></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int CMPSFP  = 0x0203;
+	/**
+	 * <b>CMPQFP</b> <code>(02 04)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
+	 * <p>
+	 * compares the two floating point values and stores the result in the status register
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>if p1 &gt; p2</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 1</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>NaN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 &lt; p2</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 1</code></li>
+	 * <li><code>NaN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 is NaN | p2 is NaN</code>
+	 * <ul>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>NaN &lt;- 1</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>NaN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 1</code></li>
+	 * </ul></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int CMPQFP  = 0x0204;
+	/**
+	 * <b>CHKFP</b> <code>(02 05)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt;</code>
+	 * <p>
+	 * checks if the floating point param is a positive, negative infinity, NaN or normal value
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>if p1 is positive-infinity</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 1</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>NAN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 is negative-infinity</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 1</code></li>
+	 * <li><code>NAN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 is signal-NaN</code>
+	 * <ul>
+	 * <li>execute the aritmetic error interrupt</li>
+	 * </ul></li>
+	 * <li><code>else if p1 is NaN</code>
+	 * <ul>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>NAN &lt;- 1</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>NAN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 1</code></li>
+	 * </ul></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int CHKFP   = 0x0205;
+	/**
+	 * <b>CHKQFP</b> <code>(02 06)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
 	 * checks if the floating point param is a positive, negative infinity, NaN or normal value
@@ -1133,9 +1258,44 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int CHKFP   = 0x0203;
+	public static final int CHKQFP  = 0x0206;
 	/**
-	 * <b>CMPU</b> <code>(02 04)</code><br>
+	 * <b>CHKSFP</b> <code>(02 07)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt;</code>
+	 * <p>
+	 * checks if the floating point param is a positive, negative infinity, NaN or normal value
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>if p1 is positive-infinity</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 1</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 is negative-infinity</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 1</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 is NaN</code>
+	 * <ul>
+	 * <li>execute the aritmetic error interrupt</li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 1</code></li>
+	 * </ul></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int CHKSFP  = 0x0207;
+	/**
+	 * <b>CMPU</b> <code>(02 08)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
 	 * compares the two unsigned values and stores the result in the status register
@@ -1164,9 +1324,9 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int CMPU    = 0x0204;
+	public static final int CMPU    = 0x0208;
 	/**
-	 * <b>CMPB</b> <code>(02 05)</code><br>
+	 * <b>CMPB</b> <code>(02 09)</code><br>
 	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;NO_CONST_PARAM&gt;</code>
 	 * <p>
 	 * compares the two 128 bit values and stores the result in the status register
@@ -1195,9 +1355,9 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int CMPB    = 0x0205;
+	public static final int CMPB    = 0x0209;
 	/**
-	 * <b>SGN</b> <code>(02 06)</code><br>
+	 * <b>SGN</b> <code>(02 0a)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
 	 * compares the value with <code>0</code> and stores the result in the status register<br>
@@ -1227,9 +1387,91 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int SGN     = 0x0206;
+	public static final int SGN     = 0x020a;
 	/**
-	 * <b>SGNFP</b> <code>(02 07)</code><br>
+	 * <b>SGNFP</b> <code>(02 0b)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt;</code>
+	 * <p>
+	 * compares the floating-point value with <code>0.0</code> and stores the result in the status register<br>
+	 * this command is like <code>CMPFP PARAM , 0.0</code>
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>if p1 &gt; 0.0</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 1</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>NaN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 &lt; 0.0</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 1</code></li>
+	 * <li><code>NaN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 is signal-NaN</code>
+	 * <ul>
+	 * <li>execute the aritmetic error interrupt</li>
+	 * </ul></li>
+	 * <li><code>else if p1 is NaN</code>
+	 * <ul>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>NaN &lt;- 1</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>NaN &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 1</code></li>
+	 * </ul></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int SGNFP   = 0x020b;
+	/**
+	 * <b>SGNSFP</b> <code>(02 0c)</code><br>
+	 * Parameter: <code>&lt;PARAM&gt;</code>
+	 * <p>
+	 * compares the floating-point value with <code>0.0</code> and stores the result in the status register<br>
+	 * this command is like <code>CMPFP PARAM , 0.0</code>
+	 * <p>
+	 * <b>definition:</b>
+	 * <ul>
+	 * <li><code>if p1 &gt; 0.0</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 1</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 &lt; 0.0</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 1</code></li>
+	 * <li><code>EQUAL &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else if p1 is NaN</code>
+	 * <ul>
+	 * <li>execute the aritmetic error interrupt</li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>GREATER &lt;- 0</code></li>
+	 * <li><code>LOWER &lt;- 0</code></li>
+	 * <li><code>EQUAL &lt;- 1</code></li>
+	 * </ul></li>
+	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
+	 * </ul>
+
+	 */
+	public static final int SGNSFP  = 0x020c;
+	/**
+	 * <b>SGNQFP</b> <code>(02 0d)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt;</code>
 	 * <p>
 	 * compares the floating-point value with <code>0.0</code> and stores the result in the status register<br>
@@ -1269,7 +1511,7 @@ public class PrimAsmCommands {
 	 * </ul>
 
 	 */
-	public static final int SGNFP   = 0x0207;
+	public static final int SGNQFP  = 0x020d;
 	/**
 	 * <b>JMPERR</b> <code>(02 10)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>

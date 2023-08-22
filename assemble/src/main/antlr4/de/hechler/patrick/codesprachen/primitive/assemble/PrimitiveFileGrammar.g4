@@ -1603,8 +1603,20 @@ returns [Command c] @init {Commands cmd = null;}
 		| CMPFP
 		{cmd = Commands.CMD_CMPFP;}
 
+		| CMPSFP
+		{cmd = Commands.CMD_CMPSFP;}
+
+		| CMPQFP
+		{cmd = Commands.CMD_CMPQFP;}
+
 		| CHKFP
 		{cmd = Commands.CMD_CHKFP;}
+
+		| CHKSFP
+		{cmd = Commands.CMD_CHKSFP;}
+
+		| CHKQFP
+		{cmd = Commands.CMD_CHKQFP;}
 
 		| CMPU
 		{cmd = Commands.CMD_CMPU;}
@@ -1617,6 +1629,12 @@ returns [Command c] @init {Commands cmd = null;}
 
 		| JMPO
 		{cmd = Commands.CMD_JMPO;}
+
+		| PUSHBLK
+		{cmd = Commands.CMD_PUSHBLK;}
+
+		| POPBLK
+		{cmd = Commands.CMD_POPBLK;}
 
 	) comment* p1 = param [pos, constants, be] comment* COMMA //
 	comment* p2 = param [pos, constants, be] //
@@ -1711,11 +1729,17 @@ returns [Command c] @init {Commands cmd = null;}
 		| POP
 		{cmd = Commands.CMD_POP;}
 
-		| PUSHBLK
-		{cmd = Commands.CMD_PUSHBLK;}
+		| SGN
+		{cmd = Commands.CMD_SGN;}
 
-		| POPBLK
-		{cmd = Commands.CMD_POPBLK;}
+		| SGNFP
+		{cmd = Commands.CMD_SGNFP;}
+
+		| SGNSFP
+		{cmd = Commands.CMD_SGNSFP;}
+
+		| SGNQFP
+		{cmd = Commands.CMD_SGNQFP;}
 
 	) comment* p1 = param [pos, constants, be] //
 	{$c = new Command(cmd, $p1.p, null);}
@@ -2014,9 +2038,29 @@ CMPFP
 	'CMPFP'
 ;
 
+CMPSFP
+:
+	'CMPSFP'
+;
+
+CMPQFP
+:
+	'CMPQFP'
+;
+
 CHKFP
 :
 	'CHKFP'
+;
+
+CHKSFP
+:
+	'CHKSFP'
+;
+
+CHKQFP
+:
+	'CHKQFP'
 ;
 
 CMPU
@@ -2027,6 +2071,16 @@ CMPU
 CMPB
 :
 	'CMPB'
+;
+
+PUSHBLK
+:
+	'PUSHBLK'
+;
+
+POPBLK
+:
+	'POPBLK'
 ;
 
 JMPERR
@@ -2164,14 +2218,24 @@ POP
 	'POP'
 ;
 
-PUSHBLK
+SGN
 :
-	'PUSHBLK'
+	'SGN'
 ;
 
-POPBLK
+SGNFP
 :
-	'POPBLK'
+	'SGNFP'
+;
+
+SGNSFP
+:
+	'SGNSFP'
+;
+
+SGNQFP
+:
+	'SGNQFP'
 ;
 
 IP

@@ -1951,6 +1951,8 @@ the pre-commands ar executed at assemble time, not runtime
         * `LOWER <- 1`
         * `NaN <- 0`
         * `EQUAL <- 0`
+    * `else if p1 is signal-NaN | p2 is signal-NaN`
+        * execute the aritmetic error interrupt
     * `else if p1 is NaN | p2 is NaN`
         * `LOWER <- 0`
         * `GREATER <- 0`
@@ -1969,7 +1971,94 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
+`CMPSFP <PARAM> , <PARAM>`
+* compares the two floating point values and stores the result in the status register
+* definition:
+    * `if p1 > p2`
+        * `GREATER <- 1`
+        * `LOWER <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < p2`
+        * `GREATER <- 0`
+        * `LOWER <- 1`
+        * `EQUAL <- 0`
+    * `else if p1 is NaN | p2 is NaN`
+        * execute the aritmetic error interrupt
+    * `else`
+        * `LOWER <- 0`
+        * `GREATER <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 03 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
+`CMPQFP <PARAM> , <PARAM>`
+* compares the two floating point values and stores the result in the status register
+* definition:
+    * `if p1 > p2`
+        * `GREATER <- 1`
+        * `LOWER <- 0`
+        * `NaN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < p2`
+        * `GREATER <- 0`
+        * `LOWER <- 1`
+        * `NaN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 is NaN | p2 is NaN`
+        * `LOWER <- 0`
+        * `GREATER <- 0`
+        * `NaN <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `LOWER <- 0`
+        * `GREATER <- 0`
+        * `NaN <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 04 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+    * `[P2.NUM_NUM]`
+    * `[P2.OFF_NUM]`
+
 `CHKFP <PARAM>`
+* checks if the floating point param is a positive, negative infinity, NaN or normal value
+* definition:
+    * `if p1 is positive-infinity`
+        * `GREATER <- 1`
+        * `LOWER <- 0`
+        * `NAN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 is negative-infinity`
+        * `GREATER <- 0`
+        * `LOWER <- 1`
+        * `NAN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 is signal-NaN`
+        * execute the aritmetic error interrupt
+    * `else if p1 is NaN`
+        * `LOWER <- 0`
+        * `GREATER <- 0`
+        * `NAN <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `LOWER <- 0`
+        * `GREATER <- 0`
+        * `NAN <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 05 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`CHKQFP <PARAM>`
 * checks if the floating point param is a positive, negative infinity, NaN or normal value
 * definition:
     * `if p1 is positive-infinity`
@@ -1994,7 +2083,30 @@ the pre-commands ar executed at assemble time, not runtime
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `02 03 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `02 06 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`CHKSFP <PARAM>`
+* checks if the floating point param is a positive, negative infinity, NaN or normal value
+* definition:
+    * `if p1 is positive-infinity`
+        * `GREATER <- 1`
+        * `LOWER <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 is negative-infinity`
+        * `GREATER <- 0`
+        * `LOWER <- 1`
+        * `EQUAL <- 0`
+    * `else if p1 is NaN`
+        * execute the aritmetic error interrupt
+    * `else`
+        * `LOWER <- 0`
+        * `GREATER <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 07 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
@@ -2015,7 +2127,7 @@ the pre-commands ar executed at assemble time, not runtime
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `02 04 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `02 08 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -2038,7 +2150,7 @@ the pre-commands ar executed at assemble time, not runtime
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `02 05 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `02 09 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -2062,11 +2174,67 @@ the pre-commands ar executed at assemble time, not runtime
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `02 06 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `02 0A <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
 `SGNFP <PARAM>`
+* compares the floating-point value with `0.0` and stores the result in the status register
+* this command is like `CMPFP PARAM , 0.0`
+* definition:
+    * `if p1 > 0.0`
+        * `GREATER <- 1`
+        * `LOWER <- 0`
+        * `NaN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < 0.0`
+        * `GREATER <- 0`
+        * `LOWER <- 1`
+        * `NaN <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 is signal-NaN`
+        * execute the aritmetic error interrupt
+    * `else if p1 is NaN`
+        * `LOWER <- 0`
+        * `GREATER <- 0`
+        * `NaN <- 1`
+        * `EQUAL <- 0`
+    * `else`
+        * `GREATER <- 0`
+        * `LOWER <- 0`
+        * `NaN <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 0B <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`SGNSFP <PARAM>`
+* compares the floating-point value with `0.0` and stores the result in the status register
+* this command is like `CMPFP PARAM , 0.0`
+* definition:
+    * `if p1 > 0.0`
+        * `GREATER <- 1`
+        * `LOWER <- 0`
+        * `EQUAL <- 0`
+    * `else if p1 < 0.0`
+        * `GREATER <- 0`
+        * `LOWER <- 1`
+        * `EQUAL <- 0`
+    * `else if p1 is NaN`
+        * execute the aritmetic error interrupt
+    * `else`
+        * `GREATER <- 0`
+        * `LOWER <- 0`
+        * `EQUAL <- 1`
+    * `IP <- IP + CMD_LEN`
+* binary:
+    * `02 0C <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `[P1.NUM_NUM]`
+    * `[P1.OFF_NUM]`
+
+`SGNQFP <PARAM>`
 * compares the floating-point value with `0.0` and stores the result in the status register
 * this command is like `CMPFP PARAM , 0.0`
 * definition:
@@ -2092,7 +2260,7 @@ the pre-commands ar executed at assemble time, not runtime
         * `EQUAL <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `02 07 <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
+    * `02 0D <B-P1.TYPE> 00 00 00 <B-P1.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 

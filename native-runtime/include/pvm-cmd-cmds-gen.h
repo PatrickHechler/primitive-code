@@ -201,17 +201,17 @@ static void(*cmds[])()
 	c_cmp, /* 0200 */
 	c_cmpl, /* 0201 */
 	c_cmpfp, /* 0202 */
-	c_chkfp, /* 0203 */
-	c_cmpu, /* 0204 */
-	c_cmpb, /* 0205 */
-	c_sgn, /* 0206 */
-	c_sgnfp, /* 0207 */
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
-	ILL_1
+	c_cmpsfp, /* 0203 */
+	c_cmpqfp, /* 0204 */
+	c_chkfp, /* 0205 */
+	c_chkqfp, /* 0206 */
+	c_chksfp, /* 0207 */
+	c_cmpu, /* 0208 */
+	c_cmpb, /* 0209 */
+	c_sgn, /* 020A */
+	c_sgnfp, /* 020B */
+	c_sgnsfp, /* 020C */
+	c_sgnqfp, /* 020D */
 	ILL_1
 	ILL_1
 	c_jmperr, /* 0210 */
