@@ -29,6 +29,8 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.NoSuchProviderException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.logging.Logger;
 
 import org.antlr.v4.runtime.InputMismatchException;
@@ -68,6 +70,7 @@ public class PrimitiveCodeAssembleMain {
 		try {
 			asm.assemble(null, input);
 			LOG.info("assembled successful");
+			asm.close();
 			if (fileSys != null) { fileSys.close(); }
 			JAVA_FS.close();
 		} catch (Throwable t) {
@@ -166,11 +169,13 @@ public class PrimitiveCodeAssembleMain {
 		boolean suppressWarn = false;
 		boolean noExport     = false;
 		boolean force        = false;
+		List<Path> loockups = new ArrayList<>();
 		try {
 			for (int i = 0; i < args.length; i++) {
 				switch (args[i].toLowerCase()) {
 				case "--help", "-h", "-?" -> argHelp();
 				case "--cs", "--charset" -> charset = argCharset(args, charset, ++i);
+				case "--lookup" -> argLookup(args, ++i, loockups);
 				case "--in", "--input" -> inFile = argInput(args, inFile, ++i);
 				case "--out", "--output" -> outFile = argOutput(args, outFile, ++i);
 				case "--rfs", "--real-file-system" -> argRfs(args, i);
@@ -192,15 +197,15 @@ public class PrimitiveCodeAssembleMain {
 			}
 			if (inFile == null) { crash(args, -1, "no input file set (use --input)"); }
 			charset = charset != null ? charset : StandardCharsets.UTF_8;
-			doSetup(args, charset, inFile, outFile, suppressWarn, noExport, force);
+			doSetup(args, charset, inFile, outFile, suppressWarn, noExport, force, loockups.toArray(new Path[loockups.size()]));
 		} catch (Exception e) {
 			e.printStackTrace();
 			crash(args, -1, e.getClass() + ": " + e.getMessage());
 		}
 	}
 	
-	private static void doSetup(String[] args, Charset charset, String inFile, String outFile, boolean suppressWarn, boolean noExport, boolean force)
-		throws IOException {
+	private static void doSetup(String[] args, Charset charset, String inFile, String outFile, boolean suppressWarn, boolean noExport, boolean force, Path[] lookups)
+			throws IOException {
 		@SuppressWarnings("resource")
 		FS outFS = PrimitiveCodeAssembleMain.fileSys == null ? JAVA_FS : PrimitiveCodeAssembleMain.fileSys;
 		try (File in = JAVA_FS.file(inFile)) {
@@ -252,7 +257,7 @@ public class PrimitiveCodeAssembleMain {
 					expOut = (WriteStream) outFS.stream(outFile + SYMBOL_FILE_POSSIX, opts);
 				}
 			}
-			initAsm(charset, in.openRead(), out, expOut, suppressWarn);
+			initAsm(charset, in.openRead(), out, expOut, suppressWarn, lookups);
 		}
 	}
 	
@@ -274,6 +279,11 @@ public class PrimitiveCodeAssembleMain {
 		return Charset.forName(args[i]);
 	}
 	
+	private static void argLookup(String[] args, int i, List<Path> loockups) {
+		if (args.length <= i) { crash(args, i, "not enugh args for input option"); }
+		loockups.add(Path.of(args[i]));
+	}
+
 	private static String argInput(String[] args, String inFile, int i) {
 		if (args.length <= i) { crash(args, i, "not enugh args for input option"); }
 		if (inFile != null) { crash(args, i, "input already set"); }
@@ -315,14 +325,18 @@ public class PrimitiveCodeAssembleMain {
 		}
 	}
 	
-	private static void initAsm(Charset charset, ReadStream in, WriteStream out, WriteStream exportOut, boolean suppressWarn) throws IOException {
+	private static void initAsm(Charset charset, ReadStream in, WriteStream out, WriteStream exportOut, boolean suppressWarn, Path[] lookups) throws IOException {
 		input = new InputStreamReader(new BufferedInputStream(in.asInputStream()));
 		OutputStream outFileStream = new BufferedOutputStream(out.asOutputStream());
 		if (exportOut == null) {
-			asm = new PrimitiveAssembler(outFileStream, null, new Path[] { Paths.get(".") }, suppressWarn, true);
+			asm = new PrimitiveAssembler(outFileStream, null, lookups, suppressWarn, true);
 		} else {
-			try (OutputStream exportOutStream = new BufferedOutputStream(exportOut.asOutputStream())) {
-				asm = new PrimitiveAssembler(outFileStream, new PrintStream(exportOutStream, true, charset), new Path[] { Paths.get(".") }, suppressWarn, true);
+			OutputStream exportOutStream = new BufferedOutputStream(exportOut.asOutputStream());
+			try {
+				asm = new PrimitiveAssembler(outFileStream, new PrintStream(exportOutStream, true, charset), lookups, suppressWarn, true);
+			} catch (Throwable t) {
+				exportOutStream.close();
+				throw t;
 			}
 		}
 	}
@@ -342,23 +356,24 @@ public class PrimitiveCodeAssembleMain {
 	
 	private static void help() {
 		LOG.info( //
-			/*     */ "primitive-assembler help:\n" //
-				+ "    usage: prim-asm [OPTIONS]\n" //
-				+ "    \n" //
-				+ "    Options:\n" //
-				+ "        --help, -h, -?                   to print this message and exit\n" //
-				+ "        --charset, --cs [CHARSET]        to set the charset for input and output files\n" //
-				+ "                                         the default charset is 'UTF-8'\n" //
-				+ "        --in, --input [FILE]             to set the input file\n" //
-				+ "                                         this option is non optional\n" //
-				+ "        --out, --output [FILE]           to set the output file\n" //
-				+ "                                         the default depends on the input\n" //
-				+ "        --rfs, --real-file-system        to use the linux file system\n" //
-				+ "        --pfs, --patr-file-system [FILE] to set the patr-file-system file\n" //
-				+ "        --suppress-warn, -s              to suppresss warnings\n" //
-				+ "        --no-export, -n                  to suppress the generation of the export file\n" //
-				+ "        --force, -f                      to overwrite output files if they exist already\n" //
-				+ "");
+				/*     */ "primitive-assembler help:\n" //
+						+ "    usage: prim-asm [OPTIONS]\n" //
+						+ "    \n" //
+						+ "    Options:\n" //
+						+ "        --help, -h, -?                   to print this message and exit\n" //
+						+ "        --charset, --cs [CHARSET]        to set the charset for input and output files\n" //
+						+ "                                         the default charset is 'UTF-8'\n" //
+						+ "        --lookup [FOLDER]                to add a lookup folder\n" //
+						+ "        --in, --input [FILE]             to set the input file\n" //
+						+ "                                         this option is non optional\n" //
+						+ "        --out, --output [FILE]           to set the output file\n" //
+						+ "                                         the default depends on the input\n" //
+						+ "        --rfs, --real-file-system        to use the linux file system\n" //
+						+ "        --pfs, --patr-file-system [FILE] to set the patr-file-system file\n" //
+						+ "        --suppress-warn, -s              to suppresss warnings\n" //
+						+ "        --no-export, -n                  to suppress the generation of the export file\n" //
+						+ "        --force, -f                      to overwrite output files if they exist already\n" //
+						+ "");
 	}
 	
 }

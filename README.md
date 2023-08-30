@@ -16,28 +16,26 @@ the assembler language for the Primitive-Virtual-Machine
         * example: (assuming there is a patr-file-sys at `./patr-file-sys.pfs` which contains a executable at `/bin/my_program`)
             * `pvm --pfs=./patr-file-sys.pfs --pmf=/bin/my_program --example value --other=val`
             * `X00          <-- 4`
-            * `[X01]        <-- ADDRESS_OF "/bin/my_program\0"`
+            * `[X01]        <-- ADDRESS_OF "/bin/program\0"`
                 * `[[X01]]       <-- '/'`
                 * `[[X01] + 1]   <-- 'b'`
                 * `[[X01] + 2]   <-- 'i'`
                 * `[[X01] + 3]   <-- 'n'`
                 * `[[X01] + 4]   <-- '/'`
-                * `[[X01] + 5]   <-- 'm'`
-                * `[[X01] + 6]   <-- 'y'`
-                * `[[X01] + 7]   <-- '_'`
-                * `[[X01] + 8]   <-- 'p'`
-                * `[[X01] + 9]   <-- 'r'`
-                * `[[X01] + 10]  <-- 'o'`
-                * `[[X01] + 11]  <-- 'g'`
-                * `[[X01] + 12]  <-- 'r'`
-                * `[[X01] + 13]  <-- 'a'`
-                * `[[X01] + 14]  <-- 'm'`
-                * `[[X01] + 15]  <-- '\0'`
+                * `[[X01] + 5]   <-- 'p'`
+                * `[[X01] + 6]   <-- 'r'`
+                * `[[X01] + 7]  <-- 'o'`
+                * `[[X01] + 8]  <-- 'g'`
+                * `[[X01] + 9]  <-- 'r'`
+                * `[[X01] + 10]  <-- 'a'`
+                * `[[X01] + 11]  <-- 'm'`
+                * `[[X01] + 12]  <-- '\0'`
+                * note that `[[X01] + 13]` is already invalid
             * `[X01 + 8]    <-- ADDRESS_OF "--example\0"`
             * `[X01 + 16]   <-- ADDRESS_OF "value\0"`
             * `[X01 + 24]   <-- ADDRESS_OF "--other=val\0"`
             * `[X01 + 32]   <-- -1`
-        * the memory blocks for the program arguments and the memory block for the argument array is not resizable and not freeable
+        * the memory blocks for the program arguments and the memory block for the argument array is not resizable and also not freeable
     * the `INTCNT` register will be set to `#INTERRUPT_COUNT`
     * the interrupt-table of `INTP` will be initialized with every entry set to `-1`
         * the default interrupt-table will be an `#INTERRUPT_COUNT * 8` sized memory block
@@ -92,7 +90,7 @@ the primitive virtual machine has the following 64-bit registers:
         * all entries of the table are initialized with `-1`
 * `INTCNT`
     * saves the number of allowed interrupts (`0..(INTCNT-1)` are allowed)
-        * all other will call the `INT-ERRORS_ILLEGAL_INTERRUPT` interrupt
+        * all other will call the `INT_ERROR_ILLEGAL_INTERRUPT` interrupt
         * when the value stored in this register is negative or zero no interrupts will be allowed
     * initialized with the interrupt count which can be used as default interrupts (`#INTERRUPT_COUNT`)
 * `STATUS`

@@ -393,12 +393,17 @@ static inline void setup(int argc, char **argv) {
 
 int main(int argc, char **argv) {
 	double d = 0.0 / 0.0;
-	long l;
-	memcpy(&l, &d, 8);
+	long l = 0xFFF4000000000000;
+	memcpy(&d, &l, 8);
 	printf("%lf : %016lX\n", d, l);
 	d = -d;
 	memcpy(&l, &d, 8);
 	printf("%lf : %016lX\n", d, l);
+	if (d > 0.0) {
+		printf("%lf > 0.0\n", d);
+	} else {
+		printf("!(%lf > 0.0)\n", d);
+	}
 	setup(argc, argv);
 #ifdef PVM_DEBUG
 	if (input != -1) {

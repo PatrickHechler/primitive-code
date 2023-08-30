@@ -1,19 +1,19 @@
-//This file is part of the Primitive Code Project
-//DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
-//Copyright (C) 2023  Patrick Hechler
+// This file is part of the Primitive Code Project
+// DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
+// Copyright (C) 2023 Patrick Hechler
 //
-//This program is free software: you can redistribute it and/or modify
-//it under the terms of the GNU General Public License as published by
-//the Free Software Foundation, either version 3 of the License, or
-//(at your option) any later version.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-//This program is distributed in the hope that it will be useful,
-//but WITHOUT ANY WARRANTY; without even the implied warranty of
-//MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-//GNU General Public License for more details.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU General Public License for more details.
 //
-//You should have received a copy of the GNU General Public License
-//along with this program.  If not, see <https://www.gnu.org/licenses/>.
+// You should have received a copy of the GNU General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 package de.hechler.patrick.codesprachen.primitive.assemble.objects;
 
 import static de.hechler.patrick.codesprachen.primitive.assemble.PrimitiveCodeAssembleMain.LOG;
@@ -22,6 +22,7 @@ import static de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConsta
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -65,7 +66,7 @@ import de.hechler.patrick.codesprachen.primitive.core.utils.PrimAsmConstants;
 import de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable;
 
 @SuppressWarnings("javadoc")
-public class PrimitiveAssembler {
+public class PrimitiveAssembler implements Closeable {
 	
 	private static final String UNWANTED_LABEL_IN_PARAMS = "I don't need a label in my params!";
 	
@@ -136,66 +137,66 @@ public class PrimitiveAssembler {
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, boolean bailError)
-		throws AssembleError {
+			throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, bailError ? new BailErrorStrategy() : null, bailError);
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, boolean bailError, long pos)
-		throws AssembleError {
+			throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, bailError ? new BailErrorStrategy() : null, bailError, pos);
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
-		boolean bailError) throws AssembleError {
+			boolean bailError) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, null);
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
-		boolean bailError, long pos) throws AssembleError {
+			boolean bailError, long pos) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, null, pos);
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
-		boolean bailError, ANTLRErrorListener errorListener) throws AssembleError {
+			boolean bailError, ANTLRErrorListener errorListener) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {//
 		});
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
-		boolean bailError, ANTLRErrorListener errorListener, long pos) throws AssembleError {
+			boolean bailError, ANTLRErrorListener errorListener, long pos) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, (line, charPos) -> {//
 		}, pos);
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
-		boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool) throws AssembleError {
+			boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, "[THIS]");
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
-		boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, long pos) throws AssembleError {
+			boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, long pos) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, "[THIS]", pos);
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
-		boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, String thisFile) throws AssembleError {
+			boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, String thisFile) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile, new LinkedHashMap<>());
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
-		boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, String thisFile, long pos) throws AssembleError {
+			boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, String thisFile, long pos) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile, new LinkedHashMap<>(), pos);
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
-		boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, String thisFile,
-		Map<String, List<Map<String, Long>>> readFiles) throws AssembleError {
+			boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, String thisFile,
+			Map<String, List<Map<String, Long>>> readFiles) throws AssembleError {
 		return preassemble(path, antlrin, predefinedConstants, errorHandler, bailError, errorListener, enterConstPool, thisFile, readFiles, 0L);
 	}
 	
 	public ParseContext preassemble(Path path, ANTLRInputStream antlrin, Map<String, PrimitiveConstant> predefinedConstants, ANTLRErrorStrategy errorHandler,
-		boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, String thisFile,
-		Map<String, List<Map<String, Long>>> readFiles, long pos) throws AssembleError {
+			boolean bailError, ANTLRErrorListener errorListener, BiConsumer<Integer, Integer> enterConstPool, String thisFile,
+			Map<String, List<Map<String, Long>>> readFiles, long pos) throws AssembleError {
 		PrimitiveFileGrammarLexer  lexer  = new PrimitiveFileGrammarLexer(antlrin);
 		CommonTokenStream          tokens = new CommonTokenStream(lexer);
 		PrimitiveFileGrammarParser parser = new PrimitiveFileGrammarParser(tokens);
@@ -203,7 +204,7 @@ public class PrimitiveAssembler {
 		if (errorListener != null) { parser.addErrorListener(errorListener); }
 		try {
 			return parser.parse(path, pos, this.defaultAlign, predefinedConstants, bailError, errorHandler, errorListener, enterConstPool, this, antlrin, thisFile,
-				readFiles);
+					readFiles);
 		} catch (ParseCancellationException e) {
 			Throwable cause = e.getCause();
 			if (cause == null) { throw e; }
@@ -255,7 +256,7 @@ public class PrimitiveAssembler {
 	
 	private static void handleIllegalInput(Throwable t, Token ot, IntervalSet ets) throws AssembleError {
 		StringBuilder build = new StringBuilder("error: ").append(t).append("at line ").append(ot.getLine()).append(':').append(ot.getCharPositionInLine())
-			.append(" token.text='").append(ot.getText());
+				.append(" token.text='").append(ot.getText());
 		build.append("' token.id=").append(tokenToString(ot.getType(), PrimitiveFileGrammarLexer.ruleNames)).append('\n').append("expected: ");
 		for (int i = 0; i < ets.size(); i++) {
 			if (i > 0) { build.append(", "); }
@@ -323,8 +324,8 @@ public class PrimitiveAssembler {
 	}
 	
 	public AssembleRuntimeException readSymbols(String readFile, Boolean isSource, boolean isSimpleSymbol, String prefix, Map<String, PrimitiveConstant> startConsts,
-		Map<String, PrimitiveConstant> addSymbols, ANTLRInputStream antlrin, boolean be, Token tok, String thisFile, Map<String, List<Map<String, Long>>> readFiles)
-		throws IllegalArgumentException, IOException {
+			Map<String, PrimitiveConstant> addSymbols, ANTLRInputStream antlrin, boolean be, Token tok, String thisFile,
+			Map<String, List<Map<String, Long>>> readFiles) throws IllegalArgumentException, IOException {
 		readFiles = new LinkedHashMap<>(readFiles);
 		byte[] bytes      = null;
 		int    startIndex = tok.getStartIndex();
@@ -332,10 +333,10 @@ public class PrimitiveAssembler {
 			if (isSource != null && !isSource.booleanValue()) {
 				if (be) {
 					throw new AssembleError(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - startIndex, startIndex,
-						"is source set to false, but path is set to [THIS]");
+							"is source set to false, but path is set to [THIS]");
 				}
 				return new AssembleRuntimeException(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - startIndex, startIndex,
-					"is source set to false, but path is set to [THIS]");
+						"is source set to false, but path is set to [THIS]");
 			}
 			bytes    = antlrin.getText(new Interval(0, antlrin.size() - 1)).getBytes(StandardCharsets.UTF_8);
 			isSource = Boolean.TRUE;
@@ -387,9 +388,9 @@ public class PrimitiveAssembler {
 			if (isPrimSourceCode) {
 				ByteArrayOutputStream baos = new ByteArrayOutputStream();
 				ParseContext          pc   = preassemble(path, new ANTLRInputStream(new InputStreamReader(in, StandardCharsets.UTF_8)), startConsts,
-					be ? new BailErrorStrategy() : null, be, null, (line, charPos) -> {//
-												},
-					readFile, readFiles);
+						be ? new BailErrorStrategy() : null, be, null, (line, charPos) -> {                                                         //
+													},
+						readFile, readFiles);
 				PrimAsmConstants.export(pc.exports, new PrintStream(baos, true, "UTF-8"));
 				in = new ByteArrayInputStream(baos.toByteArray());
 			}
@@ -401,7 +402,7 @@ public class PrimitiveAssembler {
 	}
 	
 	private static List<Map<String, Long>> detectLoop(Map<String, PrimitiveConstant> startConsts, boolean be, Token tok, String thisFile, int startIndex,
-		final String rf, List<Map<String, Long>> oldValue) throws AssembleError {
+			final String rf, List<Map<String, Long>> oldValue) throws AssembleError {
 		List<Map<String, Long>> newValue;
 		if (oldValue == null) {
 			newValue = Arrays.asList(convertPrimConstMapToLongMap(startConsts));
@@ -410,12 +411,12 @@ public class PrimitiveAssembler {
 				if (startConsts.equals(startConstants)) {
 					if (be) {
 						throw new AssembleError(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - startIndex + 1, startIndex,
-							"loop detected! started again with the same start consts: in file='" + thisFile + "' read symbols of file='" + rf + "' constants: "
-								+ startConsts);
+								"loop detected! started again with the same start consts: in file='" + thisFile + "' read symbols of file='" + rf + "' constants: "
+										+ startConsts);
 					}
 					throw new AssembleRuntimeException(tok.getLine(), tok.getCharPositionInLine(), tok.getStopIndex() - startIndex + 1, startIndex,
-						"loop detected! started again with the same start consts: in file='" + thisFile + "' read symbols of file='" + rf + "' constants: "
-							+ startConsts);
+							"loop detected! started again with the same start consts: in file='" + thisFile + "' read symbols of file='" + rf + "' constants: "
+									+ startConsts);
 				}
 			}
 			newValue = new ArrayList<>(oldValue);
@@ -460,7 +461,7 @@ public class PrimitiveAssembler {
 					case assertPos:
 						if (pos != ccc.value) {
 							throw new AssertionError("not at the assertet position! (expected:" + ccc.value + " pos:" + pos + ") index=" + index
-								+ (index >= (1 << 5) ? "" : " commands: " + cmds.subList(0, (int) index + 1)));
+									+ (index >= (1 << 5) ? "" : " commands: " + cmds.subList(0, (int) index + 1)));
 						}
 						break;
 					default:
@@ -709,6 +710,17 @@ public class PrimitiveAssembler {
 		default -> throw new AssertionError(UNKNOWN_ART + part);
 		}
 		return index;
+	}
+	
+	@Override
+	public void close() throws IOException {
+		try {
+			this.out.close();
+		} finally {
+			if (this.exportOut != null) {
+				this.exportOut.close();
+			}
+		}
 	}
 	
 }

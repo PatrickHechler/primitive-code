@@ -18,6 +18,10 @@
 #	error "this file should be included inside of pvm-virtual-mashine.c"
 #endif // PVM
 
+#define FP_SIGN_BIT    0x8000000000000000UL
+
+#define QUIET_NAN_MASK 0x0008000000000000UL
+
 #define is_non_normal(raw) (((raw) & 0x7FF0000000000000UL) == 0x7FF0000000000000UL)
 
 #define is_normal(raw) (((raw) & 0x7FF0000000000000UL) != 0x7FF0000000000000UL)
@@ -30,7 +34,7 @@
 
 #define is_any_nan_known_non_normal(raw) (((raw) & 0x000FFFFFFFFFFFFFUL) > 0x0000000000000000UL)
 
-#define is_signal_nan_known_nan(raw) (((raw) & 0x0008000000000000UL) == 0) \
+#define is_signal_nan_known_nan(raw) (((raw) & QUIET_NAN_MASK) == 0) \
 
 #define is_signal_nan(raw) (\
 		is_any_nan(raw) \
@@ -843,8 +847,7 @@ static void c_cmpfp() {
 			quiet_nan: pvm.status = (pvm.status
 					& ~(S_GREATHER | S_EQUAL | S_LOWER)) | S_NAN;
 		}
-	}
-	if (is_any_nan(p2.p.n)) {
+	} else if (is_any_nan(p2.p.n)) {
 		if (is_signal_nan_known_nan(p2.p.n)) {
 			goto signal_nan;
 		} else {
@@ -1190,6 +1193,19 @@ static void c_addqfp() {
 		return;
 	}
 	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		union param qres;
+		qres.n = *p1.p.np;
+		if (is_signal_nan(qres.n)) {
+			qres.n |= QUIET_NAN_MASK;
+		}
+		if (is_signal_nan(p2.p.n)) {
+			p2.p.n |= QUIET_NAN_MASK;
+		}
+		qres.fpn -= p2.p.fpn;
+		*p1.p.np = qres.n & (~QUIET_NAN_MASK);
+		return;
+	}
 	*p1.p.fpnp += p2.p.fpn;
 }
 static void c_subqfp() {
@@ -1202,6 +1218,19 @@ static void c_subqfp() {
 		return;
 	}
 	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		union param qres;
+		qres.n = *p1.p.np;
+		if (is_signal_nan(qres.n)) {
+			qres.n |= QUIET_NAN_MASK;
+		}
+		if (is_signal_nan(p2.p.n)) {
+			p2.p.n |= QUIET_NAN_MASK;
+		}
+		qres.fpn -= p2.p.fpn;
+		*p1.p.np = qres.n & (~QUIET_NAN_MASK);
+		return;
+	}
 	*p1.p.fpnp -= p2.p.fpn;
 }
 static void c_mulqfp() {
@@ -1214,6 +1243,19 @@ static void c_mulqfp() {
 		return;
 	}
 	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		union param qres;
+		qres.n = *p1.p.np;
+		if (is_signal_nan(qres.n)) {
+			qres.n |= QUIET_NAN_MASK;
+		}
+		if (is_signal_nan(p2.p.n)) {
+			p2.p.n |= QUIET_NAN_MASK;
+		}
+		qres.fpn *= p2.p.fpn;
+		*p1.p.np = qres.n & (~QUIET_NAN_MASK);
+		return;
+	}
 	*p1.p.fpnp *= p2.p.fpn;
 }
 static void c_divqfp() {
@@ -1226,6 +1268,19 @@ static void c_divqfp() {
 		return;
 	}
 	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		union param qres;
+		qres.n = *p1.p.np;
+		if (is_signal_nan(qres.n)) {
+			qres.n |= QUIET_NAN_MASK;
+		}
+		if (is_signal_nan(p2.p.n)) {
+			p2.p.n |= QUIET_NAN_MASK;
+		}
+		qres.fpn /= p2.p.fpn;
+		*p1.p.np = qres.n & (~QUIET_NAN_MASK);
+		return;
+	}
 	*p1.p.fpnp /= p2.p.fpn;
 }
 static void c_negqfp() {
@@ -1233,7 +1288,7 @@ static void c_negqfp() {
 	if (!p1.valid) {
 		return;
 	}
-	*p1.p.fpnp = -*p1.p.fpnp;
+	*p1.p.np ^= FP_SIGN_BIT;
 }
 static void c_modqfp() {
 	struct p p1 = param(1, 8);
@@ -1245,6 +1300,19 @@ static void c_modqfp() {
 		return;
 	}
 	check_chaged(1, 8)
+	if (is_signal_nan(*p1.p.np) || is_signal_nan(p2.p.n)) {
+		union param qres;
+		qres.n = *p1.p.np;
+		if (is_signal_nan(qres.n)) {
+			qres.n |= QUIET_NAN_MASK;
+		}
+		if (is_signal_nan(p2.p.n)) {
+			p2.p.n |= QUIET_NAN_MASK;
+		}
+		qres.fpn =  fmod(qres.fpn, p2.p.fpn);
+		*p1.p.np = qres.n & (~QUIET_NAN_MASK);
+		return;
+	}
 	*p1.p.fpnp = fmod(*p1.p.fpnp, p2.p.fpn);
 }
 
