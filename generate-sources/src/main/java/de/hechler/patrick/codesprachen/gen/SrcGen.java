@@ -222,10 +222,10 @@ public interface SrcGen {
 				lines.forEachOrdered(new Consumer<>() {
 					
 					int                state;
-					int                lineNumber = 0;
+					int                lineNumber;
 					String             name;
 					long               value;
-					final List<String> docLines   = new ArrayList<>();
+					final List<String> docLines = new ArrayList<>();
 					
 					@Override
 					public void accept(String line) {
@@ -235,21 +235,20 @@ public interface SrcGen {
 						case 0 -> {
 							Matcher header = HEADER_PATTERN.matcher(line);
 							if (header.matches() && header.group(1).equals("Error Constants")) {
-								this.state = 1;
+								this.state++;
 							}
 						}
 						case 1 -> readConst(result, line);
 						case 2 -> {
 							Matcher header = HEADER_PATTERN.matcher(line);
 							if (header.matches() && header.group(1).equals("_JNI-Env_")) {
-								this.state = 3;
+								this.state++;
 							}
 						}
 						case 3 -> {
 							if (line.equals("Operations:")) {
-								this.state = 4;
-							}
-							if (HEADER_PATTERN.matcher(line).matches()) {
+								this.state++;
+							} else if (HEADER_PATTERN.matcher(line).matches()) {
 								throw new IllegalStateException("got a header before the Operations list started '" + line + "'");
 							}
 						}

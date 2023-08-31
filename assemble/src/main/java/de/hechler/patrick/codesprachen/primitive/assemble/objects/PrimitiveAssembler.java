@@ -641,6 +641,7 @@ public class PrimitiveAssembler implements Closeable {
 		bytes[2] = (byte) p1art;
 		bytes[3] = (byte) p2art;
 		index    = addRegs(bytes, p1num, p1off, p1art, index);
+		if (p2art == -1) System.err.println(cmd);
 		addRegs(bytes, p2num, p2off, p2art, index);
 		addNums(bytes, p1num, p1off, p1art);
 		addNums(bytes, p2num, p2off, p2art);

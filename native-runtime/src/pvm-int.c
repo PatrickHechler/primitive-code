@@ -66,6 +66,7 @@ static void int_memory_alloc( INT_PARAMS) /* 5 */{
 	if (mem.mem) {
 		pvm.x[0] = mem.mem->start;
 	} else {
+		pvm.err = PE_OUT_OF_MEMORY;
 		pvm.x[0] = -1;
 	}
 }
@@ -83,6 +84,7 @@ static void int_memory_realloc( INT_PARAMS) /* 6 */{
 	if (mem) {
 		pvm.x[0] = mem->start;
 	} else {
+		pvm.err = PE_OUT_OF_MEMORY;
 		pvm.x[0] = -1;
 	}
 }

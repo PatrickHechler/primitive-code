@@ -251,6 +251,8 @@ every register can also be addressed:
         * `X00` `len`: (`unum`) the size of the block to be allocated
     * result values:
         * `X00` `mem`: (`ubyte#`) the allocated memory block or `-1` on error
+    * on error `ERRNO` will be set to a non-zero value
+    * note that `mem` will be 8 byte aligned
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEMORY_REALLOC` : reallocate a memory-block
     * value: `6`
@@ -259,6 +261,8 @@ every register can also be addressed:
         * `X01` `newLen`: (`unum`) the new size of the memory-block
     * result values:
         * `X01` `newMem`: (`ubyte#`) points to the new memory-block or `-1` on error
+    * on error `ERRNO` will be set to a non-zero value
+    * note that `newMem` will be 8 byte aligned
     * this value can be used by the `INT` command to indicate that this interrupt should be called
 * `INT_MEMORY_FREE` : free a memory-block
     * value: `7`
@@ -2626,6 +2630,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P1.OFF_NUM]`
 
 ## not (yet) there/supported
+* CAS: compare and swap (when equal)
 * support for enviroment-variables
 * Multi-threading
     * maby thread-groups/processes
