@@ -18,6 +18,7 @@ package de.hechler.patrick.codesprachen.primitive.core.objects;
 
 import java.nio.file.Path;
 
+@SuppressWarnings("javadoc")
 public record PrimitiveConstant(String name, String comment, long value, Path path, int line) {
 	
 	@Override
@@ -26,20 +27,20 @@ public record PrimitiveConstant(String name, String comment, long value, Path pa
 		if (obj == null) return false;
 		if (getClass() != obj.getClass()) return false;
 		PrimitiveConstant other = (PrimitiveConstant) obj;
-		if (!name.equals(other.name)) return false;
-		return  value == other.value;
+		if (!this.name.equals(other.name)) return false;
+		return  this.value == other.value;
 	}
 	
 	@Override
 	public String toString() {
 		StringBuilder builder = new StringBuilder();
-		if (comment != null) {
-			builder.append(comment);
+		if (this.comment != null) {
+			builder.append(this.comment);
 			builder.append('\n');
 		}
-		builder.append(name);
+		builder.append(this.name);
 		builder.append('=');
-		builder.append(value);
+		builder.append(this.value);
 		return builder.toString();
 	}
 	

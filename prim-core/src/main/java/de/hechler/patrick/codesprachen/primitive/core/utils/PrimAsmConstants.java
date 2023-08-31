@@ -19,7 +19,6 @@ package de.hechler.patrick.codesprachen.primitive.core.utils;
 import java.io.IOError;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
@@ -97,20 +96,38 @@ public class PrimAsmConstants {
 	public static final int PARAM_ART_ANUM_BADR = PARAM_BASE | PARAM_A_NUM | PARAM_B_ADR;
 	public static final int PARAM_ART_AREG_BADR = PARAM_BASE | PARAM_A_REG | PARAM_B_ADR;
 	
-	public static void export(Map<String, PrimitiveConstant> exports, PrintStream out) {
-		exports.forEach((symbol, pc) -> {
-			assert symbol.equals(pc.name());
-			if (pc.comment() != null) {
-				for (String line : pc.comment().split("\r\n?|\n")) {
-					if (!line.matches("\\s*\\|.*")) {
-						line = "|" + line;
+	private static final class ExportIOExcep extends RuntimeException {
+		
+		private static final long serialVersionUID = 248886119080373208L;
+		
+		private ExportIOExcep(IOException cause) {
+			super(cause);
+		}
+		
+	}
+	
+	public static void export(Map<String, PrimitiveConstant> exports, Appendable out) throws IOException {
+		try {
+			exports.forEach((symbol, pc) -> {
+				try {
+					assert symbol.equals(pc.name());
+					if (pc.comment() != null) {
+						for (String line : pc.comment().split("\r\n?|\n")) {
+							if (!line.matches("\\s*\\|.*")) {
+								line = "|" + line;
+							}
+							line = line.trim();
+							out.append(line + '\n');
+						}
 					}
-					line = line.trim();
-					out.print(line + '\n');
+					out.append(symbol + "=UHEX-" + Long.toUnsignedString(pc.value(), 16).toUpperCase() + '\n');
+				} catch (IOException e) {
+					throw new ExportIOExcep(e);
 				}
-			}
-			out.print(symbol + "=UHEX-" + Long.toUnsignedString(pc.value(), 16).toUpperCase() + '\n');
-		});
+			});
+		} catch (ExportIOExcep e) {
+			throw (IOException) e.getCause();
+		}
 	}
 	
 	private static final String REGEX = "^\\#?(\\w+)\\s*\\=\\s*(([UN]?(HEX\\-|BIN\\-|OCT\\-|DEC\\-)|\\-)?[0-9a-fA-F]+)$";

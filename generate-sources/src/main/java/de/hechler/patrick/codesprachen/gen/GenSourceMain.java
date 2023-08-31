@@ -28,12 +28,14 @@ import java.util.Iterator;
 import java.util.List;
 
 import de.hechler.patrick.codesprachen.gen.impl.GenAsmEnumCommands;
+import de.hechler.patrick.codesprachen.gen.impl.GenCErrEnum;
 import de.hechler.patrick.codesprachen.gen.impl.GenCorePredefined;
 import de.hechler.patrick.codesprachen.gen.impl.GenCorePrimAsmCmds;
 import de.hechler.patrick.codesprachen.gen.impl.GenDisasmEnumCommands;
+import de.hechler.patrick.codesprachen.gen.impl.GenJ2PConstants;
+import de.hechler.patrick.codesprachen.gen.impl.GenJ2PPvmJava;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandArray;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunCommandFuncs;
-import de.hechler.patrick.codesprachen.gen.impl.GenCErrEnum;
 import de.hechler.patrick.codesprachen.gen.impl.GenRunIntHeader;
 import de.hechler.patrick.codesprachen.gen.impl.GenSCStdLibIntFuncs;
 
@@ -59,23 +61,29 @@ public class GenSourceMain {
 	private static final String RUN_INT_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/include/pvm-int.h";
 	private static final String RUN_ERR_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/include/pvm-err.h";
 	private static final String PFS_ERR_HEADER       = SrcGen.PATR_FILE_SYS_DIR + "pfs-core/src/include/pfs-err.h";
+	private static final String J2P_CONSTANTS        = SrcGen.J2P_DIR + "src/main/resources/prim-code/constants.psf";
+	private static final String J2P_PVM_JAVA         = SrcGen.J2P_DIR + "src/main/resources/prim-code/pvm-java.psc";
+	
+	public static final Path J2P_CONSTANTS_PATH        = Path.of(J2P_CONSTANTS);
 	
 	public static void main(String[] args) throws IOException, IOError {
 		generate(Path.of(ASM_COMMANDS_ENUM), "\t", new GenAsmEnumCommands());
 		generate(Path.of(CORE_COMMANDS), "\t", new GenCorePrimAsmCmds());
 		generate(Path.of(CORE_PRE_DEFS_CLS), "\t", new GenCorePredefined(true));
-		generate0(Path.of(CORE_PRE_DEFS_RES), new GenCorePredefined(false));
+		generateAll(Path.of(CORE_PRE_DEFS_RES), new GenCorePredefined(false));
 		generate(Path.of(DISASM_COMMANDS_ENUM), "\t", new GenDisasmEnumCommands());
 		generate(Path.of(RUN_COMMAND_FUNCS), "", new GenRunCommandFuncs());
 		generate(Path.of(RUN_COMMAND_ARRAY), "", new GenRunCommandArray());
-		generate0(Path.of(RUN_INT_HEADER), new GenRunIntHeader());
+		generateAll(Path.of(RUN_INT_HEADER), new GenRunIntHeader());
 		generate(Path.of(RUN_ERR_HEADER), "\t", new GenCErrEnum("PE_"));
 		generate(Path.of(PFS_ERR_HEADER), "\t", new GenCErrEnum("PFS_ERRNO_"));
 		generate(Path.of(SC_SDTLIB_FUNCS), "\t", new GenSCStdLibIntFuncs());
+		generateAll(J2P_CONSTANTS_PATH, new GenJ2PConstants());
+		generate(Path.of(J2P_PVM_JAVA), "|>", "", new GenJ2PPvmJava());
 		System.out.println("finish");
 	}
 	
-	private static void generate0(Path file, SrcGen gen) throws IOException, IOError {
+	private static void generateAll(Path file, SrcGen gen) throws IOException, IOError {
 		List<String> list = Files.readAllLines(file, StandardCharsets.UTF_8);
 		try (Writer out = Files.newBufferedWriter(file)) {
 			gen.generate(out);
@@ -101,6 +109,10 @@ public class GenSourceMain {
 	}
 	
 	private static void generate(Path file, String indent, SrcGen gen) throws IOException, IOError {
+		generate(file, "//", indent, gen);
+	}
+	
+	private static void generate(Path file, String comment, String indent, SrcGen gen) throws IOException, IOError {
 		List<String> list = Files.readAllLines(file, StandardCharsets.UTF_8);
 		try (Writer out = Files.newBufferedWriter(file)) {
 			for (Iterator<String> iter = list.iterator(); iter.hasNext();) {
@@ -108,7 +120,7 @@ public class GenSourceMain {
 				if (!line.contains(GEN_START)) {
 					writeLine(out, line);
 				} else {
-					out.write(genStartLines(indent));
+					out.write(genStartLines(comment, indent));
 					while (iter.hasNext()) {
 						line = iter.next();
 						if (line.contains(GEN_END)) {
@@ -116,7 +128,7 @@ public class GenSourceMain {
 						}
 					}
 					gen.generate(out);
-					out.write(genEndLines(indent));
+					out.write(genEndLines(comment, indent));
 				}
 			}
 		} catch (Throwable t) {
@@ -133,12 +145,12 @@ public class GenSourceMain {
 		}
 	}
 	
-	private static String genEndLines(String indent) {
-		return indent + '\n' + indent + "// here is the end of the automatic generated code-block\n" + indent + "// " + GEN_END + "\n";
+	private static String genEndLines(String comment, String indent) {
+		return indent + '\n' + indent + comment + " here is the end of the automatic generated code-block\n" + indent + comment + " " + GEN_END + "\n";
 	}
 	
-	private static String genStartLines(String indent) {
-		return indent + "// " + GEN_START + "\n" + indent + "// this code-block is automatic generated, do not modify\n";
+	private static String genStartLines(String comment, String indent) {
+		return indent + comment  + " " + GEN_START + "\n" + indent + comment + " this code-block is automatic generated, do not modify\n";
 	}
 	
 	public static void writeLine(Writer out, String line) throws IOException {

@@ -25,11 +25,15 @@ import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+
+import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
 
 @SuppressWarnings("javadoc")
 public interface SrcGen {
@@ -38,8 +42,10 @@ public interface SrcGen {
 	static final String PRIMITIVE_CODE_DIR = BASE_DIR + "primitive-code/";
 	static final String PATR_FILE_SYS_DIR  = BASE_DIR + "PatrFileSys/";
 	static final String SIMPLE_CODE_DIR    = BASE_DIR + "simple-code/";
+	static final String J2P_DIR            = BASE_DIR + "java-2-prim/";
 	static final String SIMPLE_COMPILE_DIR = SIMPLE_CODE_DIR + "simple-compile/";
 	static final String PRIM_CODE_README   = PRIMITIVE_CODE_DIR + "README.md";
+	static final String J2P_DOC_FILE       = J2P_DIR + "doc/file.md";
 	
 	static String initilizeBaseDir() {
 		String baseDir = System.getProperty("user.home") + "/git/";
@@ -64,12 +70,6 @@ public interface SrcGen {
 		return writeJavadocLines(out, "\t * ", firstBreak, lines);
 	}
 	
-	class c {
-		
-		static int cnt = 0;
-		
-	}
-	
 	static String writeJavadocLines(Writer out, String lineStart, String firstBreak, List<String> lines) throws IOException {
 		String br = firstBreak;
 		for (Iterator<String> iter = lines.iterator(); iter.hasNext();) {
@@ -79,7 +79,7 @@ public interface SrcGen {
 				br = "<br>";
 			} else {
 				List<Boolean> stack = new ArrayList<>();
-				out.write("\n" + lineStart + listStart(line.charAt(4), stack, line + ":: cnt=" + c.cnt++) + '\n');
+				out.write("\n" + lineStart + listStart(line.charAt(4), stack, line) + '\n');
 				javadocNonDirectListLine(out, lineStart, iter, line, stack);
 				br = "<br>";
 				if (!stack.isEmpty()) throw new IllegalStateException("stack is not empty");
@@ -94,11 +94,11 @@ public interface SrcGen {
 		boolean missingEntryEnd = false;
 		while (true) {
 			if (!line.startsWith(start)) {
-				String leadingWhite = line.substring(0, line.length() - line.stripLeading().length());
-				boolean cond = true;
+				String  leadingWhite = line.substring(0, line.length() - line.stripLeading().length());
+				boolean cond         = true;
 				if (line.charAt(leadingWhite.length()) != start.charAt(start.length() - 1)) {
 					start = start.substring(0, start.length() - 1) + line.substring(leadingWhite.length(), leadingWhite.length() + 1);
-					cond = !line.startsWith(start);
+					cond  = !line.startsWith(start);
 				}
 				if (cond) {
 					if (leadingWhite.length() < start.length() - 1) {
@@ -203,6 +203,136 @@ public interface SrcGen {
 		
 	}
 	
+	static class J2P {
+		
+		public static final String JNI_ENV_START = "JNI_Env_";
+		public static final String JNI_ENV_END   = "_OFF";
+		
+		private static final Pattern HEADER_PATTERN  = Pattern.compile("^##\\s*([A-Za-z0-9_\\- ]+)$");
+		private static final Pattern CONST_START     = Pattern
+				.compile("^\\+\\s+`\\s*([A-Za-z0-9_]+)\\s*`\\s*:\\s*`\\s*([0-9]+)\\s*`\\s*:\\s*`\\s*U?HEX-([0-9A-Fa-f]+)\\s*`\\s*$");
+		private static final Pattern OFF_CONST_START = Pattern.compile("^\\+\\s+`\\s*offset=([0-9]+)=U?HEX-([0-9A-Fa-f]+)\\s*`\\s*:\\s*_([A-Za-z0-9_]+)_\\s*$");
+		private static final Pattern CONST_DOC       = Pattern.compile("^ +\\+\\s+(.*)$");
+		
+		public static final Map<String, PrimitiveConstant> CONSTANTS = readConsts();
+		
+		private static Map<String, PrimitiveConstant> readConsts() {
+			Map<String, PrimitiveConstant> result = new LinkedHashMap<>();
+			try (Stream<String> lines = Files.lines(Path.of(J2P_DOC_FILE), StandardCharsets.UTF_8)) {
+				lines.forEachOrdered(new Consumer<>() {
+					
+					int                state;
+					int                lineNumber = 0;
+					String             name;
+					long               value;
+					final List<String> docLines   = new ArrayList<>();
+					
+					@Override
+					public void accept(String line) {
+						if (this.lineNumber < 0) { return; }
+						if (++this.lineNumber < 0) throw new IllegalStateException("more than int-max lines");
+						switch (this.state) {
+						case 0 -> {
+							Matcher header = HEADER_PATTERN.matcher(line);
+							if (header.matches() && header.group(1).equals("Error Constants")) {
+								this.state = 1;
+							}
+						}
+						case 1 -> readConst(result, line);
+						case 2 -> {
+							Matcher header = HEADER_PATTERN.matcher(line);
+							if (header.matches() && header.group(1).equals("_JNI-Env_")) {
+								this.state = 3;
+							}
+						}
+						case 3 -> {
+							if (line.equals("Operations:")) {
+								this.state = 4;
+							}
+							if (HEADER_PATTERN.matcher(line).matches()) {
+								throw new IllegalStateException("got a header before the Operations list started '" + line + "'");
+							}
+						}
+						case 4 -> readConst(result, line);
+						case 5 -> this.lineNumber = -1;
+						default -> throw new AssertionError(this.state);
+						}
+					}
+					
+					private Pattern constStart() { return this.state != 4 ? CONST_START : OFF_CONST_START; }
+					
+					private int valGroup() { return this.state != 4 ? 2 : 1; }
+					
+					private int hexGroup() { return this.state != 4 ? 3 : 2; }
+					
+					private String constName(Matcher matcher) {
+						if (this.state != 4) {
+							String n = matcher.group(1);
+							if (n.startsWith(JNI_ENV_START)) {
+								throw new IllegalStateException("the name starts with the special JNI_ENV_START value: " + JNI_ENV_START + " name: " + n);
+							}
+							return n;
+						}
+						return JNI_ENV_START + matcher.group(3) + JNI_ENV_END;
+					}
+					
+					private void readConst(Map<String, PrimitiveConstant> result, String line) {
+						if (this.name == null) {
+							newConst(line);
+						} else if (line.isEmpty()) {
+							finishConstant(result);
+							this.docLines.clear();
+							this.name = null;
+							this.state++;
+						} else if (line.startsWith("    ")) {
+							Matcher matcher = CONST_DOC.matcher(line);
+							if (!matcher.matches()) {
+								throw new IllegalStateException("the line does not match CONST_DOC regex, but starts with 4 spaces: '" + line + "'");
+							} // modify the line in comment()
+							this.docLines.add(line);
+						} else {
+							finishConstant(result);
+							this.docLines.clear();
+							newConst(line);
+						}
+					}
+					
+					private void newConst(String line) {
+						Matcher matcher = constStart().matcher(line);
+						if (!matcher.matches()) {
+							throw new IllegalStateException("first line does not match CONST_START regex: '" + line + "'");
+						}
+						this.name  = constName(matcher);
+						this.value = Long.parseLong(matcher.group(valGroup()));
+						if (this.value != Long.parseUnsignedLong(matcher.group(hexGroup()), 16)) {
+							throw new IllegalStateException("the two values are different: '" + line + "'");
+						}
+						if (this.state == 4 && (this.value & 7) != 0) {
+							throw new IllegalStateException("illegal value (offset values must be dividable by 8): '" + line + "'");
+						}
+					}
+					
+					private void finishConstant(Map<String, PrimitiveConstant> result) {
+						PrimitiveConstant pc = new PrimitiveConstant(this.name, comment(), this.value, GenSourceMain.J2P_CONSTANTS_PATH, this.lineNumber);
+						result.put(this.name, pc);
+					}
+					
+					private String comment() {
+						StringBuffer res = this.docLines.stream().collect(StringBuffer::new, (b, s) -> b.append('|').append(s, 5, s.length()).append('\n'),
+								StringBuffer::append);
+						res.replace(res.length() - 1, res.length(), "");
+						return res.toString();
+					}
+					
+				});
+			} catch (IOException e) {
+				throw new IOError(e);
+			}
+			return Collections.unmodifiableMap(result);
+		}
+		
+	}
+	
 	static record PrimAsmReadmeCommand(String name, ParamType p1, ParamType p2, ParamType p3, int num, List<String> general, List<String> definition) {
 		
 		private static final Pattern ACTIVATION_PATTERN = Pattern.compile("^\\s*##\\s*COMMANDS\\s*$");
@@ -233,7 +363,7 @@ public interface SrcGen {
 		static List<PrimAsmReadmeCommand> primAsmCmds() {
 			List<PrimAsmReadmeCommand> result = new ArrayList<>();
 			try (Stream<String> lines = Files.lines(Path.of(PRIM_CODE_README), StandardCharsets.UTF_8)) {
-				lines.forEachOrdered(new Consumer<String>() {
+				lines.forEachOrdered(new Consumer<>() {
 					
 					private boolean activated = false;
 					private boolean finish    = false;

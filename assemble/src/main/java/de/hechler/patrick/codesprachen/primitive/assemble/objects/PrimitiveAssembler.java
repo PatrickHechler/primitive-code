@@ -318,7 +318,7 @@ public class PrimitiveAssembler implements Closeable {
 		export(parsed.exports);
 	}
 	
-	public void export(Map<String, PrimitiveConstant> exports) {
+	public void export(Map<String, PrimitiveConstant> exports) throws IOException {
 		if (this.exportOut == null) { return; }
 		PrimAsmConstants.export(exports, this.exportOut);
 	}
