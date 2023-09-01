@@ -76,39 +76,44 @@ static void int_folder_open_child_of_name(INT_PARAMS); /* 31 */
 static void int_folder_open_child_folder_of_name(INT_PARAMS); /* 32 */
 static void int_folder_open_child_file_of_name(INT_PARAMS); /* 33 */
 static void int_folder_open_child_pipe_of_name(INT_PARAMS); /* 34 */
-static void int_folder_create_child_folder(INT_PARAMS); /* 35 */
-static void int_folder_create_child_file(INT_PARAMS); /* 36 */
-static void int_folder_create_child_pipe(INT_PARAMS); /* 37 */
-static void int_folder_open_iter(INT_PARAMS); /* 38 */
-static void int_file_length(INT_PARAMS); /* 39 */
-static void int_file_truncate(INT_PARAMS); /* 40 */
-static void int_handle_open_stream(INT_PARAMS); /* 41 */
-static void int_pipe_length(INT_PARAMS); /* 42 */
-static void int_time_get(INT_PARAMS); /* 43 */
-static void int_time_res(INT_PARAMS); /* 44 */
-static void int_time_sleep(INT_PARAMS); /* 45 */
-static void int_time_wait(INT_PARAMS); /* 46 */
-static void int_rnd_open(INT_PARAMS); /* 47 */
-static void int_rnd_num(INT_PARAMS); /* 48 */
-static void int_mem_cmp(INT_PARAMS); /* 49 */
-static void int_mem_cpy(INT_PARAMS); /* 50 */
-static void int_mem_mov(INT_PARAMS); /* 51 */
-static void int_mem_bset(INT_PARAMS); /* 52 */
-static void int_str_len(INT_PARAMS); /* 53 */
-static void int_str_index(INT_PARAMS); /* 54 */
-static void int_str_cmp(INT_PARAMS); /* 55 */
-static void int_str_from_num(INT_PARAMS); /* 56 */
-static void int_str_from_fpnum(INT_PARAMS); /* 57 */
-static void int_str_to_num(INT_PARAMS); /* 58 */
-static void int_str_to_fpnum(INT_PARAMS); /* 59 */
-static void int_str_to_u16str(INT_PARAMS); /* 60 */
-static void int_str_to_u32str(INT_PARAMS); /* 61 */
-static void int_str_from_u16str(INT_PARAMS); /* 62 */
-static void int_str_from_u32str(INT_PARAMS); /* 63 */
-static void int_str_format(INT_PARAMS); /* 64 */
-static void int_load_file(INT_PARAMS); /* 65 */
-static void int_load_lib(INT_PARAMS); /* 66 */
-static void int_unload_lib(INT_PARAMS); /* 67 */
+static void int_folder_open_descendand_of_path(INT_PARAMS); /* 35 */
+static void int_folder_open_descendand_folder_of_path(INT_PARAMS); /* 36 */
+static void int_folder_open_descendand_file_of_path(INT_PARAMS); /* 37 */
+static void int_folder_open_descendand_pipe_of_path(INT_PARAMS); /* 38 */
+static void int_folder_create_child_folder(INT_PARAMS); /* 39 */
+static void int_folder_create_child_file(INT_PARAMS); /* 40 */
+static void int_folder_create_child_pipe(INT_PARAMS); /* 41 */
+static void int_folder_open_iter(INT_PARAMS); /* 42 */
+static void int_file_length(INT_PARAMS); /* 43 */
+static void int_file_truncate(INT_PARAMS); /* 44 */
+static void int_handle_open_stream(INT_PARAMS); /* 45 */
+static void int_pipe_length(INT_PARAMS); /* 46 */
+static void int_time_get(INT_PARAMS); /* 47 */
+static void int_time_res(INT_PARAMS); /* 48 */
+static void int_time_sleep(INT_PARAMS); /* 49 */
+static void int_time_wait(INT_PARAMS); /* 50 */
+static void int_rnd_open(INT_PARAMS); /* 51 */
+static void int_rnd_num(INT_PARAMS); /* 52 */
+static void int_mem_cmp(INT_PARAMS); /* 53 */
+static void int_mem_cpy(INT_PARAMS); /* 54 */
+static void int_mem_mov(INT_PARAMS); /* 55 */
+static void int_mem_bset(INT_PARAMS); /* 56 */
+static void int_str_len(INT_PARAMS); /* 57 */
+static void int_str_index(INT_PARAMS); /* 58 */
+static void int_str_cmp(INT_PARAMS); /* 59 */
+static void int_str_from_num(INT_PARAMS); /* 60 */
+static void int_str_from_fpnum(INT_PARAMS); /* 61 */
+static void int_str_to_num(INT_PARAMS); /* 62 */
+static void int_str_to_fpnum(INT_PARAMS); /* 63 */
+static void int_str_to_u16str(INT_PARAMS); /* 64 */
+static void int_str_to_u32str(INT_PARAMS); /* 65 */
+static void int_str_from_u16str(INT_PARAMS); /* 66 */
+static void int_str_from_u32str(INT_PARAMS); /* 67 */
+static void int_str_format(INT_PARAMS); /* 68 */
+static void int_load_file(INT_PARAMS); /* 69 */
+static void int_load_lib(INT_PARAMS); /* 70 */
+static void int_create_lib(INT_PARAMS); /* 71 */
+static void int_unload_lib(INT_PARAMS); /* 72 */
 
 #endif // PVM
 
@@ -147,40 +152,45 @@ static void int_unload_lib(INT_PARAMS); /* 67 */
 #define INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME 32
 #define INT_FOLDER_OPEN_CHILD_FILE_OF_NAME 33
 #define INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME 34
-#define INT_FOLDER_CREATE_CHILD_FOLDER 35
-#define INT_FOLDER_CREATE_CHILD_FILE 36
-#define INT_FOLDER_CREATE_CHILD_PIPE 37
-#define INT_FOLDER_OPEN_ITER 38
-#define INT_FILE_LENGTH 39
-#define INT_FILE_TRUNCATE 40
-#define INT_HANDLE_OPEN_STREAM 41
-#define INT_PIPE_LENGTH 42
-#define INT_TIME_GET 43
-#define INT_TIME_RES 44
-#define INT_TIME_SLEEP 45
-#define INT_TIME_WAIT 46
-#define INT_RND_OPEN 47
-#define INT_RND_NUM 48
-#define INT_MEM_CMP 49
-#define INT_MEM_CPY 50
-#define INT_MEM_MOV 51
-#define INT_MEM_BSET 52
-#define INT_STR_LEN 53
-#define INT_STR_INDEX 54
-#define INT_STR_CMP 55
-#define INT_STR_FROM_NUM 56
-#define INT_STR_FROM_FPNUM 57
-#define INT_STR_TO_NUM 58
-#define INT_STR_TO_FPNUM 59
-#define INT_STR_TO_U16STR 60
-#define INT_STR_TO_U32STR 61
-#define INT_STR_FROM_U16STR 62
-#define INT_STR_FROM_U32STR 63
-#define INT_STR_FORMAT 64
-#define INT_LOAD_FILE 65
-#define INT_LOAD_LIB 66
-#define INT_UNLOAD_LIB 67
-#define INTERRUPT_COUNT 68
+#define INT_FOLDER_OPEN_DESCENDAND_OF_PATH 35
+#define INT_FOLDER_OPEN_DESCENDAND_FOLDER_OF_PATH 36
+#define INT_FOLDER_OPEN_DESCENDAND_FILE_OF_PATH 37
+#define INT_FOLDER_OPEN_DESCENDAND_PIPE_OF_PATH 38
+#define INT_FOLDER_CREATE_CHILD_FOLDER 39
+#define INT_FOLDER_CREATE_CHILD_FILE 40
+#define INT_FOLDER_CREATE_CHILD_PIPE 41
+#define INT_FOLDER_OPEN_ITER 42
+#define INT_FILE_LENGTH 43
+#define INT_FILE_TRUNCATE 44
+#define INT_HANDLE_OPEN_STREAM 45
+#define INT_PIPE_LENGTH 46
+#define INT_TIME_GET 47
+#define INT_TIME_RES 48
+#define INT_TIME_SLEEP 49
+#define INT_TIME_WAIT 50
+#define INT_RND_OPEN 51
+#define INT_RND_NUM 52
+#define INT_MEM_CMP 53
+#define INT_MEM_CPY 54
+#define INT_MEM_MOV 55
+#define INT_MEM_BSET 56
+#define INT_STR_LEN 57
+#define INT_STR_INDEX 58
+#define INT_STR_CMP 59
+#define INT_STR_FROM_NUM 60
+#define INT_STR_FROM_FPNUM 61
+#define INT_STR_TO_NUM 62
+#define INT_STR_TO_FPNUM 63
+#define INT_STR_TO_U16STR 64
+#define INT_STR_TO_U32STR 65
+#define INT_STR_FROM_U16STR 66
+#define INT_STR_FROM_U32STR 67
+#define INT_STR_FORMAT 68
+#define INT_LOAD_FILE 69
+#define INT_LOAD_LIB 70
+#define INT_CREATE_LIB 71
+#define INT_UNLOAD_LIB 72
+#define INTERRUPT_COUNT 73
 
 EXT void (*(ints[]))(INT_PARAMS)
 #ifdef PVM
@@ -220,39 +230,44 @@ EXT void (*(ints[]))(INT_PARAMS)
 	int_folder_open_child_folder_of_name, /* 32 */
 	int_folder_open_child_file_of_name, /* 33 */
 	int_folder_open_child_pipe_of_name, /* 34 */
-	int_folder_create_child_folder, /* 35 */
-	int_folder_create_child_file, /* 36 */
-	int_folder_create_child_pipe, /* 37 */
-	int_folder_open_iter, /* 38 */
-	int_file_length, /* 39 */
-	int_file_truncate, /* 40 */
-	int_handle_open_stream, /* 41 */
-	int_pipe_length, /* 42 */
-	int_time_get, /* 43 */
-	int_time_res, /* 44 */
-	int_time_sleep, /* 45 */
-	int_time_wait, /* 46 */
-	int_rnd_open, /* 47 */
-	int_rnd_num, /* 48 */
-	int_mem_cmp, /* 49 */
-	int_mem_cpy, /* 50 */
-	int_mem_mov, /* 51 */
-	int_mem_bset, /* 52 */
-	int_str_len, /* 53 */
-	int_str_index, /* 54 */
-	int_str_cmp, /* 55 */
-	int_str_from_num, /* 56 */
-	int_str_from_fpnum, /* 57 */
-	int_str_to_num, /* 58 */
-	int_str_to_fpnum, /* 59 */
-	int_str_to_u16str, /* 60 */
-	int_str_to_u32str, /* 61 */
-	int_str_from_u16str, /* 62 */
-	int_str_from_u32str, /* 63 */
-	int_str_format, /* 64 */
-	int_load_file, /* 65 */
-	int_load_lib, /* 66 */
-	int_unload_lib, /* 67 */
+	int_folder_open_descendand_of_path, /* 35 */
+	int_folder_open_descendand_folder_of_path, /* 36 */
+	int_folder_open_descendand_file_of_path, /* 37 */
+	int_folder_open_descendand_pipe_of_path, /* 38 */
+	int_folder_create_child_folder, /* 39 */
+	int_folder_create_child_file, /* 40 */
+	int_folder_create_child_pipe, /* 41 */
+	int_folder_open_iter, /* 42 */
+	int_file_length, /* 43 */
+	int_file_truncate, /* 44 */
+	int_handle_open_stream, /* 45 */
+	int_pipe_length, /* 46 */
+	int_time_get, /* 47 */
+	int_time_res, /* 48 */
+	int_time_sleep, /* 49 */
+	int_time_wait, /* 50 */
+	int_rnd_open, /* 51 */
+	int_rnd_num, /* 52 */
+	int_mem_cmp, /* 53 */
+	int_mem_cpy, /* 54 */
+	int_mem_mov, /* 55 */
+	int_mem_bset, /* 56 */
+	int_str_len, /* 57 */
+	int_str_index, /* 58 */
+	int_str_cmp, /* 59 */
+	int_str_from_num, /* 60 */
+	int_str_from_fpnum, /* 61 */
+	int_str_to_num, /* 62 */
+	int_str_to_fpnum, /* 63 */
+	int_str_to_u16str, /* 64 */
+	int_str_to_u32str, /* 65 */
+	int_str_from_u16str, /* 66 */
+	int_str_from_u32str, /* 67 */
+	int_str_format, /* 68 */
+	int_load_file, /* 69 */
+	int_load_lib, /* 70 */
+	int_create_lib, /* 71 */
+	int_unload_lib, /* 72 */
 }
 #endif // PVM
 ;
