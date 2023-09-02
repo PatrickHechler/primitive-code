@@ -737,7 +737,7 @@ import de.hechler.patrick.codesprachen.primitive.assemble.exceptions.AssembleRun
  		(
  			':' ~( '>' | ':' )
  		)
- 	)* ':>'
+ 	)* ':'+ '>'
  ;
 
  WS
