@@ -105,7 +105,7 @@ static void c_ill();
 /* 02.. : program control */
 /* 020. : compare/check */
 	/* 0200 */ static void c_cmp();
-	/* 0201 */ static void c_cmpl();
+	/* 0201 */ static void c_bcp();
 	/* 0202 */ static void c_cmpfp();
 	/* 0203 */ static void c_cmpsfp();
 	/* 0204 */ static void c_cmpqfp();

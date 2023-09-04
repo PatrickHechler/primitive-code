@@ -206,6 +206,12 @@ public class Param {
 		}
 	}
 	
+	public static void checkByte(long num) {
+		if (num > 0xFF) {
+			throw new IllegalStateException("this num is no byte value: num=0x" + Long.toHexString(num));
+		}
+	}
+	
 	static String toSRString(long sr) {
 		assert sr <= 0xFF;
 		int reg = (int) sr;

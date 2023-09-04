@@ -184,7 +184,7 @@ public interface SrcGen {
 	
 	enum ParamType {
 		
-		NO_CONST_PARAM, PARAM, CONST_PARAM, LABEL, NONE;
+		NO_CONST_PARAM, PARAM, CONST_PARAM, LABEL, NONE, BYTE_PARAM;
 		
 		public static ParamType val(String type) {
 			if (type == null || type.isEmpty()) { return null; }
@@ -197,6 +197,7 @@ public interface SrcGen {
 			case "CONST_PARAM", "<CONST_PARAM>" -> CONST_PARAM;
 			case "LABEL", "<LABEL>" -> LABEL;
 			case "NONE", "<NONE>" -> NONE;
+			case "BYTE_PARAM", "<BYTE_PARAM>" -> BYTE_PARAM;
 			default -> throw new IllegalStateException("unknown parameter type: '" + type + "'");
 			};
 		}

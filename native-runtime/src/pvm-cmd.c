@@ -73,8 +73,7 @@ static void c_extern() {
 				num oldip = pvm.ip;
 				int exitnum = ext->func();
 				if (exitnum != -1) {
-					exitnum &= 0xFF;
-					longjmp(call_pvm_env, exitnum + 1);
+					longjmp(call_pvm_env, (exitnum & 0xFF) + 1);
 				}
 				if (pvm.ip == oldip) {
 					c_ret();
@@ -762,6 +761,7 @@ static void c_pushblk() {
 	}
 	memmove(smem->offset + pvm.sp, pmem.mem->offset + p1.p.n, p2.p.n);
 	pvm.sp += p2.p.n;
+	incIP
 }
 static void c_popblk() {
 	struct p p1 = param(0, 8);
@@ -793,6 +793,7 @@ static void c_popblk() {
 	}
 	pvm.sp = nsp;
 	memmove(pmem.mem->offset + p1.p.n, smem->offset + nsp, p2.p.n);
+	incIP
 }
 
 static void c_cmp() {
@@ -810,6 +811,25 @@ static void c_cmp() {
 		pvm.status = (pvm.status & ~(S_EQUAL | S_GREATHER)) | S_LOWER;
 	} else {
 		pvm.status = (pvm.status & ~(S_GREATHER | S_LOWER)) | S_EQUAL;
+	}
+	incIP
+}
+static void c_bcp() {
+	struct p p1 = param(0, 8);
+	if (!p1.valid) {
+		return;
+	}
+	struct p p2 = param(0, 8);
+	if (!p2.valid) {
+		return;
+	}
+	unum and = p1.p.u & p2.p.u;
+	if (and == 0) {
+		pvm.status = (pvm.status & ~(S_ALL_BITS | S_SOME_BITS)) | S_NONE_BITS;
+	} else if (and == p2.p.u) {
+		pvm.status = (pvm.status & ~S_NONE_BITS) | (S_ALL_BITS | S_SOME_BITS);
+	} else {
+		pvm.status = (pvm.status & ~(S_ALL_BITS | S_NONE_BITS)) | S_SOME_BITS;
 	}
 	incIP
 }
@@ -1082,6 +1102,7 @@ static void c_fptn() {
 		return;
 	}
 	*p1.p.np = *p1.p.fpnp;
+	incIP
 }
 static void c_ntfp() {
 	struct p p1 = param(1, 8);
@@ -1089,6 +1110,7 @@ static void c_ntfp() {
 		return;
 	}
 	*p1.p.fpnp = *p1.p.np;
+	incIP
 }
 
 static void c_addfp() {
@@ -1106,6 +1128,7 @@ static void c_addfp() {
 		return;
 	}
 	*p1.p.fpnp += p2.p.fpn;
+	incIP
 }
 static void c_subfp() {
 	struct p p1 = param(1, 8);
@@ -1122,6 +1145,7 @@ static void c_subfp() {
 		return;
 	}
 	*p1.p.fpnp -= p2.p.fpn;
+	incIP
 }
 static void c_mulfp() {
 	struct p p1 = param(1, 8);
@@ -1138,6 +1162,7 @@ static void c_mulfp() {
 		return;
 	}
 	*p1.p.fpnp *= p2.p.fpn;
+	incIP
 }
 static void c_divfp() {
 	struct p p1 = param(1, 8);
@@ -1154,6 +1179,7 @@ static void c_divfp() {
 		return;
 	}
 	*p1.p.fpnp /= p2.p.fpn;
+	incIP
 }
 static void c_negfp() {
 	struct p p1 = param(1, 8);
@@ -1165,6 +1191,7 @@ static void c_negfp() {
 		return;
 	}
 	*p1.p.fpnp = -*p1.p.fpnp;
+	incIP
 }
 static void c_modfp() {
 	struct p p1 = param(1, 8);
@@ -1181,6 +1208,7 @@ static void c_modfp() {
 		return;
 	}
 	*p1.p.fpnp = fmod(*p1.p.fpnp, p2.p.fpn);
+	incIP
 }
 
 static void c_addqfp() {
@@ -1207,6 +1235,7 @@ static void c_addqfp() {
 		return;
 	}
 	*p1.p.fpnp += p2.p.fpn;
+	incIP
 }
 static void c_subqfp() {
 	struct p p1 = param(1, 8);
@@ -1232,6 +1261,7 @@ static void c_subqfp() {
 		return;
 	}
 	*p1.p.fpnp -= p2.p.fpn;
+	incIP
 }
 static void c_mulqfp() {
 	struct p p1 = param(1, 8);
@@ -1257,6 +1287,7 @@ static void c_mulqfp() {
 		return;
 	}
 	*p1.p.fpnp *= p2.p.fpn;
+	incIP
 }
 static void c_divqfp() {
 	struct p p1 = param(1, 8);
@@ -1282,6 +1313,7 @@ static void c_divqfp() {
 		return;
 	}
 	*p1.p.fpnp /= p2.p.fpn;
+	incIP
 }
 static void c_negqfp() {
 	struct p p1 = param(1, 8);
@@ -1289,6 +1321,7 @@ static void c_negqfp() {
 		return;
 	}
 	*p1.p.np ^= FP_SIGN_BIT;
+	incIP
 }
 static void c_modqfp() {
 	struct p p1 = param(1, 8);
@@ -1314,6 +1347,7 @@ static void c_modqfp() {
 		return;
 	}
 	*p1.p.fpnp = fmod(*p1.p.fpnp, p2.p.fpn);
+	incIP
 }
 
 static void c_addsfp() {
@@ -1331,6 +1365,7 @@ static void c_addsfp() {
 		return;
 	}
 	*p1.p.fpnp += p2.p.fpn;
+	incIP
 }
 static void c_subsfp() {
 	struct p p1 = param(1, 8);
@@ -1347,6 +1382,7 @@ static void c_subsfp() {
 		return;
 	}
 	*p1.p.fpnp -= p2.p.fpn;
+	incIP
 }
 static void c_mulsfp() {
 	struct p p1 = param(1, 8);
@@ -1363,6 +1399,7 @@ static void c_mulsfp() {
 		return;
 	}
 	*p1.p.fpnp *= p2.p.fpn;
+	incIP
 }
 static void c_divsfp() {
 	struct p p1 = param(1, 8);
@@ -1379,6 +1416,7 @@ static void c_divsfp() {
 		return;
 	}
 	*p1.p.fpnp /= p2.p.fpn;
+	incIP
 }
 static void c_negsfp() {
 	struct p p1 = param(1, 8);
@@ -1390,6 +1428,7 @@ static void c_negsfp() {
 		return;
 	}
 	*p1.p.fpnp = -*p1.p.fpnp;
+	incIP
 }
 static void c_modsfp() {
 	struct p p1 = param(1, 8);
@@ -1406,6 +1445,7 @@ static void c_modsfp() {
 		return;
 	}
 	*p1.p.fpnp = fmod(*p1.p.fpnp, p2.p.fpn);
+	incIP
 }
 
 static void c_uadd() {
@@ -1418,7 +1458,20 @@ static void c_uadd() {
 		return;
 	}
 	check_chaged(1, 8)
+	unum oldp1 = *p1.p.up;
 	*p1.p.up += p2.p.u;
+	if (oldp1 & p2.p.u & 0x8000000000000000ULL) {
+		if (*p1.p.up) {
+			pvm.status = (pvm.status & ~(S_ZERO)) | (S_OVERFLOW);
+		} else {
+			pvm.status = (pvm.status) | (S_OVERFLOW | S_ZERO);
+		}
+	} else if (*p1.p.up) {
+		pvm.status = (pvm.status & ~(S_OVERFLOW | S_ZERO));
+	} else {
+		pvm.status = (pvm.status & ~(S_OVERFLOW)) | (S_ZERO);
+	}
+	incIP
 }
 static void c_usub() {
 	struct p p1 = param(1, 8);
@@ -1430,7 +1483,20 @@ static void c_usub() {
 		return;
 	}
 	check_chaged(1, 8)
-	*p1.p.up -= p2.p.u;
+	unum oldp1 = *p1.p.up;
+	*p1.p.up = oldp1 - p2.p.u;
+	if (oldp1 < p2.p.u) {
+		if (*p1.p.up) {
+			pvm.status = (pvm.status & ~(S_ZERO)) | (S_OVERFLOW);
+		} else {
+			pvm.status = (pvm.status) | (S_OVERFLOW | S_ZERO);
+		}
+	} else if (*p1.p.up) {
+		pvm.status = (pvm.status & ~(S_OVERFLOW | S_ZERO));
+	} else {
+		pvm.status = (pvm.status & ~(S_OVERFLOW)) | (S_ZERO);
+	}
+	incIP
 }
 static void c_umul() {
 	struct p p1 = param(1, 8);
@@ -1443,6 +1509,7 @@ static void c_umul() {
 	}
 	check_chaged(1, 8)
 	*p1.p.up *= p2.p.u;
+	incIP
 }
 static void c_udiv() {
 	struct p p1 = param(1, 8);
@@ -1457,6 +1524,7 @@ static void c_udiv() {
 	unum a = *p1.p.up, b = *p2.p.up;
 	*p1.p.up = a / b;
 	*p2.p.up = a % b;
+	incIP
 }
 static void c_badd() {
 	struct p p1 = param(1, 16);
@@ -1469,6 +1537,7 @@ static void c_badd() {
 	}
 	check_chaged(1, 16)
 	*p1.p.bigp = *p1.p.bigp + *p2.p.bigp;
+	incIP
 }
 static void c_bsub() {
 	struct p p1 = param(1, 16);
@@ -1481,6 +1550,7 @@ static void c_bsub() {
 	}
 	check_chaged(1, 16)
 	*p1.p.bigp = *p1.p.bigp - *p2.p.bigp;
+	incIP
 }
 static void c_bmul() {
 	struct p p1 = param(1, 16);
@@ -1493,6 +1563,7 @@ static void c_bmul() {
 	}
 	check_chaged(1, 16)
 	*p1.p.bigp = *p1.p.bigp * *p2.p.bigp;
+	incIP
 }
 static void c_bdiv() {
 	struct p p1 = param(1, 16);
@@ -1506,6 +1577,7 @@ static void c_bdiv() {
 	check_chaged(1, 16)
 	*p1.p.bigp = *p1.p.bigp * *p2.p.bigp;
 	*p1.p.bigp = *p1.p.bigp * *p2.p.bigp;
+	incIP
 }
 static void c_bneg() {
 	struct p p1 = param(1, 16);
@@ -1513,4 +1585,5 @@ static void c_bneg() {
 		return;
 	}
 	*p1.p.bigp = -*p1.p.bigp;
+	incIP
 }

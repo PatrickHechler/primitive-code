@@ -47,7 +47,6 @@ public enum Commands {
 	
 	// PARAMS: NO_CONST_PARAM PARAM
 	
-	CMD_MVB(MVB, 2, 1),
 	CMD_MVW(MVW, 2, 1),
 	CMD_MVDW(MVDW, 2, 1),
 	CMD_MOV(MOV, 2, 1),
@@ -85,7 +84,7 @@ public enum Commands {
 	// PARAMS: PARAM PARAM
 	
 	CMD_CMP(CMP, 2, 0),
-	CMD_CMPL(CMPL, 2, 0),
+	CMD_BCP(BCP, 2, 0),
 	CMD_CMPFP(CMPFP, 2, 0),
 	CMD_CMPSFP(CMPSFP, 2, 0),
 	CMD_CMPQFP(CMPQFP, 2, 0),
@@ -97,6 +96,10 @@ public enum Commands {
 	
 	CMD_JMPO(JMPO, 2, 0, 1),
 	CMD_CALO(CALO, 2, 0, 1),
+	
+	// PARAMS: NO_CONST_PARAM BYTE_PARAM
+	
+	CMD_MVB(MVB, 2, 1, 0, 1),
 	
 	// PARAMS: NO_CONST_PARAM
 	
@@ -162,16 +165,22 @@ public enum Commands {
 	public final int params;
 	public final int noconstParams;
 	public final int constParams;
+	public final int byteParams;
 	
 	private Commands(int num, int params, int noconstParams) {
-		this(num, params, noconstParams, 0);
+		this(num, params, noconstParams, 0, 0);
 	}
 	
 	private Commands(int num, int params, int noconstParams, int constParams) {
+		this(num, params, noconstParams, constParams, 0);
+	}
+	
+	private Commands(int num, int params, int noconstParams, int constParams, int byteParams) {
 		this.num = num;
 		this.params = params;
 		this.noconstParams = noconstParams;
 		this.constParams = constParams;
+		this.byteParams = byteParams;
 	}
 	
 	@Override

@@ -1597,8 +1597,8 @@ returns [Command c] @init {Commands cmd = null;}
 		| CMP
 		{cmd = Commands.CMD_CMP;}
 
-		| CMPL
-		{cmd = Commands.CMD_CMPL;}
+		| BCP
+		{cmd = Commands.CMD_BCP;}
 
 		| CMPFP
 		{cmd = Commands.CMD_CMPFP;}
@@ -2028,9 +2028,9 @@ CMP
 	'CMP'
 ;
 
-CMPL
+BCP
 :
-	'CMPL'
+	'BCP'
 ;
 
 CMPFP

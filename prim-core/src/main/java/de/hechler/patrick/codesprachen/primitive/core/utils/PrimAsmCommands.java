@@ -58,7 +58,7 @@ public class PrimAsmCommands {
 	public static final int EXTERN  = 0x0000;
 	/**
 	 * <b>MVB</b> <code>(00 01)</code><br>
-	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;PARAM&gt;</code>
+	 * Parameter: <code>&lt;NO_CONST_PARAM&gt; , &lt;BYTE_PARAM&gt;</code>
 	 * <p>
 	 * copies the byte value of the second parameter to the first byte parameter
 	 * <p>
@@ -816,6 +816,28 @@ public class PrimAsmCommands {
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 uadd p2</code></li>
+	 * <li><code>if ((p2 &amp; (p1 usub p2)) &amp; UHEX-8000000000000000) != 0</code>
+	 * <ul>
+	 * <li><code>OVERFLOW &lt;- 1</code></li>
+	 * <li><code>if p1 != 0</code>
+	 * <ul>
+	 * <li><code>ZERO &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>ZERO &lt;- 1</code></li>
+	 * </ul></li>
+	 * </ul></li>
+	 * <li><code>else if p1 != 0</code>
+	 * <ul>
+	 * <li><code>OVERFLOW &lt;- 0</code></li>
+	 * <li><code>ZERO &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>OVERFLOW &lt;- 0</code></li>
+	 * <li><code>ZERO &lt;- 1</code></li>
+	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 
@@ -830,6 +852,28 @@ public class PrimAsmCommands {
 	 * <b>definition:</b>
 	 * <ul>
 	 * <li><code>p1 &lt;- p1 usub p2</code></li>
+	 * <li><code>if (p1 uadd p2) &lt; p2</code>
+	 * <ul>
+	 * <li><code>OVERFLOW &lt;- 1</code></li>
+	 * <li><code>if p1 != 0</code>
+	 * <ul>
+	 * <li><code>ZERO &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>ZERO &lt;- 1</code></li>
+	 * </ul></li>
+	 * </ul></li>
+	 * <li><code>else if p1 != 0</code>
+	 * <ul>
+	 * <li><code>OVERFLOW &lt;- 0</code></li>
+	 * <li><code>ZERO &lt;- 0</code></li>
+	 * </ul></li>
+	 * <li><code>else</code>
+	 * <ul>
+	 * <li><code>OVERFLOW &lt;- 0</code></li>
+	 * <li><code>ZERO &lt;- 1</code></li>
+	 * </ul></li>
 	 * <li><code>IP &lt;- IP + CMD_LEN</code></li>
 	 * </ul>
 
@@ -1023,35 +1067,36 @@ public class PrimAsmCommands {
 	 */
 	public static final int CMP     = 0x0200;
 	/**
-	 * <b>CMPL</b> <code>(02 01)</code><br>
+	 * <b>BCP</b> <code>(02 01)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
 	 * <p>
-	 * compares the two values on logical/bit level
+	 * compares the two values on logical/bit level<br>
+	 * note that <code>ALL_BITS</code> will not be set when <code>p1</code> is zero
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
-	 * <li><code>if (p1 &amp; p2) = p2</code>
-	 * <ul>
-	 * <li><code>ALL_BITS &lt;- 1</code></li>
-	 * <li><code>SOME_BITS &lt;- 1</code></li>
-	 * <li><code>NONE_BITS &lt;- 0</code></li>
-	 * </ul></li>
-	 * <li><code>else if (p1 &amp; p2) != 0</code>
+	 * <li><code>if (p1 &amp; p2) = 0</code>
 	 * <ul>
 	 * <li><code>ALL_BITS &lt;- 0</code></li>
+	 * <li><code>SOME_BITS &lt;- 0</code></li>
+	 * <li><code>NONE_BITS &lt;- 1</code></li>
+	 * </ul></li>
+	 * <li><code>else if (p1 &amp; p2) = p1</code>
+	 * <ul>
+	 * <li><code>ALL_BITS &lt;- 1</code></li>
 	 * <li><code>SOME_BITS &lt;- 1</code></li>
 	 * <li><code>NONE_BITS &lt;- 0</code></li>
 	 * </ul></li>
 	 * <li><code>else</code>
 	 * <ul>
 	 * <li><code>ALL_BITS &lt;- 0</code></li>
-	 * <li><code>SOME_BITS &lt;- 0</code></li>
-	 * <li><code>NONE_BITS &lt;- 1</code></li>
+	 * <li><code>SOME_BITS &lt;- 1</code></li>
+	 * <li><code>NONE_BITS &lt;- 0</code></li>
 	 * </ul></li>
 	 * </ul>
 
 	 */
-	public static final int CMPL    = 0x0201;
+	public static final int BCP     = 0x0201;
 	/**
 	 * <b>CMPFP</b> <code>(02 02)</code><br>
 	 * Parameter: <code>&lt;PARAM&gt; , &lt;PARAM&gt;</code>
@@ -1776,7 +1821,7 @@ public class PrimAsmCommands {
 	 * <b>JMPAB</b> <code>(02 1d)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last AllBits flag is set
+	 * sets the instruction pointer to position of the command after the label if the <code>ALL_BITS</code> flag is set
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
@@ -1796,7 +1841,7 @@ public class PrimAsmCommands {
 	 * <b>JMPSB</b> <code>(02 1e)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last SomeBits flag is set
+	 * sets the instruction pointer to position of the command after the label if the <code>SOME_BITS</code> flag is set
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>
@@ -1816,7 +1861,7 @@ public class PrimAsmCommands {
 	 * <b>JMPNB</b> <code>(02 1f)</code><br>
 	 * Parameter: <code>&lt;LABEL&gt;</code>
 	 * <p>
-	 * sets the instruction pointer to position of the command after the label if the last NoneBits flag is set
+	 * sets the instruction pointer to position of the command after the label if the <code>NONE_BITS</code> flag is set
 	 * <p>
 	 * <b>definition:</b>
 	 * <ul>

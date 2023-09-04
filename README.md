@@ -1196,13 +1196,13 @@ the pre-commands ar executed at assemble time, not runtime
 * binary:
     * `00 00 00 00 00 00 00 00`
 
-`MVB <NO_CONST_PARAM> , <PARAM>`
+`MVB <NO_CONST_PARAM> , <BYTE_PARAM>`
 * copies the byte value of the second parameter to the first byte parameter
 * definition:
     * `p1 <-8-bit- p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `00 01 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `00 01 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -1798,6 +1798,18 @@ the pre-commands ar executed at assemble time, not runtime
 * like ADD, but uses the parameters as unsigned parameters
 * definition:
     * `p1 <- p1 uadd p2`
+    * `if ((p2 & (p1 usub p2)) & UHEX-8000000000000000) != 0`
+        * `OVERFLOW <- 1`
+        * `if p1 != 0`
+            * `ZERO <- 0`
+        * `else`
+            * `ZERO <- 1`
+    * `else if p1 != 0`
+        * `OVERFLOW <- 0`
+        * `ZERO <- 0`
+    * `else`
+        * `OVERFLOW <- 0`
+        * `ZERO <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
     * `01 50 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
@@ -1810,6 +1822,18 @@ the pre-commands ar executed at assemble time, not runtime
 * like SUB, but uses the parameters as unsigned parameters
 * definition:
     * `p1 <- p1 usub p2`
+    * `if (p1 uadd p2) < p2`
+        * `OVERFLOW <- 1`
+        * `if p1 != 0`
+            * `ZERO <- 0`
+        * `else`
+            * `ZERO <- 1`
+    * `else if p1 != 0`
+        * `OVERFLOW <- 0`
+        * `ZERO <- 0`
+    * `else`
+        * `OVERFLOW <- 0`
+        * `ZERO <- 1`
     * `IP <- IP + CMD_LEN`
 * binary:
     * `01 51 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
@@ -1966,21 +1990,22 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`CMPL <PARAM> , <PARAM>`
+`BCP <PARAM> , <PARAM>`
 * compares the two values on logical/bit level
+* note that `ALL_BITS` will not be set when `p1` is zero
 * definition:
-    * `if (p1 & p2) = p2`
-        * `ALL_BITS <- 1`
-        * `SOME_BITS <- 1`
-        * `NONE_BITS <- 0`
-    * `else if (p1 & p2) != 0`
+    * `if (p1 & p2) = 0`
         * `ALL_BITS <- 0`
+        * `SOME_BITS <- 0`
+        * `NONE_BITS <- 1`
+    * `else if (p1 & p2) = p1`
+        * `ALL_BITS <- 1`
         * `SOME_BITS <- 1`
         * `NONE_BITS <- 0`
     * `else`
         * `ALL_BITS <- 0`
-        * `SOME_BITS <- 0`
-        * `NONE_BITS <- 1`
+        * `SOME_BITS <- 1`
+        * `NONE_BITS <- 0`
 * binary:
     * `02 01 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
@@ -2448,7 +2473,7 @@ the pre-commands ar executed at assemble time, not runtime
 
 
 `JMPAB <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last AllBits flag is set
+* sets the instruction pointer to position of the command after the label if the `ALL_BITS` flag is set
 * definition:
     * `if ALL_BITS`
         * `IP <- IP + RELATIVE_LABEL`
@@ -2458,7 +2483,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `02 1D <RELATIVE_LABEL (48-bit)>`
 
 `JMPSB <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last SomeBits flag is set
+* sets the instruction pointer to position of the command after the label if the `SOME_BITS` flag is set
 * definition:
     * `if SOME_BITS`
         * `IP <- IP + RELATIVE_LABEL`
@@ -2468,7 +2493,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `02 1E <RELATIVE_LABEL (48-bit)>`
 
 `JMPNB <LABEL>`
-* sets the instruction pointer to position of the command after the label if the last NoneBits flag is set
+* sets the instruction pointer to position of the command after the label if the `NONE_BITS` flag is set
 * definition:
     * `if NONE_BITS`
         * `IP <- IP + RELATIVE_LABEL`

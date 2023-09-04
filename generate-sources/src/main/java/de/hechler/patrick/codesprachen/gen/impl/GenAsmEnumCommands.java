@@ -31,6 +31,7 @@ public class GenAsmEnumCommands implements SrcGen {
 		sum += writeCmds(out, ParamType.NO_CONST_PARAM, ParamType.PARAM, null, ", 2, 1),\n");
 		sum += writeCmds(out, ParamType.PARAM, ParamType.PARAM, null, ", 2, 0),\n");
 		sum += writeCmds(out, ParamType.PARAM, ParamType.CONST_PARAM, null, ", 2, 0, 1),\n");
+		sum += writeCmds(out, ParamType.NO_CONST_PARAM, ParamType.BYTE_PARAM, null, ", 2, 1, 0, 1),\n");
 		sum += writeCmds(out, ParamType.NO_CONST_PARAM, null, null, ", 1, 1),\n");
 		sum += writeCmds(out, ParamType.PARAM, null, null, ", 1, 0),\n");
 		sum += writeCmds(out, ParamType.LABEL, null, null, ", 1, -1),\n");

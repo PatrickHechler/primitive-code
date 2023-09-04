@@ -621,8 +621,8 @@ public class PrimitiveAssembler implements Closeable {
 		long num = cmd.p1.num;
 		long off = cmd.p1.off;
 		int  art = cmd.p1.art;
-		addRegs(bytes, num, off, art, 7);
-		addNums(bytes, num, off, art);
+		addRegs(bytes, num, off, art, 7, cmd, 1);
+		addNums(bytes, num, off, art, cmd, 1);
 		this.out.write(bytes, 0, 8);
 	}
 	
@@ -640,19 +640,21 @@ public class PrimitiveAssembler implements Closeable {
 		int        index = 7;
 		bytes[2] = (byte) p1art;
 		bytes[3] = (byte) p2art;
-		index    = addRegs(bytes, p1num, p1off, p1art, index);
+		index    = addRegs(bytes, p1num, p1off, p1art, index, cmd, 2);
 		if (p2art == -1) System.err.println(cmd);
-		addRegs(bytes, p2num, p2off, p2art, index);
-		addNums(bytes, p1num, p1off, p1art);
-		addNums(bytes, p2num, p2off, p2art);
+		addRegs(bytes, p2num, p2off, p2art, index, cmd, 1);
+		addNums(bytes, p1num, p1off, p1art, cmd, 2);
+		addNums(bytes, p2num, p2off, p2art, cmd, 1);
 		this.out.write(bytes, 0, 8);
 	}
 	
-	private void addNums(byte[] bytes, final long pnum, final long poff, final int part) throws IOException, AssertionError {
+	private void addNums(byte[] bytes, final long pnum, final long poff, final int part, Command cmd, int minByteParams) throws IOException, AssertionError {
 		switch (part) {
 		case Param.ART_ANUM -> {
-			this.out.write(bytes, 0, 8);
-			convertLongToByteArr(bytes, pnum);
+			if (cmd.cmd.byteParams < minByteParams) {
+				this.out.write(bytes, 0, 8);
+				convertLongToByteArr(bytes, pnum);
+			}
 		}
 		case Param.ART_ANUM_BNUM -> {
 			if (!this.supressWarn) { LOG.warning(ADD_CONSTANTS_RUNTIME_WARN); }
@@ -681,9 +683,14 @@ public class PrimitiveAssembler implements Closeable {
 		}
 	}
 	
-	private int addRegs(byte[] bytes, final long pnum, final long poff, final int part, int index) throws AssertionError {
+	private int addRegs(byte[] bytes, final long pnum, final long poff, final int part, int index, Command cmd, int minByteParams) throws AssertionError {
 		switch (part) {
-		case Param.ART_ANUM -> { /**/ }
+		case Param.ART_ANUM -> {
+			if (cmd.cmd.byteParams >= minByteParams) {
+				Param.checkByte(pnum);
+				bytes[index--] = (byte) pnum;
+			}
+		}
 		case Param.ART_ANUM_BNUM -> { if (!this.supressWarn) { LOG.warning(ADD_CONSTANTS_RUNTIME_WARN); } }
 		case Param.ART_ANUM_BADR -> { if (!this.supressWarn) { LOG.warning(CONSTANT_MEMORY_POINTER_WARN); } }
 		case Param.ART_ANUM_BREG -> {

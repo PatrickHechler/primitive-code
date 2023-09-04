@@ -199,7 +199,7 @@ static void(*cmds[])()
 	ILL_1
 	ILL_1
 	c_cmp, /* 0200 */
-	c_cmpl, /* 0201 */
+	c_bcp, /* 0201 */
 	c_cmpfp, /* 0202 */
 	c_cmpsfp, /* 0203 */
 	c_cmpqfp, /* 0204 */

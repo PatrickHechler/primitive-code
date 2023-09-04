@@ -917,6 +917,8 @@ static inline struct p param(int pntr, num size) {
 	case P_NUM:
 		if (pntr) {
 			paramFail
+		} else if (size == 1) {
+			r.p.b = ia.bp[param_byte_value_index--];
 		} else if (remain_instruct_space
 				<= size + ((param_num_value_index - 1) << 3)) {
 			interrupt(INT_ERROR_ILLEGAL_MEMORY, 0);
@@ -927,8 +929,6 @@ static inline struct p param(int pntr, num size) {
 			r.p.dw = *(double_word*) (ia.np + param_num_value_index++);
 		} else if (size == 2) {
 			r.p.w = *(word*) (ia.np + param_num_value_index++);
-		} else if (size == 1) {
-			r.p.b = *(byte*) (ia.np + param_num_value_index++);
 		} else {
 			abort();
 		}
