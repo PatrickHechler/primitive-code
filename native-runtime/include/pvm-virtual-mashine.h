@@ -30,9 +30,9 @@
 #include <setjmp.h>
 
 #ifdef PVM
-#	define EXT
+#	define PFS_EXT
 #else // PVM
-#	define EXT extern
+#	define PFS_EXT extern
 #endif // PVM
 
 typedef int64_t num;
@@ -94,7 +94,7 @@ _Static_assert(sizeof(num) == sizeof(unum), "Error!");
 _Static_assert(sizeof(fpnum) == sizeof(unum), "Error!");
 _Static_assert(sizeof(void*) == sizeof(unum), "Error!");
 
-EXT struct pvm {
+PFS_EXT struct pvm {
 	num regs[0]; // array size set to zero, because this is no union
 	num ip; // regs[0]
 	num sp; // regs[1]
@@ -153,7 +153,7 @@ static uint64_t pvm_address_hash(const void *a);
 
 #	endif // PVM
 
-EXT struct hashset breakpoints
+PFS_EXT struct hashset breakpoints
 #ifdef PVM
 = {
 		.entries = NULL,
@@ -164,7 +164,7 @@ EXT struct hashset breakpoints
 }
 #endif // PVM
 ;
-EXT enum pvm_db_state {
+PFS_EXT enum pvm_db_state {
 	pvm_ds_running,
 
 	pvm_ds_new_running,
@@ -178,7 +178,7 @@ EXT enum pvm_db_state {
 	pvm_ds_init = pvm_ds_waiting,
 } pvm_state, pvm_next_state;
 
-EXT int pvm_depth;
+PFS_EXT int pvm_depth;
 
 #endif // PVM_DEBUG
 

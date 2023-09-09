@@ -55,7 +55,7 @@ public class ProgramChecker {
 	
 	protected static final byte[] EMPTY_BARR = new byte[0];
 	
-	private static final StreamOpenOptions CREATE_FILE_OPTS = new StreamOpenOptions(false, true, false, ElementType.FILE, false, true);
+	private static final StreamOpenOptions CREATE_FILE_OPTS = new StreamOpenOptions(false, true, false, ElementType.FILE, false, true, false);
 	
 	private static final String HELLO_WORLD_PMF = "/hello-world";
 	private static final String HELLO_WORLD_PFS = "./testout/hello-world.pfs";

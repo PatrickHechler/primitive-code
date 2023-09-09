@@ -46,7 +46,6 @@ import de.hechler.patrick.zeugs.pfs.interfaces.File;
 import de.hechler.patrick.zeugs.pfs.interfaces.Folder;
 import de.hechler.patrick.zeugs.pfs.interfaces.ReadStream;
 import de.hechler.patrick.zeugs.pfs.interfaces.WriteStream;
-import de.hechler.patrick.zeugs.pfs.misc.ElementType;
 import de.hechler.patrick.zeugs.pfs.opts.JavaFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.PatrFSOptions;
 import de.hechler.patrick.zeugs.pfs.opts.StreamOpenOptions;
@@ -163,13 +162,13 @@ public class PrimitiveCodeAssembleMain {
 	}
 	
 	private static void setup(String[] args) {
-		Charset charset      = null;
-		String  inFile       = null;
-		String  outFile      = null;
-		boolean suppressWarn = false;
-		boolean noExport     = false;
-		boolean force        = false;
-		List<Path> loockups = new ArrayList<>();
+		Charset    charset      = null;
+		String     inFile       = null;
+		String     outFile      = null;
+		boolean    suppressWarn = false;
+		boolean    noExport     = false;
+		boolean    force        = false;
+		List<Path> loockups     = new ArrayList<>();
 		try {
 			for (int i = 0; i < args.length; i++) {
 				switch (args[i].toLowerCase()) {
@@ -221,8 +220,7 @@ public class PrimitiveCodeAssembleMain {
 						} else {
 							crash(args, -1, "out file already exists use --force to overwrite");
 						}
-					} catch (@SuppressWarnings("unused") NoSuchFileException e) {
-						/* ignore */ }
+					} catch (@SuppressWarnings("unused") NoSuchFileException e) {/**/}
 					try (File of = parent.createFile(outFile)) {
 						out = of.openWrite();
 					}
@@ -234,7 +232,7 @@ public class PrimitiveCodeAssembleMain {
 							if (force) {
 								oldExpOut.delete();
 							} else {
-								crash(args, -1, "out file already exists use --force to overwrite");
+								crash(args, -1, "out symbol file already exists use --force to overwrite");
 							}
 						} catch (@SuppressWarnings("unused") NoSuchFileException e) {
 							/* ignore */ }
@@ -244,7 +242,7 @@ public class PrimitiveCodeAssembleMain {
 					}
 				}
 			} else {
-				StreamOpenOptions opts = new StreamOpenOptions(false, true, false, ElementType.FILE, true, !force);
+				StreamOpenOptions opts = force ? StreamOpenOptions.FILE_WRITE_CREATE_TRUNCATE_OPTS : StreamOpenOptions.FILE_WRITE_CREATE_ONLY_OPTS;
 				out = (WriteStream) outFS.stream(outFile, opts);
 				if (force) {
 					try (File file = outFS.file(outFile)) {
@@ -283,7 +281,7 @@ public class PrimitiveCodeAssembleMain {
 		if (args.length <= i) { crash(args, i, "not enugh args for input option"); }
 		loockups.add(Path.of(args[i]));
 	}
-
+	
 	private static String argInput(String[] args, String inFile, int i) {
 		if (args.length <= i) { crash(args, i, "not enugh args for input option"); }
 		if (inFile != null) { crash(args, i, "input already set"); }
