@@ -139,7 +139,7 @@ static void int_stream_file_add_pos( INT_PARAMS) /* 14 */{
 static void int_stream_file_seek_eof( INT_PARAMS) /* 15 */{
 	pvm.x[1] = pfs_stream_seek_eof(pvm.x[0]);
 }
-static void int_stream_file( INT_PARAMS) /* 16 */{
+static void int_open_file( INT_PARAMS) /* 16 */{
 	struct memory *mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
 		return;
@@ -147,7 +147,7 @@ static void int_stream_file( INT_PARAMS) /* 16 */{
 	check_string_len(0, 1, 0)
 	pvm.x[0] = pfs_handle_file(name);
 }
-static void int_stream_folder( INT_PARAMS) /* 17 */{
+static void int_open_folder( INT_PARAMS) /* 17 */{
 	struct memory *mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
 		return;
@@ -155,7 +155,7 @@ static void int_stream_folder( INT_PARAMS) /* 17 */{
 	check_string_len(0, 1, 0)
 	pvm.x[0] = pfs_handle_folder(name);
 }
-static void int_stream_pipe( INT_PARAMS) /* 18 */{
+static void int_open_pipe( INT_PARAMS) /* 18 */{
 	struct memory *mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
 		return;
@@ -163,7 +163,7 @@ static void int_stream_pipe( INT_PARAMS) /* 18 */{
 	check_string_len(0, 1, 0)
 	pvm.x[0] = pfs_handle_pipe(name);
 }
-static void int_stream_element( INT_PARAMS) /* 19 */{
+static void int_open_element( INT_PARAMS) /* 19 */{
 	struct memory *mem = chk(pvm.x[0], 1).mem;
 	if (!mem) {
 		return;

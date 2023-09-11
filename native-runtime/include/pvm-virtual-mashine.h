@@ -30,9 +30,9 @@
 #include <setjmp.h>
 
 #ifdef PVM
-#	define PFS_EXT
+#	define PVM_EXT
 #else // PVM
-#	define PFS_EXT extern
+#	define PVM_EXT extern
 #endif // PVM
 
 typedef int64_t num;
@@ -94,7 +94,7 @@ _Static_assert(sizeof(num) == sizeof(unum), "Error!");
 _Static_assert(sizeof(fpnum) == sizeof(unum), "Error!");
 _Static_assert(sizeof(void*) == sizeof(unum), "Error!");
 
-PFS_EXT struct pvm {
+PVM_EXT struct pvm {
 	num regs[0]; // array size set to zero, because this is no union
 	num ip; // regs[0]
 	num sp; // regs[1]

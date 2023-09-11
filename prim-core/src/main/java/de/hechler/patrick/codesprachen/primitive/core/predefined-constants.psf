@@ -210,7 +210,7 @@ INT_STREAM_FILE_ADD_POS=UHEX-e
 |   sets the position of the stream to the end of the file (the file length)<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_STREAM_FILE_SEEK_EOF=UHEX-f
-|:  <b>INT_STREAM_FILE</b>: open element handle file<br>
+|:  <b>INT_OPEN_FILE</b>: open element handle file<br>
 |   value: <code>16</code>
 |   <p>
 |   params:
@@ -223,8 +223,8 @@ INT_STREAM_FILE_SEEK_EOF=UHEX-f
 |   </ul>
 |   this operation will fail if the element is no file<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAM_FILE=UHEX-10
-|:  <b>INT_STREAM_FOLDER</b>: open element handle folder<br>
+INT_OPEN_FILE=UHEX-10
+|:  <b>INT_OPEN_FOLDER</b>: open element handle folder<br>
 |   value: <code>17</code>
 |   <p>
 |   params:
@@ -237,8 +237,8 @@ INT_STREAM_FILE=UHEX-10
 |   </ul>
 |   this operation will fail if the element is no folder<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAM_FOLDER=UHEX-11
-|:  <b>INT_STREAM_PIPE</b>: open element handle pipe<br>
+INT_OPEN_FOLDER=UHEX-11
+|:  <b>INT_OPEN_PIPE</b>: open element handle pipe<br>
 |   value: <code>18</code>
 |   <p>
 |   params:
@@ -251,8 +251,8 @@ INT_STREAM_FOLDER=UHEX-11
 |   </ul>
 |   this operation will fail if the element is no pipe<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAM_PIPE=UHEX-12
-|:  <b>INT_STREAM_ELEMENT</b>: open element handle (any)<br>
+INT_OPEN_PIPE=UHEX-12
+|:  <b>INT_OPEN_ELEMENT</b>: open element handle (any)<br>
 |   value: <code>19</code>
 |   <p>
 |   params:
@@ -264,7 +264,7 @@ INT_STREAM_PIPE=UHEX-12
 |   <li><code>X00</code> <code>id</code>: (<code>num</code>) the newly opened ELEMENT-ID or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STREAM_ELEMENT=UHEX-13
+INT_OPEN_ELEMENT=UHEX-13
 |:  <b>INT_ELEMENT_OPEN_PARENT</b>: element open parent handle<br>
 |   value: <code>20</code>
 |   <p>
@@ -385,8 +385,75 @@ INT_ELEMENT_MOVE=UHEX-1a
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
 INT_ELEMENT_GET_NAME=UHEX-1b
-|:  <b>INT_ELEMENT_GET_FLAGS</b>: element get flags<br>
+|:  <b>INT_ELEMENT_GET_PATH</b>: element get the absolute path<br>
 |   value: <code>28</code>
+|   <p>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the ELEMENT-ID</li>
+|   <li><code>X01</code> <code>buffer</code>: (<code>char#</code>) points the the a memory block, which should be used to store the path as a STRING</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X01</code> <code>path</code>: (<code>char#</code>) points to the path as STRING representation or <code>-1</code> on error</li>
+|   </ul>
+|   when <code>buffer</code> is set to <code>-1</code> a new memory block will be allocated
+|   <ul>
+|   <li>when the memory block is not large enough, it will be resized</li>
+|   <li>note that when <code>X01</code> does not point to the start of the memory block the resize will fail</li>
+|   </ul>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_ELEMENT_GET_PATH=UHEX-1c
+|:  <b>INT_ELEMENT_GET_FS_PATH</b>: element get the path relative from the next mount point<br>
+|   value: <code>29</code>
+|   <p>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the ELEMENT-ID</li>
+|   <li><code>X01</code> <code>buffer</code>: (<code>char#</code>) points the the a memory block, which should be used to store the path as a STRING</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X01</code> <code>path</code>: (<code>char#</code>) points to the path as STRING representation or <code>-1</code> on error</li>
+|   </ul>
+|   when <code>buffer</code> is set to <code>-1</code> a new memory block will be allocated
+|   <ul>
+|   <li>when the memory block is not large enough, it will be resized</li>
+|   <li>note that when <code>X01</code> does not point to the start of the memory block the resize will fail</li>
+|   </ul>
+|   the path is relative from the mount point which is returned when <code>INT_ELEMENT_GET_MOUNT</code> is used
+|   <ul>
+|   <li>when this is the root folder this operation is esentially the same as <code>INT_ELEMENT_GET_PATH</code></li>
+|   </ul>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_ELEMENT_GET_FS_PATH=UHEX-1d
+|:  <b>INT_ELEMENT_GET_MOUNT</b>: element get mount point of file system<br>
+|   value: <code>30</code>
+|   <p>
+|   params:
+|   <ul>
+|   <li><code>X00</code> <code>id</code>: (<code>num</code>) the ELEMENT-ID</li>
+|   </ul>
+|   result values:
+|   <ul>
+|   <li><code>X01</code> <code>mount_id</code>: (<code>num</code>) will be set to the ELEMENT-ID of the mount point</li>
+|   </ul>
+|   the first parent element wich has the <code>FLAG_MOUNT</code> flag set will be returned in <code>mount_id</code>
+|   <ul>
+|   <li>if the element has <code>FLAG_MOUNT</code> set, it will be duplicated</li>
+|   <li>the 'first parent' can be calculated by the following loop:
+|   <ol>
+|   <li>checking if the current element (initial <code>id</code>) has the <code>FLAG_MOUNT</code> flag set
+|   <ol>
+|   <li>if yes, thats the 'first parent'</li>
+|   </ol></li>
+|   <li>replacing the current element with its parent (by calling <code>INT_ELEMENT_OPEN_PARENT</code>)</li>
+|   </ol></li>
+|   </ul>
+|   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
+INT_ELEMENT_GET_MOUNT=UHEX-1e
+|:  <b>INT_ELEMENT_GET_FLAGS</b>: element get flags<br>
+|   value: <code>31</code>
 |   <p>
 |   params:
 |   <ul>
@@ -397,9 +464,9 @@ INT_ELEMENT_GET_NAME=UHEX-1b
 |   <li><code>X01</code> <code>flags</code>: (<code>num</code>) will be set to the flags or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_ELEMENT_GET_FLAGS=UHEX-1c
+INT_ELEMENT_GET_FLAGS=UHEX-1f
 |:  <b>INT_ELEMENT_MODIFY_FLAGS</b>: element modify flags<br>
-|   value: <code>29</code>
+|   value: <code>32</code>
 |   <p>
 |   params:
 |   <ul>
@@ -413,9 +480,9 @@ INT_ELEMENT_GET_FLAGS=UHEX-1c
 |   </ul>
 |   only the low 32 bit will be used for the flags and the high 32 bit will be ignored<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_ELEMENT_MODIFY_FLAGS=UHEX-1d
+INT_ELEMENT_MODIFY_FLAGS=UHEX-20
 |:  <b>INT_FOLDER_CHILD_COUNT</b>: element folder child count<br>
-|   value: <code>30</code>
+|   value: <code>33</code>
 |   <p>
 |   params:
 |   <ul>
@@ -426,9 +493,9 @@ INT_ELEMENT_MODIFY_FLAGS=UHEX-1d
 |   <li><code>X01</code> <code>childCount</code>: (<code>num</code>) the number of child params the folder has or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_CHILD_COUNT=UHEX-1e
+INT_FOLDER_CHILD_COUNT=UHEX-21
 |:  <b>INT_FOLDER_OPEN_CHILD_OF_NAME</b>: folder get child of name<br>
-|   value: <code>31</code>
+|   value: <code>34</code>
 |   <p>
 |   params:
 |   <ul>
@@ -440,9 +507,9 @@ INT_FOLDER_CHILD_COUNT=UHEX-1e
 |   <li><code>X01</code> <code>childId</code>: (<code>num</code>) the newly opened ELEMENT-ID for the child or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_OPEN_CHILD_OF_NAME=UHEX-1f
+INT_FOLDER_OPEN_CHILD_OF_NAME=UHEX-22
 |:  <b>INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME</b>: folder get child folder of name<br>
-|   value: <code>32</code>
+|   value: <code>35</code>
 |   <p>
 |   params:
 |   <ul>
@@ -455,9 +522,9 @@ INT_FOLDER_OPEN_CHILD_OF_NAME=UHEX-1f
 |   </ul>
 |   this operation will fail if the child is no folder<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME=UHEX-20
+INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME=UHEX-23
 |:  <b>INT_FOLDER_OPEN_CHILD_FILE_OF_NAME</b>: folder get child file of name<br>
-|   value: <code>33</code>
+|   value: <code>36</code>
 |   <p>
 |   params:
 |   <ul>
@@ -470,9 +537,9 @@ INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME=UHEX-20
 |   </ul>
 |   this operation will fail if the child is no file<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_OPEN_CHILD_FILE_OF_NAME=UHEX-21
+INT_FOLDER_OPEN_CHILD_FILE_OF_NAME=UHEX-24
 |:  <b>INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME</b>: folder get child pipe of name<br>
-|   value: <code>34</code>
+|   value: <code>37</code>
 |   <p>
 |   params:
 |   <ul>
@@ -485,9 +552,9 @@ INT_FOLDER_OPEN_CHILD_FILE_OF_NAME=UHEX-21
 |   </ul>
 |   this operation will fail if the child is no pipe<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME=UHEX-22
+INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME=UHEX-25
 |:  <b>INT_FOLDER_OPEN_DESCENDAND_OF_PATH</b>: folder get descendant of path<br>
-|   value: <code>35</code>
+|   value: <code>38</code>
 |   <p>
 |   params:
 |   <ul>
@@ -499,9 +566,9 @@ INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME=UHEX-22
 |   <li><code>X01</code> <code>descId</code>: (<code>num</code>) the newly opened ELEMENT-ID for the descendant or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_OPEN_DESCENDAND_OF_PATH=UHEX-23
+INT_FOLDER_OPEN_DESCENDAND_OF_PATH=UHEX-26
 |:  <b>INT_FOLDER_OPEN_DESCENDAND_FOLDER_OF_PATH</b>: folder get descendant folder of path<br>
-|   value: <code>36</code>
+|   value: <code>39</code>
 |   <p>
 |   params:
 |   <ul>
@@ -514,9 +581,9 @@ INT_FOLDER_OPEN_DESCENDAND_OF_PATH=UHEX-23
 |   </ul>
 |   this operation will fail if the descendant is no folder<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_OPEN_DESCENDAND_FOLDER_OF_PATH=UHEX-24
+INT_FOLDER_OPEN_DESCENDAND_FOLDER_OF_PATH=UHEX-27
 |:  <b>INT_FOLDER_OPEN_DESCENDAND_FILE_OF_PATH</b>: folder get descendant file of path<br>
-|   value: <code>37</code>
+|   value: <code>40</code>
 |   <p>
 |   params:
 |   <ul>
@@ -529,9 +596,9 @@ INT_FOLDER_OPEN_DESCENDAND_FOLDER_OF_PATH=UHEX-24
 |   </ul>
 |   this operation will fail if the descendant is no file<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_OPEN_DESCENDAND_FILE_OF_PATH=UHEX-25
+INT_FOLDER_OPEN_DESCENDAND_FILE_OF_PATH=UHEX-28
 |:  <b>INT_FOLDER_OPEN_DESCENDAND_PIPE_OF_PATH</b>: folder get descendant pipe of path<br>
-|   value: <code>38</code>
+|   value: <code>41</code>
 |   <p>
 |   params:
 |   <ul>
@@ -544,9 +611,9 @@ INT_FOLDER_OPEN_DESCENDAND_FILE_OF_PATH=UHEX-25
 |   </ul>
 |   this operation will fail if the descendant is no pipe<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_OPEN_DESCENDAND_PIPE_OF_PATH=UHEX-26
+INT_FOLDER_OPEN_DESCENDAND_PIPE_OF_PATH=UHEX-29
 |:  <b>INT_FOLDER_CREATE_CHILD_FOLDER</b>: folder add child folder<br>
-|   value: <code>39</code>
+|   value: <code>42</code>
 |   <p>
 |   params:
 |   <ul>
@@ -558,9 +625,9 @@ INT_FOLDER_OPEN_DESCENDAND_PIPE_OF_PATH=UHEX-26
 |   <li><code>X01</code> <code>childId</code>: (<code>num</code>) the newly created/opened (FOLDER-)ELEMENT-ID for the child or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_CREATE_CHILD_FOLDER=UHEX-27
+INT_FOLDER_CREATE_CHILD_FOLDER=UHEX-2a
 |:  <b>INT_FOLDER_CREATE_CHILD_FILE</b>: folder add child file<br>
-|   value: <code>40</code>
+|   value: <code>43</code>
 |   <p>
 |   params:
 |   <ul>
@@ -572,9 +639,9 @@ INT_FOLDER_CREATE_CHILD_FOLDER=UHEX-27
 |   <li><code>X01</code> <code>childId</code>: (<code>num</code>) will be set to a newly created/opened (FILE-)ELEMENT-ID for the child or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_CREATE_CHILD_FILE=UHEX-28
+INT_FOLDER_CREATE_CHILD_FILE=UHEX-2b
 |:  <b>INT_FOLDER_CREATE_CHILD_PIPE</b>: folder add child pipe<br>
-|   value: <code>41</code>
+|   value: <code>44</code>
 |   <p>
 |   params:
 |   <ul>
@@ -586,9 +653,9 @@ INT_FOLDER_CREATE_CHILD_FILE=UHEX-28
 |   <li><code>X01</code> <code>childId</code>: (<code>num</code>) will be set to a newly created/opened (PIPE-)ELEMENT-ID for the child or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_CREATE_CHILD_PIPE=UHEX-29
+INT_FOLDER_CREATE_CHILD_PIPE=UHEX-2c
 |:  <b>INT_FOLDER_OPEN_ITER</b>: open child iterator of folder<br>
-|   value: <code>42</code>
+|   value: <code>45</code>
 |   <p>
 |   params:
 |   <ul>
@@ -600,9 +667,9 @@ INT_FOLDER_CREATE_CHILD_PIPE=UHEX-29
 |   <li><code>X01</code> <code>iterId</code>: (<code>num</code>) will be set to the FOLDER-ITER-ID or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FOLDER_OPEN_ITER=UHEX-2a
+INT_FOLDER_OPEN_ITER=UHEX-2d
 |:  <b>INT_FILE_LENGTH</b>: get the length of a file<br>
-|   value: <code>43</code>
+|   value: <code>46</code>
 |   <p>
 |   params:
 |   <ul>
@@ -613,9 +680,9 @@ INT_FOLDER_OPEN_ITER=UHEX-2a
 |   <li><code>X01</code> <code>len</code>: (<code>num</code>) the file length in bytes or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FILE_LENGTH=UHEX-2b
+INT_FILE_LENGTH=UHEX-2e
 |:  <b>INT_FILE_TRUNCATE</b>: set the length of a file<br>
-|   value: <code>44</code>
+|   value: <code>47</code>
 |   <p>
 |   params:
 |   <ul>
@@ -628,9 +695,9 @@ INT_FILE_LENGTH=UHEX-2b
 |   </ul>
 |   this will append zeros to the file when the new length is larger than the old length or remove all content after the new length<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_FILE_TRUNCATE=UHEX-2c
+INT_FILE_TRUNCATE=UHEX-2f
 |:  <b>INT_HANDLE_OPEN_STREAM</b>: opens a stream from a file or pipe handle<br>
-|   value: <code>45</code>
+|   value: <code>48</code>
 |   <p>
 |   params:
 |   <ul>
@@ -643,9 +710,9 @@ INT_FILE_TRUNCATE=UHEX-2c
 |   </ul>
 |   note that this interrupt works for both files and pipes, but will fail for folders<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_HANDLE_OPEN_STREAM=UHEX-2d
+INT_HANDLE_OPEN_STREAM=UHEX-30
 |:  <b>INT_PIPE_LENGTH</b>: get the length of a pipe<br>
-|   value: <code>46</code>
+|   value: <code>49</code>
 |   <p>
 |   params:
 |   <ul>
@@ -656,9 +723,9 @@ INT_HANDLE_OPEN_STREAM=UHEX-2d
 |   <li><code>X01</code> <code>len</code>: (<code>num</code>) the pipe length in bytes or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_PIPE_LENGTH=UHEX-2e
+INT_PIPE_LENGTH=UHEX-31
 |:  <b>INT_TIME_GET</b>: get the current system time<br>
-|   value: <code>47</code>
+|   value: <code>50</code>
 |   <p>
 |   result values:
 |   <ul>
@@ -667,9 +734,9 @@ INT_PIPE_LENGTH=UHEX-2e
 |   <li><code>X02</code> <code>success</code>: (<code>num</code>) <code>1</code> on success and <code>0</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_TIME_GET=UHEX-2f
+INT_TIME_GET=UHEX-32
 |:  <b>INT_TIME_RES</b>: get the system time resolution<br>
-|   value: <code>48</code>
+|   value: <code>51</code>
 |   
 |   <ul>
 |   <li><code>X00</code> <code>secs</code>: (<code>num</code>) the resolution in seconds</li>
@@ -677,9 +744,9 @@ INT_TIME_GET=UHEX-2f
 |   <li><code>X02</code> <code>success</code>: (<code>num</code>) <code>1</code> on success and <code>0</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_TIME_RES=UHEX-30
+INT_TIME_RES=UHEX-33
 |:  <b>INT_TIME_SLEEP</b>: to sleep the given time in nanoseconds<br>
-|   value: <code>49</code>
+|   value: <code>52</code>
 |   <p>
 |   params:
 |   <ul>
@@ -694,9 +761,9 @@ INT_TIME_RES=UHEX-30
 |   </ul>
 |   note that <code>X00</code> will not be negative if the progress waited too long<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_TIME_SLEEP=UHEX-31
+INT_TIME_SLEEP=UHEX-34
 |:  <b>INT_TIME_WAIT</b>: to wait the given time in nanoseconds<br>
-|   value: <code>50</code>
+|   value: <code>53</code>
 |   <p>
 |   params:
 |   <ul>
@@ -709,9 +776,9 @@ INT_TIME_SLEEP=UHEX-31
 |   </ul>
 |   this interrupt will wait until the current system time is equal or after the given absolute time.<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_TIME_WAIT=UHEX-32
+INT_TIME_WAIT=UHEX-35
 |:  <b>INT_RND_OPEN</b>: open a read stream which delivers random values<br>
-|   value: <code>51</code>
+|   value: <code>54</code>
 |   <p>
 |   result values:
 |   <ul>
@@ -722,18 +789,18 @@ INT_TIME_WAIT=UHEX-32
 |   <li>not write/append or seek/setpos operations</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_RND_OPEN=UHEX-33
+INT_RND_OPEN=UHEX-36
 |:  <b>INT_RND_NUM</b>: sets `X00` to a random number<br>
-|   value: <code>52</code>
+|   value: <code>55</code>
 |   <p>
 |   result values:
 |   <ul>
 |   <li><code>X00</code> <code>rnd</code>: (<code>num</code>) 64 random bits</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_RND_NUM=UHEX-34
+INT_RND_NUM=UHEX-37
 |:  <b>INT_MEM_CMP</b>: memory compare<br>
-|   value: <code>53</code>
+|   value: <code>56</code>
 |   <p>
 |   params:
 |   <ul>
@@ -747,9 +814,9 @@ INT_RND_NUM=UHEX-34
 |   </ul>
 |   compares two blocks of memory<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_MEM_CMP=UHEX-35
+INT_MEM_CMP=UHEX-38
 |:  <b>INT_MEM_CPY</b>: memory copy<br>
-|   value: <code>54</code>
+|   value: <code>57</code>
 |   <p>
 |   params:
 |   <ul>
@@ -760,9 +827,9 @@ INT_MEM_CMP=UHEX-35
 |   copies a block of memory<br>
 |   this function has undefined behavior if the two blocks overlap<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_MEM_CPY=UHEX-36
+INT_MEM_CPY=UHEX-39
 |:  <b>INT_MEM_MOV</b>: memory move<br>
-|   value: <code>55</code>
+|   value: <code>58</code>
 |   <p>
 |   params:
 |   <ul>
@@ -773,9 +840,9 @@ INT_MEM_CPY=UHEX-36
 |   copies a block of memory<br>
 |   this function makes sure, that the original values of the source block are copied to the target block (even if the two block overlap)<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_MEM_MOV=UHEX-37
+INT_MEM_MOV=UHEX-3a
 |:  <b>INT_MEM_BSET</b>: memory byte set<br>
-|   value: <code>56</code>
+|   value: <code>59</code>
 |   <p>
 |   params:
 |   <ul>
@@ -785,9 +852,9 @@ INT_MEM_MOV=UHEX-37
 |   </ul>
 |   sets a memory block to the given byte-value<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_MEM_BSET=UHEX-38
+INT_MEM_BSET=UHEX-3b
 |:  <b>INT_STR_LEN</b>: string length<br>
-|   value: <code>57</code>
+|   value: <code>60</code>
 |   <p>
 |   params:
 |   <ul>
@@ -798,9 +865,9 @@ INT_MEM_BSET=UHEX-38
 |   <li><code>X00</code> <code>len</code>: (<code>num</code>) the length of the string the/(byte-)offset of the first byte from the <code>'\0'</code> character</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_LEN=UHEX-39
+INT_STR_LEN=UHEX-3c
 |:  <b>INT_STR_INDEX</b>: string index of<br>
-|   value: <code>58</code>
+|   value: <code>61</code>
 |   <p>
 |   params:
 |   <ul>
@@ -813,9 +880,9 @@ INT_STR_LEN=UHEX-39
 |   </ul>
 |   if the given character could not be found, <code>index</code> will be <code>-1</code><br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_INDEX=UHEX-3a
+INT_STR_INDEX=UHEX-3d
 |:  <b>INT_STR_CMP</b>: string compare<br>
-|   value: <code>59</code>
+|   value: <code>62</code>
 |   <p>
 |   params:
 |   <ul>
@@ -827,9 +894,9 @@ INT_STR_INDEX=UHEX-3a
 |   <li><code>STATUS</code> <code>cmpRes</code>: (<code>LOWER</code>, <code>GREATER</code>, <code>EQUAL</code>) if <code>memA</code> is lower/greater/equal than/to <code>memB</code></li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_CMP=UHEX-3b
+INT_STR_CMP=UHEX-3e
 |:  <b>INT_STR_FROM_NUM</b>: number to string<br>
-|   value: <code>60</code>
+|   value: <code>63</code>
 |   <p>
 |   params:
 |   <ul>
@@ -846,9 +913,9 @@ INT_STR_CMP=UHEX-3b
 |   </ul>
 |   the new length will be the old length or if the old length is smaller than the size of the STRING (with <code>\0</code>) than the size of the STRING (with <code>\0</code>)<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_FROM_NUM=UHEX-3c
+INT_STR_FROM_NUM=UHEX-3f
 |:  <b>INT_STR_FROM_FPNUM</b>: floating point number to string<br>
-|   value: <code>61</code>
+|   value: <code>64</code>
 |   <p>
 |   params:
 |   <ul>
@@ -864,9 +931,9 @@ INT_STR_FROM_NUM=UHEX-3c
 |   </ul>
 |   the new length will be the old length or if the old length is smaller than the size of the STRING (with <code>\0</code>) than the size of the STRING (with <code>\0</code>)<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_FROM_FPNUM=UHEX-3d
+INT_STR_FROM_FPNUM=UHEX-40
 |:  <b>INT_STR_TO_NUM</b>: string to number<br>
-|   value: <code>62</code>
+|   value: <code>65</code>
 |   <p>
 |   params:
 |   <ul>
@@ -880,9 +947,9 @@ INT_STR_FROM_FPNUM=UHEX-3d
 |   </ul>
 |   if the STRING represents a value out of the 64-bit number range <code>X00</code> will be min or max value and <code>ERRNO</code> will be set to <code>ERR_OUT_OF_RANGE</code><br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_TO_NUM=UHEX-3e
+INT_STR_TO_NUM=UHEX-41
 |:  <b>INT_STR_TO_FPNUM</b>: string to floating point number<br>
-|   value: <code>63</code>
+|   value: <code>66</code>
 |   <p>
 |   params:
 |   <ul>
@@ -894,9 +961,9 @@ INT_STR_TO_NUM=UHEX-3e
 |   <li><code>X01</code> <code>success</code>: (<code>num</code>) <code>1</code> on success and <code>0</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_TO_FPNUM=UHEX-3f
+INT_STR_TO_FPNUM=UHEX-42
 |:  <b>INT_STR_TO_U16STR</b>: STRING to U16-STRING<br>
-|   value: <code>64</code>
+|   value: <code>67</code>
 |   <p>
 |   params:
 |   <ul>
@@ -912,9 +979,9 @@ INT_STR_TO_FPNUM=UHEX-3f
 |   <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_TO_U16STR=UHEX-40
+INT_STR_TO_U16STR=UHEX-43
 |:  <b>INT_STR_TO_U32STR</b>: STRING to U32-STRING<br>
-|   value: <code>65</code>
+|   value: <code>68</code>
 |   <p>
 |   params:
 |   <ul>
@@ -930,9 +997,9 @@ INT_STR_TO_U16STR=UHEX-40
 |   <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_TO_U32STR=UHEX-41
+INT_STR_TO_U32STR=UHEX-44
 |:  <b>INT_STR_FROM_U16STR</b>: U16-STRING to STRING<br>
-|   value: <code>66</code>
+|   value: <code>69</code>
 |   <p>
 |   params:
 |   <ul>
@@ -948,9 +1015,9 @@ INT_STR_TO_U32STR=UHEX-41
 |   <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_FROM_U16STR=UHEX-42
+INT_STR_FROM_U16STR=UHEX-45
 |:  <b>INT_STR_FROM_U32STR</b>: U32-STRING to STRING<br>
-|   value: <code>67</code>
+|   value: <code>70</code>
 |   <p>
 |   params:
 |   <ul>
@@ -966,9 +1033,9 @@ INT_STR_FROM_U16STR=UHEX-42
 |   <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_FROM_U32STR=UHEX-43
+INT_STR_FROM_U32STR=UHEX-46
 |:  <b>INT_STR_FORMAT</b>: format string<br>
-|   value: <code>68</code>
+|   value: <code>71</code>
 |   <p>
 |   params:
 |   <ul>
@@ -1010,9 +1077,9 @@ INT_STR_FROM_U32STR=UHEX-43
 |   <li><code>%o</code>: the next argument contains a number, which should be converted to a STRING using the octal number system (<code>8</code>) and than be inserted here</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_STR_FORMAT=UHEX-44
+INT_STR_FORMAT=UHEX-47
 |:  <b>INT_LOAD_FILE</b>: load a file<br>
-|   value: <code>69</code>
+|   value: <code>72</code>
 |   <p>
 |   params:
 |   <ul>
@@ -1024,9 +1091,9 @@ INT_STR_FORMAT=UHEX-44
 |   <li><code>X01</code> <code>len</code>: (<code>num</code>) the length of the file (and the memory block)</li>
 |   </ul>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_LOAD_FILE=UHEX-45
+INT_LOAD_FILE=UHEX-48
 |:  <b>INT_LOAD_LIB</b>: load a library file<br>
-|   value: <code>70</code>
+|   value: <code>73</code>
 |   <p>
 |   params:
 |   <ul>
@@ -1076,9 +1143,9 @@ INT_LOAD_FILE=UHEX-45
 |   </ol>
 |   when an error occurred <code>X01</code> will be set to <code>-1</code>, <code>X00</code> will be unmodified and <code>ERRNO</code> will be set to a non-zero value<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_LOAD_LIB=UHEX-46
+INT_LOAD_LIB=UHEX-49
 |:  <b>INT_CREATE_LIB</b>: turn a memory block to a libary<br>
-|   value: <code>71</code>
+|   value: <code>74</code>
 |   <p>
 |   params:
 |   <ul>
@@ -1095,9 +1162,9 @@ INT_LOAD_LIB=UHEX-46
 |   by using this interrupt the program can convert a normal memory block to a libary memory block<br>
 |   when an error occurred <code>X01</code> will be set to <code>-1</code>, <code>X00</code> will be unmodified and <code>ERRNO</code> will be set to a non-zero value<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_CREATE_LIB=UHEX-47
+INT_CREATE_LIB=UHEX-4a
 |:  <b>INT_UNLOAD_LIB</b>: unload a library file<br>
-|   value: <code>72</code>
+|   value: <code>75</code>
 |   <p>
 |   params:
 |   <ul>
@@ -1106,13 +1173,13 @@ INT_CREATE_LIB=UHEX-47
 |   unloads a library previously loaded with the load lib interrupt<br>
 |   this interrupt will ensure that the given memory block will be freed and not again be returned from the load lib interrupt<br>
 |   this value can be used by the <code>INT</code> command to indicate that this interrupt should be called
-INT_UNLOAD_LIB=UHEX-48
+INT_UNLOAD_LIB=UHEX-4b
 |:  <b>INTERRUPT_COUNT</b>: the number of interrupts<br>
-|   value: <code>73</code>
+|   value: <code>76</code>
 |   <p>
 |   the number of interrupts supported by default<br>
 |   the <code>INTCNT</code> register is initialed with this value
-INTERRUPT_COUNT=UHEX-49
+INTERRUPT_COUNT=UHEX-4c
 |:  <b>FP_NAN</b>: not a number<br>
 |   value: <code>0x7ffe000000000000</code>
 |   <p>
@@ -1323,7 +1390,7 @@ ERR_READ_ONLY=UHEX-11
 |   this error value indicates that the operation failed, because the different file systems should be used<br>
 |   this error will occur, when multiple entries are used by one operation, but not all entries belong to the same file system
 |   <ul>
-|   <li>the get mount point whould not return the equal elements for all entries</li>
+|   <li>the get mount point whould not return the equal elements for all used entries</li>
 |   </ul>
 
 ERR_DIFFERENT_FILE_SYSTEMS=UHEX-12
@@ -1348,6 +1415,11 @@ FLAG_FILE=UHEX-2
 |   <p>
 |   this flag is used for all pipes
 FLAG_PIPE=UHEX-4
+|:  <b>FLAG_MOUNT</b>: mount point flag<br>
+|   value: <code>0x00000008</code>
+|   <p>
+|   this flag is used for all mount points
+FLAG_MOUNT=UHEX-8
 |:  <b>FLAG_EXECUTABLE</b>: flag for executables<br>
 |   value: <code>0x00000100</code>
 |   <p>

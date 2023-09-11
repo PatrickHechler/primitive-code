@@ -57,10 +57,10 @@ static void int_stream_file_get_pos(INT_PARAMS); /* 12 */
 static void int_stream_file_set_pos(INT_PARAMS); /* 13 */
 static void int_stream_file_add_pos(INT_PARAMS); /* 14 */
 static void int_stream_file_seek_eof(INT_PARAMS); /* 15 */
-static void int_stream_file(INT_PARAMS); /* 16 */
-static void int_stream_folder(INT_PARAMS); /* 17 */
-static void int_stream_pipe(INT_PARAMS); /* 18 */
-static void int_stream_element(INT_PARAMS); /* 19 */
+static void int_open_file(INT_PARAMS); /* 16 */
+static void int_open_folder(INT_PARAMS); /* 17 */
+static void int_open_pipe(INT_PARAMS); /* 18 */
+static void int_open_element(INT_PARAMS); /* 19 */
 static void int_element_open_parent(INT_PARAMS); /* 20 */
 static void int_element_get_create(INT_PARAMS); /* 21 */
 static void int_element_get_last_mod(INT_PARAMS); /* 22 */
@@ -69,51 +69,54 @@ static void int_element_set_last_mod(INT_PARAMS); /* 24 */
 static void int_element_delete(INT_PARAMS); /* 25 */
 static void int_element_move(INT_PARAMS); /* 26 */
 static void int_element_get_name(INT_PARAMS); /* 27 */
-static void int_element_get_flags(INT_PARAMS); /* 28 */
-static void int_element_modify_flags(INT_PARAMS); /* 29 */
-static void int_folder_child_count(INT_PARAMS); /* 30 */
-static void int_folder_open_child_of_name(INT_PARAMS); /* 31 */
-static void int_folder_open_child_folder_of_name(INT_PARAMS); /* 32 */
-static void int_folder_open_child_file_of_name(INT_PARAMS); /* 33 */
-static void int_folder_open_child_pipe_of_name(INT_PARAMS); /* 34 */
-static void int_folder_open_descendand_of_path(INT_PARAMS); /* 35 */
-static void int_folder_open_descendand_folder_of_path(INT_PARAMS); /* 36 */
-static void int_folder_open_descendand_file_of_path(INT_PARAMS); /* 37 */
-static void int_folder_open_descendand_pipe_of_path(INT_PARAMS); /* 38 */
-static void int_folder_create_child_folder(INT_PARAMS); /* 39 */
-static void int_folder_create_child_file(INT_PARAMS); /* 40 */
-static void int_folder_create_child_pipe(INT_PARAMS); /* 41 */
-static void int_folder_open_iter(INT_PARAMS); /* 42 */
-static void int_file_length(INT_PARAMS); /* 43 */
-static void int_file_truncate(INT_PARAMS); /* 44 */
-static void int_handle_open_stream(INT_PARAMS); /* 45 */
-static void int_pipe_length(INT_PARAMS); /* 46 */
-static void int_time_get(INT_PARAMS); /* 47 */
-static void int_time_res(INT_PARAMS); /* 48 */
-static void int_time_sleep(INT_PARAMS); /* 49 */
-static void int_time_wait(INT_PARAMS); /* 50 */
-static void int_rnd_open(INT_PARAMS); /* 51 */
-static void int_rnd_num(INT_PARAMS); /* 52 */
-static void int_mem_cmp(INT_PARAMS); /* 53 */
-static void int_mem_cpy(INT_PARAMS); /* 54 */
-static void int_mem_mov(INT_PARAMS); /* 55 */
-static void int_mem_bset(INT_PARAMS); /* 56 */
-static void int_str_len(INT_PARAMS); /* 57 */
-static void int_str_index(INT_PARAMS); /* 58 */
-static void int_str_cmp(INT_PARAMS); /* 59 */
-static void int_str_from_num(INT_PARAMS); /* 60 */
-static void int_str_from_fpnum(INT_PARAMS); /* 61 */
-static void int_str_to_num(INT_PARAMS); /* 62 */
-static void int_str_to_fpnum(INT_PARAMS); /* 63 */
-static void int_str_to_u16str(INT_PARAMS); /* 64 */
-static void int_str_to_u32str(INT_PARAMS); /* 65 */
-static void int_str_from_u16str(INT_PARAMS); /* 66 */
-static void int_str_from_u32str(INT_PARAMS); /* 67 */
-static void int_str_format(INT_PARAMS); /* 68 */
-static void int_load_file(INT_PARAMS); /* 69 */
-static void int_load_lib(INT_PARAMS); /* 70 */
-static void int_create_lib(INT_PARAMS); /* 71 */
-static void int_unload_lib(INT_PARAMS); /* 72 */
+static void int_element_get_path(INT_PARAMS); /* 28 */
+static void int_element_get_fs_path(INT_PARAMS); /* 29 */
+static void int_element_get_mount(INT_PARAMS); /* 30 */
+static void int_element_get_flags(INT_PARAMS); /* 31 */
+static void int_element_modify_flags(INT_PARAMS); /* 32 */
+static void int_folder_child_count(INT_PARAMS); /* 33 */
+static void int_folder_open_child_of_name(INT_PARAMS); /* 34 */
+static void int_folder_open_child_folder_of_name(INT_PARAMS); /* 35 */
+static void int_folder_open_child_file_of_name(INT_PARAMS); /* 36 */
+static void int_folder_open_child_pipe_of_name(INT_PARAMS); /* 37 */
+static void int_folder_open_descendand_of_path(INT_PARAMS); /* 38 */
+static void int_folder_open_descendand_folder_of_path(INT_PARAMS); /* 39 */
+static void int_folder_open_descendand_file_of_path(INT_PARAMS); /* 40 */
+static void int_folder_open_descendand_pipe_of_path(INT_PARAMS); /* 41 */
+static void int_folder_create_child_folder(INT_PARAMS); /* 42 */
+static void int_folder_create_child_file(INT_PARAMS); /* 43 */
+static void int_folder_create_child_pipe(INT_PARAMS); /* 44 */
+static void int_folder_open_iter(INT_PARAMS); /* 45 */
+static void int_file_length(INT_PARAMS); /* 46 */
+static void int_file_truncate(INT_PARAMS); /* 47 */
+static void int_handle_open_stream(INT_PARAMS); /* 48 */
+static void int_pipe_length(INT_PARAMS); /* 49 */
+static void int_time_get(INT_PARAMS); /* 50 */
+static void int_time_res(INT_PARAMS); /* 51 */
+static void int_time_sleep(INT_PARAMS); /* 52 */
+static void int_time_wait(INT_PARAMS); /* 53 */
+static void int_rnd_open(INT_PARAMS); /* 54 */
+static void int_rnd_num(INT_PARAMS); /* 55 */
+static void int_mem_cmp(INT_PARAMS); /* 56 */
+static void int_mem_cpy(INT_PARAMS); /* 57 */
+static void int_mem_mov(INT_PARAMS); /* 58 */
+static void int_mem_bset(INT_PARAMS); /* 59 */
+static void int_str_len(INT_PARAMS); /* 60 */
+static void int_str_index(INT_PARAMS); /* 61 */
+static void int_str_cmp(INT_PARAMS); /* 62 */
+static void int_str_from_num(INT_PARAMS); /* 63 */
+static void int_str_from_fpnum(INT_PARAMS); /* 64 */
+static void int_str_to_num(INT_PARAMS); /* 65 */
+static void int_str_to_fpnum(INT_PARAMS); /* 66 */
+static void int_str_to_u16str(INT_PARAMS); /* 67 */
+static void int_str_to_u32str(INT_PARAMS); /* 68 */
+static void int_str_from_u16str(INT_PARAMS); /* 69 */
+static void int_str_from_u32str(INT_PARAMS); /* 70 */
+static void int_str_format(INT_PARAMS); /* 71 */
+static void int_load_file(INT_PARAMS); /* 72 */
+static void int_load_lib(INT_PARAMS); /* 73 */
+static void int_create_lib(INT_PARAMS); /* 74 */
+static void int_unload_lib(INT_PARAMS); /* 75 */
 
 #endif // PVM
 
@@ -133,10 +136,10 @@ static void int_unload_lib(INT_PARAMS); /* 72 */
 #define INT_STREAM_FILE_SET_POS 13
 #define INT_STREAM_FILE_ADD_POS 14
 #define INT_STREAM_FILE_SEEK_EOF 15
-#define INT_STREAM_FILE 16
-#define INT_STREAM_FOLDER 17
-#define INT_STREAM_PIPE 18
-#define INT_STREAM_ELEMENT 19
+#define INT_OPEN_FILE 16
+#define INT_OPEN_FOLDER 17
+#define INT_OPEN_PIPE 18
+#define INT_OPEN_ELEMENT 19
 #define INT_ELEMENT_OPEN_PARENT 20
 #define INT_ELEMENT_GET_CREATE 21
 #define INT_ELEMENT_GET_LAST_MOD 22
@@ -145,54 +148,57 @@ static void int_unload_lib(INT_PARAMS); /* 72 */
 #define INT_ELEMENT_DELETE 25
 #define INT_ELEMENT_MOVE 26
 #define INT_ELEMENT_GET_NAME 27
-#define INT_ELEMENT_GET_FLAGS 28
-#define INT_ELEMENT_MODIFY_FLAGS 29
-#define INT_FOLDER_CHILD_COUNT 30
-#define INT_FOLDER_OPEN_CHILD_OF_NAME 31
-#define INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME 32
-#define INT_FOLDER_OPEN_CHILD_FILE_OF_NAME 33
-#define INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME 34
-#define INT_FOLDER_OPEN_DESCENDAND_OF_PATH 35
-#define INT_FOLDER_OPEN_DESCENDAND_FOLDER_OF_PATH 36
-#define INT_FOLDER_OPEN_DESCENDAND_FILE_OF_PATH 37
-#define INT_FOLDER_OPEN_DESCENDAND_PIPE_OF_PATH 38
-#define INT_FOLDER_CREATE_CHILD_FOLDER 39
-#define INT_FOLDER_CREATE_CHILD_FILE 40
-#define INT_FOLDER_CREATE_CHILD_PIPE 41
-#define INT_FOLDER_OPEN_ITER 42
-#define INT_FILE_LENGTH 43
-#define INT_FILE_TRUNCATE 44
-#define INT_HANDLE_OPEN_STREAM 45
-#define INT_PIPE_LENGTH 46
-#define INT_TIME_GET 47
-#define INT_TIME_RES 48
-#define INT_TIME_SLEEP 49
-#define INT_TIME_WAIT 50
-#define INT_RND_OPEN 51
-#define INT_RND_NUM 52
-#define INT_MEM_CMP 53
-#define INT_MEM_CPY 54
-#define INT_MEM_MOV 55
-#define INT_MEM_BSET 56
-#define INT_STR_LEN 57
-#define INT_STR_INDEX 58
-#define INT_STR_CMP 59
-#define INT_STR_FROM_NUM 60
-#define INT_STR_FROM_FPNUM 61
-#define INT_STR_TO_NUM 62
-#define INT_STR_TO_FPNUM 63
-#define INT_STR_TO_U16STR 64
-#define INT_STR_TO_U32STR 65
-#define INT_STR_FROM_U16STR 66
-#define INT_STR_FROM_U32STR 67
-#define INT_STR_FORMAT 68
-#define INT_LOAD_FILE 69
-#define INT_LOAD_LIB 70
-#define INT_CREATE_LIB 71
-#define INT_UNLOAD_LIB 72
-#define INTERRUPT_COUNT 73
+#define INT_ELEMENT_GET_PATH 28
+#define INT_ELEMENT_GET_FS_PATH 29
+#define INT_ELEMENT_GET_MOUNT 30
+#define INT_ELEMENT_GET_FLAGS 31
+#define INT_ELEMENT_MODIFY_FLAGS 32
+#define INT_FOLDER_CHILD_COUNT 33
+#define INT_FOLDER_OPEN_CHILD_OF_NAME 34
+#define INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME 35
+#define INT_FOLDER_OPEN_CHILD_FILE_OF_NAME 36
+#define INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME 37
+#define INT_FOLDER_OPEN_DESCENDAND_OF_PATH 38
+#define INT_FOLDER_OPEN_DESCENDAND_FOLDER_OF_PATH 39
+#define INT_FOLDER_OPEN_DESCENDAND_FILE_OF_PATH 40
+#define INT_FOLDER_OPEN_DESCENDAND_PIPE_OF_PATH 41
+#define INT_FOLDER_CREATE_CHILD_FOLDER 42
+#define INT_FOLDER_CREATE_CHILD_FILE 43
+#define INT_FOLDER_CREATE_CHILD_PIPE 44
+#define INT_FOLDER_OPEN_ITER 45
+#define INT_FILE_LENGTH 46
+#define INT_FILE_TRUNCATE 47
+#define INT_HANDLE_OPEN_STREAM 48
+#define INT_PIPE_LENGTH 49
+#define INT_TIME_GET 50
+#define INT_TIME_RES 51
+#define INT_TIME_SLEEP 52
+#define INT_TIME_WAIT 53
+#define INT_RND_OPEN 54
+#define INT_RND_NUM 55
+#define INT_MEM_CMP 56
+#define INT_MEM_CPY 57
+#define INT_MEM_MOV 58
+#define INT_MEM_BSET 59
+#define INT_STR_LEN 60
+#define INT_STR_INDEX 61
+#define INT_STR_CMP 62
+#define INT_STR_FROM_NUM 63
+#define INT_STR_FROM_FPNUM 64
+#define INT_STR_TO_NUM 65
+#define INT_STR_TO_FPNUM 66
+#define INT_STR_TO_U16STR 67
+#define INT_STR_TO_U32STR 68
+#define INT_STR_FROM_U16STR 69
+#define INT_STR_FROM_U32STR 70
+#define INT_STR_FORMAT 71
+#define INT_LOAD_FILE 72
+#define INT_LOAD_LIB 73
+#define INT_CREATE_LIB 74
+#define INT_UNLOAD_LIB 75
+#define INTERRUPT_COUNT 76
 
-EXT void (*(ints[]))(INT_PARAMS)
+PVM_EXT void (*(ints[]))(INT_PARAMS)
 #ifdef PVM
  = {
 	int_error_illegal_interrupt, /* 0 */
@@ -211,10 +217,10 @@ EXT void (*(ints[]))(INT_PARAMS)
 	int_stream_file_set_pos, /* 13 */
 	int_stream_file_add_pos, /* 14 */
 	int_stream_file_seek_eof, /* 15 */
-	int_stream_file, /* 16 */
-	int_stream_folder, /* 17 */
-	int_stream_pipe, /* 18 */
-	int_stream_element, /* 19 */
+	int_open_file, /* 16 */
+	int_open_folder, /* 17 */
+	int_open_pipe, /* 18 */
+	int_open_element, /* 19 */
 	int_element_open_parent, /* 20 */
 	int_element_get_create, /* 21 */
 	int_element_get_last_mod, /* 22 */
@@ -223,51 +229,54 @@ EXT void (*(ints[]))(INT_PARAMS)
 	int_element_delete, /* 25 */
 	int_element_move, /* 26 */
 	int_element_get_name, /* 27 */
-	int_element_get_flags, /* 28 */
-	int_element_modify_flags, /* 29 */
-	int_folder_child_count, /* 30 */
-	int_folder_open_child_of_name, /* 31 */
-	int_folder_open_child_folder_of_name, /* 32 */
-	int_folder_open_child_file_of_name, /* 33 */
-	int_folder_open_child_pipe_of_name, /* 34 */
-	int_folder_open_descendand_of_path, /* 35 */
-	int_folder_open_descendand_folder_of_path, /* 36 */
-	int_folder_open_descendand_file_of_path, /* 37 */
-	int_folder_open_descendand_pipe_of_path, /* 38 */
-	int_folder_create_child_folder, /* 39 */
-	int_folder_create_child_file, /* 40 */
-	int_folder_create_child_pipe, /* 41 */
-	int_folder_open_iter, /* 42 */
-	int_file_length, /* 43 */
-	int_file_truncate, /* 44 */
-	int_handle_open_stream, /* 45 */
-	int_pipe_length, /* 46 */
-	int_time_get, /* 47 */
-	int_time_res, /* 48 */
-	int_time_sleep, /* 49 */
-	int_time_wait, /* 50 */
-	int_rnd_open, /* 51 */
-	int_rnd_num, /* 52 */
-	int_mem_cmp, /* 53 */
-	int_mem_cpy, /* 54 */
-	int_mem_mov, /* 55 */
-	int_mem_bset, /* 56 */
-	int_str_len, /* 57 */
-	int_str_index, /* 58 */
-	int_str_cmp, /* 59 */
-	int_str_from_num, /* 60 */
-	int_str_from_fpnum, /* 61 */
-	int_str_to_num, /* 62 */
-	int_str_to_fpnum, /* 63 */
-	int_str_to_u16str, /* 64 */
-	int_str_to_u32str, /* 65 */
-	int_str_from_u16str, /* 66 */
-	int_str_from_u32str, /* 67 */
-	int_str_format, /* 68 */
-	int_load_file, /* 69 */
-	int_load_lib, /* 70 */
-	int_create_lib, /* 71 */
-	int_unload_lib, /* 72 */
+	int_element_get_path, /* 28 */
+	int_element_get_fs_path, /* 29 */
+	int_element_get_mount, /* 30 */
+	int_element_get_flags, /* 31 */
+	int_element_modify_flags, /* 32 */
+	int_folder_child_count, /* 33 */
+	int_folder_open_child_of_name, /* 34 */
+	int_folder_open_child_folder_of_name, /* 35 */
+	int_folder_open_child_file_of_name, /* 36 */
+	int_folder_open_child_pipe_of_name, /* 37 */
+	int_folder_open_descendand_of_path, /* 38 */
+	int_folder_open_descendand_folder_of_path, /* 39 */
+	int_folder_open_descendand_file_of_path, /* 40 */
+	int_folder_open_descendand_pipe_of_path, /* 41 */
+	int_folder_create_child_folder, /* 42 */
+	int_folder_create_child_file, /* 43 */
+	int_folder_create_child_pipe, /* 44 */
+	int_folder_open_iter, /* 45 */
+	int_file_length, /* 46 */
+	int_file_truncate, /* 47 */
+	int_handle_open_stream, /* 48 */
+	int_pipe_length, /* 49 */
+	int_time_get, /* 50 */
+	int_time_res, /* 51 */
+	int_time_sleep, /* 52 */
+	int_time_wait, /* 53 */
+	int_rnd_open, /* 54 */
+	int_rnd_num, /* 55 */
+	int_mem_cmp, /* 56 */
+	int_mem_cpy, /* 57 */
+	int_mem_mov, /* 58 */
+	int_mem_bset, /* 59 */
+	int_str_len, /* 60 */
+	int_str_index, /* 61 */
+	int_str_cmp, /* 62 */
+	int_str_from_num, /* 63 */
+	int_str_from_fpnum, /* 64 */
+	int_str_to_num, /* 65 */
+	int_str_to_fpnum, /* 66 */
+	int_str_to_u16str, /* 67 */
+	int_str_to_u32str, /* 68 */
+	int_str_from_u16str, /* 69 */
+	int_str_from_u32str, /* 70 */
+	int_str_format, /* 71 */
+	int_load_file, /* 72 */
+	int_load_lib, /* 73 */
+	int_create_lib, /* 74 */
+	int_unload_lib, /* 75 */
 }
 #endif // PVM
 ;
