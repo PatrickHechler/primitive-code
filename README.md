@@ -990,9 +990,9 @@ every register can also be addressed:
 * `ERR_ILLEGAL_ARG` : indicates an illegal argument
     * value: `8`
     * this error value indicates that some argument has an illegal value
-* `ERR_ILLEGAL_STATE` : indicates that some state is invalid
+* `ERR_ILLEGAL_DATA` : indicates that some data is invalid
     * value: `9`
-    * this error value indicates that a state is invalid, for example an invalid/unknown magic value
+    * this error value indicates that a data is invalid, for example an invalid/unknown magic value
 * `ERR_OUT_OF_MEMORY` : indicates that the system is out of memory
     * value: `10`
     * this error value indicates that the system could not allocate the needed memory
@@ -1016,6 +1016,15 @@ every register can also be addressed:
     * value: `16`
     * this error value indicates that the operation failed, because the element was deleted
     * this error will occur, when a non empty folder is tried to be deleted
+* `ERR_READ_ONLY` : indicates that the operation failed, because the file system or the element is read only
+    * value: `17`
+    * this error value indicates that the operation failed, because the file system or the element is read only
+    * this error will occur, when write access on a file system which is open in read-only mode is tried
+* `ERR_DIFFERENT_FILE_SYSTEMS` : indicates that the operation failed, because the different file systems should be used (for example move entry)
+    * value: `18`
+    * this error value indicates that the operation failed, because the different file systems should be used
+    * this error will occur, when multiple entries are used by one operation, but not all entries belong to the same file system
+        * the get mount point whould not return the equal elements for all entries
 * `UNMODIFIABLE_FLAGS` : element flags that can not be modified
     * value: `UHEX-000000FF`
     * these flags can not be modified after an element was created

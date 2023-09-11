@@ -1402,11 +1402,11 @@ public class PrimAsmPreDefines {
 	 * this error value indicates that some argument has an illegal value	 */
 	public static final long ERR_ILLEGAL_ARG = 8L;
 	/**
-	 * <b>ERR_ILLEGAL_STATE</b>: indicates that some state is invalid<br>
+	 * <b>ERR_ILLEGAL_DATA</b>: indicates that some data is invalid<br>
 	 * value: <code>9</code>
 	 * <p>
-	 * this error value indicates that a state is invalid, for example an invalid/unknown magic value	 */
-	public static final long ERR_ILLEGAL_STATE = 9L;
+	 * this error value indicates that a data is invalid, for example an invalid/unknown magic value	 */
+	public static final long ERR_ILLEGAL_DATA = 9L;
 	/**
 	 * <b>ERR_OUT_OF_MEMORY</b>: indicates that the system is out of memory<br>
 	 * value: <code>10</code>
@@ -1451,6 +1451,24 @@ public class PrimAsmPreDefines {
 	 * this error value indicates that the operation failed, because the element was deleted<br>
 	 * this error will occur, when a non empty folder is tried to be deleted	 */
 	public static final long ERR_ELEMENT_DELETED = 16L;
+	/**
+	 * <b>ERR_READ_ONLY</b>: indicates that the operation failed, because the file system or the element is read only<br>
+	 * value: <code>17</code>
+	 * <p>
+	 * this error value indicates that the operation failed, because the file system or the element is read only<br>
+	 * this error will occur, when write access on a file system which is open in read-only mode is tried	 */
+	public static final long ERR_READ_ONLY = 17L;
+	/**
+	 * <b>ERR_DIFFERENT_FILE_SYSTEMS</b>: indicates that the operation failed, because the different file systems should be used (for example move entry)<br>
+	 * value: <code>18</code>
+	 * <p>
+	 * this error value indicates that the operation failed, because the different file systems should be used<br>
+	 * this error will occur, when multiple entries are used by one operation, but not all entries belong to the same file system
+	 * <ul>
+	 * <li>the get mount point whould not return the equal elements for all entries</li>
+	 * </ul>
+	 */
+	public static final long ERR_DIFFERENT_FILE_SYSTEMS = 18L;
 	/**
 	 * <b>UNMODIFIABLE_FLAGS</b>: element flags that can not be modified<br>
 	 * value: <code>0x000000ff</code>

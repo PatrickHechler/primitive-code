@@ -28,7 +28,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import de.hechler.patrick.codesprachen.gen.impl.GenAsmEnumCommands;
-import de.hechler.patrick.codesprachen.gen.impl.GenCErrEnum;
+import de.hechler.patrick.codesprachen.gen.impl.GenErrEnum;
 import de.hechler.patrick.codesprachen.gen.impl.GenCorePredefined;
 import de.hechler.patrick.codesprachen.gen.impl.GenCorePrimAsmCmds;
 import de.hechler.patrick.codesprachen.gen.impl.GenDisasmEnumCommands;
@@ -61,10 +61,11 @@ public class GenSourceMain {
 	private static final String RUN_INT_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/include/pvm-int.h";
 	private static final String RUN_ERR_HEADER       = SrcGen.PRIMITIVE_CODE_DIR + "native-runtime/include/pvm-err.h";
 	private static final String PFS_ERR_HEADER       = SrcGen.PATR_FILE_SYS_DIR + "pfs-core/src/include/pfs-err.h";
+	private static final String JPFS_ERR_CONSTS      = SrcGen.PATR_FILE_SYS_DIR + "javaPFS/src/main/java/de/hechler/patrick/zeugs/pfs/impl/pfs/PFSErrorCause.java";
 	private static final String J2P_CONSTANTS        = SrcGen.J2P_DIR + "src/main/resources/prim-code/constants.psf";
 	private static final String J2P_PVM_JAVA         = SrcGen.J2P_DIR + "src/main/resources/prim-code/pvm-java.psc";
 	
-	public static final Path J2P_CONSTANTS_PATH        = Path.of(J2P_CONSTANTS);
+	public static final Path J2P_CONSTANTS_PATH = Path.of(J2P_CONSTANTS);
 	
 	public static void main(String[] args) throws IOException, IOError {
 		generate(Path.of(ASM_COMMANDS_ENUM), "\t", new GenAsmEnumCommands());
@@ -75,8 +76,9 @@ public class GenSourceMain {
 		generate(Path.of(RUN_COMMAND_FUNCS), "", new GenRunCommandFuncs());
 		generate(Path.of(RUN_COMMAND_ARRAY), "", new GenRunCommandArray());
 		generateAll(Path.of(RUN_INT_HEADER), new GenRunIntHeader());
-		generate(Path.of(RUN_ERR_HEADER), "\t", new GenCErrEnum("PE_"));
-		generate(Path.of(PFS_ERR_HEADER), "\t", new GenCErrEnum("PFS_ERRNO_"));
+		generate(Path.of(RUN_ERR_HEADER), "\t", new GenErrEnum("PE_"));
+		generate(Path.of(PFS_ERR_HEADER), "\t", new GenErrEnum("PFS_ERRNO_"));
+		generate(Path.of(JPFS_ERR_CONSTS), "\t", new GenErrEnum("static final int " , false));
 		generate(Path.of(SC_SDTLIB_FUNCS), "\t", new GenSCStdLibIntFuncs());
 		generateAll(J2P_CONSTANTS_PATH, new GenJ2PConstants());
 		generate(Path.of(J2P_PVM_JAVA), "|>", "", new GenJ2PPvmJava());
@@ -150,7 +152,7 @@ public class GenSourceMain {
 	}
 	
 	private static String genStartLines(String comment, String indent) {
-		return indent + comment  + " " + GEN_START + "\n" + indent + comment + " this code-block is automatic generated, do not modify\n";
+		return indent + comment + " " + GEN_START + "\n" + indent + comment + " this code-block is automatic generated, do not modify\n";
 	}
 	
 	public static void writeLine(Writer out, String line) throws IOException {

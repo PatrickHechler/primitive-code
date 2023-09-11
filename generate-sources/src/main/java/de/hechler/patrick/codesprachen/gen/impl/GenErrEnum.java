@@ -22,12 +22,18 @@ import java.io.Writer;
 import de.hechler.patrick.codesprachen.gen.SrcGen;
 
 
-public class GenCErrEnum implements SrcGen {
+public class GenErrEnum implements SrcGen {
 	
 	private final String nameStart;
+	private final boolean c;
 	
-	public GenCErrEnum(String nameStart) {
+	public GenErrEnum(String nameStart, boolean c) {
 		this.nameStart = nameStart;
+		this.c = c;
+	}
+	
+	public GenErrEnum(String nameStart) {
+		this(nameStart, true);
 	}
 	
 	@Override
@@ -36,15 +42,24 @@ public class GenCErrEnum implements SrcGen {
 			if (!cnst.name().startsWith("ERR_")) {
 				continue;
 			}
+			if (!this.c) {
+				out.write("\t/** ");
+				out.write(cnst.header());
+				out.write(" */\n");
+			}
 			out.write('\t');
-			out.write(nameStart);
+			out.write(this.nameStart);
 			out.write(cnst.name().substring("ERR_".length()));
 			out.write("                                 ".substring(cnst.name().length()));
 			out.write(" = ");
 			out.write(Long.toString(cnst.value()));
-			out.write(", /* ");
-			out.write(cnst.header());
-			out.write(" */\n");
+			if (this.c) {
+				out.write(", /* ");
+				out.write(cnst.header());
+				out.write(" */\n");
+			} else {
+				out.write(";\n");
+			}
 		}
 	}
 	
