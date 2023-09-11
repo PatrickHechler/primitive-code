@@ -235,7 +235,7 @@ static inline void setup(int argc, char **argv) {
 			}
 			cwd = *argv + 4;
 			if (pfs_set) {
-				if (!pfs_change_working_directoy(cwd)) {
+				if (!pfs_change_dir_path(cwd)) {
 					fprintf(stderr, "could not set cwd to '%s' (%s)!\n", cwd,
 							pfs_error());
 				}
@@ -254,7 +254,7 @@ static inline void setup(int argc, char **argv) {
 						pfs_error(), *argv + 4);
 				exit(1);
 			}
-			if (!pfs_load(bm, cwd)) {
+			if (!pfs_load(bm, cwd, 0)) {
 				fprintf(stderr, "could not load the PFS (%s)!\n", pfs_error());
 				exit(1);
 			}
@@ -338,7 +338,7 @@ static inline void setup(int argc, char **argv) {
 						pfs_error(), *argv);
 				exit(1);
 			}
-			if (!pfs_load(bm, NULL)) {
+			if (!pfs_load(bm, NULL, 0)) {
 				fprintf(stderr, "could not load the PFS (%s) : %s\n",
 						pfs_error(), *argv);
 				exit(1);
