@@ -30,6 +30,7 @@
 #include <pfs-iter.h>
 #include <pfs-element.h>
 #include <pfs-folder.h>
+#include <pfs-mount.h>
 #include <pfs-file.h>
 #include <pfs-pipe.h>
 #include <pfs-err.h>

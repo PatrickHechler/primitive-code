@@ -77,7 +77,7 @@ public class GenRunIntHeader implements SrcGen {
 	
 	private static final String FILE_TXT2 =//
 		/*	*/"\n"//
-			+ "EXT void (*(ints[]))(INT_PARAMS)\n"//
+			+ "PVM_EXT void (*(ints[]))(INT_PARAMS)\n"//
 			+ "#ifdef PVM\n"//
 			+ " = {\n"//
 			+ "";

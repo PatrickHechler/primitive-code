@@ -44,7 +44,6 @@ public class GenSCStdLibIntFuncs implements SrcGen {
 		int    pointerCnt = 0;
 		long   flags      = 0L;
 		if (reg == PrimAsmConstants.STATUS) {
-			if (pointerCnt != 0) throw new AssertionError(matcher.group(0));
 			Matcher flagMatcher = STATUS_FLAG.matcher('`' + type + '`');
 			while (flagMatcher.find()) {
 				String flagName = flagMatcher.group(1);

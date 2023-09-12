@@ -153,7 +153,7 @@ static uint64_t pvm_address_hash(const void *a);
 
 #	endif // PVM
 
-PFS_EXT struct hashset breakpoints
+PVM_EXT struct hashset breakpoints
 #ifdef PVM
 = {
 		.entries = NULL,
@@ -164,7 +164,7 @@ PFS_EXT struct hashset breakpoints
 }
 #endif // PVM
 ;
-PFS_EXT enum pvm_db_state {
+PVM_EXT enum pvm_db_state {
 	pvm_ds_running,
 
 	pvm_ds_new_running,
@@ -178,7 +178,7 @@ PFS_EXT enum pvm_db_state {
 	pvm_ds_init = pvm_ds_waiting,
 } pvm_state, pvm_next_state;
 
-PFS_EXT int pvm_depth;
+PVM_EXT int pvm_depth;
 
 #endif // PVM_DEBUG
 
@@ -192,6 +192,12 @@ PFS_EXT int pvm_depth;
 #define MEM_INT             0x00000008U
 #define MEM_LIB             0x00000010U
 #define MEM_EXTERN          0x00000020U
+
+#define MEM_LIB_ALL         (MEM_LIB | MEM_NO_RESIZE | MEM_NO_FREE)
+
+// note that no_resize and no_free are allowed to be set
+// thus the registers and program arguments can be used by a create_lib call
+#define MEM_LIB_CREATE_FORBIDDEN_MASK (MEM_AUTO_GROW | MEM_EXTERN | MEM_INT | MEM_LIB)
 
 struct memory {
 	num start;
