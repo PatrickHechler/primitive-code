@@ -81,7 +81,7 @@ public class GenSourceMain {
 		generate(Path.of(JPFS_ERR_CONSTS), "\t", new GenErrEnum("static final int " , false));
 		generate(Path.of(SC_SDTLIB_FUNCS), "\t", new GenSCStdLibIntFuncs());
 		generateAll(J2P_CONSTANTS_PATH, new GenJ2PConstants());
-		generate(Path.of(J2P_PVM_JAVA), "|>", "", new GenJ2PPvmJava());
+		generate(Path.of(J2P_PVM_JAVA), "|>", "\t", new GenJ2PPvmJava());
 		System.out.println("finish");
 	}
 	
