@@ -585,12 +585,28 @@ public class PrimAsmPreDefines {
 	 * <ul>
 	 * <li><code>X01</code> <code>childId</code>: (<code>num</code>) the newly opened (FOLDER-)ELEMENT-ID for the child or <code>-1</code> on error</li>
 	 * </ul>
-	 * this operation will fail if the child is no folder<br>
+	 * this operation will fail if the child is no folder or mount point<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
 	public static final long INT_FOLDER_OPEN_CHILD_FOLDER_OF_NAME = 35L;
 	/**
-	 * <b>INT_FOLDER_OPEN_CHILD_FILE_OF_NAME</b>: folder get child file of name<br>
+	 * <b>INT_FOLDER_OPEN_CHILD_MOUNT_OF_NAME</b>: folder get child mount point of name<br>
 	 * value: <code>36</code>
+	 * <p>
+	 * params:
+	 * <ul>
+	 * <li><code>X00</code> <code>id</code>: (<code>num</code>) the ELEMENT/FOLDER-ID</li>
+	 * <li><code>X01</code> <code>name</code>: (<code>char#</code>) points to a STRING with the name of the child</li>
+	 * </ul>
+	 * result values:
+	 * <ul>
+	 * <li><code>X01</code> <code>childId</code>: (<code>num</code>) the newly opened (FOLDER-)ELEMENT-ID for the child or <code>-1</code> on error</li>
+	 * </ul>
+	 * this operation will fail if the child is no mount point<br>
+	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
+	public static final long INT_FOLDER_OPEN_CHILD_MOUNT_OF_NAME = 36L;
+	/**
+	 * <b>INT_FOLDER_OPEN_CHILD_FILE_OF_NAME</b>: folder get child file of name<br>
+	 * value: <code>37</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -603,10 +619,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * this operation will fail if the child is no file<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_OPEN_CHILD_FILE_OF_NAME = 36L;
+	public static final long INT_FOLDER_OPEN_CHILD_FILE_OF_NAME = 37L;
 	/**
 	 * <b>INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME</b>: folder get child pipe of name<br>
-	 * value: <code>37</code>
+	 * value: <code>38</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -619,10 +635,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * this operation will fail if the child is no pipe<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME = 37L;
+	public static final long INT_FOLDER_OPEN_CHILD_PIPE_OF_NAME = 38L;
 	/**
 	 * <b>INT_FOLDER_OPEN_DESC_OF_PATH</b>: folder get descendant of path<br>
-	 * value: <code>38</code>
+	 * value: <code>39</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -634,10 +650,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>descId</code>: (<code>num</code>) the newly opened ELEMENT-ID for the descendant or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_OPEN_DESC_OF_PATH = 38L;
+	public static final long INT_FOLDER_OPEN_DESC_OF_PATH = 39L;
 	/**
 	 * <b>INT_FOLDER_OPEN_DESC_FOLDER_OF_PATH</b>: folder get descendant folder of path<br>
-	 * value: <code>39</code>
+	 * value: <code>40</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -648,12 +664,28 @@ public class PrimAsmPreDefines {
 	 * <ul>
 	 * <li><code>X01</code> <code>descId</code>: (<code>num</code>) the newly opened (PIPE-)ELEMENT-ID for the descendant or <code>-1</code> on error</li>
 	 * </ul>
-	 * this operation will fail if the descendant is no folder<br>
+	 * this operation will fail if the descendant is no folder or mount point<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_OPEN_DESC_FOLDER_OF_PATH = 39L;
+	public static final long INT_FOLDER_OPEN_DESC_FOLDER_OF_PATH = 40L;
+	/**
+	 * <b>INT_FOLDER_OPEN_DESC_MOUNT_OF_PATH</b>: folder get descendant mount point of path<br>
+	 * value: <code>41</code>
+	 * <p>
+	 * params:
+	 * <ul>
+	 * <li><code>X00</code> <code>id</code>: (<code>num</code>) the (FOLDER-)ELEMENT-ID</li>
+	 * <li><code>X01</code> <code>name</code>: (<code>char#</code>) points to a STRING with the relative path of the descendant</li>
+	 * </ul>
+	 * result values:
+	 * <ul>
+	 * <li><code>X01</code> <code>descId</code>: (<code>num</code>) the newly opened (PIPE-)ELEMENT-ID for the descendant or <code>-1</code> on error</li>
+	 * </ul>
+	 * this operation will fail if the descendant is no mount point<br>
+	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
+	public static final long INT_FOLDER_OPEN_DESC_MOUNT_OF_PATH = 41L;
 	/**
 	 * <b>INT_FOLDER_OPEN_DESC_FILE_OF_PATH</b>: folder get descendant file of path<br>
-	 * value: <code>40</code>
+	 * value: <code>42</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -666,10 +698,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * this operation will fail if the descendant is no file<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_OPEN_DESC_FILE_OF_PATH = 40L;
+	public static final long INT_FOLDER_OPEN_DESC_FILE_OF_PATH = 42L;
 	/**
 	 * <b>INT_FOLDER_OPEN_DESC_PIPE_OF_PATH</b>: folder get descendant pipe of path<br>
-	 * value: <code>41</code>
+	 * value: <code>43</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -682,10 +714,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * this operation will fail if the descendant is no pipe<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_OPEN_DESC_PIPE_OF_PATH = 41L;
+	public static final long INT_FOLDER_OPEN_DESC_PIPE_OF_PATH = 43L;
 	/**
 	 * <b>INT_FOLDER_CREATE_CHILD_FOLDER</b>: folder add child folder<br>
-	 * value: <code>42</code>
+	 * value: <code>44</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -697,10 +729,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>childId</code>: (<code>num</code>) the newly created/opened (FOLDER-)ELEMENT-ID for the child or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_CREATE_CHILD_FOLDER = 42L;
+	public static final long INT_FOLDER_CREATE_CHILD_FOLDER = 44L;
 	/**
 	 * <b>INT_FOLDER_CREATE_CHILD_FILE</b>: folder add child file<br>
-	 * value: <code>43</code>
+	 * value: <code>45</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -712,10 +744,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>childId</code>: (<code>num</code>) will be set to a newly created/opened (FILE-)ELEMENT-ID for the child or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_CREATE_CHILD_FILE = 43L;
+	public static final long INT_FOLDER_CREATE_CHILD_FILE = 45L;
 	/**
 	 * <b>INT_FOLDER_CREATE_CHILD_PIPE</b>: folder add child pipe<br>
-	 * value: <code>44</code>
+	 * value: <code>46</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -727,10 +759,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>childId</code>: (<code>num</code>) will be set to a newly created/opened (PIPE-)ELEMENT-ID for the child or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_CREATE_CHILD_PIPE = 44L;
+	public static final long INT_FOLDER_CREATE_CHILD_PIPE = 46L;
 	/**
 	 * <b>INT_FOLDER_CREATE_CHILD_MOUNT_TMP</b>: folder add temp mount pipe<br>
-	 * value: <code>45</code>
+	 * value: <code>47</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -744,10 +776,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>childId</code>: (<code>num</code>) will be set to a newly created/opened (PIPE-)ELEMENT-ID for the child or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_CREATE_CHILD_MOUNT_TMP = 45L;
+	public static final long INT_FOLDER_CREATE_CHILD_MOUNT_TMP = 47L;
 	/**
 	 * <b>INT_FOLDER_CREATE_CHILD_MOUNT_INTERN</b>: folder add intern mount pipe<br>
-	 * value: <code>46</code>
+	 * value: <code>48</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -761,10 +793,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>childId</code>: (<code>num</code>) will be set to a newly created/opened (PIPE-)ELEMENT-ID for the child or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_CREATE_CHILD_MOUNT_INTERN = 46L;
+	public static final long INT_FOLDER_CREATE_CHILD_MOUNT_INTERN = 48L;
 	/**
 	 * <b>INT_FOLDER_OPEN_ITER</b>: open child iterator of folder<br>
-	 * value: <code>47</code>
+	 * value: <code>49</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -776,10 +808,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>iterId</code>: (<code>num</code>) will be set to the FOLDER-ITER-ID or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FOLDER_OPEN_ITER = 47L;
+	public static final long INT_FOLDER_OPEN_ITER = 49L;
 	/**
 	 * <b>INT_FILE_LENGTH</b>: get the length of a file<br>
-	 * value: <code>48</code>
+	 * value: <code>50</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -790,10 +822,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>len</code>: (<code>num</code>) the file length in bytes or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FILE_LENGTH = 48L;
+	public static final long INT_FILE_LENGTH = 50L;
 	/**
 	 * <b>INT_FILE_TRUNCATE</b>: set the length of a file<br>
-	 * value: <code>49</code>
+	 * value: <code>51</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -806,10 +838,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * this will append zeros to the file when the new length is larger than the old length or remove all content after the new length<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_FILE_TRUNCATE = 49L;
+	public static final long INT_FILE_TRUNCATE = 51L;
 	/**
 	 * <b>INT_HANDLE_OPEN_STREAM</b>: opens a stream from a file or pipe handle<br>
-	 * value: <code>50</code>
+	 * value: <code>52</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -822,10 +854,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * note that this interrupt works for both files and pipes, but will fail for folders<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_HANDLE_OPEN_STREAM = 50L;
+	public static final long INT_HANDLE_OPEN_STREAM = 52L;
 	/**
 	 * <b>INT_PIPE_LENGTH</b>: get the length of a pipe<br>
-	 * value: <code>51</code>
+	 * value: <code>53</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -836,10 +868,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>len</code>: (<code>num</code>) the pipe length in bytes or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_PIPE_LENGTH = 51L;
+	public static final long INT_PIPE_LENGTH = 53L;
 	/**
 	 * <b>INT_TIME_GET</b>: get the current system time<br>
-	 * value: <code>52</code>
+	 * value: <code>54</code>
 	 * <p>
 	 * result values:
 	 * <ul>
@@ -848,10 +880,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X02</code> <code>success</code>: (<code>num</code>) <code>1</code> on success and <code>0</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_TIME_GET = 52L;
+	public static final long INT_TIME_GET = 54L;
 	/**
 	 * <b>INT_TIME_RES</b>: get the system time resolution<br>
-	 * value: <code>53</code>
+	 * value: <code>55</code>
 	 * 
 	 * <ul>
 	 * <li><code>X00</code> <code>secs</code>: (<code>num</code>) the resolution in seconds</li>
@@ -859,10 +891,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X02</code> <code>success</code>: (<code>num</code>) <code>1</code> on success and <code>0</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_TIME_RES = 53L;
+	public static final long INT_TIME_RES = 55L;
 	/**
 	 * <b>INT_TIME_SLEEP</b>: to sleep the given time in nanoseconds<br>
-	 * value: <code>54</code>
+	 * value: <code>56</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -877,10 +909,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * note that <code>X00</code> will not be negative if the progress waited too long<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_TIME_SLEEP = 54L;
+	public static final long INT_TIME_SLEEP = 56L;
 	/**
 	 * <b>INT_TIME_WAIT</b>: to wait the given time in nanoseconds<br>
-	 * value: <code>55</code>
+	 * value: <code>57</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -893,10 +925,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * this interrupt will wait until the current system time is equal or after the given absolute time.<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_TIME_WAIT = 55L;
+	public static final long INT_TIME_WAIT = 57L;
 	/**
 	 * <b>INT_RND_OPEN</b>: open a read stream which delivers random values<br>
-	 * value: <code>56</code>
+	 * value: <code>58</code>
 	 * <p>
 	 * result values:
 	 * <ul>
@@ -907,20 +939,20 @@ public class PrimAsmPreDefines {
 	 * <li>not write/append or seek/setpos operations</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_RND_OPEN = 56L;
+	public static final long INT_RND_OPEN = 58L;
 	/**
 	 * <b>INT_RND_NUM</b>: sets `X00` to a random number<br>
-	 * value: <code>57</code>
+	 * value: <code>59</code>
 	 * <p>
 	 * result values:
 	 * <ul>
 	 * <li><code>X00</code> <code>rnd</code>: (<code>num</code>) 64 random bits</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_RND_NUM = 57L;
+	public static final long INT_RND_NUM = 59L;
 	/**
 	 * <b>INT_MEM_CMP</b>: memory compare<br>
-	 * value: <code>58</code>
+	 * value: <code>60</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -934,10 +966,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * compares two blocks of memory<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_MEM_CMP = 58L;
+	public static final long INT_MEM_CMP = 60L;
 	/**
 	 * <b>INT_MEM_CPY</b>: memory copy<br>
-	 * value: <code>59</code>
+	 * value: <code>61</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -948,10 +980,10 @@ public class PrimAsmPreDefines {
 	 * copies a block of memory<br>
 	 * this function has undefined behavior if the two blocks overlap<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_MEM_CPY = 59L;
+	public static final long INT_MEM_CPY = 61L;
 	/**
 	 * <b>INT_MEM_MOV</b>: memory move<br>
-	 * value: <code>60</code>
+	 * value: <code>62</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -962,10 +994,10 @@ public class PrimAsmPreDefines {
 	 * copies a block of memory<br>
 	 * this function makes sure, that the original values of the source block are copied to the target block (even if the two block overlap)<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_MEM_MOV = 60L;
+	public static final long INT_MEM_MOV = 62L;
 	/**
 	 * <b>INT_MEM_BSET</b>: memory byte set<br>
-	 * value: <code>61</code>
+	 * value: <code>63</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -975,10 +1007,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * sets a memory block to the given byte-value<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_MEM_BSET = 61L;
+	public static final long INT_MEM_BSET = 63L;
 	/**
 	 * <b>INT_STR_LEN</b>: string length<br>
-	 * value: <code>62</code>
+	 * value: <code>64</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -989,10 +1021,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X00</code> <code>len</code>: (<code>num</code>) the length of the string the/(byte-)offset of the first byte from the <code>'\0'</code> character</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_LEN = 62L;
+	public static final long INT_STR_LEN = 64L;
 	/**
 	 * <b>INT_STR_INDEX</b>: string index of<br>
-	 * value: <code>63</code>
+	 * value: <code>65</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1005,10 +1037,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * if the given character could not be found, <code>index</code> will be <code>-1</code><br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_INDEX = 63L;
+	public static final long INT_STR_INDEX = 65L;
 	/**
 	 * <b>INT_STR_CMP</b>: string compare<br>
-	 * value: <code>64</code>
+	 * value: <code>66</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1020,10 +1052,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>STATUS</code> <code>cmpRes</code>: (<code>LOWER</code>, <code>GREATER</code>, <code>EQUAL</code>) if <code>memA</code> is lower/greater/equal than/to <code>memB</code></li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_CMP = 64L;
+	public static final long INT_STR_CMP = 66L;
 	/**
 	 * <b>INT_STR_FROM_NUM</b>: number to string<br>
-	 * value: <code>65</code>
+	 * value: <code>67</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1040,10 +1072,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * the new length will be the old length or if the old length is smaller than the size of the STRING (with <code>\0</code>) than the size of the STRING (with <code>\0</code>)<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_FROM_NUM = 65L;
+	public static final long INT_STR_FROM_NUM = 67L;
 	/**
 	 * <b>INT_STR_FROM_FPNUM</b>: floating point number to string<br>
-	 * value: <code>66</code>
+	 * value: <code>68</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1059,10 +1091,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * the new length will be the old length or if the old length is smaller than the size of the STRING (with <code>\0</code>) than the size of the STRING (with <code>\0</code>)<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_FROM_FPNUM = 66L;
+	public static final long INT_STR_FROM_FPNUM = 68L;
 	/**
 	 * <b>INT_STR_TO_NUM</b>: string to number<br>
-	 * value: <code>67</code>
+	 * value: <code>69</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1076,10 +1108,10 @@ public class PrimAsmPreDefines {
 	 * </ul>
 	 * if the STRING represents a value out of the 64-bit number range <code>X00</code> will be min or max value and <code>ERRNO</code> will be set to <code>ERR_OUT_OF_RANGE</code><br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_TO_NUM = 67L;
+	public static final long INT_STR_TO_NUM = 69L;
 	/**
 	 * <b>INT_STR_TO_FPNUM</b>: string to floating point number<br>
-	 * value: <code>68</code>
+	 * value: <code>70</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1091,10 +1123,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>success</code>: (<code>num</code>) <code>1</code> on success and <code>0</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_TO_FPNUM = 68L;
+	public static final long INT_STR_TO_FPNUM = 70L;
 	/**
 	 * <b>INT_STR_TO_U16STR</b>: STRING to U16-STRING<br>
-	 * value: <code>69</code>
+	 * value: <code>71</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1110,10 +1142,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_TO_U16STR = 69L;
+	public static final long INT_STR_TO_U16STR = 71L;
 	/**
 	 * <b>INT_STR_TO_U32STR</b>: STRING to U32-STRING<br>
-	 * value: <code>70</code>
+	 * value: <code>72</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1129,10 +1161,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_TO_U32STR = 70L;
+	public static final long INT_STR_TO_U32STR = 72L;
 	/**
 	 * <b>INT_STR_FROM_U16STR</b>: U16-STRING to STRING<br>
-	 * value: <code>71</code>
+	 * value: <code>73</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1148,10 +1180,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_FROM_U16STR = 71L;
+	public static final long INT_STR_FROM_U16STR = 73L;
 	/**
 	 * <b>INT_STR_FROM_U32STR</b>: U32-STRING to STRING<br>
-	 * value: <code>72</code>
+	 * value: <code>74</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1167,10 +1199,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X03</code> <code>remU8Len</code>: (<code>num</code>) will be set to the number of converted characters or <code>-1</code> on error</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_FROM_U32STR = 72L;
+	public static final long INT_STR_FROM_U32STR = 74L;
 	/**
 	 * <b>INT_STR_FORMAT</b>: format string<br>
-	 * value: <code>73</code>
+	 * value: <code>75</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1212,10 +1244,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>%o</code>: the next argument contains a number, which should be converted to a STRING using the octal number system (<code>8</code>) and than be inserted here</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_STR_FORMAT = 73L;
+	public static final long INT_STR_FORMAT = 75L;
 	/**
 	 * <b>INT_LOAD_FILE</b>: load a file<br>
-	 * value: <code>74</code>
+	 * value: <code>76</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1227,10 +1259,10 @@ public class PrimAsmPreDefines {
 	 * <li><code>X01</code> <code>len</code>: (<code>num</code>) the length of the file (and the memory block)</li>
 	 * </ul>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_LOAD_FILE = 74L;
+	public static final long INT_LOAD_FILE = 76L;
 	/**
 	 * <b>INT_LOAD_LIB</b>: load a library file<br>
-	 * value: <code>75</code>
+	 * value: <code>77</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1280,10 +1312,10 @@ public class PrimAsmPreDefines {
 	 * </ol>
 	 * when an error occurred <code>X01</code> will be set to <code>-1</code>, <code>X00</code> will be unmodified and <code>ERRNO</code> will be set to a non-zero value<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_LOAD_LIB = 75L;
+	public static final long INT_LOAD_LIB = 77L;
 	/**
 	 * <b>INT_CREATE_LIB</b>: turn a memory block to a libary<br>
-	 * value: <code>76</code>
+	 * value: <code>78</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1300,10 +1332,10 @@ public class PrimAsmPreDefines {
 	 * by using this interrupt the program can convert a normal memory block to a libary memory block<br>
 	 * when an error occurred <code>X01</code> will be set to <code>-1</code>, <code>X00</code> will be unmodified and <code>ERRNO</code> will be set to a non-zero value<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_CREATE_LIB = 76L;
+	public static final long INT_CREATE_LIB = 78L;
 	/**
 	 * <b>INT_UNLOAD_LIB</b>: unload a library file<br>
-	 * value: <code>77</code>
+	 * value: <code>79</code>
 	 * <p>
 	 * params:
 	 * <ul>
@@ -1312,14 +1344,14 @@ public class PrimAsmPreDefines {
 	 * unloads a library previously loaded with the load lib interrupt<br>
 	 * this interrupt will ensure that the given memory block will be freed and not again be returned from the load lib interrupt<br>
 	 * this value can be used by the <code>INT</code> command to indicate that this interrupt should be called	 */
-	public static final long INT_UNLOAD_LIB = 77L;
+	public static final long INT_UNLOAD_LIB = 79L;
 	/**
 	 * <b>INTERRUPT_COUNT</b>: the number of interrupts<br>
-	 * value: <code>78</code>
+	 * value: <code>80</code>
 	 * <p>
 	 * the number of interrupts supported by default<br>
 	 * the <code>INTCNT</code> register is initialed with this value	 */
-	public static final long INTERRUPT_COUNT = 78L;
+	public static final long INTERRUPT_COUNT = 80L;
 	/**
 	 * <b>FP_NAN</b>: not a number<br>
 	 * value: <code>0x7ffe000000000000</code>
