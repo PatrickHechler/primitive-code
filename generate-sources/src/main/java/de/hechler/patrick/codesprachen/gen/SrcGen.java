@@ -39,18 +39,27 @@ import de.hechler.patrick.codesprachen.primitive.core.objects.PrimitiveConstant;
 public interface SrcGen {
 	
 	static final String BASE_DIR           = initilizeBaseDir();
-	static final String PRIMITIVE_CODE_DIR = BASE_DIR + "primitive-code/";
-	static final String PATR_FILE_SYS_DIR  = BASE_DIR + "PatrFileSys/";
-	static final String SIMPLE_CODE_DIR    = BASE_DIR + "simple-code/";
-	static final String J2P_DIR            = BASE_DIR + "java-2-prim/";
+	static final String PRIMITIVE_CODE_DIR = initilizeNonBaseDir("src-gen.primitive-code", "primitive-code/", "primitive code");
+	static final String PATR_FILE_SYS_DIR  = initilizeNonBaseDir("src-gen.patr-file-sys", "PatrFileSys/", "Patr File Sys");
+	static final String SIMPLE_CODE_DIR    = initilizeNonBaseDir("src-gen.simple-code", "simple-code/", "simple code");
+	static final String J2P_DIR            = initilizeNonBaseDir("src-gen.java-2-prim", "java-2-prim/", "java 2 prim");
+	
 	static final String SIMPLE_COMPILE_DIR = SIMPLE_CODE_DIR + "simple-compile/";
 	static final String PRIM_CODE_README   = PRIMITIVE_CODE_DIR + "README.md";
 	static final String J2P_DOC_FILE       = J2P_DIR + "doc/file.md";
 	
 	static String initilizeBaseDir() {
-		String baseDir = System.getProperty("user.home") + "/git/";
+		String baseDir = System.getProperty("src-gen.base");
+		if (baseDir == null) baseDir = System.getProperty("user.home") + "/git/";
 		System.out.println("base dir: " + baseDir);
 		return baseDir;
+	}
+	
+	static String initilizeNonBaseDir(String prop, String post, String name) {
+		String primitiveCodeDir = System.getProperty(prop);
+		if (primitiveCodeDir == null) primitiveCodeDir = BASE_DIR + post;
+		System.out.println(name + " dir: " + primitiveCodeDir);
+		return primitiveCodeDir;
 	}
 	
 	void generate(Writer out) throws IOException;
