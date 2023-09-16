@@ -192,6 +192,8 @@ PVM_EXT int pvm_depth;
 #define MEM_INT             0x00000008U
 #define MEM_LIB             0x00000010U
 #define MEM_EXTERN          0x00000020U
+#define MEM_MARK_INVALID    0x00000040U
+#define MEM_INVALID         0x00000080U
 
 #define MEM_LIB_ALL         (MEM_LIB | MEM_NO_RESIZE | MEM_NO_FREE)
 

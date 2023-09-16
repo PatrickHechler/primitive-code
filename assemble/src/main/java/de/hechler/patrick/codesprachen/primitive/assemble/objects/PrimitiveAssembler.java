@@ -68,7 +68,7 @@ import de.hechler.patrick.codesprachen.simple.symbol.interfaces.SimpleExportable
 @SuppressWarnings("javadoc")
 public class PrimitiveAssembler implements Closeable {
 	
-	private static final String UNWANTED_LABEL_IN_PARAMS = "I don't need a label in my params!";
+	private static final String UNWANTED_LABEL_IN_PARAMS = "I don't need a label in my params! label: ";
 	
 	private static final String UNKNOWN_ART = "unknown art: ";
 	
@@ -615,7 +615,7 @@ public class PrimitiveAssembler implements Closeable {
 	
 	private void writeOneParam(Command cmd, byte[] bytes) throws IOException {
 		assert cmd.p1 != null : "I need a first Param!";
-		assert cmd.p1.label == null : UNWANTED_LABEL_IN_PARAMS;
+		assert cmd.p1.label == null : UNWANTED_LABEL_IN_PARAMS + cmd.p1;
 		assert bytes.length == 8;
 		bytes[2] = (byte) cmd.p1.art;
 		long num = cmd.p1.num;
@@ -715,6 +715,7 @@ public class PrimitiveAssembler implements Closeable {
 			bytes[index--] = (byte) pnum;
 			bytes[index--] = (byte) poff;
 		}
+		case -1 -> throw new AssertionError(UNWANTED_LABEL_IN_PARAMS + cmd.p1);
 		default -> throw new AssertionError(UNKNOWN_ART + part);
 		}
 		return index;

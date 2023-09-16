@@ -1227,7 +1227,7 @@ every register can also be addressed:
 the pre-commands ar executed at assemble time, not runtime
 
 `$align` or `$ALIGN`
-* to align code when possible and needed
+* to align when possible and needed
 
 `$not-align`, `$not_align`, `$NOT-ALIGN` or `$NOT_ALIGN`
 * to not align, even if possible
@@ -1469,7 +1469,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
 
-`LSH <NO_CONST_PARAM>, <PARAM>`
+`LSH <NO_CONST_PARAM>, <BYTE_PARAM>`
 * shifts bits of the parameter logically left
 * definition:
     * `if ((p1 << p2) >> p2) = p1`
@@ -1479,13 +1479,13 @@ the pre-commands ar executed at assemble time, not runtime
     * `p1 <- p1 << p2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 04 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 04 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`RASH <NO_CONST_PARAM>, <PARAM>`
+`RASH <NO_CONST_PARAM>, <BYTE_PARAM>`
 * shifts bits of the parameter arithmetic right
 * definition:
     * `if ((p1 >> p2) << p2) = p1`
@@ -1495,13 +1495,13 @@ the pre-commands ar executed at assemble time, not runtime
     * `p1 <- p1 >> 2`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 05 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 05 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
     * `[P2.OFF_NUM]`
 
-`RLSH <NO_CONST_PARAM>, <PARAM>`
+`RLSH <NO_CONST_PARAM>, <BYTE_PARAM>`
 * shifts bits of the parameter logically right
 * definition:
     * `if ((p1 >>> p2) << p2) = p1`
@@ -1511,7 +1511,7 @@ the pre-commands ar executed at assemble time, not runtime
     * `p1 <- p1 >>> 1`
     * `IP <- IP + CMD_LEN`
 * binary:
-    * `01 06 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.OFF_REG|00>`
+    * `01 06 <B-P1.TYPE> <B-P2.TYPE> <B-P2.OFF_REG|00> <B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00> <B-P1.OFF_REG|B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00> <B-P1.NUM_REG|B-P1.OFF_REG|B-P2.NUM_REG|B-P2.NUM_NUM|B-P2.OFF_REG|00>`
     * `[P1.NUM_NUM]`
     * `[P1.OFF_NUM]`
     * `[P2.NUM_NUM]`
@@ -2664,29 +2664,32 @@ the pre-commands ar executed at assemble time, not runtime
 * for the list of default interrupts see the [predefined constant](#predefined-constants) documentation
     * note that all predefined interrupts set the `ERRNO` register to a nonzero value on error
 * definition:
-    * `IP         <- IP + CMD_LEN`
-    * note that default interrupts get called with a different routine
-    * `ZW         <- MEM-ALLOC{size=128}`
+    * `IP          <- IP + CMD_LEN`
+    * note that default interrupts get called (and return) with a different routine, without allocating additional memory
+    * `TMP         <- MEM-ALLOC{size=128}`
         * if the memory allocation fails, the program will terminate with 127
         * the allocated memory block will not be resizable, but can be freed normally with the free interrupt or with the `IRET` command
-    * `[ZW]       <- IP`
-    * `[ZW + 8]   <- SP`
-    * `[ZW + 16]  <- STATUS`
-    * `[ZW + 24]  <- INTCNT`
-    * `[ZW + 32]  <- INTP`
-    * `[ZW + 40]  <- ERRNO`
-    * `[ZW + 48]  <- X00`
-    * `[ZW + 56]  <- X01`
-    * `[ZW + 64]  <- X02`
-    * `[ZW + 72]  <- X03`
-    * `[ZW + 80]  <- X04`
-    * `[ZW + 88]  <- X05`
-    * `[ZW + 96]  <- X06`
-    * `[ZW + 104] <- X07`
-    * `[ZW + 112] <- X08`
-    * `[ZW + 120] <- X09`
-    * `X09        <- ZW`
-    * `IP         <- [INTP + (p1 * 8)]`
+        * if all memory blocks returned by the `INT` command, where previusly freed the allocation is guaranteed to succeed
+            * the allocation is also guranteed to succeed, when no non-default interrupt has been called previusly
+        * in other words: as long as all no nested overwritten interrupts are executed, the allocation is guranteed to succeed
+    * `[TMP]       <- IP`
+    * `[TMP + 8]   <- SP`
+    * `[TMP + 16]  <- STATUS`
+    * `[TMP + 24]  <- INTCNT`
+    * `[TMP + 32]  <- INTP`
+    * `[TMP + 40]  <- ERRNO`
+    * `[TMP + 48]  <- X00`
+    * `[TMP + 56]  <- X01`
+    * `[TMP + 64]  <- X02`
+    * `[TMP + 72]  <- X03`
+    * `[TMP + 80]  <- X04`
+    * `[TMP + 88]  <- X05`
+    * `[TMP + 96]  <- X06`
+    * `[TMP + 104] <- X07`
+    * `[TMP + 112] <- X08`
+    * `[TMP + 120] <- X09`
+    * `X09         <- ZW`
+    * `IP          <- [INTP + (p1 * 8)]`
         * if the address `INTP + (p1 * 8)` is invalid the pvm will execute the illegal memory interrupt
             * the pvm will terminate with 127 instead if the address `INTP + (INT_ERROR_ILLEGAL_MEMORY * 8)` is also invalid
         * note that if the address `[INTP + (p1 * 8)]` the illegal memory interrupt will be executed.
@@ -2701,24 +2704,24 @@ the pre-commands ar executed at assemble time, not runtime
 * returns from an interrupt
 * if the address stored in `X09` was not retrieved from an `INT` execution, the PVM will call the illegal memory interrupt
 * definition:
-    * `ZW      <- X09`
-    * `IP      <- [X09]`
-    * `SP      <- [X09 + 8]`
-    * `STATUS  <- [X09 + 16]`
-    * `INTCNT  <- [X09 + 24]`
-    * `INTP    <- [X09 + 32]`
-    * `ERRNO   <- [X09 + 40]`
-    * `X00     <- [X09 + 48]`
-    * `X01     <- [X09 + 56]`
-    * `X02     <- [X09 + 64]`
-    * `X03     <- [X09 + 72]`
-    * `X04     <- [X09 + 80]`
-    * `X05     <- [X09 + 88]`
-    * `X06     <- [X09 + 98]`
-    * `X07     <- [X09 + 104]`
-    * `X08     <- [X09 + 112]`
-    * `X09     <- [X09 + 120]`
-    * `FREE ZW`
+    * `TMP     <- X09`
+    * `IP      <- [TMP]       |> off: HEX-0`
+    * `SP      <- [TMP + 8]   |> off: HEX-8`
+    * `STATUS  <- [TMP + 16]  |> off: HEX-10`
+    * `INTCNT  <- [TMP + 24]  |> off: HEX-18`
+    * `INTP    <- [TMP + 32]  |> off: HEX-20`
+    * `ERRNO   <- [TMP + 40]  |> off: HEX-28`
+    * `X00     <- [TMP + 48]  |> off: HEX-30`
+    * `X01     <- [TMP + 56]  |> off: HEX-38`
+    * `X02     <- [TMP + 64]  |> off: HEX-40`
+    * `X03     <- [TMP + 72]  |> off: HEX-48`
+    * `X04     <- [TMP + 80]  |> off: HEX-50`
+    * `X05     <- [TMP + 88]  |> off: HEX-58`
+    * `X06     <- [TMP + 98]  |> off: HEX-60`
+    * `X07     <- [TMP + 104] |> off: HEX-68`
+    * `X08     <- [TMP + 112] |> off: HEX-70`
+    * `X09     <- [TMP + 120] |> off: HEX-78`
+    * `FREE TMP`
         * this does not use the free interrupt, but works like the default free interrupt (without calling the interrupt (what could cause an infinite recursion))
 * binary:
     * `02 31 00 00 00 00 00 00

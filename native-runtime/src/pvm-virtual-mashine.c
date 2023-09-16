@@ -67,6 +67,7 @@
 #include <linux/membarrier.h>
 #endif // PVM_DEBUG
 
+static struct memory *interrupt_memory;
 
 static uint64_t string_hash(const void *_a);
 
@@ -140,6 +141,11 @@ static inline void pvm_basic_init() {
 	memset(int_mem.adr, 0xFF, INTERRUPT_COUNT << 3);
 	pvm.intp = int_mem.mem->start;
 	pvm.intcnt = INTERRUPT_COUNT;
+	interrupt(2,0);
+	interrupt_memory = alloc_memory(128, MEM_INT | MEM_NO_RESIZE | MEM_INVALID).mem;
+	if (!interrupt_memory) {
+		abort();
+	}
 }
 
 static int loaded_libs_equal(const void *a, const void *b);
@@ -698,12 +704,18 @@ extern void pvm_debug_init(int input, _Bool input_is_pipe, _Bool wait) {
 #endif // PVM_DEBUG
 
 static inline void int_init() {
-	struct memory2 mem = alloc_memory(128, MEM_INT | MEM_NO_RESIZE);
-	if (!mem.mem) {
-		pvm_exit(127);
+	if  (interrupt_memory->flags & MEM_INVALID) {
+		interrupt_memory->flags = MEM_INT | MEM_NO_RESIZE | MEM_MARK_INVALID;
+		memcpy(interrupt_memory->offset + interrupt_memory->start, &pvm, 128);
+		pvm.x[0x09] = interrupt_memory->start;
+	} else {
+		struct memory2 mem = alloc_memory(128, MEM_INT | MEM_NO_RESIZE).mem;
+		if (!mem.mem) {
+			pvm_exit(127);
+		}
+		memcpy(mem.adr, &pvm, 128);
+		pvm.x[0x09] = mem.mem->start;
 	}
-	memcpy(mem.adr, &pvm, 128);
-	pvm.x[0x09] = mem.mem->start;
 }
 
 struct memory_check {
@@ -814,7 +826,7 @@ static inline struct memory_check chk(num pntr, num size) {
 						return result;
 					}
 				}
-				check_grow: if (m->flags & MEM_AUTO_GROW) {
+				check_grow: if ((m->flags & MEM_AUTO_GROW) && !(m->flags & MEM_INVALID)) {
 					num auto_grow_end = m->end
 							+ ((m->flags & MEM_AUTO_GROW_BITS)
 									>> MEM_AUTO_GROW_SHIFT);
@@ -859,6 +871,14 @@ static inline struct memory_check chk(num pntr, num size) {
 			}
 #endif
 			goto check_grow;
+		}
+		if (m->flags & MEM_INVALID) {
+			struct memory_check result;
+			result.mem = NULL;
+#ifdef PVM_DEBUG
+			result.valid = 0;
+#endif
+			return result;
 		}
 		struct memory_check result;
 		result.mem = m;
@@ -1251,6 +1271,10 @@ extern struct memory* realloc_memory(num adr, num newsize, _Bool auto_growing) {
 	return mem;
 }
 static inline void free_mem_impl(struct memory *mem) {
+	if (mem->flags & MEM_MARK_INVALID) {
+		mem->flags |= MEM_INVALID;
+		return;
+	}
 	free(mem->offset + mem->start);
 	memset(mem, 0xFF, sizeof(struct memory));
 }

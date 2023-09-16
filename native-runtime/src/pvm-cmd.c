@@ -256,7 +256,7 @@ static void c_lsh() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(0, 8);
+	struct p p2 = param(0, 1);
 	if (!p2.valid) {
 		return;
 	}
@@ -274,7 +274,7 @@ static void c_rash() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(0, 8);
+	struct p p2 = param(0, 1);
 	if (!p2.valid) {
 		return;
 	}
@@ -292,7 +292,7 @@ static void c_rlsh() {
 	if (!p1.valid) {
 		return;
 	}
-	struct p p2 = param(0, 8);
+	struct p p2 = param(0, 1);
 	if (!p2.valid) {
 		return;
 	}
