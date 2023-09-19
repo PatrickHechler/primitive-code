@@ -19,7 +19,7 @@
 #	define PVM_HALF_PORTABLE_BUILD
 #endif
 
-#include <patr-file-sys.h>
+#include <pfs/patr-file-sys.h>
 
 #if !defined __unix__
 #	define PVM_PORTABLE_BUILD

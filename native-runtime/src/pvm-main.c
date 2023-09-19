@@ -22,25 +22,25 @@
  *      Author: pat
  */
 
-#include <bm.h>
-#include <pfs.h>
-#include <pfs-stream.h>
-#include <pfs-constants.h>
-#include <pfs-element.h>
-#include <pfs-file.h>
-#include <pfs-folder.h>
-#include <pfs-err.h>
+#include <pfs/pfs.h>
+#include <pfs/pfs-constants.h>
+#include <pfs/pfs-element.h>
+#include <pfs/pfs-err.h>
+#include <pfs/pfs-file.h>
+#include <pfs/pfs-folder.h>
+#include <pfs/pfs-stream.h>
+#include <asm-generic/errno-base.h>
+#include <bits/types/FILE.h>
+#include <endian.h>
+#include <errno.h>
+#include <fcntl.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include "../include/pvm-version.h"
 #include "../include/pvm-virtual-mashine.h"
-
-#include <string.h>
-#include <stdlib.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <errno.h>
-#include <stdint.h>
-#include <fcntl.h>
 
 #define print_version0() print_version(stdout)
 
@@ -147,7 +147,22 @@ static void load_exec_in_pfs(int fh, num *exe_size, void **exe_data) {
 	pfs_stream_close(sh);
 }
 
-static inline void setup(int argc, char **argv) {
+#define word_from_chars_le(a, b)      (a | (b << 8))
+#define int_from_chars_le(a, b, c, d) (a | (b << 8) | (c << 16) | (d << 24))
+#if BYTE_ORDER == LITTLE_ENDIAN
+#	define word_from_chars(a,b)    word_from_chars_le(a,b)
+#	define int_from_chars(a,b,c,d) int_from_chars_le (a,b,c,d)
+#elif BYTE_ORDER == BIG_ENDIAN
+#	define word_from_chars(a,b)    word_from_chars_le(b,a)
+#	define int_from_chars(a,b,c,d) int_from_chars_le (d,c,b,a)
+#elif BYTE_ORDER == PDP_ENDIAN
+#	define word_from_chars(a,b)    word_from_chars_le(a,b)
+#	define int_from_chars(a,b,c,d) int_from_chars_le (c,d,a,b)
+#else
+#	error "non-supported byte order"
+#endif
+
+static inline void setup(int argc, char **argv0) {
 #ifdef PVM_DEBUG
 	wait = 0;
 	input = -1;
@@ -156,36 +171,105 @@ static inline void setup(int argc, char **argv) {
 	_Bool pfs_set = 0;
 	_Bool first_arg = 1;
 	char *cwd = NULL;
-	for (argv++, argc--; *argv; argv++, argc--, first_arg = 0) {
-		if (!**argv) {
-			illegal_arg: fprintf(stderr, "unknown argument: '%s'\n", *argv);
+	for (argv0++, argc--; *argv0; argv0++, argc--) {
+		if (!**argv0) {
+			illegal_arg: fprintf(stderr, "unknown argument: '%s'\n", *argv0);
 			exit(1);
 		}
-		if ((((uint16_t) '-') | (((uint16_t) '-') << 8))
-				== *(uint16_t*) *argv) {
-			*argv += 2;
-		} else {
-			goto no_arg;
+		if (word_from_chars('-', '-') != *(uint16_t*) *argv0) {
+			if (!first_arg) {
+				goto illegal_arg;
+			}
+			char *argv = *argv0;
+			struct bm_block_manager *bm = bm_new_file_block_manager_path(argv,
+					0);
+			if (!bm) {
+				fprintf(stderr,
+						"could not create the block manger (for the PFS) (%s) : %s\n",
+						pfs_error(), argv);
+				exit(1);
+			}
+			if (!pfs_load(bm, NULL, 0)) {
+				fprintf(stderr, "could not load the PFS (%s) : %s\n",
+						pfs_error(), argv);
+				exit(1);
+			}
+			int bin = pfs_handle("/bin");
+			if (bin == -1) {
+				fprintf(stderr, "could not open /bin in the PFS (%s) : %s\n",
+						pfs_error(), argv);
+				exit(1);
+			}
+			ui32 flags = pfs_element_get_flags(bin);
+			if (flags == (ui32) -1) {
+				fprintf(stderr, "could not get the flags of /bin (%s) : %s\n",
+						pfs_error(), argv);
+				exit(1);
+			}
+			if (flags & PFS_F_FOLDER) {
+				int bin_bin = pfs_folder_child_file(bin, "bin");
+				if (bin_bin == -1) {
+					fprintf(stderr,
+							"could not open /bin/bin in the PFS (%s) : %s\n",
+							pfs_error(), argv);
+					exit(1);
+				}
+				if (!pfs_element_close(bin)) {
+					fprintf(stderr,
+							"could not close /bin in the PFS (%s) : %s\n",
+							pfs_error(), argv);
+					exit(1);
+				}
+				bin = bin_bin;
+			}
+			num exe_size;
+			void *exe_data;
+			load_exec_in_pfs(bin, &exe_size, &exe_data);
+			pvm_init_execute(argv0, argc, exe_data, exe_size);
+			return;
 		}
-		if (!strcmp("help", *argv)) {
+		first_arg = 0;
+		char *argv = *argv0;
+#define word_argv(i) (*(uint16_t*) &argv[i])
+#define int_argv(i) (*(uint32_t*) &argv[i])
+#define word_argv_ne(i, ca, cb) (word_argv(i) != word_from_chars(ca, cb))
+#define int_argv_ne(i, ca, cb, cc, cd) (int_argv(i) != int_from_chars(ca, cb, cc, cd))
+		switch (word_argv(2)) {
+		case word_from_chars('h', 'e'): {
+			if (word_argv_ne(4, 'l', 'p') || (argv[6] != '\0')) {
+				goto illegal_arg;
+			}
 			print_help();
 			exit(1);
-		} else if (!strcmp("version", *argv)) {
+		}
+		case word_from_chars('v', 'e'): {
+			if (int_argv_ne(4, 'r', 's', 'i', 'o') || word_argv_ne(8, 'n', '\0')) {
+				goto illegal_arg;
+			}
 			print_version0();
 			exit(1);
+		}
 #ifdef PVM_DEBUG
-		} else if (!strcmp("wait", *argv)) {
+		case word_from_chars('w', 'a'): {
+			if (word_argv_ne(4, 'i', 't') || argv[6] != '=') {
+				goto illegal_arg;
+			}
 			wait = 1;
-		} else if (!memcmp("port=", *argv, 5)) {
+			break;
+		}
+		case word_from_chars('p', 'o'): {
+			if (word_argv_ne(4, 'r', 't') || argv[6] != '=') {
+				goto illegal_arg;
+			}
 			if (input != -1) {
 				fprintf(stderr, "debug input already set!\n");
 				exit(1);
 			}
 			char *end;
-			long val = strtol(*argv + 5, &end, 0);
+			long val = strtol(argv + 7, &end, 0);
 			if (errno) {
 				perror("strtol");
-				fprintf(stderr, "could not parse the port '%s'\n", *argv + 5);
+				fprintf(stderr, "could not parse the port '%s'\n", argv + 7);
 				exit(1);
 			}
 			if (val > UINT16_MAX || val < 0) {
@@ -195,187 +279,190 @@ static inline void setup(int argc, char **argv) {
 			}
 			input = val;
 			input_is_pipe = 0;
-		} else if (!memcmp("pipe=", *argv, 5)) {
+			break;
+		}
+		case word_from_chars('p', 'i'): {
+			if (word_argv_ne(4, 'p', 'e') || argv[6] != '=') {
+				goto illegal_arg;
+			}
 			if (input != -1) {
 				fprintf(stderr, "debug input already set!\n");
 				exit(1);
 			}
-			input = open(*argv + 5, O_RDONLY);
+			input = open(argv + 7, O_RDONLY);
 			if (input == -1) {
 				perror("open");
-				fprintf(stderr, "could not open the debug input (pipe/file)!\n",
-						*argv + 7);
+				fprintf(stderr, "could not open the debug input (%s)!\n",
+						argv + 7);
 				exit(1);
 			}
 			input_is_pipe = 1;
-		} else if (!memcmp("std=", *argv, 4)) {
+			break;
+		}
+		case word_from_chars('s', 't'): {
+			if (word_argv_ne(4, 'd', '=')) {
+				goto illegal_arg;
+			}
 			if (input != -1) {
 				fprintf(stderr, "debug input already set!\n");
 				exit(1);
 			}
 			char *end;
-			long val = strtol((*argv) + 4, &end, 0);
+			long val = strtol(argv + 6, &end, 0);
 			input = val;
 			if (val != input || errno) {
 				perror("strtol");
 				fprintf(stderr, "could not parse the file descriptor '%s'\n",
-						*argv + 6);
+						argv + 6);
 				exit(1);
 			}
 			input_is_pipe = 1;
-#endif // PVM_DEBUG
-		} else if (!strcmp("pmf-in-lfs", *argv)) {
-			pmf_in_lfs = 1;
-		} else if (!strcmp("pmf-in-pfs", *argv)) {
-			pmf_in_lfs = 0;
-		} else if (!memcmp("cwd=", *argv, 4)) {
+			break;
+		}
+#endif
+		case word_from_chars('c', 'w'): {
+			if (word_argv_ne(4, 'd', '=')) {
+				goto illegal_arg;
+			}
 			if (cwd) {
-				fprintf(stderr, "cwd already set!\n", *argv);
+				fprintf(stderr, "cwd already set!\n");
 				exit(1);
 			}
-			cwd = *argv + 4;
+			cwd = argv + 6;
 			if (pfs_set) {
 				if (!pfs_change_dir_path(cwd)) {
 					fprintf(stderr, "could not set cwd to '%s' (%s)!\n", cwd,
 							pfs_error());
+					exit(1);
 				}
 			}
-		} else if (!memcmp("pfs=", *argv, 4)) {
+			break;
+		}
+		case word_from_chars('p', 'f'): {
+			if (word_argv_ne(4, 's', '=')) {
+				goto illegal_arg;
+			}
 			if (pfs_set) {
-				fprintf(stderr, "pfs already set!\n", *argv);
+				fprintf(stderr, "pfs already set!\n");
 				exit(1);
 			}
 			pfs_set = 1;
 			struct bm_block_manager *bm = bm_new_file_block_manager_path(
-					*argv + 4, 0);
+					argv + 6, 0);
 			if (!bm) {
 				fprintf(stderr,
 						"could not create the block manger (for the PFS) (%s) : %s\n",
-						pfs_error(), *argv + 4);
+						pfs_error(), argv + 6);
 				exit(1);
 			}
 			if (!pfs_load(bm, cwd, 0)) {
 				fprintf(stderr, "could not load the PFS (%s)!\n", pfs_error());
 				exit(1);
 			}
-		} else if (!memcmp("pmf=", *argv, 4)) {
-			if (!pfs_set) {
-				fprintf(stderr, "pfs not set!\n");
-				exit(1);
+			break;
+		}
+		case word_from_chars('p', 'm'): {
+			switch (word_argv(4)) {
+			case word_from_chars('f', '-'): {
+				if (word_argv_ne(6, 'i', 'n')) {
+					goto illegal_arg;
+				}
+				switch (int_argv(8)) {
+				case int_from_chars('-', 'l', 'f', 's'):
+					if (argv[12] != '\0') {
+						goto illegal_arg;
+					}
+					pmf_in_lfs = 1;
+					break;
+				case int_from_chars('-', 'p', 'f', 's'): {
+					if (argv[12] != '\0') {
+						goto illegal_arg;
+					}
+					pmf_in_lfs = 0;
+					break;
+				}
+				default:
+					goto illegal_arg;
+				}
+				break;
 			}
+			case word_from_chars('f', '='): {
+				if (!pfs_set) {
+					fprintf(stderr, "pfs not set!\n");
+					exit(1);
+				}
 #ifdef PVM_DEBUG
-			if (wait && input == -1) {
-				fprintf(stderr, "wait set, but no input is set!\n");
-				exit(1);
-			}
+				if (wait && input == -1) {
+					fprintf(stderr, "wait set, but no input is set!\n");
+					exit(1);
+				}
 #endif
-			*argv += 4;
-			num exe_size;
-			void *exe_data;
-			if (pmf_in_lfs) {
-				bm_fd fd = bm_fd_open_ro(*argv);
+				argv += 6;
+				*argv0 = argv;
+				num exe_size;
+				void *exe_data;
+				if (pmf_in_lfs) {
+					bm_fd fd = bm_fd_open_ro(argv);
 #ifdef PFS_PORTABLE_BUILD
 				if (!fd)
 #else
-				if (fd == -1)
+					if (fd == -1)
 #endif
-						{
-					fprintf(stderr,
-							"could not open primitive machine file: %s\n",
-							strerror(errno));
-					exit(1);
-				}
-				exe_size = bm_fd_seek_eof(fd);
-				bm_fd_seek(fd, 0);
-				exe_data = malloc(exe_size);
-				if (!exe_data) {
-					fprintf(stderr,
-							"could not load the primitive machine file in memory\n");
-					exit(1);
-				}
-				for (num reat = exe_size; reat < exe_size;) {
-					num reat_ = bm_fd_read(fd, exe_data + reat,
-							exe_size - reat);
-					if (reat_ == -1) {
-						switch (errno) {
-						case EAGAIN:
-						case EINTR:
-							continue;
-						default:
-							perror("read");
-							fprintf(stderr, "failed to read the bin file\n");
-							exit(1);
-						}
-					} else if (!reat_) {
-						fprintf(stderr, "the bin file has been modified\n");
+							{
+						fprintf(stderr,
+								"could not open primitive machine file: %s\n",
+								strerror(errno));
 						exit(1);
 					}
-					reat += reat_;
+					exe_size = bm_fd_seek_eof(fd);
+					bm_fd_seek(fd, 0);
+					exe_data = malloc(exe_size);
+					if (!exe_data) {
+						fprintf(stderr,
+								"could not load the primitive machine file in memory\n");
+						exit(1);
+					}
+					for (num reat = exe_size; reat < exe_size;) {
+						num reat_ = bm_fd_read(fd, exe_data + reat,
+								exe_size - reat);
+						if (reat_ == -1) {
+							switch (errno) {
+							case EAGAIN:
+							case EINTR:
+								continue;
+							default:
+								perror("read");
+								fprintf(stderr,
+										"failed to read the bin file\n");
+								exit(1);
+							}
+						} else if (!reat_) {
+							fprintf(stderr, "the bin file has been modified\n");
+							exit(1);
+						}
+						reat += reat_;
+					}
+					bm_fd_close(fd);
+				} else {
+					int fh = pfs_handle_file(argv);
+					if (fh == -1) {
+						fprintf(stderr,
+								"could not open the primitive machine file: %s\n",
+								pfs_error());
+						exit(1);
+					}
+					load_exec_in_pfs(fh, &exe_size, &exe_data);
 				}
-				bm_fd_close(fd);
-			} else {
-				int fh = pfs_handle_file(*argv);
-				if (fh == -1) {
-					fprintf(stderr,
-							"could not open the primitive machine file: %s\n",
-							pfs_error());
-					exit(1);
-				}
-				load_exec_in_pfs(fh, &exe_size, &exe_data);
+				pvm_init_execute(argv0, argc, exe_data, exe_size);
+				return;
 			}
-			pvm_init_execute(argv, argc, exe_data, exe_size);
-			return;
-		} else {
-			no_arg: ;
-			if (!first_arg) {
+			default:
 				goto illegal_arg;
 			}
-			struct bm_block_manager *bm = bm_new_file_block_manager_path(*argv,
-					0);
-			if (!bm) {
-				fprintf(stderr,
-						"could not create the block manger (for the PFS) (%s) : %s\n",
-						pfs_error(), *argv);
-				exit(1);
-			}
-			if (!pfs_load(bm, NULL, 0)) {
-				fprintf(stderr, "could not load the PFS (%s) : %s\n",
-						pfs_error(), *argv);
-				exit(1);
-			}
-			int bin = pfs_handle("/bin");
-			if (bin == -1) {
-				fprintf(stderr, "could not open /bin in the PFS (%s) : %s\n",
-						pfs_error(), *argv);
-				exit(1);
-			}
-			ui32 flags = pfs_element_get_flags(bin);
-			if (flags == (ui32) -1) {
-				fprintf(stderr, "could not get the flags of /bin (%s) : %s\n",
-						pfs_error(), *argv);
-				exit(1);
-			}
-			if (flags & PFS_F_FOLDER) {
-				int bin_bin = pfs_folder_child_file(bin, "bin");
-				if (bin_bin == -1) {
-					fprintf(stderr,
-							"could not open /bin/bin in the PFS (%s) : %s\n",
-							pfs_error(), *argv);
-					exit(1);
-				}
-				if (!pfs_element_close(bin)) {
-					fprintf(stderr,
-							"could not close /bin in the PFS (%s) : %s\n",
-							pfs_error(), *argv);
-					exit(1);
-				}
-				bin = bin_bin;
-			}
-			num exe_size;
-			void *exe_data;
-			load_exec_in_pfs(bin, &exe_size, &exe_data);
-			pvm_init_execute(argv, argc, exe_data, exe_size);
-			return;
+			break;
+		}
+		default:
+			goto illegal_arg;
 		}
 	}
 #ifdef PVM_DEBUG
@@ -384,7 +471,7 @@ static inline void setup(int argc, char **argv) {
 				"no binary set! only allowed if wait and debug input is set!\n");
 		exit(1);
 	}
-	pvm_init_execute(argv, 0, NULL, -1);
+	pvm_init_execute(argv0, 0, NULL, -1);
 #else
 	fprintf(stderr, "no binary set!\n");
 	exit(1);
@@ -392,18 +479,6 @@ static inline void setup(int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-	double d = 0.0 / 0.0;
-	long l = 0xFFF4000000000000;
-	memcpy(&d, &l, 8);
-	printf("%lf : %016lX\n", d, l);
-	d = -d;
-	memcpy(&l, &d, 8);
-	printf("%lf : %016lX\n", d, l);
-	if (d > 0.0) {
-		printf("%lf > 0.0\n", d);
-	} else {
-		printf("!(%lf > 0.0)\n", d);
-	}
 	setup(argc, argv);
 #ifdef PVM_DEBUG
 	if (input != -1) {

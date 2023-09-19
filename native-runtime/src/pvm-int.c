@@ -18,7 +18,7 @@
 #error "this file should be included inside of pvm-virtual-mashine.c"
 #endif
 
-#include <pfs-err.h>
+#include <pfs/pfs-err.h>
 
 #define check_string_len0(XNN_OFFSET, mem, name, max_len, error_hook) \
 	num max_len = mem->end - pvm.x[XNN_OFFSET]; \
@@ -169,6 +169,9 @@ static void int_open_element( INT_PARAMS) {
 	}
 	check_string_len(0, )
 	pvm.x[0] = pfs_handle(name);
+}
+static void int_element_close( INT_PARAMS) {
+	pvm.x[0] = pfs_element_close(pvm.x[0]);
 }
 static void int_element_open_parent( INT_PARAMS) {
 	pvm.x[0] = pfs_element_parent(pvm.x[0]);
@@ -344,6 +347,12 @@ static void int_folder_create_child_mount_intern( INT_PARAMS) {
 }
 static void int_folder_open_iter( INT_PARAMS) {
 	pvm.x[1] = pfs_folder_open_iter(pvm.x[0], pvm.x[1] != 0);
+}
+static void int_folder_iter_next( INT_PARAMS) {
+	pvm.x[0] = pfs_iter_next(pvm.x[0]);
+}
+static void int_folder_iter_close( INT_PARAMS) {
+	pfs_iter_close(pvm.x[0]);
 }
 static void int_file_length( INT_PARAMS) {
 	pvm.x[1] = pfs_file_length(pvm.x[0]);

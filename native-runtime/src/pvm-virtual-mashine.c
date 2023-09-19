@@ -1,3 +1,4 @@
+
 //This file is part of the Primitive Code Project
 //DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 //Copyright (C) 2023  Patrick Hechler
@@ -24,17 +25,17 @@
 
 #include "../include/pvm.h"
 
-#include <pfs.h>
-#include <pfs-constants.h>
-#include <pfs-stream.h>
-#include <pfs-iter.h>
-#include <pfs-element.h>
-#include <pfs-folder.h>
-#include <pfs-mount.h>
-#include <pfs-file.h>
-#include <pfs-pipe.h>
-#include <pfs-err.h>
-#include <pfs-random.h>
+#include <pfs/pfs.h>
+#include <pfs/pfs-constants.h>
+#include <pfs/pfs-stream.h>
+#include <pfs/pfs-iter.h>
+#include <pfs/pfs-element.h>
+#include <pfs/pfs-folder.h>
+#include <pfs/pfs-mount.h>
+#include <pfs/pfs-file.h>
+#include <pfs/pfs-pipe.h>
+#include <pfs/pfs-err.h>
+#include <pfs/random.h>
 
 #include "../include/pvm-virtual-mashine.h"
 #include "../include/pvm-err.h"
@@ -66,6 +67,8 @@
 #include <sys/wait.h>
 #include <linux/membarrier.h>
 #endif // PVM_DEBUG
+
+static inline void interrupt(num intnum, num incIPVal);
 
 static struct memory *interrupt_memory;
 
@@ -709,7 +712,7 @@ static inline void int_init() {
 		memcpy(interrupt_memory->offset + interrupt_memory->start, &pvm, 128);
 		pvm.x[0x09] = interrupt_memory->start;
 	} else {
-		struct memory2 mem = alloc_memory(128, MEM_INT | MEM_NO_RESIZE).mem;
+		struct memory2 mem = alloc_memory(128, MEM_INT | MEM_NO_RESIZE);
 		if (!mem.mem) {
 			pvm_exit(127);
 		}
