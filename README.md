@@ -2825,8 +2825,12 @@ the pre-commands ar executed at assemble time, not runtime
     * `[P1.OFF_NUM]`
 
 ## not (yet) there/supported
-* CAS: compare and swap (when equal)
+* missing mount point operations
+    * get used/free/available/complete block size/count
+    * get/set UUID
+    * get fs-name
 * support for enviroment-variables
+* compare and swap/atomic operations
 * Multi-threading
     * maby thread-groups/processes
     * maby allow overwrite of default interrupts for child threads/processes

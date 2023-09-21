@@ -22,6 +22,7 @@
  *      Author: pat
  */
 
+#include "../include/pvm.h"
 #include <pfs/pfs.h>
 #include <pfs/pfs-constants.h>
 #include <pfs/pfs-element.h>
@@ -29,6 +30,7 @@
 #include <pfs/pfs-file.h>
 #include <pfs/pfs-folder.h>
 #include <pfs/pfs-stream.h>
+#include <sys/resource.h>
 #include <asm-generic/errno-base.h>
 #include <bits/types/FILE.h>
 #include <endian.h>
@@ -38,6 +40,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <alloca.h>
 
 #include "../include/pvm-version.h"
 #include "../include/pvm-virtual-mashine.h"
@@ -103,6 +106,17 @@ static inline void print_help(void) {
 			"    it is recommended to specify this option even when\n"
 			"    --wait is specified.\n"
 #endif // PVM_DEBUG
+#ifndef PVM_PORTABLE_BUILD
+			"    --max-mem=<MAX_MEMRY>[GMKgmk]?\n"
+			"      maximize the memory this process is allowed to use\n"
+			"      optional multiplicator:\n"
+			"        G: 1024*1024*1024\n"
+			"        M: 1024*1024\n"
+			"        K: 1024\n"
+			"        g: 1000*1000*1000\n"
+			"        m: 1000*1000\n"
+			"        k: 1000\n"
+#endif // PVM_PORTABLE_BUILD
 			"");
 }
 
@@ -461,6 +475,48 @@ static inline void setup(int argc, char **argv0) {
 			}
 			break;
 		}
+#ifndef PVM_PORTABLE_BUILD
+		case word_from_chars('m', 'a'): {
+			if (int_argv_ne(4, 'x', '-', 'm', 'e') || word_argv_ne(8, 'm', '=')) {
+				goto illegal_arg;
+			}
+			char *end;
+			struct rlimit rlim;
+			rlim.rlim_max = strtoul(argv + 10, &end, 0);
+			if (errno) {
+				perror("string to unsigned long");
+				exit(1);
+			}
+			switch (*end) {
+			case '\0':
+				break;
+			case 'G':
+				rlim.rlim_max *= 1024 * 1024 * 1024;
+				break;
+			case 'M':
+				rlim.rlim_max *= 1024 * 1024;
+				break;
+			case 'K':
+				rlim.rlim_max *= 1024;
+				break;
+			case 'g':
+				rlim.rlim_max *= 1000 * 1000 * 1000;
+				break;
+			case 'm':
+				rlim.rlim_max *= 1000 * 1000;
+				break;
+			case 'k':
+				rlim.rlim_max *= 1000;
+				break;
+			default:
+				goto illegal_arg;
+			}
+			rlim.rlim_cur = rlim.rlim_max;
+			setrlimit(RLIMIT_AS, &rlim);
+			alloca(256); // check that the stack can grow for a bit
+			break;
+		}
+#endif // PVM_PORTABLE_BUILD
 		default:
 			goto illegal_arg;
 		}
